@@ -1,4 +1,4 @@
-# 🟣 KURA — Documentación Técnica Oficial (MVP 1.0)
+# 🟣 KOCTEAU — Documentación Técnica Oficial (MVP 1.0)
 
 Red social de música basada en reseñas.  
 Música se obtiene **en vivo desde Deezer**, interacción social vive en Supabase.
@@ -19,7 +19,7 @@ Música se obtiene **en vivo desde Deezer**, interacción social vive en Supabas
 
 ## 🟣 Visión General
 
-> KURA es un espacio para **criticar, descubrir y vivir música**, no para reproducirla.  
+> KOCTEAU es un espacio para **criticar, descubrir y vivir música**, no para reproducirla.  
 > La música viene de **Deezer**, la conversación nace aquí.
 
 ✔ Opiniones reales  

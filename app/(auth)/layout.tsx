@@ -9,8 +9,8 @@ const geistSans = Geist({
 
 
 export const metadata: Metadata = {
-  title: "KURA - Authentication",
-  description: "Authentication pages for KURA application.",
+  title: "KOCTEAU - Authentication",
+  description: "Authentication pages for KOCTEAU application.",
 };
 
 export default function AuthLayout({
