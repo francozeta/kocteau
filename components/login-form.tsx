@@ -21,19 +21,19 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <form>
         <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex flex-col items-center gap-3 text-center">
             <Link
-              href="#"
+              href="/"
               className="flex flex-col items-center gap-2 font-medium"
             >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEnd className="size-6" />
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <span className="text-lg font-bold">K</span>
               </div>
-              <span className="sr-only">Acme Inc.</span>
+              <span className="sr-only">Kocteau</span>
             </Link>
-            <h1 className="text-xl font-bold">Welcome to Acme Inc.</h1>
-            <FieldDescription>
-              Don&apos;t have an account? <Link href="signup">Sign up</Link>
+            <h1 className="text-2xl font-bold tracking-tight">Welcome to Kocteau</h1>
+            <FieldDescription className="text-sm">
+              Don&apos;t have an account? <Link href="/signup" className="font-medium text-primary hover:underline">Sign up</Link>
             </FieldDescription>
           </div>
           <Field>
@@ -46,7 +46,7 @@ export function LoginForm({
             />
           </Field>
           <Field>
-            <Button type="submit">Login</Button>
+            <Button type="submit" className="w-full font-medium">Login</Button>
           </Field>
           <FieldSeparator>Or</FieldSeparator>
           <Field className="grid gap-4 sm:grid-cols-2">

@@ -44,12 +44,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white text-black">
+              <Link href="/" className="hover:opacity-80 transition-opacity">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                   <span className="text-sm font-bold">K</span>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Kocteau</span>
+                  <span className="truncate font-bold">Kocteau</span>
                   <span className="truncate text-xs text-muted-foreground">Music & Reviews</span>
                 </div>
               </Link>

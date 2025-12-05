@@ -18,11 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SidebarProvider className="">
+    <SidebarProvider className="min-h-screen">
       <AppSidebar />
-      <SidebarInset className="">
+      <SidebarInset className="flex flex-col">
         <Header />
-        <main className="">{children}</main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

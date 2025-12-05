@@ -19,7 +19,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${geistSans.className} bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 dark antialiased text-neutral-100 `}>
+    <div className={`${geistSans.className} bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 antialiased`}>
       <div className="w-full max-w-sm">
         {children}
       </div>
