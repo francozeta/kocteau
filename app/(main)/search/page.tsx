@@ -1,4 +1,5 @@
 import SearchClient from "@/components/search-client"
+import { Suspense } from "react"
 
 export default function SearchPage() {
   return (
@@ -10,7 +11,15 @@ export default function SearchPage() {
         </p>
       </div>
 
-      <SearchClient />
+      <Suspense
+        fallback={
+          <div className="rounded-xl border border-border p-6 text-sm text-muted-foreground">
+            Loading search…
+          </div>
+        }
+      >
+        <SearchClient />
+      </Suspense>
     </div>
   )
 }
