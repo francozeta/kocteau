@@ -56,11 +56,11 @@ export function TrackHeader({ track }: TrackHeaderProps) {
 
         <div className="flex justify-center md:justify-start gap-2 mt-1">
           <Button asChild variant="outline" size="sm" className="gap-2 bg-transparent">
-            <a href={`https://www.deezer.com/track/${track.id}`} target="_blank" rel="noopener noreferrer">
+            <Link href={`https://www.deezer.com/track/${track.id}`} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-4 w-4" />
               <span className="hidden sm:inline">Open in Deezer</span>
               <span className="sm:hidden">Deezer</span>
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

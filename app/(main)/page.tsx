@@ -13,7 +13,6 @@ export default function Page() {
         width="100%"
         height={150}
         frameBorder={0}
-        allowTransparency
         allow="encrypted-media; clipboard-write"
         loading="lazy"
       />

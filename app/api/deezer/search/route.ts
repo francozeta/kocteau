@@ -1,8 +1,7 @@
-// app/api/deezer/search/route.ts
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { searchTracks } from "@/lib/deezer"
 
-export const runtime = "edge" // opcional: mejor latency si tu lib lo permite
+export const runtime = "edge"
 
 function clampInt(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n))
@@ -12,7 +11,7 @@ function cleanQuery(q: string) {
   return q.trim().replace(/\s+/g, " ")
 }
 
-// Rate limit ultra simple en memoria (Edge: ojo, no es perfecto en múltiples regiones)
+// Rate limit ultra simple en memoria
 const hits = new Map<string, { count: number; resetAt: number }>()
 function rateLimit(key: string, limit = 30, windowMs = 60_000) {
   const now = Date.now()
@@ -34,19 +33,14 @@ export async function GET(request: NextRequest) {
 
   // early returns para no gastar llamadas
   if (!q) {
-    return NextResponse.json(
-      { data: [], meta: { query: q, limit: 0, tookMs: 0 } },
-      { status: 200 }
-    )
+    return NextResponse.json({ data: [], meta: { query: q, limit: 0, tookMs: 0 } }, { status: 200 })
   }
 
   const limit = clampInt(Number.parseInt(sp.get("limit") ?? "8", 10) || 8, 1, 25)
 
   // rate limit por IP
   const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown"
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? request.headers.get("x-real-ip") ?? "unknown"
 
   const rl = rateLimit(ip, 40, 60_000)
   if (!rl.ok) {
@@ -57,7 +51,7 @@ export async function GET(request: NextRequest) {
         headers: {
           "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
         },
-      }
+      },
     )
   }
 
@@ -91,16 +85,12 @@ export async function GET(request: NextRequest) {
       {
         status: 200,
         headers: {
-          // cache “seguro” para búsquedas (ajusta a tu gusto)
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600",
         },
-      }
+      },
     )
   } catch (err) {
     const tookMs = Date.now() - t0
-    return NextResponse.json(
-      { error: "Deezer search failed", meta: { query: q, tookMs } },
-      { status: 502 }
-    )
+    return NextResponse.json({ error: "Deezer search failed", meta: { query: q, tookMs } }, { status: 502 })
   }
 }
