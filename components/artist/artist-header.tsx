@@ -42,7 +42,7 @@ export function ArtistHeader({ artist }: ArtistHeaderProps) {
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Disc3 className="h-4 w-4" />
-            {artist.nb_album} {artist.nb_album === 1 ? "album" : "albums"}
+            {artist.nb_album} {artist.nb_album === 1 ? "release" : "releases"}
           </span>
         </div>
 

@@ -5,10 +5,30 @@ import { useState } from "react"
 import { Calendar } from "lucide-react"
 import type { DeezerArtistAlbum } from "@/lib/deezer"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 
 interface ArtistDiscographyProps {
   albums: DeezerArtistAlbum[]
   artistName: string
+}
+
+function getYearFromReleaseDate(releaseDate: string): number {
+  if (!releaseDate) return 0
+
+  // Try to parse the date - Deezer returns YYYY-MM-DD format
+  const date = new Date(releaseDate)
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    // If invalid, try to extract year directly from string
+    const yearMatch = releaseDate.match(/^\d{4}/)
+    if (yearMatch) {
+      return Number.parseInt(yearMatch[0])
+    }
+    return 0
+  }
+
+  return date.getFullYear()
 }
 
 export function ArtistDiscography({ albums, artistName }: ArtistDiscographyProps) {
@@ -23,7 +43,15 @@ export function ArtistDiscography({ albums, artistName }: ArtistDiscographyProps
   const sortAlbums = (items: DeezerArtistAlbum[]) => {
     return [...items].sort((a, b) => {
       if (sortBy === "date") {
-        return new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
+        const dateA = new Date(a.release_date).getTime()
+        const dateB = new Date(b.release_date).getTime()
+
+        // If dates are invalid, put them at the end
+        if (isNaN(dateA) && isNaN(dateB)) return 0
+        if (isNaN(dateA)) return 1
+        if (isNaN(dateB)) return -1
+
+        return dateB - dateA
       }
       return a.title.localeCompare(b.title)
     })
@@ -55,50 +83,73 @@ export function ArtistDiscography({ albums, artistName }: ArtistDiscographyProps
         </TabsList>
 
         <TabsContent value="all">
-          <AlbumGrid albums={sortAlbums(albums)} />
+          <AlbumCarousel albums={sortAlbums(albums)} />
         </TabsContent>
         <TabsContent value="album">
-          <AlbumGrid albums={sortAlbums(allAlbums)} />
+          <AlbumCarousel albums={sortAlbums(allAlbums)} />
         </TabsContent>
         <TabsContent value="single">
-          <AlbumGrid albums={sortAlbums(singles)} />
+          <AlbumCarousel albums={sortAlbums(singles)} />
         </TabsContent>
         <TabsContent value="ep">
-          <AlbumGrid albums={sortAlbums(eps)} />
+          <AlbumCarousel albums={sortAlbums(eps)} />
         </TabsContent>
         <TabsContent value="compilation">
-          <AlbumGrid albums={sortAlbums(compilations)} />
+          <AlbumCarousel albums={sortAlbums(compilations)} />
         </TabsContent>
       </Tabs>
     </section>
   )
 }
 
-function AlbumGrid({ albums }: { albums: DeezerArtistAlbum[] }) {
+function AlbumCarousel({ albums }: { albums: DeezerArtistAlbum[] }) {
   if (albums.length === 0) {
     return <p className="text-sm text-muted-foreground py-8 text-center">No items found</p>
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-      {albums.map((album) => (
-        <Link key={album.id} href={`/album/${album.id}`} className="group space-y-2">
-          <div className="aspect-square rounded-lg overflow-hidden border border-border group-hover:border-primary transition-colors">
-            <img
-              src={album.cover_medium || album.cover_big || "/placeholder.svg"}
-              alt={album.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">{album.title}</p>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {new Date(album.release_date).getFullYear()}
-            </p>
-          </div>
-        </Link>
-      ))}
+    <div className="relative px-12 mt-4">
+      <Carousel
+        opts={{
+          align: "start",
+          loop: false,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-2 md:-ml-4">
+          {albums.map((album) => {
+            const year = getYearFromReleaseDate(album.release_date)
+
+            return (
+              <CarouselItem
+                key={album.id}
+                className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+              >
+                <Link href={`/album/${album.id}`} className="group block space-y-2">
+                  <div className="aspect-square rounded-lg overflow-hidden border border-border group-hover:border-primary transition-colors">
+                    <img
+                      src={album.cover_medium || album.cover_big || "/placeholder.svg"}
+                      alt={album.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">
+                      {album.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {year > 0 ? year : "Unknown"}
+                    </p>
+                  </div>
+                </Link>
+              </CarouselItem>
+            )
+          })}
+        </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
+      </Carousel>
     </div>
   )
 }
