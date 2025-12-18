@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { searchTracks } from "@/lib/deezer"
+import { searchTracks, searchAlbums, searchArtists } from "@/lib/deezer"
 
 export const runtime = "edge"
 
@@ -25,15 +25,29 @@ function rateLimit(key: string, limit = 30, windowMs = 60_000) {
   return { ok: true, remaining: limit - cur.count, resetAt: cur.resetAt }
 }
 
+function dedupeById(items: any[]) {
+  const seen = new Set<string | number>()
+  return items.filter((item: any) => {
+    const id = item?.id
+    if (id == null || seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
+
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams
 
   const qRaw = sp.get("q") ?? ""
   const q = cleanQuery(qRaw)
+  const type = sp.get("type") ?? "all" // all, track, album, artist
 
   // early returns para no gastar llamadas
   if (!q) {
-    return NextResponse.json({ data: [], meta: { query: q, limit: 0, tookMs: 0 } }, { status: 200 })
+    return NextResponse.json(
+      { data: { tracks: [], albums: [], artists: [] }, meta: { query: q, type, limit: 0, tookMs: 0 } },
+      { status: 200 },
+    )
   }
 
   const limit = clampInt(Number.parseInt(sp.get("limit") ?? "8", 10) || 8, 1, 25)
@@ -58,26 +72,38 @@ export async function GET(request: NextRequest) {
   const t0 = Date.now()
 
   try {
-    const tracks = await searchTracks(q, limit)
+    let tracks: any[] = []
+    let albums: any[] = []
+    let artists: any[] = []
 
-    // dedupe por id + normalización ligera
-    const seen = new Set<string | number>()
-    const unique = tracks.filter((t: any) => {
-      const id = t?.id
-      if (id == null || seen.has(id)) return false
-      seen.add(id)
-      return true
-    })
+    if (type === "all" || type === "track") {
+      tracks = await searchTracks(q, limit)
+    }
+    if (type === "all" || type === "album") {
+      albums = await searchAlbums(q, type === "all" ? Math.floor(limit / 3) : limit)
+    }
+    if (type === "all" || type === "artist") {
+      artists = await searchArtists(q, type === "all" ? Math.floor(limit / 3) : limit)
+    }
 
     const tookMs = Date.now() - t0
 
     return NextResponse.json(
       {
-        data: unique,
+        data: {
+          tracks: dedupeById(tracks),
+          albums: dedupeById(albums),
+          artists: dedupeById(artists),
+        },
         meta: {
           query: q,
+          type,
           limit,
-          count: unique.length,
+          count: {
+            tracks: tracks.length,
+            albums: albums.length,
+            artists: artists.length,
+          },
           tookMs,
           rateLimit: { remaining: rl.remaining, resetAt: rl.resetAt },
         },

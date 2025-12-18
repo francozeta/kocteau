@@ -79,6 +79,28 @@ export interface DeezerChart {
   }
 }
 
+export interface DeezerArtistAlbum {
+  id: number
+  title: string
+  cover: string
+  cover_small: string
+  cover_medium: string
+  cover_big: string
+  release_date: string
+  record_type: string // album, single, ep, compilation
+  nb_tracks: number
+}
+
+export interface DeezerRelatedArtist {
+  id: number
+  name: string
+  picture: string
+  picture_small: string
+  picture_medium: string
+  picture_big: string
+  nb_fan: number
+}
+
 const DEEZER_API_BASE = "https://api.deezer.com"
 
 export async function searchTracks(query: string, limit = 10): Promise<DeezerTrack[]> {
@@ -130,6 +152,54 @@ export async function getArtist(id: number): Promise<DeezerArtist | null> {
 export async function getArtistTopTracks(artistId: number, limit = 10): Promise<DeezerTrack[]> {
   const res = await fetch(`${DEEZER_API_BASE}/artist/${artistId}/top?limit=${limit}`, {
     next: { revalidate: 3600 },
+  })
+
+  if (!res.ok) return []
+
+  const data = await res.json()
+  return data.data || []
+}
+
+export async function getArtistAlbums(artistId: number, limit = 50): Promise<DeezerArtistAlbum[]> {
+  const res = await fetch(`${DEEZER_API_BASE}/artist/${artistId}/albums?limit=${limit}`, {
+    next: { revalidate: 3600 },
+  })
+
+  if (!res.ok) return []
+
+  const data = await res.json()
+  return data.data || []
+}
+
+export async function getRelatedArtists(artistId: number, limit = 10): Promise<DeezerRelatedArtist[]> {
+  const res = await fetch(`${DEEZER_API_BASE}/artist/${artistId}/related?limit=${limit}`, {
+    next: { revalidate: 3600 },
+  })
+
+  if (!res.ok) return []
+
+  const data = await res.json()
+  return data.data || []
+}
+
+export async function searchAlbums(query: string, limit = 10): Promise<DeezerAlbum[]> {
+  if (!query.trim()) return []
+
+  const res = await fetch(`${DEEZER_API_BASE}/search/album?q=${encodeURIComponent(query)}&limit=${limit}`, {
+    next: { revalidate: 60 },
+  })
+
+  if (!res.ok) return []
+
+  const data = await res.json()
+  return data.data || []
+}
+
+export async function searchArtists(query: string, limit = 10): Promise<DeezerArtist[]> {
+  if (!query.trim()) return []
+
+  const res = await fetch(`${DEEZER_API_BASE}/search/artist?q=${encodeURIComponent(query)}&limit=${limit}`, {
+    next: { revalidate: 60 },
   })
 
   if (!res.ok) return []
