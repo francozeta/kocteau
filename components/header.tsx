@@ -43,7 +43,7 @@ export default function Header({ profile }: { profile: HeaderProfile }) {
                 />
               ) : null}
             </div>
-            <span className="text-sm">{name}</span>
+            <Link href={`/u/${username}`} className="text-sm hover:underline">{name}</Link>
           </div>
 
           <button className="border rounded px-3 py-1 text-sm" onClick={logout}>
