@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Link from "next/link";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const supabase = supabaseBrowser();
   const router = useRouter();
 
@@ -18,22 +18,21 @@ export default function LoginPage() {
     setLoading(true);
     setMsg(null);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signUp({ email, password });
+
     if (error) {
       setMsg(error.message);
       setLoading(false);
       return;
     }
 
-    const res = await fetch("/api/post-auth");
-    const data = await res.json();
-    router.replace(data.redirectTo ?? "/");
+    router.replace("/onboarding");
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-3">
-        <h1 className="text-xl font-semibold">Login</h1>
+        <h1 className="text-xl font-semibold">Crear cuenta</h1>
 
         <input className="w-full border rounded px-3 py-2" placeholder="Email"
           value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -42,11 +41,11 @@ export default function LoginPage() {
           value={password} onChange={(e) => setPassword(e.target.value)} />
 
         <button className="w-full border rounded px-3 py-2" onClick={onSubmit} disabled={loading}>
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? "Creando..." : "Crear cuenta"}
         </button>
 
         <p className="text-sm opacity-80">
-          ¿No tienes cuenta? <Link className="underline" href="/signup">Crear cuenta</Link>
+          ¿Ya tienes cuenta? <Link className="underline" href="/login">Login</Link>
         </p>
 
         {msg && <p className="text-sm opacity-80">{msg}</p>}
