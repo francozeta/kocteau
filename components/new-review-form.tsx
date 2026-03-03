@@ -193,21 +193,40 @@ export default function NewReviewForm() {
         </>
       ) : (
         <>
-          <div className="rounded-lg border p-3">
-            <div className="text-sm font-medium">{selected.title}</div>
-            <div className="text-xs opacity-70">
-              {selected.artist_name ?? "Unknown artist"} • Deezer ID {selected.provider_id}
+          <div className="rounded-lg border p-3 flex items-start gap-3">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
+              {selected.cover_url ? (
+                // Migrate to Image component if these are public URLs (and check CORS)
+                <img
+                  src={selected.cover_url}
+                  alt={`${selected.title} cover`}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : null}
             </div>
 
-            <div className="mt-3 flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={resetSelection}>
-                Cambiar
-              </Button>
-              {selected.deezer_url ? (
-                <a className="text-xs underline opacity-80" href={selected.deezer_url} target="_blank" rel="noreferrer">
-                  Abrir en Deezer
-                </a>
-              ) : null}
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium truncate">{selected.title}</div>
+              <div className="text-xs opacity-70 truncate">
+                {selected.artist_name ?? "Unknown artist"} • Deezer ID {selected.provider_id}
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={resetSelection}>
+                  Cambiar
+                </Button>
+                {selected.deezer_url ? (
+                  <a
+                    className="text-xs underline opacity-80"
+                    href={selected.deezer_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Abrir en Deezer
+                  </a>
+                ) : null}
+              </div>
             </div>
           </div>
 
