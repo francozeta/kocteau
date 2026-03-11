@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -190,59 +191,55 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="mb-4 flex items-center gap-2">
-        <StepPill active={step === "search"} number="1" label="Track" />
-        <StepPill active={step === "compose"} number="2" label="Review" />
-      </div>
-
-      {errorMsg ? (
-        <Alert variant="destructive" className="mb-4 shrink-0">
-          <AlertTitle>No pudimos continuar</AlertTitle>
-          <AlertDescription>{errorMsg}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      <div className="min-h-0 flex-1 overflow-hidden">
-        {step === "search" ? (
-          <div className="flex h-full min-h-0 flex-col rounded-2xl border bg-card">
-            <div className="space-y-3 border-b px-4 py-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="flex items-center gap-2 text-sm font-semibold">
-                    <Search className="size-4" />
-                    Buscar track
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Escribe, busca y elige una canción para pasar al siguiente paso.
-                  </p>
-                </div>
-                <Badge variant="secondary">Tracks only</Badge>
-              </div>
-
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Ej. devon hendryx"
-                disabled={saving}
-                autoFocus
-              />
+    <div className="flex h-full min-h-0 flex-col px-6 py-4">
+      {step === "search" ? (
+        <>
+          <div className="mb-4 flex items-center gap-2">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <Search className="size-4" />
+                Buscar track
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Escribe y elige una canción para pasar al siguiente paso.
+              </p>
             </div>
+            <Badge variant="secondary" className="shrink-0">
+              Tracks only
+            </Badge>
+          </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+          {errorMsg ? (
+            <Alert variant="destructive" className="mb-4 shrink-0">
+              <AlertTitle>No pudimos continuar</AlertTitle>
+              <AlertDescription>{errorMsg}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Ej. devon hendryx"
+            disabled={saving}
+            autoFocus
+            className="mb-4 shrink-0"
+          />
+
+          <ScrollArea className="min-h-0 flex-1 rounded-lg border">
+            <div className="px-4 py-3">
               {searching ? (
-                <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
                   <LoaderCircle className="size-4 animate-spin" />
                   Buscando resultados...
                 </div>
               ) : null}
 
               {!searching && !query.trim() ? (
-                <EmptyState text="Busca un track para empezar tu review." />
+                <p className="py-4 text-sm text-muted-foreground">Busca un track para empezar tu review.</p>
               ) : null}
 
               {!searching && query.trim() && results.length === 0 ? (
-                <EmptyState text="No encontramos tracks para esa búsqueda." />
+                <p className="py-4 text-sm text-muted-foreground">No encontramos tracks para esa búsqueda.</p>
               ) : null}
 
               {results.length > 0 ? (
@@ -256,9 +253,9 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
                         setStep("compose");
                         setErrorMsg(null);
                       }}
-                      className="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition hover:border-foreground/30 hover:bg-muted/40"
+                      className="flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition hover:border-foreground/30 hover:bg-muted/40"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                         {result.cover_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -283,56 +280,60 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
                 </div>
               ) : null}
             </div>
-          </div>
-        ) : (
-          <div className="flex h-full min-h-0 flex-col rounded-2xl border bg-card">
-            <div className="border-b px-4 py-4">
-              <div className="flex items-start gap-3">
-                <Button type="button" variant="ghost" size="icon" onClick={goBackToSearch} className="shrink-0">
-                  <ArrowLeft className="size-4" />
-                  <span className="sr-only">Volver a buscar</span>
-                </Button>
+          </ScrollArea>
+        </>
+      ) : (
+        <>
+          <div className="mb-4 flex items-center gap-3 shrink-0">
+            <Button type="button" variant="ghost" size="icon" onClick={goBackToSearch} className="shrink-0">
+              <ArrowLeft className="size-4" />
+              <span className="sr-only">Volver a buscar</span>
+            </Button>
 
-                <div className="flex min-w-0 flex-1 items-start gap-3">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
-                    {selected?.cover_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={selected.cover_url}
-                        alt={selected.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Music2 className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{selected?.title}</p>
-                    <p className="truncate text-sm text-muted-foreground">
-                      {selected?.artist_name ?? "Unknown artist"}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={goBackToSearch}>
-                        Cambiar track
-                      </Button>
-                      {selected?.deezer_url ? (
-                        <Button asChild type="button" variant="ghost" size="sm">
-                          <a href={selected.deezer_url} target="_blank" rel="noreferrer">
-                            Abrir en Deezer
-                          </a>
-                        </Button>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                {selected?.cover_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selected.cover_url}
+                    alt={selected.title}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <Music2 className="size-5 text-muted-foreground" />
+                )}
               </div>
-            </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-              <div className="space-y-4">
-                <section className="rounded-xl border p-4">
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-sm">{selected?.title}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {selected?.artist_name ?? "Unknown artist"}
+                </p>
+              </div>
+
+              {selected?.deezer_url ? (
+                <Button asChild type="button" variant="ghost" size="sm" className="shrink-0">
+                  <a href={selected.deezer_url} target="_blank" rel="noreferrer">
+                    <span className="sr-only">Abrir en Deezer</span>
+                    🎵
+                  </a>
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
+          {errorMsg ? (
+            <Alert variant="destructive" className="mb-4 shrink-0">
+              <AlertTitle>No pudimos continuar</AlertTitle>
+              <AlertDescription>{errorMsg}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          <ScrollArea className="min-h-0 flex-1 rounded-lg border mb-4">
+            <div className="p-4">
+              <div className="space-y-5">
+                <section>
                   <div className="mb-3 flex items-center gap-2">
                     <Star className="size-4" />
                     <p className="text-sm font-medium">Rating obligatorio</p>
@@ -367,12 +368,12 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
                     value={body}
                     onChange={(event) => setBody(event.target.value)}
                     placeholder="Qué te hizo sentir, por qué te gustó o por qué no."
-                    className="min-h-24"
+                    className="min-h-20"
                     disabled={saving}
                   />
                 </section>
 
-                <section className="flex items-start gap-3 rounded-xl border p-3">
+                <section className="flex items-start gap-3 rounded-lg border p-3">
                   <Checkbox
                     id="pin-review"
                     checked={pin}
@@ -394,31 +395,23 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
                 </section>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          </ScrollArea>
 
-      <div className="mt-4 flex shrink-0 flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <Button type="button" variant="ghost" onClick={resetAll} disabled={saving}>
-          Reiniciar
-        </Button>
-
-        <div className="flex gap-2">
-          {step === "compose" ? (
-            <Button type="button" variant="outline" onClick={goBackToSearch} disabled={saving}>
-              Volver
+          <div className="flex shrink-0 flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <Button type="button" variant="ghost" onClick={goBackToSearch} disabled={saving}>
+              Cambiar track
             </Button>
-          ) : null}
-          <Button
-            type="button"
-            onClick={onSubmit}
-            disabled={saving || step !== "compose" || !selected || rating === null}
-            className="w-full sm:w-auto"
-          >
-            {saving ? "Publicando..." : "Publicar review"}
-          </Button>
-        </div>
-      </div>
+
+            <Button
+              type="button"
+              onClick={onSubmit}
+              disabled={saving || !selected || rating === null}
+            >
+              {saving ? "Publicando..." : "Publicar review"}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

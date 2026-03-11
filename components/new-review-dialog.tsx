@@ -38,7 +38,7 @@ export default function NewReviewDialog() {
             </DrawerDescription>
           </DrawerHeader>
 
-          <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4">
+          <div className="min-h-0 flex-1 overflow-hidden">
             <NewReviewForm onSuccess={() => setOpen(false)} />
           </div>
         </DrawerContent>
@@ -50,15 +50,15 @@ export default function NewReviewDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="flex h-[min(88vh,44rem)] w-[min(100vw-1.5rem,34rem)] flex-col overflow-hidden border-border/60 p-0">
-        <DialogHeader className="border-b border-border/60 px-5 py-4">
+      <DialogContent className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/60 p-0">
+        <DialogHeader className="border-b border-border/60 px-6 py-4">
           <DialogTitle>Nueva review</DialogTitle>
           <DialogDescription>
             Elige un track, dale un rating y publica una nota opcional para que aparezca en el feed.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-hidden px-5 pb-5 pt-4">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <NewReviewForm onSuccess={() => setOpen(false)} />
         </div>
       </DialogContent>
