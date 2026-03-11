@@ -72,5 +72,5 @@ There are also future or secondary tables:
 ## Notes
 
 - the demo is currently focused on `track`, not albums or artists
+- review body is optional in the UI; apply the latest Supabase migration so the database matches that behavior too
 - some technical cleanups outside the main flow are still pending
-

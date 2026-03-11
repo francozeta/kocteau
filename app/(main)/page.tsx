@@ -21,7 +21,7 @@ type FeedAuthor = {
 type FeedReview = {
   id: string;
   title: string | null;
-  body: string;
+  body: string | null;
   rating: number;
   created_at: string;
   entities: FeedEntity | FeedEntity[] | null;

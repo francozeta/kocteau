@@ -25,7 +25,7 @@ type ReviewAuthor = {
 type EntityReview = {
   id: string;
   title: string | null;
-  body: string;
+  body: string | null;
   rating: number;
   created_at: string;
   is_pinned: boolean;

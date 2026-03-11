@@ -150,5 +150,5 @@ If that loop feels clear and stable, the demo already identifies the product.
 
 - rating is mandatory because it's the app's core
 - written note in the UI is optional to reduce friction
-- if the database enforces `body not null`, that must be aligned before demo launch
+- review creation is now intended to go through a server route / RPC instead of direct client writes
 - the current MVP prioritizes product clarity over future features

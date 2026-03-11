@@ -177,7 +177,7 @@ export type Database = {
       reviews: {
         Row: {
           author_id: string
-          body: string
+          body: string | null
           created_at: string
           entity_id: string
           id: string
@@ -188,7 +188,7 @@ export type Database = {
         }
         Insert: {
           author_id: string
-          body: string
+          body?: string | null
           created_at?: string
           entity_id: string
           id?: string
@@ -199,7 +199,7 @@ export type Database = {
         }
         Update: {
           author_id?: string
-          body?: string
+          body?: string | null
           created_at?: string
           entity_id?: string
           id?: string
@@ -230,7 +230,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_review_with_entity: {
+        Args: {
+          p_artist_name?: string | null
+          p_cover_url?: string | null
+          p_deezer_url?: string | null
+          p_is_pinned?: boolean | null
+          p_provider: string
+          p_provider_id: string
+          p_rating?: number | null
+          p_review_body?: string | null
+          p_review_title?: string | null
+          p_title: string
+          p_type: Database["public"]["Enums"]["entity_type"]
+        }
+        Returns: {
+          entity_id: string
+          review_id: string
+        }[]
+      }
     }
     Enums: {
       entity_type: "track" | "album"

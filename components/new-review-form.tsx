@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LoaderCircle, Music2, Pin, Search, Star } from "lucide-react";
-import { supabaseBrowser } from "@/lib/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import RatingStars from "./rating-stars";
 
 type DeezerResult = {
@@ -36,7 +34,6 @@ type NewReviewFormProps = {
 type Step = "search" | "compose";
 
 export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
-  const supabase = supabaseBrowser();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("search");
@@ -124,55 +121,34 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
 
     setSaving(true);
 
-    const { data: auth, error: authErr } = await supabase.auth.getUser();
-    const user = auth.user;
-
-    if (authErr || !user) {
-      setSaving(false);
-      setErrorMsg("Tu sesión expiró. Vuelve a iniciar sesión.");
-      return;
-    }
-
     try {
-      const { data: entity, error: entityErr } = await supabase
-        .from("entities")
-        .upsert(
-          {
-            provider: "deezer",
-            provider_id: selected.provider_id,
-            type: selected.type,
-            title: selected.title,
-            artist_name: selected.artist_name,
-            cover_url: selected.cover_url,
-            deezer_url: selected.deezer_url,
-          },
-          { onConflict: "provider,provider_id,type" }
-        )
-        .select("id")
-        .single();
-
-      if (entityErr) throw entityErr;
-
-      if (pin) {
-        const { error: unpinErr } = await supabase
-          .from("reviews")
-          .update({ is_pinned: false })
-          .eq("author_id", user.id)
-          .eq("is_pinned", true);
-
-        if (unpinErr) throw unpinErr;
-      }
-
-      const { error: reviewErr } = await supabase.from("reviews").insert({
-        author_id: user.id,
-        entity_id: entity.id,
-        rating,
-        title: title.trim() ? title.trim() : null,
-        body: body.trim(),
-        is_pinned: pin,
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provider: selected.provider,
+          provider_id: selected.provider_id,
+          type: selected.type,
+          title: selected.title,
+          artist_name: selected.artist_name,
+          cover_url: selected.cover_url,
+          deezer_url: selected.deezer_url,
+          review_title: title.trim() ? title.trim() : null,
+          review_body: body.trim() ? body.trim() : null,
+          rating,
+          is_pinned: pin,
+        }),
       });
 
-      if (reviewErr) throw reviewErr;
+      const payload = (await res.json()) as { error?: string; code?: string | null };
+
+      if (!res.ok) {
+        const error = new Error(payload.error || "Error al publicar la review.") as ReviewSubmitError;
+        error.code = payload.code ?? undefined;
+        throw error;
+      }
 
       router.refresh();
       onSuccess?.();
@@ -180,7 +156,9 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
     } catch (error) {
       const reviewError = error as ReviewSubmitError;
 
-      if (reviewError.code === "23505") {
+      if (reviewError.code === "42501") {
+        setErrorMsg("Tu sesión expiró. Vuelve a iniciar sesión.");
+      } else if (reviewError.code === "23505") {
         setErrorMsg("Ya tienes una review pineada. Despinea la anterior e intenta otra vez.");
       } else {
         setErrorMsg(reviewError.message || "Error al publicar la review.");
@@ -414,37 +392,4 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
       )}
     </div>
   );
-}
-
-function StepPill({
-  active,
-  number,
-  label,
-}: {
-  active: boolean;
-  number: string;
-  label: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
-        active ? "border-foreground/30 bg-muted text-foreground" : "text-muted-foreground"
-      )}
-    >
-      <span
-        className={cn(
-          "flex h-5 w-5 items-center justify-center rounded-full text-[11px]",
-          active ? "bg-foreground text-background" : "bg-muted"
-        )}
-      >
-        {number}
-      </span>
-      {label}
-    </div>
-  );
-}
-
-function EmptyState({ text }: { text: string }) {
-  return <p className="px-2 py-4 text-sm text-muted-foreground">{text}</p>;
 }
