@@ -18,7 +18,7 @@ export default function SignupPage() {
     setLoading(true);
     setMsg(null);
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
       setMsg(error.message);
@@ -26,7 +26,20 @@ export default function SignupPage() {
       return;
     }
 
-    router.replace("/onboarding");
+    if (!data.session) {
+      setMsg("Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/post-auth", { cache: "no-store" });
+      const next = await res.json();
+      router.replace(next.redirectTo ?? "/onboarding");
+      router.refresh();
+    } catch {
+      router.replace("/onboarding");
+    }
   }
 
   return (

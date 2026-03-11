@@ -25,9 +25,15 @@ export default function LoginPage() {
       return;
     }
 
-    const res = await fetch("/api/post-auth");
-    const data = await res.json();
-    router.replace(data.redirectTo ?? "/");
+    try {
+      const res = await fetch("/api/post-auth", { cache: "no-store" });
+      const data = await res.json();
+      router.replace(data.redirectTo ?? "/");
+      router.refresh();
+    } catch {
+      setMsg("Entraste, pero no pudimos resolver el siguiente paso. Intenta de nuevo.");
+      setLoading(false);
+    }
   }
 
   return (

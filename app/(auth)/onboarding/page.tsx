@@ -55,16 +55,34 @@ export default function OnboardingPage() {
     try {
       const avatarUrl = await uploadAvatar(authData.user.id);
 
+      const profilePayload: {
+        id: string;
+        username: string;
+        avatar_url?: string;
+      } = {
+        id: authData.user.id,
+        username: u,
+      };
+
+      if (avatarUrl) {
+        profilePayload.avatar_url = avatarUrl;
+      }
+
       const { error: updErr } = await supabase
         .from("profiles")
-        .update({ username: u, avatar_url: avatarUrl })
-        .eq("id", authData.user.id);
+        .upsert(profilePayload, { onConflict: "id" });
 
       if (updErr) throw updErr;
 
       router.replace("/");
+      router.refresh();
     } catch (e) {
-      setMsg((e as Error).message);
+      const error = e as Error & { code?: string };
+      if (error.code === "23505") {
+        setMsg("Ese username ya está en uso.");
+      } else {
+        setMsg(error.message);
+      }
       setLoading(false);
     }
   }
