@@ -89,7 +89,7 @@ function ReviewCard({
                 {entity.artist_name ? ` • ${entity.artist_name}` : ""}
               </p>
             ) : null}
-            <div className={`mt-3 flex items-center gap-2 inline-flex px-2.5 py-1.5 rounded bg-muted/50 border border-border/40 font-medium text-foreground ${
+            <div className={`mt-3 items-center gap-2 inline-flex px-2.5 py-1.5 rounded bg-muted/50 border border-border/40 font-medium text-foreground ${
               featured ? "text-sm" : "text-xs"
             }`}>
               <span>★</span>

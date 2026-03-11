@@ -30,7 +30,7 @@ export default function Header({ profile }: { profile: HeaderProfile }) {
   return (
     <header className="border-b border-border/40 bg-background sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-6">
-        <Link href="/" className="flex-shrink-0 group">
+        <Link href="/" className="shrink-0 group">
           <div className="text-xl font-bold tracking-tight text-foreground group-hover:text-foreground/80 transition-colors">
             KOCTEAU
           </div>
