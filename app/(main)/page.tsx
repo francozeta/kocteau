@@ -151,12 +151,21 @@ export default async function HomePage() {
                         </div>
 
                         <div>
-                          <h2 className="text-lg font-semibold">{heading}</h2>
                           {entity ? (
-                            <p className="mt-1 text-sm text-muted-foreground">
+                            <Link href={`/track/${entity.id}`} className="hover:underline">
+                              <h2 className="text-lg font-semibold">{heading}</h2>
+                            </Link>
+                          ) : (
+                            <h2 className="text-lg font-semibold">{heading}</h2>
+                          )}
+                          {entity ? (
+                            <Link
+                              href={`/track/${entity.id}`}
+                              className="mt-1 block text-sm text-muted-foreground hover:text-foreground"
+                            >
                               {entity.title}
                               {entity.artist_name ? ` • ${entity.artist_name}` : ""}
-                            </p>
+                            </Link>
                           ) : null}
                         </div>
                       </div>

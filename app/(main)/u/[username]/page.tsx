@@ -1,8 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type ReviewEntity = {
+  id: string;
   title: string;
   artist_name: string | null;
   cover_url: string | null;
@@ -42,23 +44,31 @@ function ReviewCard({
       <div className="flex items-start gap-3">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
           {entity?.cover_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={entity.cover_url}
-              alt={entity.title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
+            <Link href={`/track/${entity.id}`} className="block h-full w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={entity.cover_url}
+                alt={entity.title}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </Link>
           ) : null}
         </div>
 
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold">{heading}</h3>
           {entity ? (
-            <p className="mt-1 text-sm opacity-70">
+            <Link href={`/track/${entity.id}`} className="hover:underline">
+              <h3 className="font-semibold">{heading}</h3>
+            </Link>
+          ) : (
+            <h3 className="font-semibold">{heading}</h3>
+          )}
+          {entity ? (
+            <Link href={`/track/${entity.id}`} className="mt-1 block text-sm opacity-70 hover:opacity-100">
               {entity.title}
               {entity.artist_name ? ` • ${entity.artist_name}` : ""}
-            </p>
+            </Link>
           ) : null}
           <p className="mt-2 text-sm font-medium opacity-80">{review.rating.toFixed(1)} / 5</p>
           {review.body ? (
@@ -102,6 +112,7 @@ export default async function UserProfilePage({
     rating,
     created_at,
     entities (
+      id,
       title,
       artist_name,
       cover_url
@@ -121,6 +132,7 @@ export default async function UserProfilePage({
     rating,
     created_at,
     entities (
+      id,
       title,
       artist_name,
       cover_url
