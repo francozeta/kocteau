@@ -3,8 +3,9 @@ import Link from "next/link";
 import { Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type EntityPage = {
@@ -123,11 +124,14 @@ export default async function TrackPage({
             </p>
 
             {entity.deezer_url ? (
-              <Button asChild variant="outline">
-                <a href={entity.deezer_url} target="_blank" rel="noreferrer">
-                  Abrir en Deezer
-                </a>
-              </Button>
+              <a
+                href={entity.deezer_url}
+                target="_blank"
+                rel="noreferrer"
+                className={cn(buttonVariants({ variant: "outline" }))}
+              >
+                Abrir en Deezer
+              </a>
             ) : null}
           </div>
         </CardContent>
