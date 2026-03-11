@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kocteau
 
-## Getting Started
+Kocteau is a social app for music reviews. The current demo is focused on a simple and clear use case: search for a track, rate it, leave an optional note, and discover music through other people's reviews.
 
-First, run the development server:
+## Current Status
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The demo already covers the main product loop:
+
+- basic authentication and onboarding
+- review creation with Deezer search
+- main feed with recent reviews
+- public user profile
+- track page with all its reviews
+
+## MVP
+
+The MVP definition is documented in [docs/mvp.md](./docs/mvp.md).
+
+## Stack
+
+- Next.js App Router
+- React
+- TypeScript
+- Tailwind CSS + shadcn/ui
+- Supabase Auth, Database and Storage
+- Deezer Search API
+
+## Environment Variables
+
+You need to define at least these variables in `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Install dependencies and start the server:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm install
+pnpm dev
+```
 
-## Learn More
+Then open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+## Database
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The app uses these main tables:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `profiles`
+- `entities`
+- `reviews`
 
-## Deploy on Vercel
+There are also future or secondary tables:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `review_likes`
+- `entity_bookmarks`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Main Flow
+
+1. user creates account or logs in
+2. completes onboarding with `username`
+3. opens new review modal
+4. searches for a track on Deezer
+5. selects the track
+6. leaves a required rating and optional note
+7. publishes
+8. the review appears in the feed, on their profile, and on the track page
+
+## Notes
+
+- the demo is currently focused on `track`, not albums or artists
+- some technical cleanups outside the main flow are still pending
+
