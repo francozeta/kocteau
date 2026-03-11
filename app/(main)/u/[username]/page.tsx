@@ -2,6 +2,76 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 
+type ReviewEntity = {
+  title: string;
+  artist_name: string | null;
+  cover_url: string | null;
+};
+
+type ReviewWithEntity = {
+  id: string;
+  title: string | null;
+  body: string;
+  rating: number;
+  created_at: string;
+  entities: ReviewEntity | ReviewEntity[] | null;
+};
+
+function getEntity(review: ReviewWithEntity) {
+  if (Array.isArray(review.entities)) {
+    return review.entities[0] ?? null;
+  }
+
+  return review.entities;
+}
+
+function ReviewCard({
+  review,
+  eyebrow,
+}: {
+  review: ReviewWithEntity;
+  eyebrow?: string;
+}) {
+  const entity = getEntity(review);
+  const heading = review.title ?? entity?.title ?? "Untitled review";
+
+  return (
+    <article className="rounded-lg border p-4">
+      {eyebrow ? <p className="mb-2 text-xs uppercase opacity-60">{eyebrow}</p> : null}
+
+      <div className="flex items-start gap-3">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+          {entity?.cover_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={entity.cover_url}
+              alt={entity.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : null}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold">{heading}</h3>
+          {entity ? (
+            <p className="mt-1 text-sm opacity-70">
+              {entity.title}
+              {entity.artist_name ? ` • ${entity.artist_name}` : ""}
+            </p>
+          ) : null}
+          <p className="mt-2 text-sm font-medium opacity-80">{review.rating.toFixed(1)} / 5</p>
+          {review.body ? (
+            <p className="mt-2 text-sm opacity-80">{review.body}</p>
+          ) : (
+            <p className="mt-2 text-sm italic opacity-60">Solo dejó su rating para este track.</p>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default async function UserProfilePage({
   params,
 }: {
@@ -39,7 +109,7 @@ export default async function UserProfilePage({
   `)
     .eq("author_id", profile.id)
     .eq("is_pinned", true)
-    .maybeSingle();
+    .maybeSingle<ReviewWithEntity>();
 
   // 3) Search for other reviews
   const { data: reviews } = await supabase
@@ -57,6 +127,7 @@ export default async function UserProfilePage({
     )
   `)
     .eq("author_id", profile.id)
+    .eq("is_pinned", false)
     .order("created_at", { ascending: false });
 
   return (
@@ -93,22 +164,14 @@ export default async function UserProfilePage({
         </p>
       </div> */}
       <div className="mt-8 space-y-6 border-t pt-6">
-
         {pinnedReview && (
-          <section className="border p-4 rounded-lg">
-            <p className="text-xs uppercase opacity-60 mb-2">Pinned Review</p>
-            <h3 className="font-semibold">{pinnedReview.title}</h3>
-            <p className="text-sm opacity-80 mt-1">{pinnedReview.body}</p>
-          </section>
+          <ReviewCard review={pinnedReview} eyebrow="Pinned Review" />
         )}
 
         {reviews && reviews.length > 0 ? (
           <section className="space-y-4">
             {reviews.map((review) => (
-              <div key={review.id} className="border p-4 rounded-lg">
-                <h3 className="font-semibold">{review.title}</h3>
-                <p className="text-sm opacity-80 mt-1">{review.body}</p>
-              </div>
+              <ReviewCard key={review.id} review={review as ReviewWithEntity} />
             ))}
           </section>
         ) : (
@@ -116,7 +179,6 @@ export default async function UserProfilePage({
             Este usuario aún no ha publicado reseñas.
           </p>
         )}
-
       </div>
     </main>
   );
