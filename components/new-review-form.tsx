@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, LoaderCircle, Music2, Pin, Search, Star } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Music2, Search } from "lucide-react";
+import { FaDeezer } from "react-icons/fa";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import RatingStars from "./rating-stars";
 
@@ -45,10 +44,11 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
   const [rating, setRating] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [pin, setPin] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const suggestedSearches = ["Radiohead", "Björk", "Bad Bunny", "Frank Ocean", "Massive Attack", "The Cure"];
 
   useEffect(() => {
     if (step !== "search" || !query.trim()) {
@@ -96,7 +96,6 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
     setRating(null);
     setTitle("");
     setBody("");
-    setPin(false);
     setErrorMsg(null);
   }
 
@@ -138,7 +137,6 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
           review_title: title.trim() ? title.trim() : null,
           review_body: body.trim() ? body.trim() : null,
           rating,
-          is_pinned: pin,
         }),
       });
 
@@ -158,8 +156,6 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
 
       if (reviewError.code === "42501") {
         setErrorMsg("Tu sesión expiró. Vuelve a iniciar sesión.");
-      } else if (reviewError.code === "23505") {
-        setErrorMsg("Ya tienes una review pineada. Despinea la anterior e intenta otra vez.");
       } else {
         setErrorMsg(reviewError.message || "Error al publicar la review.");
       }
@@ -172,17 +168,12 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
     <div className="flex h-full min-h-0 flex-col px-6 py-4">
       {step === "search" ? (
         <>
-          <div className="mb-4 flex items-center gap-2">
-            <div>
-              <p className="flex items-center gap-2 text-sm font-semibold">
-                <Search className="size-4" />
-                Buscar track
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Escribe y elige una canción para pasar al siguiente paso.
-              </p>
-            </div>
-            <Badge variant="secondary" className="shrink-0">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <Search className="size-4" />
+              Search
+            </p>
+            <Badge variant="secondary" className="shrink-0 text-xs">
               Tracks only
             </Badge>
           </div>
@@ -197,31 +188,51 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Ej. devon hendryx"
+            placeholder="Track name or artist..."
             disabled={saving}
             autoFocus
-            className="mb-4 shrink-0"
+            className="mb-3 shrink-0"
           />
 
-          <ScrollArea className="min-h-0 flex-1 rounded-lg border">
-            <div className="px-4 py-3">
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="space-y-0">
               {searching ? (
-                <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
                   <LoaderCircle className="size-4 animate-spin" />
-                  Buscando resultados...
+                  Searching...
                 </div>
               ) : null}
 
               {!searching && !query.trim() ? (
-                <p className="py-4 text-sm text-muted-foreground">Busca un track para empezar tu review.</p>
+                <>
+                  <div className="border-b px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Suggested
+                    </p>
+                  </div>
+                  <div className="divide-y">
+                    {suggestedSearches.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setQuery(suggestion)}
+                        className="w-full px-4 py-3 text-left text-sm transition hover:bg-muted/50"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </>
               ) : null}
 
               {!searching && query.trim() && results.length === 0 ? (
-                <p className="py-4 text-sm text-muted-foreground">No encontramos tracks para esa búsqueda.</p>
+                <div className="px-4 py-6 text-center">
+                  <p className="text-sm text-muted-foreground">No tracks found.</p>
+                </div>
               ) : null}
 
               {results.length > 0 ? (
-                <div className="space-y-2">
+                <div className="divide-y">
                   {results.map((result) => (
                     <button
                       key={result.provider_id}
@@ -231,9 +242,9 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
                         setStep("compose");
                         setErrorMsg(null);
                       }}
-                      className="flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition hover:border-foreground/30 hover:bg-muted/40"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/50"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-muted">
                         {result.cover_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -243,13 +254,13 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
                             loading="lazy"
                           />
                         ) : (
-                          <Music2 className="size-5 text-muted-foreground" />
+                          <Music2 className="size-4 text-muted-foreground" />
                         )}
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{result.title}</p>
-                        <p className="truncate text-sm text-muted-foreground">
+                        <p className="truncate text-sm font-medium">{result.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">
                           {result.artist_name ?? "Unknown artist"}
                         </p>
                       </div>
@@ -262,7 +273,8 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
         </>
       ) : (
         <>
-          <div className="mb-4 flex items-center gap-3 shrink-0">
+          {/* Header: Selected Track */}
+          <div className="mb-5 flex items-center gap-3 shrink-0">
             <Button type="button" variant="ghost" size="icon" onClick={goBackToSearch} className="shrink-0">
               <ArrowLeft className="size-4" />
               <span className="sr-only">Volver a buscar</span>
@@ -291,101 +303,80 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
               </div>
 
               {selected?.deezer_url ? (
-                <Button asChild type="button" variant="ghost" size="sm" className="shrink-0">
-                  <a href={selected.deezer_url} target="_blank" rel="noreferrer">
-                    <span className="sr-only">Abrir en Deezer</span>
-                    🎵
+                <Button asChild type="button" variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                  <a href={selected.deezer_url} target="_blank" rel="noreferrer" title="Open on Deezer">
+                    <FaDeezer className="size-4" />
+                    <span className="sr-only">Open on Deezer</span>
                   </a>
                 </Button>
               ) : null}
             </div>
           </div>
 
+          {/* Error Alert */}
           {errorMsg ? (
-            <Alert variant="destructive" className="mb-4 shrink-0">
-              <AlertTitle>No pudimos continuar</AlertTitle>
+            <Alert variant="destructive" className="mb-5 shrink-0">
+              <AlertTitle>Error</AlertTitle>
               <AlertDescription>{errorMsg}</AlertDescription>
             </Alert>
           ) : null}
 
-          <ScrollArea className="min-h-0 flex-1 rounded-lg border mb-4">
-            <div className="p-4">
-              <div className="space-y-5">
+          {/* Form Content */}
+          <ScrollArea className="min-h-0 flex-1 rounded-lg border mb-5">
+            <div className="p-5">
+              <div className="space-y-6">
+                {/* Rating Section */}
                 <section>
-                  <div className="mb-3 flex items-center gap-2">
-                    <Star className="size-4" />
-                    <p className="text-sm font-medium">Rating obligatorio</p>
-                  </div>
+                  <p className="text-sm font-medium mb-3">Rating</p>
                   <RatingStars value={rating} onChange={setRating} disabled={saving} />
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    El rating es el centro de la review. La nota escrita es opcional.
-                  </p>
                 </section>
 
-                <Separator />
-
+                {/* Title Section */}
                 <section className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="review-title">
-                    Título opcional
+                  <label className="text-xs font-medium  tracking-wide text-muted-foreground" htmlFor="review-title">
+                    Title
                   </label>
                   <Input
                     id="review-title"
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
-                    placeholder="Ej. Mi track favorito de la semana"
+                    placeholder="Give it a headline"
                     disabled={saving}
+                    className="text-sm"
                   />
                 </section>
 
+                {/* Note Section */}
                 <section className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="review-body">
-                    Nota corta opcional
+                  <label className="text-xs font-medium  tracking-wide text-muted-foreground" htmlFor="review-body">
+                    Note
                   </label>
                   <Textarea
                     id="review-body"
                     value={body}
                     onChange={(event) => setBody(event.target.value)}
-                    placeholder="Qué te hizo sentir, por qué te gustó o por qué no."
-                    className="min-h-20"
+                    placeholder="What did this track make you feel?"
+                    className="min-h-20 resize-none text-sm"
                     disabled={saving}
                   />
-                </section>
-
-                <section className="flex items-start gap-3 rounded-lg border p-3">
-                  <Checkbox
-                    id="pin-review"
-                    checked={pin}
-                    onCheckedChange={(checked) => setPin(checked === true)}
-                    disabled={saving}
-                  />
-                  <div className="space-y-1">
-                    <label
-                      htmlFor="pin-review"
-                      className="flex cursor-pointer items-center gap-2 text-sm font-medium"
-                    >
-                      <Pin className="size-4" />
-                      Fijar en tu perfil
-                    </label>
-                    <p className="text-xs text-muted-foreground">
-                      Si ya tienes una pineada, esta reemplazará a la anterior.
-                    </p>
-                  </div>
                 </section>
               </div>
             </div>
           </ScrollArea>
 
-          <div className="flex shrink-0 flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <Button type="button" variant="ghost" onClick={goBackToSearch} disabled={saving}>
-              Cambiar track
+          {/* Action Footer */}
+          <div className="flex shrink-0 gap-3">
+            <Button type="button" variant="ghost" onClick={goBackToSearch} disabled={saving} className="flex-1">
+              Back
             </Button>
 
             <Button
               type="button"
               onClick={onSubmit}
               disabled={saving || !selected || rating === null}
+              className="flex-1"
             >
-              {saving ? "Publicando..." : "Publicar review"}
+              {saving ? "Publishing..." : "Publish"}
             </Button>
           </div>
         </>

@@ -130,15 +130,6 @@ export default function RatingStars({
           );
         })}
       </div>
-
-      <span
-        className={cn(
-          "text-sm font-medium whitespace-nowrap",
-          value === null ? "text-muted-foreground" : "text-foreground"
-        )}
-      >
-        {value === null ? "Elige un rating" : `${value.toFixed(1)} / ${max.toFixed(1)}`}
-      </span>
     </div>
   );
 }
