@@ -25,7 +25,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   return (
     <ReactQueryProvider>
       <Header profile={safeProfile} />
-      <main className="mx-auto max-w-5xl p-6">{children}</main>
+      <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">{children}</main>
     </ReactQueryProvider>
   );
 }

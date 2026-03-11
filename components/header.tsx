@@ -6,6 +6,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import NewReviewDialog from "./new-review-dialog";
+import { Plus, LogOut } from "lucide-react";
 
 type HeaderProfile = {
   username: string;
@@ -27,31 +28,48 @@ export default function Header({ profile }: { profile: HeaderProfile }) {
   const name = profile?.display_name ?? `@${username}`;
 
   return (
-    <header className="border-b">
-      <div className="mx-auto max-w-5xl px-6 py-3 flex items-center justify-between">
-        <Link href="/" className="font-semibold">Kocteau</Link>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
-              {profile?.avatar_url ? (
-                <Image
-                  src={profile.avatar_url}
-                  alt={name}
-                  fill
-                  sizes="32px"
-                  className="object-cover object-center"
-                  quality={75}
-                />
-              ) : null}
-            </div>
-            <Link href={`/u/${username}`} className="text-sm hover:underline">{name}</Link>
+    <header className="border-b border-border/40 bg-background sticky top-0 z-50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-6">
+        <Link href="/" className="flex-shrink-0 group">
+          <div className="text-xl font-bold tracking-tight text-foreground group-hover:text-foreground/80 transition-colors">
+            KOCTEAU
           </div>
+        </Link>
 
-          <Button variant="outline" size="sm" onClick={logout}>
-            Logout
-          </Button>
-          <NewReviewDialog />
+        <div className="flex items-center gap-6 ml-auto">
+          <nav className="hidden md:flex items-center gap-1 text-sm">
+            <Link href="/" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
+              Reviews
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-3 pl-6 border-l border-border/40">
+            <Link href={`/u/${username}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-muted border border-border/50">
+                {profile?.avatar_url ? (
+                  <Image
+                    src={profile.avatar_url}
+                    alt={name}
+                    fill
+                    sizes="36px"
+                    className="object-cover object-center"
+                    quality={75}
+                  />
+                ) : null}
+              </div>
+              <span className="text-sm font-medium hidden sm:inline text-foreground">{name}</span>
+            </Link>
+
+            <NewReviewDialog />
+
+            <button
+              onClick={logout}
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </header>
