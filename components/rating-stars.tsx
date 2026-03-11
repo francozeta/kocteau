@@ -4,77 +4,129 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function RatingStars({
-  value,
-  onChange,
-  disabled,
-}: {
+type RatingStarsProps = {
   value: number | null;
   onChange: (v: number) => void;
   disabled?: boolean;
-}) {
+  max?: number;
+};
+
+export default function RatingStars({
+  value,
+  onChange,
+  disabled = false,
+  max = 5,
+}: RatingStarsProps) {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
+
   const activeValue = hoverValue ?? value ?? 0;
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, starIndex: number) => {
+  const getValueFromPointer = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    starIndex: number
+  ) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const isLeftHalf = x < rect.width / 2;
-    setHoverValue(isLeftHalf ? starIndex + 0.5 : starIndex + 1);
+    return isLeftHalf ? starIndex + 0.5 : starIndex + 1;
   };
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>, starIndex: number) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const isLeftHalf = x < rect.width / 2;
-    onChange(isLeftHalf ? starIndex + 0.5 : starIndex + 1);
+  const handleMouseMove = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    starIndex: number
+  ) => {
+    if (disabled) return;
+    setHoverValue(getValueFromPointer(e, starIndex));
+  };
+
+  const handleClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    starIndex: number
+  ) => {
+    if (disabled) return;
+    onChange(getValueFromPointer(e, starIndex));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+
+    const current = value ?? 0;
+
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+      e.preventDefault();
+      onChange(Math.min(max, current + 0.5));
+    }
+
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+      e.preventDefault();
+      onChange(Math.max(0.5, current - 0.5));
+    }
+
+    if (e.key === "Home") {
+      e.preventDefault();
+      onChange(0.5);
+    }
+
+    if (e.key === "End") {
+      e.preventDefault();
+      onChange(max);
+    }
   };
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center gap-1" onMouseLeave={() => setHoverValue(null)}>
-        {Array.from({ length: 5 }).map((_, i) => {
-          const starValue = i + 1;
-          const isFull = activeValue >= starValue;
-          const isHalf = activeValue >= starValue - 0.5 && activeValue < starValue;
+      <div
+        className="flex items-center gap-1"
+        onMouseLeave={() => !disabled && setHoverValue(null)}
+        role="radiogroup"
+        aria-label="Rating"
+      >
+        {Array.from({ length: max }).map((_, i) => {
+          const starNumber = i + 1;
+
+          let fillPercent = 0;
+          if (activeValue >= starNumber) {
+            fillPercent = 100;
+          } else if (activeValue >= starNumber - 0.5) {
+            fillPercent = 50;
+          }
 
           return (
-            <div
+            <button
               key={i}
-              className="relative h-8 w-8 cursor-pointer"
-              onMouseMove={(e) => !disabled && handleMouseMove(e, i)}
-              onClick={(e) => !disabled && handleClick(e, i)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (!disabled && (e.key === "ArrowRight" || e.key === "ArrowUp")) {
-                  e.preventDefault();
-                  onChange(Math.min(5, (value ?? 0) + 0.5));
-                } else if (!disabled && (e.key === "ArrowLeft" || e.key === "ArrowDown")) {
-                  e.preventDefault();
-                  onChange(Math.max(0.5, (value ?? 0) - 0.5));
-                }
-              }}
-              aria-label={`Star ${i + 1} of 5`}
+              type="button"
+              disabled={disabled}
+              className={cn(
+                "relative h-8 w-8 cursor-pointer outline-none transition-transform",
+                !disabled && "hover:scale-105",
+                disabled && "cursor-not-allowed opacity-60"
+              )}
+              onMouseMove={(e) => handleMouseMove(e, i)}
+              onClick={(e) => handleClick(e, i)}
+              onKeyDown={handleKeyDown}
+              role="radio"
+              aria-checked={value === starNumber || value === starNumber - 0.5}
+              aria-label={`${starNumber} estrellas`}
             >
-              {/* base */}
-              <Star className="pointer-events-none absolute inset-0 h-8 w-8 text-muted-foreground/50" />
+              {/* estrella base */}
+              <Star
+                className="absolute inset-0 h-8 w-8 text-muted-foreground/40"
+                fill="none"
+                stroke="currentColor"
+              />
 
-              {/* half */}
-              {isHalf ? (
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-1/2 overflow-hidden">
-                  <Star className="h-8 w-8 text-amber-400" fill="currentColor" />
-                </div>
-              ) : null}
-
-              {/* full */}
-              {isFull ? (
+              {/* capa rellenada */}
+              <div
+                className="absolute inset-y-0 left-0 overflow-hidden"
+                style={{ width: `${fillPercent}%` }}
+              >
                 <Star
-                  className="pointer-events-none absolute inset-0 h-8 w-8 text-amber-400"
+                  className="h-8 w-8 text-amber-400"
                   fill="currentColor"
+                  stroke="currentColor"
                 />
-              ) : null}
-            </div>
+              </div>
+            </button>
           );
         })}
       </div>
@@ -85,7 +137,7 @@ export default function RatingStars({
           value === null ? "text-muted-foreground" : "text-foreground"
         )}
       >
-        {value === null ? "Elige un rating" : `${value.toFixed(1)} / 5.0`}
+        {value === null ? "Elige un rating" : `${value.toFixed(1)} / ${max.toFixed(1)}`}
       </span>
     </div>
   );
