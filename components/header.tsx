@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
-import NewReviewForm from "./new-review-form";
+import { Button } from "@/components/ui/button";
+import NewReviewDialog from "./new-review-dialog";
 
 type HeaderProfile = {
   username: string;
@@ -48,20 +48,10 @@ export default function Header({ profile }: { profile: HeaderProfile }) {
             <Link href={`/u/${username}`} className="text-sm hover:underline">{name}</Link>
           </div>
 
-          <button className="border rounded px-3 py-1 text-sm" onClick={logout}>
+          <Button variant="outline" size="sm" onClick={logout}>
             Logout
-          </button>
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="border rounded px-3 py-1 text-sm">
-                Create review
-              </button>
-            </DialogTrigger>
-
-            <DialogContent>
-              <NewReviewForm />
-            </DialogContent>
-          </Dialog>
+          </Button>
+          <NewReviewDialog />
         </div>
       </div>
     </header>

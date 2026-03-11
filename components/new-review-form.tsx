@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, LoaderCircle, Music2, Pin, Search, Star } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { set } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import RatingStars from "./rating-stars";
 
 type DeezerResult = {
@@ -20,78 +24,115 @@ type DeezerResult = {
   deezer_url: string | null;
 };
 
-function clampRating(raw: string) {
-  const n = Number(raw);
-  if (Number.isNaN(n)) return 0;
-  // 0.5 a 5.0 en pasos de 0.5
-  const stepped = Math.round(n * 2) / 2;
-  return Math.min(5, Math.max(0.5, stepped));
-}
+type ReviewSubmitError = Error & {
+  code?: string;
+};
 
-export default function NewReviewForm() {
+type NewReviewFormProps = {
+  onSuccess?: () => void;
+};
+
+type Step = "search" | "compose";
+
+export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
   const supabase = supabaseBrowser();
   const router = useRouter();
 
-  // Step 1: search
-  const [q, setQ] = useState("");
+  const [step, setStep] = useState<Step>("search");
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<DeezerResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<DeezerResult | null>(null);
 
-  // Step 2: review form
-  const [rating, setRating] = useState(4.0);
+  const [rating, setRating] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [pin, setPin] = useState(false);
 
-  const [msg, setMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Debounce search
   useEffect(() => {
-    if (!q.trim() || selected) return;
+    if (step !== "search" || !query.trim()) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
 
-    const t = setTimeout(async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
       setSearching(true);
-      setMsg(null);
+      setErrorMsg(null);
+
       try {
-        const res = await fetch(`/api/deezer/search?q=${encodeURIComponent(q.trim())}`);
+        const res = await fetch(`/api/deezer/search?q=${encodeURIComponent(query.trim())}`, {
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          throw new Error("No se pudo buscar en Deezer.");
+        }
+
         const data = (await res.json()) as DeezerResult[];
         setResults(Array.isArray(data) ? data : []);
-      } catch {
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
         setResults([]);
-        setMsg("No se pudo buscar en Deezer.");
+        setErrorMsg("No se pudo buscar en Deezer.");
       } finally {
         setSearching(false);
       }
-    }, 350);
+    }, 300);
 
-    return () => clearTimeout(t);
-  }, [q, selected]);
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
+  }, [query, step]);
 
-  function resetSelection() {
+  function resetAll() {
+    setStep("search");
     setSelected(null);
+    setQuery("");
     setResults([]);
-    setQ("");
+    setRating(null);
+    setTitle("");
+    setBody("");
+    setPin(false);
+    setErrorMsg(null);
+  }
+
+  function goBackToSearch() {
+    setSelected(null);
+    setStep("search");
+    setErrorMsg(null);
   }
 
   async function onSubmit() {
-    setMsg(null);
+    setErrorMsg(null);
 
-    if (!selected) return setMsg("Selecciona una canción.");
-    if (!body.trim()) return setMsg("Escribe tu reseña (texto).");
+    if (!selected) {
+      setErrorMsg("Selecciona un track antes de publicar.");
+      return;
+    }
+
+    if (rating === null) {
+      setErrorMsg("El rating es obligatorio para publicar en la demo.");
+      return;
+    }
 
     setSaving(true);
 
     const { data: auth, error: authErr } = await supabase.auth.getUser();
     const user = auth.user;
+
     if (authErr || !user) {
       setSaving(false);
-      return setMsg("No estás logueado.");
+      setErrorMsg("Tu sesión expiró. Vuelve a iniciar sesión.");
+      return;
     }
 
     try {
-      // 1) Upsert entity (deezer)
       const { data: entity, error: entityErr } = await supabase
         .from("entities")
         .upsert(
@@ -111,7 +152,6 @@ export default function NewReviewForm() {
 
       if (entityErr) throw entityErr;
 
-      // 2) Si pin, despinnea lo anterior (tu constraint lo exige)
       if (pin) {
         const { error: unpinErr } = await supabase
           .from("reviews")
@@ -122,7 +162,6 @@ export default function NewReviewForm() {
         if (unpinErr) throw unpinErr;
       }
 
-      // 3) Insert review
       const { error: reviewErr } = await supabase.from("reviews").insert({
         author_id: user.id,
         entity_id: entity.id,
@@ -134,159 +173,285 @@ export default function NewReviewForm() {
 
       if (reviewErr) throw reviewErr;
 
-      // 4) UX: refresh
-      setMsg("Publicado ✅");
       router.refresh();
+      onSuccess?.();
+      resetAll();
+    } catch (error) {
+      const reviewError = error as ReviewSubmitError;
 
-      resetSelection();
-      setTitle("");
-      setBody("");
-      setPin(false);
-      setRating(4.0);
-    } catch (e: any) {
-      setMsg(e?.message ?? "Error al publicar.");
+      if (reviewError.code === "23505") {
+        setErrorMsg("Ya tienes una review pineada. Despinea la anterior e intenta otra vez.");
+      } else {
+        setErrorMsg(reviewError.message || "Error al publicar la review.");
+      }
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="space-y-4">
-      {!selected ? (
-        <>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Buscar en Deezer</label>
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Busca una canción… (ej: Change Deftones)"
-            />
-            <p className="text-xs opacity-70">
-              Escribe y elige un resultado. (Tracks por ahora)
-            </p>
-          </div>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="mb-4 flex items-center gap-2">
+        <StepPill active={step === "search"} number="1" label="Track" />
+        <StepPill active={step === "compose"} number="2" label="Review" />
+      </div>
 
-          <div className="space-y-2">
-            {searching && <p className="text-sm opacity-70">Buscando…</p>}
+      {errorMsg ? (
+        <Alert variant="destructive" className="mb-4 shrink-0">
+          <AlertTitle>No pudimos continuar</AlertTitle>
+          <AlertDescription>{errorMsg}</AlertDescription>
+        </Alert>
+      ) : null}
 
-            {!searching && q.trim() && results.length === 0 && (
-              <p className="text-sm opacity-70">Sin resultados.</p>
-            )}
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {step === "search" ? (
+          <div className="flex h-full min-h-0 flex-col rounded-2xl border bg-card">
+            <div className="space-y-3 border-b px-4 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="flex items-center gap-2 text-sm font-semibold">
+                    <Search className="size-4" />
+                    Buscar track
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Escribe, busca y elige una canción para pasar al siguiente paso.
+                  </p>
+                </div>
+                <Badge variant="secondary">Tracks only</Badge>
+              </div>
 
-            <ul className="space-y-2">
-              {results.map((r) => (
-                <li key={r.provider_id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelected(r)}
-                    className="w-full text-left rounded-lg border p-3 hover:bg-muted transition"
-                  >
-                    <div className="text-sm font-medium">{r.title}</div>
-                    <div className="text-xs opacity-70">
-                      {r.artist_name ?? "Unknown artist"} • Deezer ID {r.provider_id}
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="rounded-lg border p-3 flex items-start gap-3">
-            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
-              {selected.cover_url ? (
-                // Migrate to Image component if these are public URLs (and check CORS)
-                <img
-                  src={selected.cover_url}
-                  alt={`${selected.title} cover`}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Ej. devon hendryx"
+                disabled={saving}
+                autoFocus
+              />
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+              {searching ? (
+                <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
+                  <LoaderCircle className="size-4 animate-spin" />
+                  Buscando resultados...
+                </div>
+              ) : null}
+
+              {!searching && !query.trim() ? (
+                <EmptyState text="Busca un track para empezar tu review." />
+              ) : null}
+
+              {!searching && query.trim() && results.length === 0 ? (
+                <EmptyState text="No encontramos tracks para esa búsqueda." />
+              ) : null}
+
+              {results.length > 0 ? (
+                <div className="space-y-2">
+                  {results.map((result) => (
+                    <button
+                      key={result.provider_id}
+                      type="button"
+                      onClick={() => {
+                        setSelected(result);
+                        setStep("compose");
+                        setErrorMsg(null);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition hover:border-foreground/30 hover:bg-muted/40"
+                    >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                        {result.cover_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={result.cover_url}
+                            alt={result.title}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Music2 className="size-5 text-muted-foreground" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{result.title}</p>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {result.artist_name ?? "Unknown artist"}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               ) : null}
             </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium truncate">{selected.title}</div>
-              <div className="text-xs opacity-70 truncate">
-                {selected.artist_name ?? "Unknown artist"} • Deezer ID {selected.provider_id}
-              </div>
-
-              <div className="mt-3 flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={resetSelection}>
-                  Cambiar
+          </div>
+        ) : (
+          <div className="flex h-full min-h-0 flex-col rounded-2xl border bg-card">
+            <div className="border-b px-4 py-4">
+              <div className="flex items-start gap-3">
+                <Button type="button" variant="ghost" size="icon" onClick={goBackToSearch} className="shrink-0">
+                  <ArrowLeft className="size-4" />
+                  <span className="sr-only">Volver a buscar</span>
                 </Button>
-                {selected.deezer_url ? (
-                  <a
-                    className="text-xs underline opacity-80"
-                    href={selected.deezer_url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Abrir en Deezer
-                  </a>
-                ) : null}
+
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
+                    {selected?.cover_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={selected.cover_url}
+                        alt={selected.title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Music2 className="size-5 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{selected?.title}</p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {selected?.artist_name ?? "Unknown artist"}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={goBackToSearch}>
+                        Cambiar track
+                      </Button>
+                      {selected?.deezer_url ? (
+                        <Button asChild type="button" variant="ghost" size="sm">
+                          <a href={selected.deezer_url} target="_blank" rel="noreferrer">
+                            Abrir en Deezer
+                          </a>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+              <div className="space-y-4">
+                <section className="rounded-xl border p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Star className="size-4" />
+                    <p className="text-sm font-medium">Rating obligatorio</p>
+                  </div>
+                  <RatingStars value={rating} onChange={setRating} disabled={saving} />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    El rating es el centro de la review. La nota escrita es opcional.
+                  </p>
+                </section>
+
+                <Separator />
+
+                <section className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="review-title">
+                    Título opcional
+                  </label>
+                  <Input
+                    id="review-title"
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    placeholder="Ej. Mi track favorito de la semana"
+                    disabled={saving}
+                  />
+                </section>
+
+                <section className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="review-body">
+                    Nota corta opcional
+                  </label>
+                  <Textarea
+                    id="review-body"
+                    value={body}
+                    onChange={(event) => setBody(event.target.value)}
+                    placeholder="Qué te hizo sentir, por qué te gustó o por qué no."
+                    className="min-h-24"
+                    disabled={saving}
+                  />
+                </section>
+
+                <section className="flex items-start gap-3 rounded-xl border p-3">
+                  <Checkbox
+                    id="pin-review"
+                    checked={pin}
+                    onCheckedChange={(checked) => setPin(checked === true)}
+                    disabled={saving}
+                  />
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="pin-review"
+                      className="flex cursor-pointer items-center gap-2 text-sm font-medium"
+                    >
+                      <Pin className="size-4" />
+                      Fijar en tu perfil
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Si ya tienes una pineada, esta reemplazará a la anterior.
+                    </p>
+                  </div>
+                </section>
               </div>
             </div>
           </div>
+        )}
+      </div>
 
-          <Separator />
+      <div className="mt-4 flex shrink-0 flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <Button type="button" variant="ghost" onClick={resetAll} disabled={saving}>
+          Reiniciar
+        </Button>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Rating</label>
-              <RatingStars value={rating} onChange={setRating} disabled={saving} />
-              <p className="text-xs opacity-70">Pasos de 0.5</p>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Pin to profile</label>
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  id="pin"
-                  type="checkbox"
-                  checked={pin}
-                  onChange={(e) => setPin(e.target.checked)}
-                />
-                <label htmlFor="pin" className="text-sm">
-                  Fijar esta reseña
-                </label>
-              </div>
-              <p className="text-xs opacity-70">Solo puede haber 1 pinned.</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Título (opcional)</label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Mi experiencia con este track…"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Reseña</label>
-            <Textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Escribe tu review…"
-              className=""
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="outline" onClick={resetSelection} disabled={saving}>
-              Cambiar track
+        <div className="flex gap-2">
+          {step === "compose" ? (
+            <Button type="button" variant="outline" onClick={goBackToSearch} disabled={saving}>
+              Volver
             </Button>
-            <Button type="button" onClick={onSubmit} disabled={saving}>
-              {saving ? "Publicando..." : "Publicar"}
-            </Button>
-          </div>
-        </>
-      )}
-
-      {msg && <p className="text-sm opacity-80">{msg}</p>}
+          ) : null}
+          <Button
+            type="button"
+            onClick={onSubmit}
+            disabled={saving || step !== "compose" || !selected || rating === null}
+            className="w-full sm:w-auto"
+          >
+            {saving ? "Publicando..." : "Publicar review"}
+          </Button>
+        </div>
+      </div>
     </div>
   );
+}
+
+function StepPill({
+  active,
+  number,
+  label,
+}: {
+  active: boolean;
+  number: string;
+  label: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
+        active ? "border-foreground/30 bg-muted text-foreground" : "text-muted-foreground"
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-5 w-5 items-center justify-center rounded-full text-[11px]",
+          active ? "bg-foreground text-background" : "bg-muted"
+        )}
+      >
+        {number}
+      </span>
+      {label}
+    </div>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <p className="px-2 py-4 text-sm text-muted-foreground">{text}</p>;
 }
