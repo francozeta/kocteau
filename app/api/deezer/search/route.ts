@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import { searchDeezerTracks } from "@/lib/deezer";
+import { supabaseServer } from "@/lib/supabase/server";
+
+type ExistingEntity = {
+  id: string;
+  provider_id: string;
+};
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -6,27 +13,33 @@ export async function GET(req: Request) {
 
   if (!q) return NextResponse.json([], { status: 200 });
 
-  const url = `https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=10`;
-  const res = await fetch(url, {
-    next: { revalidate: 60 },
-  });
+  try {
+    const results = await searchDeezerTracks(q, 12);
+    const providerIds = results.map((result) => result.provider_id);
 
-  if (!res.ok) {
+    if (providerIds.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
+
+    const supabase = await supabaseServer();
+    const { data: entities } = await supabase
+      .from("entities")
+      .select("id, provider_id")
+      .eq("provider", "deezer")
+      .eq("type", "track")
+      .in("provider_id", providerIds);
+
+    const entityByProviderId = new Map(
+      ((entities ?? []) as ExistingEntity[]).map((entity) => [entity.provider_id, entity.id])
+    );
+
+    return NextResponse.json(
+      results.map((result) => ({
+        ...result,
+        entity_id: entityByProviderId.get(result.provider_id) ?? null,
+      }))
+    );
+  } catch {
     return NextResponse.json({ error: "Deezer request failed" }, { status: 502 });
   }
-
-  const json = await res.json();
-
-  const results =
-    (json?.data ?? []).map((item: any) => ({
-      provider: "deezer" as const,
-      provider_id: String(item.id),
-      type: "track" as const, // Deezer search here returns tracks
-      title: item.title as string,
-      artist_name: item.artist?.name ?? null,
-      cover_url: item.album?.cover_medium ?? item.album?.cover ?? null,
-      deezer_url: item.link ?? null,
-    })) ?? [];
-
-  return NextResponse.json(results);
 }

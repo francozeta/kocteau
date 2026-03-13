@@ -15,11 +15,12 @@ import RatingStars from "./rating-stars";
 type DeezerResult = {
   provider: "deezer";
   provider_id: string;
-  type: "track" | "album";
+  type: "track";
   title: string;
   artist_name: string | null;
   cover_url: string | null;
   deezer_url: string | null;
+  entity_id?: string | null;
 };
 
 type ReviewSubmitError = Error & {

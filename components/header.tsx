@@ -4,9 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import NewReviewDialog from "./new-review-dialog";
-import { Plus, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 type HeaderProfile = {
   username: string;
@@ -39,7 +38,13 @@ export default function Header({ profile }: { profile: HeaderProfile }) {
         <div className="flex items-center gap-6 ml-auto">
           <nav className="hidden md:flex items-center gap-1 text-sm">
             <Link href="/" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
-              Reviews
+              Feed
+            </Link>
+            <Link href="/search" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
+              Search
+            </Link>
+            <Link href="/track" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
+              Tracks
             </Link>
           </nav>
 
