@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LoaderCircle, Music2, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import RatingStars from "./rating-stars";
 
 type DeezerResult = {
@@ -29,17 +30,21 @@ type ReviewSubmitError = Error & {
 
 type NewReviewFormProps = {
   onSuccess?: () => void;
+  initialQuery?: string;
+  initialSelection?: DeezerResult | null;
 };
 
 type Step = "search" | "compose";
 
-export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
+export default function NewReviewForm({
+  onSuccess,
+  initialQuery = "",
+  initialSelection = null,
+}: NewReviewFormProps) {
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("search");
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<DeezerResult[]>([]);
-  const [searching, setSearching] = useState(false);
+  const [query, setQuery] = useState(initialQuery);
   const [selected, setSelected] = useState<DeezerResult | null>(null);
 
   const [rating, setRating] = useState<number | null>(null);
@@ -50,50 +55,35 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
   const [saving, setSaving] = useState(false);
 
   const suggestedSearches = ["Radiohead", "Björk", "Bad Bunny", "Frank Ocean", "Massive Attack", "The Cure"];
+  const searchEnabled = step === "search";
+  const normalizedQuery = query.trim();
+  const { data, isFetching, error: searchError } = useDeezerSearch({
+    query,
+    type: "track",
+    enabled: searchEnabled,
+  });
+  const results = useMemo(() => (searchEnabled ? ((data ?? []) as DeezerResult[]) : []), [data, searchEnabled]);
 
   useEffect(() => {
-    if (step !== "search" || !query.trim()) {
-      setResults([]);
-      setSearching(false);
+    setQuery(initialQuery);
+  }, [initialQuery]);
+
+  useEffect(() => {
+    if (initialSelection) {
+      setSelected(initialSelection);
+      setStep("compose");
+      setErrorMsg(null);
       return;
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(async () => {
-      setSearching(true);
-      setErrorMsg(null);
-
-      try {
-        const res = await fetch(`/api/deezer/search?q=${encodeURIComponent(query.trim())}`, {
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          throw new Error("No se pudo buscar en Deezer.");
-        }
-
-        const data = (await res.json()) as DeezerResult[];
-        setResults(Array.isArray(data) ? data : []);
-      } catch (error) {
-        if ((error as Error).name === "AbortError") return;
-        setResults([]);
-        setErrorMsg("No se pudo buscar en Deezer.");
-      } finally {
-        setSearching(false);
-      }
-    }, 300);
-
-    return () => {
-      controller.abort();
-      clearTimeout(timeoutId);
-    };
-  }, [query, step]);
+    setSelected(null);
+    setStep("search");
+  }, [initialSelection]);
 
   function resetAll() {
-    setStep("search");
-    setSelected(null);
-    setQuery("");
-    setResults([]);
+    setStep(initialSelection ? "compose" : "search");
+    setSelected(initialSelection);
+    setQuery(initialQuery);
     setRating(null);
     setTitle("");
     setBody("");
@@ -101,6 +91,13 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
   }
 
   function goBackToSearch() {
+    if (initialSelection) {
+      setSelected(initialSelection);
+      setStep("compose");
+      setErrorMsg(null);
+      return;
+    }
+
     setSelected(null);
     setStep("search");
     setErrorMsg(null);
@@ -110,12 +107,12 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
     setErrorMsg(null);
 
     if (!selected) {
-      setErrorMsg("Selecciona un track antes de publicar.");
+      setErrorMsg("Select a track before publishing.");
       return;
     }
 
     if (rating === null) {
-      setErrorMsg("El rating es obligatorio para publicar en la demo.");
+      setErrorMsg("A rating is required to publish in the demo.");
       return;
     }
 
@@ -144,7 +141,7 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
       const payload = (await res.json()) as { error?: string; code?: string | null };
 
       if (!res.ok) {
-        const error = new Error(payload.error || "Error al publicar la review.") as ReviewSubmitError;
+        const error = new Error(payload.error || "Something went wrong while publishing.") as ReviewSubmitError;
         error.code = payload.code ?? undefined;
         throw error;
       }
@@ -156,9 +153,9 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
       const reviewError = error as ReviewSubmitError;
 
       if (reviewError.code === "42501") {
-        setErrorMsg("Tu sesión expiró. Vuelve a iniciar sesión.");
+        setErrorMsg("Your session expired. Please sign in again.");
       } else {
-        setErrorMsg(reviewError.message || "Error al publicar la review.");
+        setErrorMsg(reviewError.message || "Something went wrong while publishing.");
       }
     } finally {
       setSaving(false);
@@ -181,8 +178,15 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
 
           {errorMsg ? (
             <Alert variant="destructive" className="mb-4 shrink-0">
-              <AlertTitle>No pudimos continuar</AlertTitle>
+              <AlertTitle>We could not continue</AlertTitle>
               <AlertDescription>{errorMsg}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {searchError ? (
+            <Alert variant="destructive" className="mb-4 shrink-0">
+              <AlertTitle>We could not search</AlertTitle>
+              <AlertDescription>{searchError.message}</AlertDescription>
             </Alert>
           ) : null}
 
@@ -197,14 +201,14 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
 
           <ScrollArea className="min-h-0 flex-1">
             <div className="space-y-0">
-              {searching ? (
+              {isFetching ? (
                 <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
                   <LoaderCircle className="size-4 animate-spin" />
                   Searching...
                 </div>
               ) : null}
 
-              {!searching && !query.trim() ? (
+              {!isFetching && !normalizedQuery ? (
                 <>
                   <div className="border-b px-4 py-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -226,7 +230,15 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
                 </>
               ) : null}
 
-              {!searching && query.trim() && results.length === 0 ? (
+              {!isFetching && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Type at least 2 characters to start searching.
+                  </p>
+                </div>
+              ) : null}
+
+              {!isFetching && normalizedQuery.length >= 2 && results.length === 0 ? (
                 <div className="px-4 py-6 text-center">
                   <p className="text-sm text-muted-foreground">No tracks found.</p>
                 </div>
@@ -278,7 +290,7 @@ export default function NewReviewForm({ onSuccess }: NewReviewFormProps) {
           <div className="mb-5 flex items-center gap-3 shrink-0">
             <Button type="button" variant="ghost" size="icon" onClick={goBackToSearch} className="shrink-0">
               <ArrowLeft className="size-4" />
-              <span className="sr-only">Volver a buscar</span>
+              <span className="sr-only">Back to search</span>
             </Button>
 
             <div className="flex min-w-0 flex-1 items-center gap-3">

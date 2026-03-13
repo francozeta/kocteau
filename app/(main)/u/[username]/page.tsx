@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { buttonVariants } from "@/components/ui/button";
+import ReviewCard from "@/components/review-card";
 import { supabaseServer } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 type ReviewEntity = {
   id: string;
@@ -25,94 +28,6 @@ function getEntity(review: ReviewWithEntity) {
   }
 
   return review.entities;
-}
-
-function ReviewCard({
-  review,
-  eyebrow,
-  featured = false,
-}: {
-  review: ReviewWithEntity;
-  eyebrow?: string;
-  featured?: boolean;
-}) {
-  const entity = getEntity(review);
-  const heading = review.title ?? entity?.title ?? "Untitled review";
-
-  return (
-    <Link href={`/track/${entity?.id || '#'}`}>
-      <article className={`rounded-lg border transition-all duration-200 hover:border-border/80 group ${
-        featured 
-          ? "border-border/40 bg-card p-6 hover:bg-muted/30" 
-          : "border-border/40 p-4 hover:bg-muted/30"
-      }`}>
-        {eyebrow ? (
-          <p className="mb-3 text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-            {eyebrow}
-          </p>
-        ) : null}
-
-        <div className="flex items-start gap-4">
-          <div className={`shrink-0 overflow-hidden rounded-md bg-muted border border-border/40 group-hover:scale-105 transition-transform duration-200 ${
-            featured ? "relative h-28 w-28" : "relative h-20 w-20"
-          }`}>
-            {entity?.cover_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={entity.cover_url}
-                alt={entity.title}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : null}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            {entity ? (
-              <h3 className={`font-semibold leading-tight text-foreground group-hover:text-foreground transition-colors ${
-                featured ? "text-lg" : "text-base"
-              }`}>
-                {heading}
-              </h3>
-            ) : (
-              <h3 className={`font-semibold leading-tight text-foreground ${
-                featured ? "text-lg" : "text-base"
-              }`}>
-                {heading}
-              </h3>
-            )}
-            {entity ? (
-              <p className={`mt-1 text-muted-foreground group-hover:text-foreground/70 transition-colors ${
-                featured ? "text-sm" : "text-xs"
-              }`}>
-                {entity.title}
-                {entity.artist_name ? ` • ${entity.artist_name}` : ""}
-              </p>
-            ) : null}
-            <div className={`mt-3 items-center gap-2 inline-flex px-2.5 py-1.5 rounded bg-muted/50 border border-border/40 font-medium text-foreground ${
-              featured ? "text-sm" : "text-xs"
-            }`}>
-              <span>★</span>
-              {review.rating.toFixed(1)}
-            </div>
-            {review.body ? (
-              <p className={`mt-3 text-foreground/70 group-hover:text-foreground/80 transition-colors line-clamp-2 ${
-                featured ? "text-sm leading-relaxed" : "text-xs"
-              }`}>
-                {review.body}
-              </p>
-            ) : (
-              <p className={`mt-3 italic text-muted-foreground ${
-                featured ? "text-sm" : "text-xs"
-              }`}>
-                Rating only
-              </p>
-            )}
-          </div>
-        </div>
-      </article>
-    </Link>
-  );
 }
 
 export default async function UserProfilePage({
@@ -180,6 +95,10 @@ export default async function UserProfilePage({
     year: "numeric",
     month: "long",
   });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isOwnProfile = user?.id === profile.id;
 
   return (
     <div className="space-y-8">
@@ -216,19 +135,42 @@ export default async function UserProfilePage({
               <span>•</span>
               <span>Member since {memberSince}</span>
             </div>
+            {isOwnProfile ? (
+              <div className="mt-5">
+                <Link
+                  href="/settings"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                >
+                  Edit profile settings
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
 
       <div className="space-y-6">
         {pinnedReview && (
-          <ReviewCard review={pinnedReview} eyebrow="Featured Review" featured={true} />
+          <ReviewCard
+            review={pinnedReview}
+            entity={getEntity(pinnedReview)}
+            showAuthor={false}
+            eyebrow="Featured review"
+            featured={true}
+            entityMode="full"
+          />
         )}
 
         {reviews && reviews.length > 0 ? (
           <section className="space-y-3">
             {reviews.map((review) => (
-              <ReviewCard key={review.id} review={review as ReviewWithEntity} />
+              <ReviewCard
+                key={review.id}
+                review={review as ReviewWithEntity}
+                entity={getEntity(review as ReviewWithEntity)}
+                showAuthor={false}
+                entityMode="full"
+              />
             ))}
           </section>
         ) : !pinnedReview ? (

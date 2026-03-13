@@ -1,15 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Music2, Star } from "lucide-react";
+import { MessageSquarePlus, Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ReviewCard, { type ReviewCardAuthor, type ReviewCardData } from "@/components/review-card";
 import { cn } from "@/lib/utils";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type EntityPage = {
   id: string;
+  provider: string;
+  provider_id: string;
   title: string;
   artist_name: string | null;
   cover_url: string | null;
@@ -17,20 +19,14 @@ type EntityPage = {
   type: "track" | "album";
 };
 
-type ReviewAuthor = {
-  username: string;
-  display_name: string | null;
-  avatar_url: string | null;
-};
-
 type EntityReview = {
-  id: string;
-  title: string | null;
-  body: string | null;
-  rating: number;
-  created_at: string;
+  id: ReviewCardData["id"];
+  title: ReviewCardData["title"];
+  body: ReviewCardData["body"];
+  rating: ReviewCardData["rating"];
+  created_at: ReviewCardData["created_at"];
   is_pinned: boolean;
-  author: ReviewAuthor | ReviewAuthor[] | null;
+  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
 };
 
 function getAuthor(review: EntityReview) {
@@ -40,15 +36,6 @@ function getAuthor(review: EntityReview) {
 
   return review.author;
 }
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-PE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export default async function TrackPage({
   params,
 }: {
@@ -59,7 +46,7 @@ export default async function TrackPage({
 
   const { data: entity, error: entityError } = await supabase
     .from("entities")
-    .select("id, title, artist_name, cover_url, deezer_url, type")
+    .select("id, provider, provider_id, title, artist_name, cover_url, deezer_url, type")
     .eq("id", id)
     .single<EntityPage>();
 
@@ -84,12 +71,35 @@ export default async function TrackPage({
     .order("created_at", { ascending: false });
 
   const trackReviews = (reviews ?? []) as EntityReview[];
+  const averageRating =
+    trackReviews.length > 0
+      ? trackReviews.reduce((sum, review) => sum + review.rating, 0) / trackReviews.length
+      : null;
+  const composeParams = new URLSearchParams({
+    compose: "1",
+    reviewQuery: [entity.title, entity.artist_name].filter(Boolean).join(" "),
+    composeProvider: entity.provider,
+    composeProviderId: entity.provider_id,
+    composeTitle: entity.title,
+  });
+
+  if (entity.artist_name) {
+    composeParams.set("composeArtist", entity.artist_name);
+  }
+
+  if (entity.cover_url) {
+    composeParams.set("composeCover", entity.cover_url);
+  }
+
+  if (entity.deezer_url) {
+    composeParams.set("composeDeezer", entity.deezer_url);
+  }
 
   return (
-    <section className="space-y-6">
-      <Card className="overflow-hidden py-0">
-        <CardContent className="grid gap-0 p-0 md:grid-cols-[220px_1fr]">
-          <div className="flex h-64 items-center justify-center bg-muted md:h-full">
+    <section className="space-y-8">
+      <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-muted/50 via-background to-background py-0 shadow-sm">
+        <CardContent className="grid gap-0 p-0 xl:grid-cols-[260px_minmax(0,1fr)_240px]">
+          <div className="flex h-72 items-center justify-center bg-muted xl:h-full">
             {entity.cover_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -103,45 +113,81 @@ export default async function TrackPage({
             )}
           </div>
 
-          <div className="space-y-4 p-5">
+          <div className="space-y-5 p-6">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{entity.type}</Badge>
-              <Badge variant="outline">
-                {trackReviews.length} {trackReviews.length === 1 ? "review" : "reviews"}
-              </Badge>
+              <Badge variant="secondary">Track page</Badge>
+              <Badge variant="outline">{entity.type}</Badge>
             </div>
 
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight">{entity.title}</h1>
-              <p className="mt-2 text-base text-muted-foreground">
+            <div className="space-y-3">
+              <h1 className="text-4xl font-semibold tracking-tight text-balance">
+                {entity.title}
+              </h1>
+              <p className="text-base text-muted-foreground">
                 {entity.artist_name ?? "Unknown artist"}
               </p>
             </div>
 
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Esta es la página del track dentro del MVP: aquí se concentran las reviews
-              publicadas por la comunidad sobre esta canción.
+              This is where a single song gathers conversation: rating, context and
+              personal tone, all around the same track.
             </p>
 
-            {entity.deezer_url ? (
-              <a
-                href={entity.deezer_url}
-                target="_blank"
-                rel="noreferrer"
-                className={cn(buttonVariants({ variant: "outline" }))}
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={`/track/${entity.id}?${composeParams.toString()}`}
+                className={cn(buttonVariants({ size: "sm" }))}
               >
-                Abrir en Deezer
-              </a>
-            ) : null}
+                <MessageSquarePlus className="size-4" />
+                Write review
+              </Link>
+
+              {entity.deezer_url ? (
+                <a
+                  href={entity.deezer_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                >
+                  Open in Deezer
+                </a>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="grid gap-3 border-t border-border/50 p-6 xl:border-t-0 xl:border-l xl:border-border/50">
+            <div className="rounded-xl border border-border/50 bg-background/70 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                Reviews
+              </p>
+              <p className="mt-2 text-3xl font-semibold">{trackReviews.length}</p>
+            </div>
+
+            <div className="rounded-xl border border-border/50 bg-background/70 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                Average
+              </p>
+              <div className="mt-2 inline-flex items-center gap-2 text-2xl font-semibold">
+                <Star className="size-5 fill-current text-amber-400" />
+                {averageRating ? averageRating.toFixed(1) : "N/A"}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border/50 bg-background/70 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                Canonical ID
+              </p>
+              <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{entity.id}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between border-b pb-4">
+      <div className="flex items-center justify-between border-b border-border/50 pb-4">
         <div>
-          <h2 className="text-xl font-semibold">Reviews del track</h2>
+          <h2 className="text-xl font-semibold">Track reviews</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Mira cómo otras personas calificaron esta canción.
+            First the track, then the review angle, and finally the note.
           </p>
         </div>
       </div>
@@ -150,65 +196,25 @@ export default async function TrackPage({
         <div className="space-y-4">
           {trackReviews.map((review) => {
             const author = getAuthor(review);
-            const authorName = author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
-            const heading = review.title ?? "Review sin título";
 
             return (
-              <Card key={review.id} className="py-0">
-                <CardContent className="space-y-4 p-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        <div className="relative h-7 w-7 overflow-hidden rounded-full bg-muted">
-                          {author?.avatar_url ? (
-                            <Image
-                              src={author.avatar_url}
-                              alt={authorName}
-                              fill
-                              sizes="28px"
-                              className="object-cover"
-                            />
-                          ) : null}
-                        </div>
-                        {author ? (
-                          <Link href={`/u/${author.username}`} className="font-medium text-foreground hover:underline">
-                            {authorName}
-                          </Link>
-                        ) : (
-                          <span>{authorName}</span>
-                        )}
-                        <span>•</span>
-                        <span>{formatDate(review.created_at)}</span>
-                        {review.is_pinned ? <Badge variant="outline">Pinned</Badge> : null}
-                      </div>
-
-                      <h3 className="text-lg font-semibold">{heading}</h3>
-                    </div>
-
-                    <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium">
-                      <Star className="size-4 fill-current" />
-                      {review.rating.toFixed(1)}
-                    </div>
-                  </div>
-
-                  {review.body ? (
-                    <p className="text-sm leading-6 text-foreground/85">{review.body}</p>
-                  ) : (
-                    <p className="text-sm italic text-muted-foreground">
-                      Solo dejó su rating para este track.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+              <ReviewCard
+                key={review.id}
+                review={review}
+                entity={entity}
+                author={author}
+                showAuthor={true}
+                entityMode="inline"
+              />
             );
           })}
         </div>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Todavía no hay reviews para este track</CardTitle>
+            <CardTitle>There are no reviews for this track yet</CardTitle>
             <CardDescription>
-              Publica una y esta página empezará a sentirse viva.
+              Start the conversation with the first review from the button above.
             </CardDescription>
           </CardHeader>
         </Card>

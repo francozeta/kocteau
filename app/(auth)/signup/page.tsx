@@ -27,7 +27,7 @@ export default function SignupPage() {
     }
 
     if (!data.session) {
-      setMsg("Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.");
+      setMsg("Account created. Check your email, confirm it, and then sign in.");
       setLoading(false);
       return;
     }
@@ -45,7 +45,7 @@ export default function SignupPage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-3">
-        <h1 className="text-xl font-semibold">Crear cuenta</h1>
+        <h1 className="text-xl font-semibold">Create account</h1>
 
         <input className="w-full border rounded px-3 py-2" placeholder="Email"
           value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -54,11 +54,11 @@ export default function SignupPage() {
           value={password} onChange={(e) => setPassword(e.target.value)} />
 
         <button className="w-full border rounded px-3 py-2" onClick={onSubmit} disabled={loading}>
-          {loading ? "Creando..." : "Crear cuenta"}
+          {loading ? "Creating..." : "Create account"}
         </button>
 
         <p className="text-sm opacity-80">
-          ¿Ya tienes cuenta? <Link className="underline" href="/login">Login</Link>
+          Already have an account? <Link className="underline" href="/login">Log in</Link>
         </p>
 
         {msg && <p className="text-sm opacity-80">{msg}</p>}

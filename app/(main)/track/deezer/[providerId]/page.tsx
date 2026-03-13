@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ExternalLink, Music2 } from "lucide-react";
+import { ArrowRight, ExternalLink, MessageSquarePlus, Music2 } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -38,6 +38,26 @@ export default async function DeezerTrackResolverPage({
     notFound();
   }
 
+  const composeParams = new URLSearchParams({
+    compose: "1",
+    reviewQuery: [track.title, track.artist_name].filter(Boolean).join(" "),
+    composeProvider: track.provider,
+    composeProviderId: track.provider_id,
+    composeTitle: track.title,
+  });
+
+  if (track.artist_name) {
+    composeParams.set("composeArtist", track.artist_name);
+  }
+
+  if (track.cover_url) {
+    composeParams.set("composeCover", track.cover_url);
+  }
+
+  if (track.deezer_url) {
+    composeParams.set("composeDeezer", track.deezer_url);
+  }
+
   return (
     <section className="space-y-6">
       <Card className="overflow-hidden py-0">
@@ -70,16 +90,23 @@ export default async function DeezerTrackResolverPage({
             </div>
 
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Este track aun no existe como entidad local en Kocteau. La primera review
-              lo convertira en una pagina canonica con URL interna y feed propio.
+              This track does not exist as a local Kocteau entity yet. The first review
+              will turn it into a canonical page with its own internal URL and feed.
             </p>
 
             <div className="flex flex-wrap gap-3">
               <Link
-                href={`/search?q=${encodeURIComponent(track.title)}`}
+                href={`/track/deezer/${providerId}?${composeParams.toString()}`}
                 className={cn(buttonVariants({ size: "sm" }))}
               >
-                Buscar en Kocteau
+                <MessageSquarePlus className="size-4" />
+                Review this track
+              </Link>
+              <Link
+                href={`/search?q=${encodeURIComponent(track.title)}`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              >
+                Search in Kocteau
               </Link>
               {track.deezer_url ? (
                 <a
@@ -88,7 +115,7 @@ export default async function DeezerTrackResolverPage({
                   rel="noreferrer"
                   className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                 >
-                  Abrir en Deezer
+                  Open in Deezer
                   <ExternalLink className="size-4" />
                 </a>
               ) : null}
@@ -99,18 +126,18 @@ export default async function DeezerTrackResolverPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Todavia no hay reviews para este track</CardTitle>
+          <CardTitle>There are no reviews for this track yet</CardTitle>
           <CardDescription>
-            Usa el boton de crear review del header, selecciona esta cancion y se creara
-            su entidad interna automaticamente.
+            Use the review button in the header and this song will be created as a local
+            entity automatically.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Seguir explorando
+            Keep exploring
           </Link>
           <Link href="/track" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
-            Ver tracks existentes
+            View existing tracks
             <ArrowRight className="size-4" />
           </Link>
         </CardContent>

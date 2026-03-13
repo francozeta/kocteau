@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { searchDeezerTracks } from "@/lib/deezer";
+import { isSearchEntityType } from "@/lib/search-types";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type ExistingEntity = {
@@ -10,8 +11,16 @@ type ExistingEntity = {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim();
+  const requestedType = searchParams.get("type");
+  const type = isSearchEntityType(requestedType) ? requestedType : "track";
 
   if (!q) return NextResponse.json([], { status: 200 });
+  if (type !== "track") {
+    return NextResponse.json(
+      { error: `Search for ${type} is not available in this demo yet.` },
+      { status: 501 }
+    );
+  }
 
   try {
     const results = await searchDeezerTracks(q, 12);

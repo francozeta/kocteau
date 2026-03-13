@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
@@ -8,21 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
-
-type SearchResult = {
-  provider: "deezer";
-  provider_id: string;
-  type: "track";
-  title: string;
-  artist_name: string | null;
-  cover_url: string | null;
-  deezer_url: string | null;
-  entity_id?: string | null;
-};
+import type { SearchEntityType } from "@/lib/search-types";
 
 type SearchPageClientProps = {
   initialQuery: string;
+  initialType: SearchEntityType;
   highlights: DiscoveryTrack[];
 };
 
@@ -36,102 +29,75 @@ const suggestedSearches = [
 ];
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-PE", {
+  return new Date(value).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
   });
 }
 
-function getResultHref(result: SearchResult) {
+function getResultHref(result: DeezerSearchResult) {
   return result.entity_id ? `/track/${result.entity_id}` : `/track/deezer/${result.provider_id}`;
 }
 
-export default function SearchPageClient({ initialQuery, highlights }: SearchPageClientProps) {
+export default function SearchPageClient({
+  initialQuery,
+  initialType,
+  highlights,
+}: SearchPageClientProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [query, setQuery] = useState(initialQuery);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [searchType, setSearchType] = useState<SearchEntityType>(initialType);
+  const normalizedQuery = query.trim();
+  const { data = [], isFetching, error } = useDeezerSearch({
+    query,
+    type: searchType,
+    enabled: searchType === "track",
+  });
+  const results = data as DeezerSearchResult[];
 
   useEffect(() => {
     setQuery(initialQuery);
-  }, [initialQuery]);
-
-  useEffect(() => {
-    const trimmed = query.trim();
-
-    if (!trimmed) {
-      setResults([]);
-      setSearching(false);
-      setError(null);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(async () => {
-      setSearching(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`/api/deezer/search?q=${encodeURIComponent(trimmed)}`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error("No pudimos buscar ahora mismo.");
-        }
-
-        const payload = (await response.json()) as SearchResult[];
-        setResults(Array.isArray(payload) ? payload : []);
-      } catch (requestError) {
-        if ((requestError as Error).name === "AbortError") {
-          return;
-        }
-
-        setResults([]);
-        setError("No pudimos buscar ahora mismo.");
-      } finally {
-        setSearching(false);
-      }
-    }, 250);
-
-    return () => {
-      controller.abort();
-      clearTimeout(timeoutId);
-    };
-  }, [query]);
+    setSearchType(initialType);
+  }, [initialQuery, initialType]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const trimmed = query.trim();
       const next = new URLSearchParams(searchParams.toString());
 
-      if (trimmed) {
-        next.set("q", trimmed);
+      if (normalizedQuery) {
+        next.set("q", normalizedQuery);
       } else {
         next.delete("q");
+      }
+
+      if (searchType !== "track") {
+        next.set("type", searchType);
+      } else {
+        next.delete("type");
       }
 
       const current = searchParams.toString();
       const updated = next.toString();
 
       if (current !== updated) {
-        router.replace(updated ? `${pathname}?${updated}` : pathname, { scroll: false });
+        startTransition(() => {
+          router.replace(updated ? `${pathname}?${updated}` : pathname, { scroll: false });
+        });
       }
     }, 250);
 
     return () => clearTimeout(timeoutId);
-  }, [pathname, query, router, searchParams]);
+  }, [normalizedQuery, pathname, router, searchParams, searchType]);
 
-  const hasQuery = query.trim().length > 0;
+  const hasQuery = normalizedQuery.length > 0;
   const resultCountLabel = useMemo(() => {
     if (!hasQuery) return null;
-    if (searching) return "Buscando...";
-    return `${results.length} ${results.length === 1 ? "resultado" : "resultados"}`;
-  }, [hasQuery, results.length, searching]);
+    if (isFetching) return "Searching...";
+    return `${results.length} ${results.length === 1 ? "result" : "results"}`;
+  }, [hasQuery, isFetching, results.length]);
 
   return (
     <div className="space-y-6">
@@ -143,8 +109,8 @@ export default function SearchPageClient({ initialQuery, highlights }: SearchPag
               <div>
                 <CardTitle className="text-2xl">Search tracks</CardTitle>
                 <CardDescription className="mt-2 max-w-2xl">
-                  Busca en Deezer, abre la pagina del track y si ya existe en Kocteau
-                  entras directo a su version canonica.
+                  Search through Deezer, open a track page, and jump straight into the
+                  canonical Kocteau page when it already exists.
                 </CardDescription>
               </div>
             </div>
@@ -156,6 +122,20 @@ export default function SearchPageClient({ initialQuery, highlights }: SearchPag
         </CardHeader>
 
         <CardContent className="space-y-4 px-5 py-5">
+          <Tabs value={searchType} onValueChange={(value) => setSearchType(value as SearchEntityType)}>
+            <TabsList variant="line" className="w-full justify-start rounded-none p-0">
+              <TabsTrigger value="track" className="flex-none px-0 pr-4">
+                Tracks
+              </TabsTrigger>
+              <TabsTrigger value="artist" disabled className="flex-none px-0 pr-4">
+                Artists
+              </TabsTrigger>
+              <TabsTrigger value="album" disabled className="flex-none px-0 pr-4">
+                Albums
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -183,27 +163,43 @@ export default function SearchPageClient({ initialQuery, highlights }: SearchPag
             </div>
           ) : null}
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <p className="text-xs text-muted-foreground">
+            The demo currently searches `track`. `artist` and `album` are already typed
+            for the next phase.
+          </p>
+
+          {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
         </CardContent>
       </Card>
 
       {hasQuery ? (
         <div className="grid gap-3">
-          {searching ? (
+          {isFetching ? (
             <Card>
               <CardContent className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
                 <LoaderCircle className="size-4 animate-spin" />
-                Buscando en Deezer...
+                Searching Deezer...
               </CardContent>
             </Card>
           ) : null}
 
-          {!searching && results.length === 0 ? (
+          {!isFetching && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
             <Card>
               <CardHeader>
-                <CardTitle>No encontramos tracks</CardTitle>
+                <CardTitle>Keep typing</CardTitle>
                 <CardDescription>
-                  Prueba otro nombre de cancion, artista o una combinacion de ambos.
+                  We need at least 2 characters before we can search.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          ) : null}
+
+          {!isFetching && normalizedQuery.length >= 2 && results.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>No tracks found</CardTitle>
+                <CardDescription>
+                  Try another song title, artist name, or a mix of both.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -248,8 +244,8 @@ export default function SearchPageClient({ initialQuery, highlights }: SearchPag
 
                     <p className="text-sm text-muted-foreground">
                       {result.entity_id
-                        ? "Este track ya tiene entidad interna. Entraras a su pagina local."
-                        : "Todavia no existe en Kocteau. Entraras por Deezer ID y la primera review lo convertira en entidad local."}
+                        ? "This track already has a local entity. You will open its Kocteau page."
+                        : "This track does not exist in Kocteau yet. You will enter through Deezer ID and the first review will create its local entity."}
                     </p>
                   </div>
 
@@ -267,7 +263,7 @@ export default function SearchPageClient({ initialQuery, highlights }: SearchPag
             <div>
               <h2 className="text-xl font-semibold">Recently discussed tracks</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Una entrada rapida a lo que ya se esta reseñando en la demo.
+                A quick way into what is already being reviewed in the demo.
               </p>
             </div>
           </div>
@@ -300,7 +296,7 @@ export default function SearchPageClient({ initialQuery, highlights }: SearchPag
                           {track.artistName ?? "Unknown artist"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Ultima review: {formatDate(track.latestReviewAt)}
+                          Latest review: {formatDate(track.latestReviewAt)}
                         </p>
                       </div>
                     </CardContent>
@@ -311,9 +307,9 @@ export default function SearchPageClient({ initialQuery, highlights }: SearchPag
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Todavia no hay tracks en Kocteau</CardTitle>
+                <CardTitle>There are no tracks in Kocteau yet</CardTitle>
                 <CardDescription>
-                  Usa el buscador de arriba y publica la primera review para empezar el catalogo.
+                  Use the search above and publish the first review to start the catalog.
                 </CardDescription>
               </CardHeader>
             </Card>

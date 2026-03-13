@@ -1,31 +1,21 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Music2, Star } from "lucide-react";
+import { ArrowRight, Compass, Music2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ReviewCard, { type ReviewCardAuthor, type ReviewCardData, type ReviewCardEntity } from "@/components/review-card";
+import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
 import { supabaseServer } from "@/lib/supabase/server";
-
-type FeedEntity = {
-  id: string;
-  title: string;
-  artist_name: string | null;
-  cover_url: string | null;
-};
-
-type FeedAuthor = {
-  username: string;
-  display_name: string | null;
-  avatar_url: string | null;
-};
+import { cn } from "@/lib/utils";
 
 type FeedReview = {
-  id: string;
-  title: string | null;
-  body: string | null;
-  rating: number;
-  created_at: string;
-  entities: FeedEntity | FeedEntity[] | null;
-  author: FeedAuthor | FeedAuthor[] | null;
+  id: ReviewCardData["id"];
+  title: ReviewCardData["title"];
+  body: ReviewCardData["body"];
+  rating: ReviewCardData["rating"];
+  created_at: ReviewCardData["created_at"];
+  entities: ReviewCardEntity | ReviewCardEntity[] | null;
+  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
 };
 
 function getEntity(review: FeedReview) {
@@ -43,15 +33,6 @@ function getAuthor(review: FeedReview) {
 
   return review.author;
 }
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-PE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export default async function HomePage() {
   const supabase = await supabaseServer();
 
@@ -79,23 +60,118 @@ export default async function HomePage() {
     .limit(24);
 
   const feed = (reviews ?? []) as FeedReview[];
+  const recentTracks = await getRecentlyDiscussedTracks(4);
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-3 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <Badge variant="secondary">Demo feed</Badge>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Latest reviews</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Kocteau empieza aquí: gente calificando tracks, dejando una nota opcional y
-              descubriendo música a través de otras personas.
-            </p>
-          </div>
-        </div>
+    <section className="space-y-8">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
+        <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-muted/60 via-background to-background py-0 shadow-sm">
+          <CardContent className="space-y-6 p-6 sm:p-8">
+            <div className="space-y-3">
+              <Badge variant="secondary" className="gap-1.5">
+                <Compass className="size-3.5" />
+                Demo feed
+              </Badge>
+              <div className="space-y-3">
+                <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+                  Short reviews, specific tracks, and social discovery.
+                </h1>
+                <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                  Kocteau starts here: someone finds a song, rates it, leaves a note,
+                  and opens a new door for everyone else.
+                </p>
+              </div>
+            </div>
 
+            <div className="flex flex-wrap gap-3">
+              <Link href="/search" className={cn(buttonVariants({ size: "sm" }))}>
+                Search music
+              </Link>
+              <Link href="/track" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                View track pages
+              </Link>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  Reviews
+                </p>
+                <p className="mt-2 text-2xl font-semibold">{feed.length}</p>
+              </div>
+              <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  Tracks
+                </p>
+                <p className="mt-2 text-2xl font-semibold">{recentTracks.length}</p>
+              </div>
+              <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  Loop
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Search, review, share.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-card/70 py-0 shadow-sm">
+          <CardHeader className="border-b border-border/50 py-6">
+            <CardTitle>Recent track pages</CardTitle>
+            <CardDescription>
+              What is already starting conversations inside the product.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 p-4">
+            {recentTracks.length > 0 ? (
+              recentTracks.map((track) => (
+                <Link
+                  key={track.entityId}
+                  href={`/track/${track.entityId}`}
+                  className="flex items-center gap-3 rounded-xl border border-border/50 p-3 transition-colors hover:bg-muted/30"
+                >
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                    {track.coverUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={track.coverUrl}
+                        alt={track.title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Music2 className="size-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-1 font-medium">{track.title}</p>
+                    <p className="line-clamp-1 text-sm text-muted-foreground">
+                      {track.artistName ?? "Unknown artist"}
+                    </p>
+                  </div>
+                  <ArrowRight className="size-4 text-muted-foreground" />
+                </Link>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                There are no published track pages yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex items-end justify-between border-b border-border/50 pb-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Latest reviews</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The feed shows the track first, then the review angle, and finally the note.
+          </p>
+        </div>
         <p className="text-sm text-muted-foreground">
-          {feed.length} {feed.length === 1 ? "review reciente" : "reviews recientes"}
+          {feed.length} {feed.length === 1 ? "recent review" : "recent reviews"}
         </p>
       </div>
 
@@ -104,97 +180,25 @@ export default async function HomePage() {
           {feed.map((review) => {
             const entity = getEntity(review);
             const author = getAuthor(review);
-            const authorName = author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
-            const heading = review.title ?? entity?.title ?? "Untitled review";
 
             return (
-              <Card key={review.id} className="overflow-hidden py-0">
-                <CardContent className="grid gap-0 p-0 sm:grid-cols-[112px_1fr]">
-                  <div className="flex h-32 items-center justify-center bg-muted sm:h-full sm:w-28">
-                    {entity?.cover_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={entity.cover_url}
-                        alt={entity.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Music2 className="size-8 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  <div className="flex min-w-0 flex-col gap-3 p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className="relative h-7 w-7 overflow-hidden rounded-full bg-muted">
-                            {author?.avatar_url ? (
-                              <Image
-                                src={author.avatar_url}
-                                alt={authorName}
-                                fill
-                                sizes="28px"
-                                className="object-cover"
-                              />
-                            ) : null}
-                          </div>
-                          {author ? (
-                            <Link href={`/u/${author.username}`} className="font-medium text-foreground hover:underline">
-                              {authorName}
-                            </Link>
-                          ) : (
-                            <span>{authorName}</span>
-                          )}
-                          <span>•</span>
-                          <span>{formatDate(review.created_at)}</span>
-                        </div>
-
-                        <div>
-                          {entity ? (
-                            <Link href={`/track/${entity.id}`} className="hover:underline">
-                              <h2 className="text-lg font-semibold">{heading}</h2>
-                            </Link>
-                          ) : (
-                            <h2 className="text-lg font-semibold">{heading}</h2>
-                          )}
-                          {entity ? (
-                            <Link
-                              href={`/track/${entity.id}`}
-                              className="mt-1 block text-sm text-muted-foreground hover:text-foreground"
-                            >
-                              {entity.title}
-                              {entity.artist_name ? ` • ${entity.artist_name}` : ""}
-                            </Link>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium">
-                        <Star className="size-4 fill-current" />
-                        {review.rating.toFixed(1)}
-                      </div>
-                    </div>
-
-                    {review.body ? (
-                      <p className="max-w-3xl text-sm leading-6 text-foreground/85">{review.body}</p>
-                    ) : (
-                      <p className="text-sm italic text-muted-foreground">
-                        Solo dejó su rating para este track.
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <ReviewCard
+                key={review.id}
+                review={review}
+                entity={entity}
+                author={author}
+                showAuthor={true}
+                entityMode="full"
+              />
             );
           })}
         </div>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Todavía no hay reviews</CardTitle>
+            <CardTitle>There are no reviews yet</CardTitle>
             <CardDescription>
-              Publica la primera desde el botón de arriba y aparecerá aquí automáticamente.
+              Publish the first one from the button above and it will appear here automatically.
             </CardDescription>
           </CardHeader>
         </Card>

@@ -31,7 +31,7 @@ export default function LoginPage() {
       router.replace(data.redirectTo ?? "/");
       router.refresh();
     } catch {
-      setMsg("Entraste, pero no pudimos resolver el siguiente paso. Intenta de nuevo.");
+      setMsg("You signed in, but we could not resolve the next step. Please try again.");
       setLoading(false);
     }
   }
@@ -48,11 +48,11 @@ export default function LoginPage() {
           value={password} onChange={(e) => setPassword(e.target.value)} />
 
         <button className="w-full border rounded px-3 py-2" onClick={onSubmit} disabled={loading}>
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? "Signing in..." : "Sign in"}
         </button>
 
         <p className="text-sm opacity-80">
-          ¿No tienes cuenta? <Link className="underline" href="/signup">Crear cuenta</Link>
+          Need an account? <Link className="underline" href="/signup">Create one</Link>
         </p>
 
         {msg && <p className="text-sm opacity-80">{msg}</p>}

@@ -7,7 +7,7 @@ import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
 import { cn } from "@/lib/utils";
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-PE", {
+  return new Date(value).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
   });
@@ -25,16 +25,16 @@ export default async function TrackIndexPage() {
             <div className="space-y-2">
               <CardTitle className="text-3xl">Track pages</CardTitle>
               <CardDescription className="max-w-2xl">
-                Este es el catalogo vivo de la demo: cada track existe porque alguien lo
-                encontro, lo califico y dejo una review.
+                This is the living catalog of the demo: each track exists because someone
+                found it, rated it, and left a review.
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href="/search" className={cn(buttonVariants({ size: "sm" }))}>
-                Buscar musica
+                Search music
               </Link>
               <Link href="/" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-                Volver al feed
+                Back to feed
               </Link>
             </div>
           </div>
@@ -45,7 +45,7 @@ export default async function TrackIndexPage() {
         <div>
           <h2 className="text-xl font-semibold">Recently reviewed</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Tracks que ya tienen historia dentro de Kocteau.
+            Tracks that already have history inside Kocteau.
           </p>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default async function TrackIndexPage() {
                     </div>
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>Ultima review: {formatDate(track.latestReviewAt)}</span>
+                      <span>Latest review: {formatDate(track.latestReviewAt)}</span>
                       <ArrowRight className="size-4" />
                     </div>
                   </div>
@@ -93,9 +93,9 @@ export default async function TrackIndexPage() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Todavia no hay tracks publicados</CardTitle>
+            <CardTitle>There are no published tracks yet</CardTitle>
             <CardDescription>
-              Empieza desde search y deja la primera review para crear el primer track local.
+              Start from search and leave the first review to create the first local track.
             </CardDescription>
           </CardHeader>
         </Card>

@@ -46,6 +46,9 @@ export default function Header({ profile }: { profile: HeaderProfile }) {
             <Link href="/track" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
               Tracks
             </Link>
+            <Link href="/settings" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
+              Settings
+            </Link>
           </nav>
 
           <div className="flex items-center gap-3 pl-6 border-l border-border/40">

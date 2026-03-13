@@ -38,7 +38,7 @@ export default function OnboardingPage() {
 
     const u = username.trim().toLowerCase();
     if (!isValidUsername(u)) {
-      setMsg("Username inválido. Usa 3–20: a-z, 0-9, _");
+      setMsg("Invalid username. Use 3-20 characters: a-z, 0-9, _");
       return;
     }
 
@@ -46,7 +46,7 @@ export default function OnboardingPage() {
 
     const { data: authData, error: authErr } = await supabase.auth.getUser();
     if (authErr || !authData.user) {
-      setMsg("No estás logueado. Vuelve a iniciar sesión.");
+      setMsg("You are not signed in. Please log in again.");
       setLoading(false);
       router.replace("/login");
       return;
@@ -79,7 +79,7 @@ export default function OnboardingPage() {
     } catch (e) {
       const error = e as Error & { code?: string };
       if (error.code === "23505") {
-        setMsg("Ese username ya está en uso.");
+        setMsg("That username is already in use.");
       } else {
         setMsg(error.message);
       }
@@ -90,7 +90,7 @@ export default function OnboardingPage() {
   return (
     <main className="p-6 max-w-md">
       <h1 className="text-xl font-semibold">Onboarding</h1>
-      <p className="text-sm opacity-80 mt-1">Elige tu username y sube un avatar.</p>
+      <p className="text-sm opacity-80 mt-1">Choose your username and upload an avatar.</p>
 
       <label className="block mt-4 text-sm">Username</label>
       <input
@@ -100,7 +100,7 @@ export default function OnboardingPage() {
         onChange={(e) => setUsername(e.target.value)}
       />
 
-      <label className="block mt-4 text-sm">Avatar (opcional)</label>
+      <label className="block mt-4 text-sm">Avatar (optional)</label>
       <input
         className="w-full mt-1"
         type="file"
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
         onClick={onSubmit}
         disabled={loading}
       >
-        {loading ? "Guardando..." : "Entrar a Kocteau"}
+        {loading ? "Saving..." : "Enter Kocteau"}
       </button>
 
       {msg && <p className="mt-3 text-sm opacity-80">{msg}</p>}
