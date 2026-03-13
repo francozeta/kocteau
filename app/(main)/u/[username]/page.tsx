@@ -1,7 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ExternalLink } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import ReviewCard from "@/components/review-card";
 import { supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,7 @@ export default async function UserProfilePage({
   // 1) Upload public profile by username
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url, bio, created_at")
+    .select("id, username, display_name, avatar_url, bio, spotify_url, apple_music_url, deezer_url, created_at")
     .eq("username", username)
     .single();
 
@@ -127,6 +128,43 @@ export default async function UserProfilePage({
                 {profile.bio}
               </p>
             ) : null}
+            {profile.spotify_url || profile.apple_music_url || profile.deezer_url ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {profile.spotify_url ? (
+                  <a
+                    href={profile.spotify_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                  >
+                    Spotify
+                    <ExternalLink className="size-4" />
+                  </a>
+                ) : null}
+                {profile.apple_music_url ? (
+                  <a
+                    href={profile.apple_music_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                  >
+                    Apple Music
+                    <ExternalLink className="size-4" />
+                  </a>
+                ) : null}
+                {profile.deezer_url ? (
+                  <a
+                    href={profile.deezer_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                  >
+                    Deezer
+                    <ExternalLink className="size-4" />
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <span className="font-medium text-foreground">{totalReviews}</span>
@@ -137,12 +175,22 @@ export default async function UserProfilePage({
             </div>
             {isOwnProfile ? (
               <div className="mt-5">
-                <Link
-                  href="/settings"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                >
-                  Edit profile settings
-                </Link>
+                <ProfileSettingsDialog
+                  profile={{
+                    username: profile.username,
+                    display_name: profile.display_name,
+                    avatar_url: profile.avatar_url,
+                    bio: profile.bio,
+                    spotify_url: profile.spotify_url,
+                    apple_music_url: profile.apple_music_url,
+                    deezer_url: profile.deezer_url,
+                  }}
+                  trigger={
+                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                      Edit profile settings
+                    </button>
+                  }
+                />
               </div>
             ) : null}
           </div>

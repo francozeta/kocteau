@@ -113,29 +113,38 @@ export type Database = {
       }
       profiles: {
         Row: {
+          apple_music_url: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
+          deezer_url: string | null
           display_name: string | null
           id: string
+          spotify_url: string | null
           updated_at: string
           username: string
         }
         Insert: {
+          apple_music_url?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          deezer_url?: string | null
           display_name?: string | null
           id: string
+          spotify_url?: string | null
           updated_at?: string
           username: string
         }
         Update: {
+          apple_music_url?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          deezer_url?: string | null
           display_name?: string | null
           id?: string
+          spotify_url?: string | null
           updated_at?: string
           username?: string
         }

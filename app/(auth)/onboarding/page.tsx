@@ -1,122 +1,39 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabase/client";
-
-function isValidUsername(u: string) {
-  return /^[a-z0-9_]{3,20}$/.test(u);
-}
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ProfileEditorForm from "@/components/profile-editor-form";
 
 export default function OnboardingPage() {
-  const supabase = supabaseBrowser();
-  const router = useRouter();
-
-  const [username, setUsername] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function uploadAvatar(userId: string) {
-    if (!file) return null;
-
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-    const path = `${userId}/avatar.${ext}`;
-
-    const { error: uploadErr } = await supabase.storage
-      .from("avatars")
-      .upload(path, file, { upsert: true, contentType: file.type });
-
-    if (uploadErr) throw uploadErr;
-
-    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    return data.publicUrl;
-  }
-
-  async function onSubmit() {
-    setMsg(null);
-
-    const u = username.trim().toLowerCase();
-    if (!isValidUsername(u)) {
-      setMsg("Invalid username. Use 3-20 characters: a-z, 0-9, _");
-      return;
-    }
-
-    setLoading(true);
-
-    const { data: authData, error: authErr } = await supabase.auth.getUser();
-    if (authErr || !authData.user) {
-      setMsg("You are not signed in. Please log in again.");
-      setLoading(false);
-      router.replace("/login");
-      return;
-    }
-
-    try {
-      const avatarUrl = await uploadAvatar(authData.user.id);
-
-      const profilePayload: {
-        id: string;
-        username: string;
-        avatar_url?: string;
-      } = {
-        id: authData.user.id,
-        username: u,
-      };
-
-      if (avatarUrl) {
-        profilePayload.avatar_url = avatarUrl;
-      }
-
-      const { error: updErr } = await supabase
-        .from("profiles")
-        .upsert(profilePayload, { onConflict: "id" });
-
-      if (updErr) throw updErr;
-
-      router.replace("/");
-      router.refresh();
-    } catch (e) {
-      const error = e as Error & { code?: string };
-      if (error.code === "23505") {
-        setMsg("That username is already in use.");
-      } else {
-        setMsg(error.message);
-      }
-      setLoading(false);
-    }
-  }
-
   return (
-    <main className="p-6 max-w-md">
-      <h1 className="text-xl font-semibold">Onboarding</h1>
-      <p className="text-sm opacity-80 mt-1">Choose your username and upload an avatar.</p>
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center px-6 py-10">
+      <div className="grid w-full gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,0.85fr)]">
+        <div className="space-y-6">
+          <Badge variant="secondary">Onboarding</Badge>
+          <div className="space-y-4">
+            <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance">
+              Set up the profile people will recognize across Kocteau.
+            </h1>
+            <p className="max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">
+              Before you start rating tracks, choose the identity that will appear on
+              your public profile, your reviews, and the feed.
+            </p>
+          </div>
+        </div>
 
-      <label className="block mt-4 text-sm">Username</label>
-      <input
-        className="w-full border rounded px-3 py-2 mt-1"
-        placeholder="franco_zeta"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-
-      <label className="block mt-4 text-sm">Avatar (optional)</label>
-      <input
-        className="w-full mt-1"
-        type="file"
-        accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-      />
-
-      <button
-        className="mt-4 border rounded px-3 py-2"
-        onClick={onSubmit}
-        disabled={loading}
-      >
-        {loading ? "Saving..." : "Enter Kocteau"}
-      </button>
-
-      {msg && <p className="mt-3 text-sm opacity-80">{msg}</p>}
+        <Card className="border-border/50 bg-card/80 shadow-sm">
+          <CardHeader>
+            <CardTitle>Create your profile</CardTitle>
+            <CardDescription>
+              Username and display name are the minimum. Bio and avatar help the profile
+              feel complete from day one.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileEditorForm mode="onboarding" />
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

@@ -5,12 +5,18 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Link from "next/link";
 import NewReviewDialog from "./new-review-dialog";
+import ProfileSettingsDialog from "./profile-settings-dialog";
+import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
 type HeaderProfile = {
   username: string;
   avatar_url: string | null;
   display_name: string | null;
+  bio: string | null;
+  spotify_url: string | null;
+  apple_music_url: string | null;
+  deezer_url: string | null;
 };
 
 export default function Header({ profile }: { profile: HeaderProfile }) {
@@ -46,9 +52,14 @@ export default function Header({ profile }: { profile: HeaderProfile }) {
             <Link href="/track" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
               Tracks
             </Link>
-            <Link href="/settings" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors">
-              Settings
-            </Link>
+            <ProfileSettingsDialog
+              profile={profile}
+              trigger={
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  Settings
+                </Button>
+              }
+            />
           </nav>
 
           <div className="flex items-center gap-3 pl-6 border-l border-border/40">

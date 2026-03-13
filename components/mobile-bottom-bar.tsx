@@ -3,10 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Cog, Disc3, Home, Search, UserRound } from "lucide-react";
+import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { cn } from "@/lib/utils";
 
 type MobileBottomBarProps = {
-  username: string;
+  profile: {
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    spotify_url: string | null;
+    apple_music_url: string | null;
+    deezer_url: string | null;
+  };
 };
 
 type NavItem = {
@@ -16,7 +25,7 @@ type NavItem = {
   active: (pathname: string) => boolean;
 };
 
-export default function MobileBottomBar({ username }: MobileBottomBarProps) {
+export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
 
   const items: NavItem[] = [
@@ -39,16 +48,10 @@ export default function MobileBottomBar({ username }: MobileBottomBarProps) {
       active: (current) => current.startsWith("/track"),
     },
     {
-      href: `/u/${username}`,
+      href: `/u/${profile.username}`,
       label: "Profile",
       icon: UserRound,
-      active: (current) => current.startsWith(`/u/${username}`),
-    },
-    {
-      href: "/settings",
-      label: "Settings",
-      icon: Cog,
-      active: (current) => current.startsWith("/settings"),
+      active: (current) => current.startsWith(`/u/${profile.username}`),
     },
   ];
 
@@ -75,6 +78,19 @@ export default function MobileBottomBar({ username }: MobileBottomBarProps) {
             </Link>
           );
         })}
+
+        <ProfileSettingsDialog
+          profile={profile}
+          trigger={
+            <button
+              type="button"
+              className="flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Cog className="size-4" />
+              <span>Settings</span>
+            </button>
+          }
+        />
       </div>
     </nav>
   );
