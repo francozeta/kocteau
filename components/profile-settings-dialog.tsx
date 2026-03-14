@@ -25,28 +25,41 @@ type SettingsProfile = {
 
 type ProfileSettingsDialogProps = {
   profile: SettingsProfile;
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export default function ProfileSettingsDialog({
   profile,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: ProfileSettingsDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isMobile = useIsMobile();
+  const open = controlledOpen ?? uncontrolledOpen;
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (controlledOpen === undefined) {
+      setUncontrolledOpen(nextOpen);
+    }
+
+    onOpenChange?.(nextOpen);
+  }
 
   const content = (
     <ProfileEditorForm
       mode="settings"
       initialProfile={profile}
-      onSaved={() => setOpen(false)}
+      onSaved={() => handleOpenChange(false)}
     />
   );
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      <Drawer open={open} onOpenChange={handleOpenChange}>
+        {trigger ? <DrawerTrigger asChild>{trigger}</DrawerTrigger> : null}
         <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/60">
           <DrawerHeader className="border-b border-border/40 pb-3 text-left">
             <DrawerTitle>Edit profile</DrawerTitle>
@@ -63,8 +76,8 @@ export default function ProfileSettingsDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent className="max-w-2xl border-border/40">
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>

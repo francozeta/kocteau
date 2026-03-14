@@ -102,10 +102,10 @@ export default async function UserProfilePage({
   const isOwnProfile = user?.id === profile.id;
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-6 border-b border-border/40 pb-8">
+    <div className="space-y-10">
+      <section className="space-y-6 border-b border-border/30 pb-10">
         <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-          <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-lg bg-muted border border-border/40">
+          <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-full bg-muted border border-border/30">
             {profile.avatar_url ? (
               <Image
                 src={profile.avatar_url}
@@ -118,27 +118,29 @@ export default async function UserProfilePage({
             ) : null}
           </div>
 
-          <div className="min-w-0 flex-1">
-            <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-foreground text-balance">
-              {name}
-            </h1>
-            <p className="mt-2 text-base text-muted-foreground">@{profile.username}</p>
+          <div className="min-w-0 flex-1 space-y-4">
+            <div className="space-y-2">
+              <h1 className="font-serif text-4xl sm:text-5xl font-bold leading-tight text-balance">
+                {name}
+              </h1>
+              <p className="text-base text-muted-foreground">@{profile.username}</p>
+            </div>
             {profile.bio ? (
-              <p className="mt-4 text-base leading-relaxed text-foreground/80 max-w-2xl">
+              <p className="text-base leading-relaxed text-foreground/85 max-w-2xl">
                 {profile.bio}
               </p>
             ) : null}
             {profile.spotify_url || profile.apple_music_url || profile.deezer_url ? (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 pt-1">
                 {profile.spotify_url ? (
                   <a
                     href={profile.spotify_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}
                   >
                     Spotify
-                    <ExternalLink className="size-4" />
+                    <ExternalLink className="size-3" />
                   </a>
                 ) : null}
                 {profile.apple_music_url ? (
@@ -146,10 +148,10 @@ export default async function UserProfilePage({
                     href={profile.apple_music_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}
                   >
                     Apple Music
-                    <ExternalLink className="size-4" />
+                    <ExternalLink className="size-3" />
                   </a>
                 ) : null}
                 {profile.deezer_url ? (
@@ -157,24 +159,24 @@ export default async function UserProfilePage({
                     href={profile.deezer_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}
                   >
                     Deezer
-                    <ExternalLink className="size-4" />
+                    <ExternalLink className="size-3" />
                   </a>
                 ) : null}
               </div>
             ) : null}
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground pt-1">
               <div className="flex items-center gap-1.5">
-                <span className="font-medium text-foreground">{totalReviews}</span>
+                <span className="font-semibold text-foreground">{totalReviews}</span>
                 {totalReviews === 1 ? "review" : "reviews"}
               </div>
-              <span>•</span>
-              <span>Member since {memberSince}</span>
+              <span className="text-muted-foreground/50">•</span>
+              <span>Joined {memberSince}</span>
             </div>
             {isOwnProfile ? (
-              <div className="mt-5">
+              <div className="pt-2">
                 <ProfileSettingsDialog
                   profile={{
                     username: profile.username,
@@ -186,8 +188,8 @@ export default async function UserProfilePage({
                     deezer_url: profile.deezer_url,
                   }}
                   trigger={
-                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-                      Edit profile settings
+                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}>
+                      Edit profile
                     </button>
                   }
                 />
@@ -197,35 +199,38 @@ export default async function UserProfilePage({
         </div>
       </section>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {pinnedReview && (
-          <ReviewCard
-            review={pinnedReview}
-            entity={getEntity(pinnedReview)}
-            showAuthor={false}
-            eyebrow="Featured review"
-            featured={true}
-            entityMode="full"
-          />
+          <div className="space-y-3">
+            <h2 className="font-serif text-2xl font-bold">Pinned review</h2>
+            <ReviewCard
+              review={pinnedReview}
+              entity={getEntity(pinnedReview)}
+              showAuthor={false}
+              featured={true}
+              entityMode="full"
+            />
+          </div>
         )}
 
         {reviews && reviews.length > 0 ? (
-          <section className="space-y-3">
-            {reviews.map((review) => (
-              <ReviewCard
-                key={review.id}
-                review={review as ReviewWithEntity}
-                entity={getEntity(review as ReviewWithEntity)}
-                showAuthor={false}
-                entityMode="full"
-              />
-            ))}
+          <section className="space-y-4">
+            <h2 className="font-serif text-2xl font-bold">{pinnedReview ? "More reviews" : "Reviews"}</h2>
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  review={review as ReviewWithEntity}
+                  entity={getEntity(review as ReviewWithEntity)}
+                  showAuthor={false}
+                  entityMode="inline"
+                />
+              ))}
+            </div>
           </section>
         ) : !pinnedReview ? (
-          <div className="border border-border/40 rounded-lg p-8 text-center">
-            <p className="text-base text-muted-foreground">
-              No reviews yet
-            </p>
+          <div className="py-12 text-center text-muted-foreground">
+            <p className="text-base">No reviews yet</p>
           </div>
         ) : null}
       </div>

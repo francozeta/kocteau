@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Cog, Disc3, Home, Search, UserRound } from "lucide-react";
+import { Cog, Disc3, Home, LogIn, Search, UserRound } from "lucide-react";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ type MobileBottomBarProps = {
     spotify_url: string | null;
     apple_music_url: string | null;
     deezer_url: string | null;
-  };
+  } | null;
 };
 
 type NavItem = {
@@ -47,17 +47,27 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       icon: Disc3,
       active: (current) => current.startsWith("/track"),
     },
-    {
+  ];
+
+  if (profile) {
+    items.push({
       href: `/u/${profile.username}`,
       label: "Profile",
       icon: UserRound,
       active: (current) => current.startsWith(`/u/${profile.username}`),
-    },
-  ];
+    });
+  } else {
+    items.push({
+      href: "/login",
+      label: "Log in",
+      icon: LogIn,
+      active: (current) => current.startsWith("/login"),
+    });
+  }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur md:hidden">
-      <div className="mx-auto grid max-w-7xl grid-cols-5 px-2 py-2">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/30 bg-background/95 backdrop-blur md:hidden">
+      <div className="mx-auto grid max-w-7xl grid-cols-5 px-1 py-1">
         {items.map((item) => {
           const active = item.active(pathname);
           const Icon = item.icon;
@@ -67,30 +77,45 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[11px] font-medium transition-colors",
+                "flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium transition-colors",
                 active
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon className="size-4" />
-              <span>{item.label}</span>
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
 
-        <ProfileSettingsDialog
-          profile={profile}
-          trigger={
-            <button
-              type="button"
-              className="flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <Cog className="size-4" />
-              <span>Settings</span>
-            </button>
-          }
-        />
+        {profile ? (
+          <ProfileSettingsDialog
+            profile={profile}
+            trigger={
+              <button
+                type="button"
+                className="flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Cog className="size-4" />
+                <span className="truncate">Settings</span>
+              </button>
+            }
+          />
+        ) : (
+          <Link
+            href="/signup"
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium transition-colors",
+              pathname.startsWith("/signup")
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <UserRound className="size-4" />
+            <span className="truncate">Sign up</span>
+          </Link>
+        )}
       </div>
     </nav>
   );

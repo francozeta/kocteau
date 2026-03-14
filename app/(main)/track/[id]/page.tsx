@@ -96,50 +96,46 @@ export default async function TrackPage({
   }
 
   return (
-    <section className="space-y-8">
-      <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-muted/50 via-background to-background py-0 shadow-sm">
-        <CardContent className="grid gap-0 p-0 xl:grid-cols-[260px_minmax(0,1fr)_240px]">
-          <div className="flex h-72 items-center justify-center bg-muted xl:h-full">
-            {entity.cover_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={entity.cover_url}
-                alt={entity.title}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : (
+    <section className="space-y-10">
+      <div className="overflow-hidden rounded-lg border border-border/30 bg-card/50">
+        <div className="flex items-start gap-4 p-4 sm:gap-6 sm:p-6">
+          <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-32 sm:w-32">
+          {entity.cover_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={entity.cover_url}
+              alt={entity.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
               <Music2 className="size-10 text-muted-foreground" />
-            )}
+          )}
           </div>
 
-          <div className="space-y-5 p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">Track page</Badge>
-              <Badge variant="outline">{entity.type}</Badge>
+          <div className="min-w-0 flex-1 space-y-6">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-xs border-border/30">{entity.type}</Badge>
+              </div>
+
+              <div className="space-y-2">
+                <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-balance leading-tight">
+                  {entity.title}
+                </h1>
+                <p className="text-base sm:text-lg text-muted-foreground">
+                  {entity.artist_name ?? "Unknown artist"}
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <h1 className="text-4xl font-semibold tracking-tight text-balance">
-                {entity.title}
-              </h1>
-              <p className="text-base text-muted-foreground">
-                {entity.artist_name ?? "Unknown artist"}
-              </p>
-            </div>
-
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              This is where a single song gathers conversation: rating, context and
-              personal tone, all around the same track.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 pt-2">
               <Link
                 href={`/track/${entity.id}?${composeParams.toString()}`}
-                className={cn(buttonVariants({ size: "sm" }))}
+                className={cn(buttonVariants({ size: "sm" }), "bg-foreground text-background hover:bg-foreground/90 gap-2")}
               >
                 <MessageSquarePlus className="size-4" />
-                Write review
+                Add review
               </Link>
 
               {entity.deezer_url ? (
@@ -147,78 +143,73 @@ export default async function TrackPage({
                   href={entity.deezer_url}
                   target="_blank"
                   rel="noreferrer"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}
                 >
                   Open in Deezer
                 </a>
               ) : null}
             </div>
           </div>
-
-          <div className="grid gap-3 border-t border-border/50 p-6 xl:border-t-0 xl:border-l xl:border-border/50">
-            <div className="rounded-xl border border-border/50 bg-background/70 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Reviews
-              </p>
-              <p className="mt-2 text-3xl font-semibold">{trackReviews.length}</p>
-            </div>
-
-            <div className="rounded-xl border border-border/50 bg-background/70 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Average
-              </p>
-              <div className="mt-2 inline-flex items-center gap-2 text-2xl font-semibold">
-                <Star className="size-5 fill-current text-amber-400" />
-                {averageRating ? averageRating.toFixed(1) : "N/A"}
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-border/50 bg-background/70 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Canonical ID
-              </p>
-              <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{entity.id}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex items-center justify-between border-b border-border/50 pb-4">
-        <div>
-          <h2 className="text-xl font-semibold">Track reviews</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            First the track, then the review angle, and finally the note.
-          </p>
         </div>
       </div>
 
-      {trackReviews.length > 0 ? (
-        <div className="space-y-4">
-          {trackReviews.map((review) => {
-            const author = getAuthor(review);
-
-            return (
-              <ReviewCard
-                key={review.id}
-                review={review}
-                entity={entity}
-                author={author}
-                showAuthor={true}
-                entityMode="inline"
-              />
-            );
-          })}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-border/30 bg-card/50 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Reviews
+          </p>
+          <p className="mt-3 text-3xl font-bold">{trackReviews.length}</p>
         </div>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>There are no reviews for this track yet</CardTitle>
-            <CardDescription>
-              Start the conversation with the first review from the button above.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
+
+        <div className="rounded-lg border border-border/30 bg-card/50 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Average rating
+          </p>
+          <div className="mt-3 inline-flex items-center gap-2 text-2xl font-bold">
+            <Star className="size-5 fill-current text-amber-400" />
+            {averageRating ? averageRating.toFixed(1) : "—"}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border/30 bg-card/50 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Track ID
+          </p>
+          <p className="mt-3 line-clamp-2 text-xs text-muted-foreground font-mono">{entity.id}</p>
+        </div>
+      </div>
+
+      <div className="border-t border-border/30 pt-8">
+        <h2 className="font-serif text-2xl font-bold mb-2">Reviews</h2>
+        {trackReviews.length > 0 && (
+          <p className="text-sm text-muted-foreground mb-6">
+            {trackReviews.length} {trackReviews.length === 1 ? "review" : "reviews"}
+          </p>
+        )}
+
+        {trackReviews.length > 0 ? (
+          <div className="space-y-4">
+            {trackReviews.map((review) => {
+              const author = getAuthor(review);
+
+              return (
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  entity={entity}
+                  author={author}
+                  showAuthor={true}
+                  entityMode="inline"
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            No reviews yet. Be the first to share your thoughts!
+          </div>
+        )}
+      </div>
     </section>
   );
 }

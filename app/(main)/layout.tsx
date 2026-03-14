@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import ReactQueryProvider from "../providers/react-query-provider";
 import Header from "@/components/header";
@@ -6,26 +5,27 @@ import MobileBottomBar from "@/components/mobile-bottom-bar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await supabaseServer();
-  const { data } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!data.user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url")
-    .eq("id", data.user.id)
-    .single();
-
-  // Ultra-safe fallback: if for some reason a profile doesn't exist (rare), it prevents crashes.
-  const safeProfile = profile ?? {
-    username: "user",
-    avatar_url: null,
-    display_name: null,
-    bio: null,
-    spotify_url: null,
-    apple_music_url: null,
-    deezer_url: null,
-  };
+  const safeProfile = user
+    ? (
+        await supabase
+          .from("profiles")
+          .select("username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url")
+          .eq("id", user.id)
+          .maybeSingle()
+      ).data ?? {
+        username: "user",
+        avatar_url: null,
+        display_name: null,
+        bio: null,
+        spotify_url: null,
+        apple_music_url: null,
+        deezer_url: null,
+      }
+    : null;
 
   return (
     <ReactQueryProvider>

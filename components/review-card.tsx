@@ -73,9 +73,9 @@ function TrackInfo({
   return (
     <Link
       href={`/track/${entity.id}`}
-      className="group/track flex items-center gap-3 rounded-xl border border-border/50 bg-muted/20 p-3 transition-colors hover:bg-muted/40"
+      className="group/track flex items-center gap-3 rounded-lg border border-border/30 bg-muted/30 p-3 transition-all hover:border-border/60 hover:bg-muted/50"
     >
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
         {entity.cover_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -85,18 +85,18 @@ function TrackInfo({
             loading="lazy"
           />
         ) : (
-          <Music2 className="size-5 text-muted-foreground" />
+          <Music2 className="size-4 text-muted-foreground" />
         )}
       </div>
 
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Track
         </p>
         <p className="line-clamp-1 font-medium text-foreground group-hover/track:underline">
           {entity.title}
         </p>
-        <p className="line-clamp-1 text-sm text-muted-foreground">
+        <p className="line-clamp-1 text-xs text-muted-foreground">
           {entity.artist_name ?? "Unknown artist"}
         </p>
       </div>
@@ -118,15 +118,15 @@ export default function ReviewCard({
 
   return (
     <Card
-      className={`overflow-hidden border-border/50 bg-card/80 py-0 shadow-sm backdrop-blur-sm ${
+      className={`overflow-hidden border-border/30 bg-card/60 py-0 shadow-none backdrop-blur-sm hover:border-border/60 transition-colors ${
         featured ? "ring-1 ring-border/50" : ""
       }`}
     >
       <CardContent className="space-y-4 p-5 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {eyebrow ? (
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {eyebrow}
               </p>
             ) : null}
@@ -134,13 +134,13 @@ export default function ReviewCard({
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               {showAuthor ? (
                 <>
-                  <div className="relative h-7 w-7 overflow-hidden rounded-full bg-muted">
+                  <div className="relative h-6 w-6 overflow-hidden rounded-full bg-muted border border-border/30">
                     {author?.avatar_url ? (
                       <Image
                         src={author.avatar_url}
                         alt={authorLabel}
                         fill
-                        sizes="28px"
+                        sizes="24px"
                         className="object-cover"
                       />
                     ) : null}
@@ -149,24 +149,24 @@ export default function ReviewCard({
                   {author ? (
                     <Link
                       href={`/u/${author.username}`}
-                      className="font-medium text-foreground transition-colors hover:underline"
+                      className="font-medium text-foreground transition-colors hover:underline text-xs sm:text-sm"
                     >
                       {authorLabel}
                     </Link>
                   ) : (
-                    <span>Unknown user</span>
+                    <span className="text-xs sm:text-sm">Unknown user</span>
                   )}
 
-                  <span>•</span>
+                  <span className="text-muted-foreground/50">•</span>
                 </>
               ) : null}
 
-              <span>{formatDate(review.created_at)}</span>
-              {review.is_pinned ? <Badge variant="outline">Pinned</Badge> : null}
+              <span className="text-xs sm:text-sm">{formatDate(review.created_at)}</span>
+              {review.is_pinned ? <Badge variant="outline" className="text-xs">Pinned</Badge> : null}
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-sm font-medium">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-muted/30 px-3 py-1 text-sm font-medium whitespace-nowrap">
             <Star className="size-4 fill-current text-amber-400" />
             {review.rating.toFixed(1)}
           </div>
@@ -175,16 +175,16 @@ export default function ReviewCard({
         <TrackInfo entity={entity} mode={entityMode} />
 
         {hasTitle ? (
-          <h3 className="text-xl font-semibold tracking-tight text-foreground">
+          <h3 className="font-serif text-lg font-semibold tracking-tight text-foreground">
             {review.title}
           </h3>
         ) : null}
 
         {review.body ? (
-          <p className="text-sm leading-7 text-foreground/85">{review.body}</p>
+          <p className="text-sm leading-relaxed text-foreground/80">{review.body}</p>
         ) : (
           <p className="text-sm italic text-muted-foreground">
-            They only left a rating for this track.
+            Only a rating was left for this track.
           </p>
         )}
       </CardContent>

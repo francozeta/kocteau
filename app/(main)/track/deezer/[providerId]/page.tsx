@@ -61,8 +61,8 @@ export default async function DeezerTrackResolverPage({
   return (
     <section className="space-y-6">
       <Card className="overflow-hidden py-0">
-        <CardContent className="grid gap-0 p-0 md:grid-cols-[240px_1fr]">
-          <div className="flex h-72 items-center justify-center bg-muted md:h-full">
+        <CardContent className="flex items-start gap-4 p-4 sm:gap-6 sm:p-6">
+          <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-32 sm:w-32">
             {track.cover_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -76,7 +76,7 @@ export default async function DeezerTrackResolverPage({
             )}
           </div>
 
-          <div className="space-y-4 p-5">
+          <div className="min-w-0 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">Deezer source</Badge>
               <Badge variant="outline">track</Badge>
