@@ -4,7 +4,9 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const merriweatherHeading = Merriweather({subsets:['latin'],variable:'--font-heading'});
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 const merriweather = Merriweather({
   subsets: ['latin'],
   variable: '--font-serif',
@@ -28,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable, merriweather.variable)}>
+    <html lang="en" className={cn( merriweather.variable, "font-sans", geist.variable, merriweatherHeading.variable)}>
       <body
         className={`${geistSans.className} antialiased dark`}
       >
