@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Cog, Disc3, Home, LogIn, Search, UserRound } from "lucide-react";
+import { Bookmark, Cog, Disc3, Home, LogIn, Search, UserRound } from "lucide-react";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +51,12 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   if (profile) {
     items.push({
+      href: "/saved",
+      label: "Saved",
+      icon: Bookmark,
+      active: (current) => current.startsWith("/saved"),
+    });
+    items.push({
       href: `/u/${profile.username}`,
       label: "Profile",
       icon: UserRound,
@@ -67,7 +73,12 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/30 bg-background/95 backdrop-blur md:hidden">
-      <div className="mx-auto grid max-w-7xl grid-cols-5 px-1 py-1">
+      <div
+        className={cn(
+          "mx-auto grid max-w-7xl px-1 py-1",
+          profile ? "grid-cols-6" : "grid-cols-5",
+        )}
+      >
         {items.map((item) => {
           const active = item.active(pathname);
           const Icon = item.icon;

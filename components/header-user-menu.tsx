@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, LogOut, Settings, UserRound } from "lucide-react";
+import { AlertCircle, Bookmark, LogOut, Settings, UserRound } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,6 +83,10 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
           <DropdownMenuItem onSelect={() => router.push(`/u/${username}`)}>
             <UserRound className="size-4" />
             Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push("/saved")}>
+            <Bookmark className="size-4" />
+            Saved reviews
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
             <Settings className="size-4" />

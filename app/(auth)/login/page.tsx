@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import Link from "next/link";
+import BrandLogo from "@/components/brand-logo";
 
 export default function LoginPage() {
   const supabase = supabaseBrowser();
@@ -39,6 +40,9 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-3">
+        <Link href="/" className="mb-5 inline-flex transition-opacity hover:opacity-80">
+          <BrandLogo iconClassName="h-8 w-8" />
+        </Link>
         <h1 className="text-xl font-semibold">Login</h1>
 
         <input className="w-full border rounded px-3 py-2" placeholder="Email"

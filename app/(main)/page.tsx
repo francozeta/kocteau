@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ReviewCard, { type ReviewCardAuthor, type ReviewCardData, type ReviewCardEntity } from "@/components/review-card";
+import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
+import { getViewerLikedReviewIds, runReviewListQuery } from "@/lib/queries/review-likes";
 import { supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +15,7 @@ type FeedReview = {
   title: ReviewCardData["title"];
   body: ReviewCardData["body"];
   rating: ReviewCardData["rating"];
+  likes_count: ReviewCardData["likes_count"];
   created_at: ReviewCardData["created_at"];
   entities: ReviewCardEntity | ReviewCardEntity[] | null;
   author: ReviewCardAuthor | ReviewCardAuthor[] | null;
@@ -33,33 +36,48 @@ function getAuthor(review: FeedReview) {
 
   return review.author;
 }
+
 export default async function HomePage() {
   const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select(`
-      id,
-      title,
-      body,
-      rating,
-      created_at,
-      entities (
-        id,
-        title,
-        artist_name,
-        cover_url
-      ),
-      author:profiles!reviews_author_id_fkey (
-        username,
-        display_name,
-        avatar_url
-      )
-    `)
-    .order("created_at", { ascending: false })
-    .limit(24);
-
-  const feed = (reviews ?? []) as FeedReview[];
+  const feed = await runReviewListQuery<FeedReview>(async (includeLikesCount) =>
+    supabase
+      .from("reviews")
+      .select([
+        "id",
+        "title",
+        "body",
+        "rating",
+        ...(includeLikesCount ? ["likes_count"] : []),
+        "created_at",
+        `entities (
+          id,
+          title,
+          artist_name,
+          cover_url
+        )`,
+        `author:profiles!reviews_author_id_fkey (
+          username,
+          display_name,
+          avatar_url
+        )`,
+      ].join(","))
+      .order("created_at", { ascending: false })
+      .limit(24),
+  );
+  const likedReviewIds = await getViewerLikedReviewIds(
+    supabase,
+    user?.id,
+    feed.map((review) => review.id),
+  );
+  const bookmarkedReviewIds = await getViewerBookmarkedReviewIds(
+    supabase,
+    user?.id,
+    feed.map((review) => review.id),
+  );
   const recentTracks = await getRecentlyDiscussedTracks(4);
 
   return (
@@ -184,11 +202,16 @@ export default async function HomePage() {
             return (
               <ReviewCard
                 key={review.id}
-                review={review}
+                review={{
+                  ...review,
+                  viewer_has_liked: likedReviewIds.has(review.id),
+                  viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
+                }}
                 entity={entity}
                 author={author}
                 showAuthor={true}
                 entityMode="full"
+                isAuthenticated={Boolean(user)}
               />
             );
           })}

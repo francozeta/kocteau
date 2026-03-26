@@ -183,6 +183,39 @@ export type Database = {
           },
         ]
       }
+      review_bookmarks: {
+        Row: {
+          created_at: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_bookmarks_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           author_id: string
@@ -191,6 +224,7 @@ export type Database = {
           entity_id: string
           id: string
           is_pinned: boolean
+          likes_count: number
           rating: number
           title: string | null
           updated_at: string
@@ -202,6 +236,7 @@ export type Database = {
           entity_id: string
           id?: string
           is_pinned?: boolean
+          likes_count?: number
           rating: number
           title?: string | null
           updated_at?: string
@@ -213,6 +248,7 @@ export type Database = {
           entity_id?: string
           id?: string
           is_pinned?: boolean
+          likes_count?: number
           rating?: number
           title?: string | null
           updated_at?: string
@@ -256,6 +292,25 @@ export type Database = {
         Returns: {
           entity_id: string
           review_id: string
+        }[]
+      }
+      toggle_review_like: {
+        Args: {
+          p_review_id: string
+        }
+        Returns: {
+          liked: boolean
+          likes_count: number
+        }[]
+      }
+      toggle_review_bookmark: {
+        Args: {
+          p_review_id: string
+        }
+        Returns: {
+          review_id: string
+          bookmarked: boolean
+          saved_at: string | null
         }[]
       }
     }

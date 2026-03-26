@@ -22,6 +22,10 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Kocteau",
   description: "Social platform for music review and curation",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

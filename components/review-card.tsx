@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Music2, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import ReviewBookmarkButton from "@/components/review-bookmark-button";
+import ReviewLikeButton from "@/components/review-like-button";
 
 export type ReviewCardEntity = {
   id: string;
@@ -22,8 +24,11 @@ export type ReviewCardData = {
   title: string | null;
   body: string | null;
   rating: number;
+  likes_count: number;
   created_at: string;
   is_pinned?: boolean;
+  viewer_has_liked?: boolean;
+  viewer_has_bookmarked?: boolean;
 };
 
 type ReviewCardProps = {
@@ -34,10 +39,12 @@ type ReviewCardProps = {
   entityMode?: "full" | "inline";
   eyebrow?: string;
   featured?: boolean;
+  isAuthenticated?: boolean;
+  bookmarkRefreshOnToggle?: boolean;
 };
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-PE", {
+  return new Date(value).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -112,6 +119,8 @@ export default function ReviewCard({
   entityMode = "full",
   eyebrow,
   featured = false,
+  isAuthenticated = false,
+  bookmarkRefreshOnToggle = false,
 }: ReviewCardProps) {
   const hasTitle = Boolean(review.title?.trim());
   const authorLabel = author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
@@ -187,6 +196,23 @@ export default function ReviewCard({
             Only a rating was left for this track.
           </p>
         )}
+
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-1">
+            <ReviewLikeButton
+              reviewId={review.id}
+              initialCount={review.likes_count}
+              initialLiked={Boolean(review.viewer_has_liked)}
+              isAuthenticated={isAuthenticated}
+            />
+            <ReviewBookmarkButton
+              reviewId={review.id}
+              initialBookmarked={Boolean(review.viewer_has_bookmarked)}
+              isAuthenticated={isAuthenticated}
+              refreshOnToggle={bookmarkRefreshOnToggle}
+            />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

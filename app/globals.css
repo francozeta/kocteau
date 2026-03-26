@@ -128,3 +128,57 @@
     @apply font-sans;
   }
 }
+
+@keyframes kocteau-like-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.22);
+  }
+  65% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes kocteau-like-count-pop {
+  0% {
+    transform: translateY(0);
+    opacity: 0.84;
+  }
+  40% {
+    transform: translateY(-1px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.kocteau-like-pop {
+  animation: kocteau-like-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kocteau-like-count-pop {
+  animation: kocteau-like-count-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes kocteau-save-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.kocteau-save-pop {
+  animation: kocteau-save-pop 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}

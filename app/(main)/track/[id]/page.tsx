@@ -3,8 +3,9 @@ import { MessageSquarePlus, Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ReviewCard, { type ReviewCardAuthor, type ReviewCardData } from "@/components/review-card";
+import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
+import { getViewerLikedReviewIds, runReviewListQuery } from "@/lib/queries/review-likes";
 import { cn } from "@/lib/utils";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -24,6 +25,7 @@ type EntityReview = {
   title: ReviewCardData["title"];
   body: ReviewCardData["body"];
   rating: ReviewCardData["rating"];
+  likes_count: ReviewCardData["likes_count"];
   created_at: ReviewCardData["created_at"];
   is_pinned: boolean;
   author: ReviewCardAuthor | ReviewCardAuthor[] | null;
@@ -36,6 +38,7 @@ function getAuthor(review: EntityReview) {
 
   return review.author;
 }
+
 export default async function TrackPage({
   params,
 }: {
@@ -43,6 +46,9 @@ export default async function TrackPage({
 }) {
   const { id } = await params;
   const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: entity, error: entityError } = await supabase
     .from("entities")
@@ -52,25 +58,36 @@ export default async function TrackPage({
 
   if (entityError || !entity) notFound();
 
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select(`
-      id,
-      title,
-      body,
-      rating,
-      created_at,
-      is_pinned,
-      author:profiles!reviews_author_id_fkey (
-        username,
-        display_name,
-        avatar_url
-      )
-    `)
-    .eq("entity_id", entity.id)
-    .order("created_at", { ascending: false });
-
-  const trackReviews = (reviews ?? []) as EntityReview[];
+  const trackReviews = await runReviewListQuery<EntityReview>(async (includeLikesCount) =>
+    supabase
+      .from("reviews")
+      .select([
+        "id",
+        "title",
+        "body",
+        "rating",
+        ...(includeLikesCount ? ["likes_count"] : []),
+        "created_at",
+        "is_pinned",
+        `author:profiles!reviews_author_id_fkey (
+          username,
+          display_name,
+          avatar_url
+        )`,
+      ].join(","))
+      .eq("entity_id", entity.id)
+      .order("created_at", { ascending: false }),
+  );
+  const likedReviewIds = await getViewerLikedReviewIds(
+    supabase,
+    user?.id,
+    trackReviews.map((review) => review.id),
+  );
+  const bookmarkedReviewIds = await getViewerBookmarkedReviewIds(
+    supabase,
+    user?.id,
+    trackReviews.map((review) => review.id),
+  );
   const averageRating =
     trackReviews.length > 0
       ? trackReviews.reduce((sum, review) => sum + review.rating, 0) / trackReviews.length
@@ -195,11 +212,16 @@ export default async function TrackPage({
               return (
                 <ReviewCard
                   key={review.id}
-                  review={review}
+                  review={{
+                    ...review,
+                    viewer_has_liked: likedReviewIds.has(review.id),
+                    viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
+                  }}
                   entity={entity}
                   author={author}
                   showAuthor={true}
                   entityMode="inline"
+                  isAuthenticated={Boolean(user)}
                 />
               );
             })}
