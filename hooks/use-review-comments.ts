@@ -178,9 +178,18 @@ export function useReviewComments({
       }
     },
     onSuccess: async (result, _body, context) => {
-      queryClient.setQueryData<ReviewComment[]>(commentsKey, (current = []) =>
-        current.map((item) => (item.id === context?.tempId ? result.comment : item)),
-      );
+      queryClient.setQueryData<ReviewComment[]>(commentsKey, (current = []) => {
+        const hasOptimistic = current.some((item) => item.id === context?.tempId);
+
+        if (hasOptimistic) {
+          return current.map((item) =>
+            item.id === context?.tempId ? result.comment : item,
+          );
+        }
+
+        const alreadyPresent = current.some((item) => item.id === result.comment.id);
+        return alreadyPresent ? current : [...current, result.comment];
+      });
       syncCommentsCount(result.commentsCount);
       await queryClient.invalidateQueries({
         queryKey: commentsKey,

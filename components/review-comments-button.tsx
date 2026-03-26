@@ -174,7 +174,7 @@ export default function ReviewCommentsButton({
               onChange={(event) => setBody(event.target.value)}
               placeholder="Add a short comment..."
               className="min-h-24"
-              maxLength={600}
+              maxLength={1000}
             />
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
