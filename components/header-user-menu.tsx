@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Bookmark, LogOut, Settings, UserRound } from "lucide-react";
+import { AlertCircle, Bell, Bookmark, LogOut, Settings, UserRound } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +28,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 
 type HeaderUserMenuProps = {
   profile: {
+    id: string;
     username: string;
     avatar_url: string | null;
     display_name: string | null;
@@ -87,6 +88,10 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
           <DropdownMenuItem onSelect={() => router.push("/saved")}>
             <Bookmark className="size-4" />
             Saved reviews
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push("/notifications")}>
+            <Bell className="size-4" />
+            Notifications
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
             <Settings className="size-4" />

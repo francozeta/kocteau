@@ -129,6 +129,7 @@ export default function ReviewCard({
 
   return (
     <Card
+      id={`review-${review.id}`}
       className={`overflow-hidden border-border/30 bg-card/60 py-0 shadow-none backdrop-blur-sm hover:border-border/60 transition-colors ${
         featured ? "ring-1 ring-border/50" : ""
       }`}

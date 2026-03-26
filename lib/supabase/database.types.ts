@@ -150,6 +150,68 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          comment_id: string | null
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          review_id: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Insert: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          review_id?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Update: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          review_id?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "review_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_likes: {
         Row: {
           created_at: string
@@ -349,6 +411,16 @@ export type Database = {
           review_id: string
         }[]
       }
+      create_notification: {
+        Args: {
+          p_actor_id: string
+          p_comment_id?: string | null
+          p_recipient_id: string
+          p_review_id?: string | null
+          p_type: Database["public"]["Enums"]["notification_type"]
+        }
+        Returns: Database["public"]["Tables"]["notifications"]["Row"]
+      }
       reconcile_review_comments_count: {
         Args: {
           p_review_id: string
@@ -380,6 +452,7 @@ export type Database = {
     }
     Enums: {
       entity_type: "track" | "album"
+      notification_type: "review_liked" | "review_commented"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -511,6 +584,7 @@ export const Constants = {
   public: {
     Enums: {
       entity_type: ["track", "album"],
+      notification_type: ["review_liked", "review_commented"],
     },
   },
 } as const

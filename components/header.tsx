@@ -5,9 +5,12 @@ import NewReviewDialog from "./new-review-dialog";
 import ProfileSettingsDialog from "./profile-settings-dialog";
 import HeaderUserMenu from "./header-user-menu";
 import BrandLogo from "./brand-logo";
+import NotificationsButton from "./notifications-button";
 import { Button } from "@/components/ui/button";
+import type { NotificationItem } from "@/lib/notifications";
 
 type HeaderProfile = {
+  id: string;
   username: string;
   avatar_url: string | null;
   display_name: string | null;
@@ -17,7 +20,15 @@ type HeaderProfile = {
   deezer_url: string | null;
 };
 
-export default function Header({ profile }: { profile: HeaderProfile | null }) {
+export default function Header({
+  profile,
+  initialUnreadCount = 0,
+  initialNotifications = [],
+}: {
+  profile: HeaderProfile | null;
+  initialUnreadCount?: number;
+  initialNotifications?: NotificationItem[];
+}) {
   return (
     <header className="border-b border-border/30 bg-background/95 sticky top-0 z-50 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
@@ -57,6 +68,13 @@ export default function Header({ profile }: { profile: HeaderProfile | null }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            {profile ? (
+              <NotificationsButton
+                userId={profile.id}
+                initialUnreadCount={initialUnreadCount}
+                initialNotifications={initialNotifications}
+              />
+            ) : null}
             <NewReviewDialog isAuthenticated={Boolean(profile)} />
             {profile ? (
               <HeaderUserMenu profile={profile} />
