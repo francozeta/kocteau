@@ -26,6 +26,7 @@ type EntityReview = {
   body: ReviewCardData["body"];
   rating: ReviewCardData["rating"];
   likes_count: ReviewCardData["likes_count"];
+  comments_count: ReviewCardData["comments_count"];
   created_at: ReviewCardData["created_at"];
   is_pinned: boolean;
   author: ReviewCardAuthor | ReviewCardAuthor[] | null;
@@ -58,7 +59,7 @@ export default async function TrackPage({
 
   if (entityError || !entity) notFound();
 
-  const trackReviews = await runReviewListQuery<EntityReview>(async (includeLikesCount) =>
+  const trackReviews = await runReviewListQuery<EntityReview>(async (mode) =>
     supabase
       .from("reviews")
       .select([
@@ -66,7 +67,8 @@ export default async function TrackPage({
         "title",
         "body",
         "rating",
-        ...(includeLikesCount ? ["likes_count"] : []),
+        ...(mode !== "base" ? ["likes_count"] : []),
+        ...(mode === "all" ? ["comments_count"] : []),
         "created_at",
         "is_pinned",
         `author:profiles!reviews_author_id_fkey (

@@ -1,4 +1,7 @@
-import { isMissingLikesCountError } from "@/lib/queries/review-likes";
+import {
+  isMissingCommentsCountError,
+  isMissingLikesCountError,
+} from "@/lib/queries/review-likes";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof supabaseServer>>;
@@ -28,6 +31,7 @@ export type SavedReview = {
     body: string | null;
     rating: number;
     likes_count: number;
+    comments_count: number;
     created_at: string;
     author: ReviewBookmarkAuthor | ReviewBookmarkAuthor[] | null;
     entities: ReviewBookmarkEntity | ReviewBookmarkEntity[] | null;
@@ -66,6 +70,10 @@ function normalizeSavedReview(record: SavedReview & { created_at?: string }) {
         typeof record.review.likes_count === "number"
           ? record.review.likes_count
           : 0,
+      comments_count:
+        typeof record.review.comments_count === "number"
+          ? record.review.comments_count
+          : 0,
     },
   };
 }
@@ -96,7 +104,7 @@ export async function getSavedReviewsForUser(
   supabase: ServerSupabaseClient,
   userId: string,
 ) {
-  async function run(includeLikesCount: boolean) {
+  async function run(mode: "all" | "likes-only" | "base") {
     return supabase
       .from("review_bookmarks")
       .select([
@@ -106,7 +114,8 @@ export async function getSavedReviewsForUser(
           title,
           body,
           rating,
-          ${includeLikesCount ? "likes_count," : ""}
+          ${mode !== "base" ? "likes_count," : ""}
+          ${mode === "all" ? "comments_count," : ""}
           created_at,
           author:profiles!reviews_author_id_fkey (
             username,
@@ -125,21 +134,31 @@ export async function getSavedReviewsForUser(
       .order("created_at", { ascending: false });
   }
 
-  const withLikes = await run(true);
+  const withLikes = await run("all");
 
   if (!withLikes.error) {
     return ((withLikes.data as unknown as Array<SavedReview & { created_at?: string }> | null) ?? [])
       .map(normalizeSavedReview);
   }
 
-  if (
-    !isMissingReviewBookmarksError(withLikes.error) &&
-    !isMissingLikesCountError(withLikes.error)
-  ) {
-    return [];
+  if (!isMissingReviewBookmarksError(withLikes.error)) {
+    if (isMissingCommentsCountError(withLikes.error)) {
+      const likesOnly = await run("likes-only");
+
+      if (!likesOnly.error) {
+        return ((likesOnly.data as unknown as Array<SavedReview & { created_at?: string }> | null) ?? [])
+          .map(normalizeSavedReview);
+      }
+
+      if (!isMissingLikesCountError(likesOnly.error)) {
+        return [];
+      }
+    } else if (!isMissingLikesCountError(withLikes.error)) {
+      return [];
+    }
   }
 
-  const fallback = await run(false);
+  const fallback = await run("base");
 
   if (fallback.error && isMissingReviewBookmarksError(fallback.error)) {
     return [];

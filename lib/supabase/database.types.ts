@@ -216,10 +216,63 @@ export type Database = {
           },
         ]
       }
+      review_comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          review_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          review_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          review_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "review_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_comments_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           author_id: string
           body: string | null
+          comments_count: number
           created_at: string
           entity_id: string
           id: string
@@ -232,6 +285,7 @@ export type Database = {
         Insert: {
           author_id: string
           body?: string | null
+          comments_count?: number
           created_at?: string
           entity_id: string
           id?: string
@@ -244,6 +298,7 @@ export type Database = {
         Update: {
           author_id?: string
           body?: string | null
+          comments_count?: number
           created_at?: string
           entity_id?: string
           id?: string
@@ -292,6 +347,15 @@ export type Database = {
         Returns: {
           entity_id: string
           review_id: string
+        }[]
+      }
+      reconcile_review_comments_count: {
+        Args: {
+          p_review_id: string
+        }
+        Returns: {
+          review_id: string
+          comments_count: number
         }[]
       }
       toggle_review_like: {

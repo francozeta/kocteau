@@ -29,6 +29,7 @@ type ReviewWithEntity = {
   body: string | null;
   rating: number;
   likes_count: number;
+  comments_count: number;
   created_at: string;
   entities: ReviewEntity | ReviewEntity[] | null;
 };
@@ -62,7 +63,7 @@ export default async function UserProfilePage({
   const name = profile.display_name ?? `@${profile.username}`;
 
   // 2) Search pinned review
-  const pinnedReview = await runReviewMaybeQuery<ReviewWithEntity>(async (includeLikesCount) =>
+  const pinnedReview = await runReviewMaybeQuery<ReviewWithEntity>(async (mode) =>
     supabase
       .from("reviews")
       .select([
@@ -70,7 +71,8 @@ export default async function UserProfilePage({
         "title",
         "body",
         "rating",
-        ...(includeLikesCount ? ["likes_count"] : []),
+        ...(mode !== "base" ? ["likes_count"] : []),
+        ...(mode === "all" ? ["comments_count"] : []),
         "created_at",
         `entities (
           id,
@@ -85,7 +87,7 @@ export default async function UserProfilePage({
   );
 
   // 3) Search for other reviews
-  const reviews = await runReviewListQuery<ReviewWithEntity>(async (includeLikesCount) =>
+  const reviews = await runReviewListQuery<ReviewWithEntity>(async (mode) =>
     supabase
       .from("reviews")
       .select([
@@ -93,7 +95,8 @@ export default async function UserProfilePage({
         "title",
         "body",
         "rating",
-        ...(includeLikesCount ? ["likes_count"] : []),
+        ...(mode !== "base" ? ["likes_count"] : []),
+        ...(mode === "all" ? ["comments_count"] : []),
         "created_at",
         `entities (
           id,

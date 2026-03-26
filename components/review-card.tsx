@@ -4,6 +4,7 @@ import { Music2, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import ReviewBookmarkButton from "@/components/review-bookmark-button";
+import ReviewCommentsButton from "@/components/review-comments-button";
 import ReviewLikeButton from "@/components/review-like-button";
 
 export type ReviewCardEntity = {
@@ -25,6 +26,7 @@ export type ReviewCardData = {
   body: string | null;
   rating: number;
   likes_count: number;
+  comments_count: number;
   created_at: string;
   is_pinned?: boolean;
   viewer_has_liked?: boolean;
@@ -203,6 +205,11 @@ export default function ReviewCard({
               reviewId={review.id}
               initialCount={review.likes_count}
               initialLiked={Boolean(review.viewer_has_liked)}
+              isAuthenticated={isAuthenticated}
+            />
+            <ReviewCommentsButton
+              reviewId={review.id}
+              initialCount={review.comments_count}
               isAuthenticated={isAuthenticated}
             />
             <ReviewBookmarkButton

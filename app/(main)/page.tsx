@@ -16,6 +16,7 @@ type FeedReview = {
   body: ReviewCardData["body"];
   rating: ReviewCardData["rating"];
   likes_count: ReviewCardData["likes_count"];
+  comments_count: ReviewCardData["comments_count"];
   created_at: ReviewCardData["created_at"];
   entities: ReviewCardEntity | ReviewCardEntity[] | null;
   author: ReviewCardAuthor | ReviewCardAuthor[] | null;
@@ -43,7 +44,7 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const feed = await runReviewListQuery<FeedReview>(async (includeLikesCount) =>
+  const feed = await runReviewListQuery<FeedReview>(async (mode) =>
     supabase
       .from("reviews")
       .select([
@@ -51,7 +52,8 @@ export default async function HomePage() {
         "title",
         "body",
         "rating",
-        ...(includeLikesCount ? ["likes_count"] : []),
+        ...(mode !== "base" ? ["likes_count"] : []),
+        ...(mode === "all" ? ["comments_count"] : []),
         "created_at",
         `entities (
           id,
