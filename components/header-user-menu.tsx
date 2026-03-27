@@ -60,7 +60,7 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-full border border-border/30 p-1 pr-2 transition-colors hover:bg-muted/50"
+            className="flex items-center gap-2 rounded-full border border-border/40 bg-background/65 p-1 pr-2 transition-colors hover:bg-muted/40"
           >
             <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
               {profile.avatar_url ? (
@@ -74,12 +74,19 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
                 />
               ) : null}
             </div>
-            <span className="hidden text-sm font-medium sm:inline">{displayName}</span>
+            <span className="hidden max-w-32 truncate text-sm font-medium sm:inline">
+              {displayName}
+            </span>
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-60 rounded-2xl border-border/40 bg-popover/96 p-1.5">
+          <DropdownMenuLabel className="px-2 py-2">
+            <div className="space-y-0.5">
+              <p className="truncate text-sm font-medium">{displayName}</p>
+              <p className="truncate text-xs text-muted-foreground">@{username}</p>
+            </div>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => router.push(`/u/${username}`)}>
             <UserRound className="size-4" />

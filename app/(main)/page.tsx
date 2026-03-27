@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Compass, Music2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Dot, Music2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ReviewCard, { type ReviewCardAuthor, type ReviewCardData, type ReviewCardEntity } from "@/components/review-card";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
@@ -84,75 +83,62 @@ export default async function HomePage() {
 
   return (
     <section className="space-y-8">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
-        <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-muted/60 via-background to-background py-0 shadow-sm">
-          <CardContent className="space-y-6 p-6 sm:p-8">
-            <div className="space-y-3">
-              <Badge variant="secondary" className="gap-1.5">
-                <Compass className="size-3.5" />
-                Demo feed
-              </Badge>
-              <div className="space-y-3">
-                <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                  Short reviews, specific tracks, and social discovery.
+      <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
+        <div className="space-y-5">
+          <div className="space-y-2 border-b border-border/40 pb-5">
+            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-muted-foreground">
+              Latest reviews
+            </p>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-[2.55rem]">
+                  What people are saying track by track.
                 </h1>
                 <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  Kocteau starts here: someone finds a song, rates it, leaves a note,
-                  and opens a new door for everyone else.
+                  Short notes, sharp ratings, and a running map of what is landing with people right now.
                 </p>
+              </div>
+              <div className="flex flex-wrap gap-2.5 text-sm">
+                <Link href="/search" className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full")}>
+                  Search music
+                </Link>
+                <Link href="/track" className={cn(buttonVariants({ size: "sm", variant: "ghost" }), "rounded-full")}>
+                  Browse tracks
+                </Link>
               </div>
             </div>
+          </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Link href="/search" className={cn(buttonVariants({ size: "sm" }))}>
-                Search music
-              </Link>
-              <Link href="/track" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-                View track pages
-              </Link>
-            </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{feed.length}</span>
+            <span>{feed.length === 1 ? "review in the feed" : "reviews in the feed"}</span>
+            <Dot className="size-4" />
+            <span className="font-medium text-foreground">{recentTracks.length}</span>
+            <span>{recentTracks.length === 1 ? "active track page" : "active track pages"}</span>
+          </div>
+        </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-border/50 bg-background/60 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Reviews
-                </p>
-                <p className="mt-2 text-2xl font-semibold">{feed.length}</p>
-              </div>
-              <div className="rounded-xl border border-border/50 bg-background/60 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Tracks
-                </p>
-                <p className="mt-2 text-2xl font-semibold">{recentTracks.length}</p>
-              </div>
-              <div className="rounded-xl border border-border/50 bg-background/60 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Loop
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Search, review, share.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 bg-card/70 py-0 shadow-sm">
-          <CardHeader className="border-b border-border/50 py-6">
-            <CardTitle>Recent track pages</CardTitle>
-            <CardDescription>
-              What is already starting conversations inside the product.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 p-4">
-            {recentTracks.length > 0 ? (
-              recentTracks.map((track) => (
+        <aside className="space-y-3 xl:pt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Active tracks
+            </p>
+            <Link
+              href="/track"
+              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              View all
+            </Link>
+          </div>
+          {recentTracks.length > 0 ? (
+            <div className="space-y-2.5">
+              {recentTracks.map((track) => (
                 <Link
                   key={track.entityId}
                   href={`/track/${track.entityId}`}
-                  className="flex items-center gap-3 rounded-xl border border-border/50 p-3 transition-colors hover:bg-muted/30"
+                  className="group flex items-center gap-3 rounded-2xl border border-border/40 bg-card/45 px-3 py-3 transition-colors hover:bg-card/80"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
                     {track.coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -166,28 +152,35 @@ export default async function HomePage() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 font-medium">{track.title}</p>
-                    <p className="line-clamp-1 text-sm text-muted-foreground">
+                    <p className="line-clamp-1 text-sm font-medium text-foreground">
+                      {track.title}
+                    </p>
+                    <p className="line-clamp-1 text-xs text-muted-foreground">
                       {track.artistName ?? "Unknown artist"}
                     </p>
                   </div>
-                  <ArrowRight className="size-4 text-muted-foreground" />
+                  <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 </Link>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                There are no published track pages yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="border-border/40 bg-card/45 py-0">
+              <CardHeader className="py-5">
+                <CardTitle className="text-base">No active tracks yet</CardTitle>
+                <CardDescription>
+                  Published reviews will start building the track pages automatically.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+        </aside>
       </div>
 
-      <div className="flex items-end justify-between border-b border-border/50 pb-4">
+      <div className="flex items-end justify-between border-b border-border/40 pb-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Latest reviews</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Feed</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            The feed shows the track first, then the review angle, and finally the note.
+            Track first, then the angle, then the note.
           </p>
         </div>
         <p className="text-sm text-muted-foreground">

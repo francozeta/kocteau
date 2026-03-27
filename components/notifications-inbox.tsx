@@ -1,19 +1,12 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { Bell, Check, ChevronRight } from "lucide-react";
+import { Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useNotifications } from "@/hooks/use-notifications";
-import {
-  notificationHref,
-  notificationMessage,
-  notificationTimestamp,
-  type NotificationItem,
-} from "@/lib/notifications";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import type { NotificationItem } from "@/lib/notifications";
+import NotificationList from "@/components/notification-list";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 type NotificationsInboxProps = {
   userId: string;
@@ -56,134 +49,60 @@ export default function NotificationsInbox({
 
   return (
     <section className="space-y-8">
-      <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-muted/60 via-background to-background py-0 shadow-sm">
-        <CardContent className="space-y-5 p-6 sm:p-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-            <Bell className="size-3.5" />
-            Private inbox
-          </div>
-
-          <div className="space-y-3">
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+      <div className="space-y-3 border-b border-border/40 pb-5">
+        <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-muted-foreground">
+          Activity
+        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-[2.4rem]">
               Notifications
             </h1>
             <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-              Likes and comments land here first. Realtime keeps the badge fresh, but your
-              inbox is always backed by the database.
+              Likes and comments on your reviews arrive here first, then settle into your archive.
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-            <span>{notifications.length} recent notifications</span>
+          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{notifications.length}</span>
+            <span>{notifications.length === 1 ? "recent item" : "recent items"}</span>
             <span>•</span>
-            <span>{unreadCount} unread</span>
+            <span className="font-medium text-foreground">{unreadCount}</span>
+            <span>{unreadCount === 1 ? "unread" : "unread"}</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {isLoadingNotifications ? (
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading notifications...
-          </CardContent>
-        </Card>
+        <div className="rounded-3xl border border-border/35 bg-card/30 px-5 py-8 text-sm text-muted-foreground">
+          Loading notifications...
+        </div>
       ) : isNotificationsError ? (
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
+        <Alert className="rounded-2xl border-border/50 bg-card/60 p-4">
+          <AlertTitle>Notifications unavailable</AlertTitle>
+          <AlertDescription>
             {notificationsError instanceof Error
               ? notificationsError.message
               : "Notifications are temporarily unavailable."}
-          </CardContent>
-        </Card>
+          </AlertDescription>
+        </Alert>
       ) : notifications.length > 0 ? (
-        <div className="space-y-4">
-          {notifications.map((notification) => {
-            const actorLabel =
-              notification.actor?.display_name ??
-              (notification.actor?.username ? `@${notification.actor.username}` : "Someone");
-
-            return (
-              <Card
-                key={notification.id}
-                className={cn(
-                  "overflow-hidden border-border/30 py-0 transition-colors",
-                  !notification.read_at && "border-foreground/20 bg-card/80",
-                )}
-              >
-                <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex min-w-0 gap-4">
-                    <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-muted">
-                      {notification.actor?.avatar_url ? (
-                        <Image
-                          src={notification.actor.avatar_url}
-                          alt={actorLabel}
-                          fill
-                          sizes="44px"
-                          className="object-cover"
-                        />
-                      ) : null}
-                    </div>
-
-                    <div className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {!notification.read_at ? (
-                          <span className="inline-flex h-2 w-2 rounded-full bg-foreground" />
-                        ) : null}
-                        <p className="text-sm font-medium leading-6 text-foreground">
-                          {notificationMessage(notification)}
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        <span>{notificationTimestamp(notification.created_at)}</span>
-                        {notification.review?.entity_artist_name ? (
-                          <>
-                            <span>•</span>
-                            <span>{notification.review.entity_artist_name}</span>
-                          </>
-                        ) : null}
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        <Link href={notificationHref(notification)}>
-                          <Button size="sm" variant="outline" className="gap-2">
-                            Open context
-                            <ChevronRight className="size-4" />
-                          </Button>
-                        </Link>
-
-                        {!notification.read_at ? (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="gap-2"
-                            disabled={isMarkingAsRead}
-                            onClick={() => handleMarkAsRead(notification.id)}
-                          >
-                            <Check className="size-4" />
-                            Mark as read
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <NotificationList
+          notifications={notifications}
+          isMarkingAsRead={isMarkingAsRead}
+          onMarkAsRead={handleMarkAsRead}
+        />
       ) : (
-        <Card>
-          <CardContent className="space-y-3 p-8 text-center">
-            <Bell className="mx-auto size-8 text-muted-foreground" />
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">No notifications yet</p>
-              <p className="text-sm text-muted-foreground">
-                When someone likes or comments on one of your reviews, it will show up here.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <Empty className="rounded-3xl border-border/40 bg-card/30 px-8 py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Bell className="size-4" />
+            </EmptyMedia>
+            <EmptyTitle>No notifications yet</EmptyTitle>
+            <EmptyDescription>
+              When someone likes or comments on one of your reviews, it will show up here.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
     </section>
   );

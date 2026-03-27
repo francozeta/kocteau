@@ -17,6 +17,7 @@ import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type InitialSelection = {
   provider: "deezer";
@@ -28,7 +29,15 @@ type InitialSelection = {
   deezer_url: string | null;
 };
 
-export default function NewReviewDialog({ isAuthenticated = true }: { isAuthenticated?: boolean }) {
+export default function NewReviewDialog({
+  isAuthenticated = true,
+  triggerClassName,
+  triggerLabelClassName,
+}: {
+  isAuthenticated?: boolean;
+  triggerClassName?: string;
+  triggerLabelClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
   const pathname = usePathname();
@@ -85,9 +94,15 @@ export default function NewReviewDialog({ isAuthenticated = true }: { isAuthenti
   }
 
   const trigger = (
-    <Button size="sm" className="shrink-0 gap-2 bg-foreground text-background hover:bg-foreground/90">
+    <Button
+      size="sm"
+      className={cn(
+        "shrink-0 gap-2 bg-foreground text-background hover:bg-foreground/90",
+        triggerClassName,
+      )}
+    >
       <Plus className="w-4 h-4" />
-      <span className="hidden sm:inline">New review</span>
+      <span className={cn("hidden sm:inline", triggerLabelClassName)}>New review</span>
     </Button>
   );
 

@@ -33,6 +33,20 @@ export type NotificationItem = {
   comment: NotificationComment | null;
 };
 
+export type GroupedNotificationItem =
+  | {
+      kind: "single";
+      notification: NotificationItem;
+    }
+  | {
+      kind: "like-group";
+      id: string;
+      reviewId: string | null;
+      notifications: NotificationItem[];
+      primary: NotificationItem;
+      othersCount: number;
+    };
+
 type NestedMaybe<T> = T | T[] | null;
 
 type NotificationRecord = {
@@ -146,4 +160,47 @@ export function notificationTimestamp(value: string) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+export function groupNotifications(
+  notifications: NotificationItem[],
+): GroupedNotificationItem[] {
+  const grouped: GroupedNotificationItem[] = [];
+  const likeGroups = new Map<string, number>();
+
+  notifications.forEach((notification) => {
+    if (notification.type !== "review_liked" || !notification.review_id) {
+      grouped.push({
+        kind: "single",
+        notification,
+      });
+      return;
+    }
+
+    const existingIndex = likeGroups.get(notification.review_id);
+
+    if (existingIndex === undefined) {
+      grouped.push({
+        kind: "like-group",
+        id: `like-group:${notification.review_id}`,
+        reviewId: notification.review_id,
+        notifications: [notification],
+        primary: notification,
+        othersCount: 0,
+      });
+      likeGroups.set(notification.review_id, grouped.length - 1);
+      return;
+    }
+
+    const existing = grouped[existingIndex];
+
+    if (!existing || existing.kind !== "like-group") {
+      return;
+    }
+
+    existing.notifications.push(notification);
+    existing.othersCount = existing.notifications.length - 1;
+  });
+
+  return grouped;
 }

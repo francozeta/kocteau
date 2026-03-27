@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   notificationChannelTopic,
@@ -24,6 +25,11 @@ type NotificationRealtimeEnvelope = {
 type MarkAsReadResponse = {
   notificationId: string;
   readAt: string | null;
+  unreadCount: number;
+};
+
+type MarkAllAsReadResponse = {
+  readAt: string;
   unreadCount: number;
 };
 
@@ -78,6 +84,9 @@ export function useNotifications({
   const supabase = useMemo(() => supabaseBrowser(), []);
   const listKey = useMemo(() => notificationsListKey(limit), [limit]);
   const processedRealtimeIdsRef = useRef<Set<string>>(new Set());
+  const activeChannelRef = useRef<RealtimeChannel | null>(null);
+  const latestAccessTokenRef = useRef<string | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getCachedNotificationLists = useCallback(() => {
     return queryClient.getQueriesData<NotificationItem[]>({
@@ -130,6 +139,9 @@ export function useNotifications({
     initialData: initialUnreadCount,
     staleTime: 30_000,
     gcTime: 10 * 60_000,
+    refetchInterval: userId ? 15_000 : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   });
 
   const notificationsQuery = useQuery({
@@ -159,6 +171,9 @@ export function useNotifications({
     initialData: initialNotifications,
     staleTime: 30_000,
     gcTime: 10 * 60_000,
+    refetchInterval: userId && enableList ? 15_000 : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   });
 
   const markAsRead = useMutation({
@@ -250,16 +265,95 @@ export function useNotifications({
     },
   });
 
+  const markAllAsRead = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/notifications/read-all", {
+        method: "POST",
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string; readAt?: string; unreadCount?: number }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ?? "We couldn't update notifications right now.",
+        );
+      }
+
+      return {
+        readAt: payload?.readAt ?? new Date().toISOString(),
+        unreadCount: payload?.unreadCount ?? 0,
+      } satisfies MarkAllAsReadResponse;
+    },
+    onMutate: async () => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: notificationsListPrefix }),
+        queryClient.cancelQueries({ queryKey: notificationsUnreadCountKey }),
+      ]);
+
+      const previousLists = getCachedNotificationLists();
+      const previousUnreadCount =
+        queryClient.getQueryData<number>(notificationsUnreadCountKey) ?? initialUnreadCount;
+      const optimisticReadAt = new Date().toISOString();
+
+      patchAllNotificationLists((current) =>
+        current.map((item) =>
+          item.read_at
+            ? item
+            : {
+                ...item,
+                read_at: optimisticReadAt,
+              },
+        ),
+      );
+      queryClient.setQueryData<number>(notificationsUnreadCountKey, 0);
+
+      return { previousLists, previousUnreadCount };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousLists) {
+        context.previousLists.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+
+      if (typeof context?.previousUnreadCount === "number") {
+        queryClient.setQueryData(
+          notificationsUnreadCountKey,
+          context.previousUnreadCount,
+        );
+      }
+    },
+    onSuccess: (result) => {
+      patchAllNotificationLists((current) =>
+        current.map((item) =>
+          item.read_at
+            ? item
+            : {
+                ...item,
+                read_at: result.readAt,
+              },
+        ),
+      );
+      queryClient.setQueryData<number>(
+        notificationsUnreadCountKey,
+        result.unreadCount,
+      );
+      void queryClient.invalidateQueries({
+        queryKey: notificationsUnreadCountKey,
+        exact: true,
+      });
+    },
+  });
+
   useEffect(() => {
     if (!subscribe || !userId) {
       return;
     }
 
     const recipientId = userId;
-    let cancelled = false;
-    let activeChannel:
-      | ReturnType<typeof supabase.channel>
-      | null = null;
+    let disposed = false;
 
     function applyIncomingNotification(notification: NotificationItem) {
       const cachedLists = getCachedNotificationLists();
@@ -282,27 +376,75 @@ export function useNotifications({
       processedRealtimeIdsRef.current.add(notification.id);
     }
 
-    async function setupChannel() {
-      const { data } = await supabase.auth.getSession();
-
-      if (cancelled) {
+    function clearReconnectTimeout() {
+      if (!reconnectTimeoutRef.current) {
         return;
       }
 
-      if (data.session?.access_token) {
-        await supabase.realtime.setAuth(data.session.access_token);
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
+    async function removeActiveChannel() {
+      clearReconnectTimeout();
+
+      if (!activeChannelRef.current) {
+        return;
+      }
+
+      const channel = activeChannelRef.current;
+      activeChannelRef.current = null;
+      await supabase.removeChannel(channel);
+    }
+
+    async function setRealtimeAuth(accessToken?: string | null) {
+      latestAccessTokenRef.current = accessToken ?? null;
+
+      if (!accessToken) {
+        return;
+      }
+
+      await supabase.realtime.setAuth(accessToken);
+    }
+
+    function scheduleReconnect() {
+      if (disposed || reconnectTimeoutRef.current) {
+        return;
+      }
+
+      reconnectTimeoutRef.current = setTimeout(() => {
+        reconnectTimeoutRef.current = null;
+
+        if (disposed) {
+          return;
+        }
+
+        void ensureChannel(latestAccessTokenRef.current);
+      }, 750);
+    }
+
+    async function ensureChannel(accessToken?: string | null) {
+      if (disposed) {
+        return;
+      }
+
+      await setRealtimeAuth(accessToken);
+
+      if (disposed || activeChannelRef.current) {
+        return;
+      }
+
+      if (disposed || activeChannelRef.current) {
+        return;
       }
 
       const channel = supabase.channel(notificationChannelTopic(recipientId), {
         config: { private: true },
       });
 
-      if (cancelled) {
-        void supabase.removeChannel(channel);
-        return;
-      }
+      activeChannelRef.current = channel;
 
-      activeChannel = channel
+      channel
         .on("broadcast", { event: "notification.created" }, (payload) => {
           const envelope = readRealtimeEnvelope(payload);
 
@@ -320,16 +462,44 @@ export function useNotifications({
 
           applyIncomingNotification(envelope.notification);
         })
-        .subscribe();
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            void removeActiveChannel().then(() => {
+              scheduleReconnect();
+            });
+          }
+        });
     }
 
-    void setupChannel();
+    void supabase.auth.getSession().then(({ data }) => {
+      if (disposed) {
+        return;
+      }
+
+      void ensureChannel(data.session?.access_token);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (disposed) {
+        return;
+      }
+
+      if (session?.access_token) {
+        void ensureChannel(session.access_token);
+        return;
+      }
+
+      latestAccessTokenRef.current = null;
+      void removeActiveChannel();
+    });
 
     return () => {
-      cancelled = true;
-      if (activeChannel) {
-        void supabase.removeChannel(activeChannel);
-      }
+      disposed = true;
+      clearReconnectTimeout();
+      subscription.unsubscribe();
+      void removeActiveChannel();
     };
   }, [
     getCachedNotificationLists,
@@ -350,5 +520,7 @@ export function useNotifications({
     isLoadingUnreadCount: unreadQuery.isLoading,
     markAsRead: markAsRead.mutateAsync,
     isMarkingAsRead: markAsRead.isPending,
+    markAllAsRead: markAllAsRead.mutateAsync,
+    isMarkingAllAsRead: markAllAsRead.isPending,
   };
 }
