@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -9,13 +10,23 @@ export async function GET() {
     return NextResponse.json({ ok: false, redirectTo: "/login" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
+  const profileQuery = await supabase
     .from("profiles")
-    .select("username")
+    .select("username, onboarded")
     .eq("id", auth.user.id)
-    .single();
+    .maybeSingle();
 
-  const needsOnboarding = !profile?.username || profile.username.startsWith("u_");
+  const profile = profileQuery.error
+    ? (
+        await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", auth.user.id)
+          .maybeSingle()
+      ).data
+    : profileQuery.data;
+
+  const needsOnboarding = !isProfileOnboarded(profile);
   return NextResponse.json({
     ok: true,
     redirectTo: needsOnboarding ? "/onboarding" : "/",

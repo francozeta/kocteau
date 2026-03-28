@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Bell, Bookmark, LogOut, Settings, UserRound } from "lucide-react";
+import UserAvatar from "@/components/user-avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,18 +62,12 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
             type="button"
             className="flex items-center gap-2 rounded-full border border-border/40 bg-background/65 p-1 pr-2 transition-colors hover:bg-muted/40"
           >
-            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
-              {profile.avatar_url ? (
-                <Image
-                  src={profile.avatar_url}
-                  alt={displayName}
-                  fill
-                  sizes="32px"
-                  className="object-cover object-center"
-                  quality={75}
-                />
-              ) : null}
-            </div>
+            <UserAvatar
+              avatarUrl={profile.avatar_url}
+              displayName={profile.display_name}
+              username={profile.username}
+              className="size-8"
+            />
             <span className="hidden max-w-32 truncate text-sm font-medium sm:inline">
               {displayName}
             </span>

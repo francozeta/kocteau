@@ -9,8 +9,8 @@ import {
   type GroupedNotificationItem,
   type NotificationItem,
 } from "@/lib/notifications";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import UserAvatar from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 
 type NotificationListProps = {
@@ -60,10 +60,6 @@ function getGroupedBody(entry: GroupedNotificationItem) {
   return `${actorLabel} and ${entry.othersCount} others liked your take on ${track}`;
 }
 
-function getInitials(label: string) {
-  return label.slice(0, 1).toUpperCase();
-}
-
 export default function NotificationList({
   notifications,
   compact = false,
@@ -97,10 +93,12 @@ export default function NotificationList({
             )}
           >
             <div className="pt-0.5">
-              <Avatar size={compact ? "sm" : "default"}>
-                <AvatarImage src={notification.actor?.avatar_url ?? undefined} alt={actorLabel} />
-                <AvatarFallback>{getInitials(actorLabel)}</AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                avatarUrl={notification.actor?.avatar_url}
+                displayName={notification.actor?.display_name ?? null}
+                username={notification.actor?.username ?? null}
+                size={compact ? "sm" : "default"}
+              />
             </div>
 
             <div className="min-w-0 flex-1">

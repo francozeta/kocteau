@@ -1,8 +1,9 @@
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import BrandLogo from "@/components/brand-logo";
+import { redirect } from "next/navigation";
+import AuthFormShell from "@/components/auth/auth-form-shell";
 import ProfileEditorForm from "@/components/profile-editor-form";
 import { createPageMetadata } from "@/lib/metadata";
+import { isProfileOnboarded } from "@/lib/profile";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata = createPageMetadata({
   title: "Set profile",
@@ -11,30 +12,43 @@ export const metadata = createPageMetadata({
   noIndex: true,
 });
 
-export default function OnboardingPage() {
-  return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center px-6 py-10">
-      <div className="grid w-full gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,0.85fr)]">
-        <div className="space-y-5">
-          <Link href="/" className="inline-flex transition-opacity hover:opacity-80">
-            <BrandLogo priority iconClassName="h-8 w-8 sm:h-9 sm:w-9" />
-          </Link>
-          <div className="space-y-2">
-            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
-              Profile
-            </p>
-            <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-[3.2rem]">
-              Set your profile
-            </h1>
-          </div>
-        </div>
+export default async function OnboardingPage() {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-        <Card className="rounded-[1.9rem] border-border/25 bg-card/20 shadow-none">
-          <CardContent>
-            <ProfileEditorForm mode="onboarding" />
-          </CardContent>
-        </Card>
-      </div>
-    </main>
+  if (!user) {
+    redirect("/login");
+  }
+
+  const profileQuery = await supabase
+    .from("profiles")
+    .select("username, onboarded, display_name, avatar_url, bio, spotify_url, apple_music_url, deezer_url")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const profile = profileQuery.error
+    ? (
+        await supabase
+          .from("profiles")
+          .select("username, display_name, avatar_url, bio, spotify_url, apple_music_url, deezer_url")
+          .eq("id", user.id)
+          .maybeSingle()
+      ).data
+    : profileQuery.data;
+
+  if (isProfileOnboarded(profile)) {
+    redirect("/");
+  }
+
+  return (
+    <AuthFormShell
+      title="Set up your profile"
+      description="Choose a default disc or upload a photo, then set the identity people will see across Kocteau."
+      widthClassName="max-w-4xl"
+    >
+      <ProfileEditorForm mode="onboarding" initialProfile={profile ?? undefined} />
+    </AuthFormShell>
   );
 }

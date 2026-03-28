@@ -1,8 +1,8 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -43,8 +43,6 @@ export default function SearchPageClient({
   highlights,
 }: SearchPageClientProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [query, setQuery] = useState(initialQuery);
   const searchType = initialType;
@@ -57,8 +55,16 @@ export default function SearchPageClient({
   const results = data as DeezerSearchResult[];
 
   useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
+
+  useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const next = new URLSearchParams(searchParams.toString());
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const next = new URLSearchParams(window.location.search);
 
       if (normalizedQuery) {
         next.set("q", normalizedQuery);
@@ -72,18 +78,19 @@ export default function SearchPageClient({
         next.delete("type");
       }
 
-      const current = searchParams.toString();
       const updated = next.toString();
+      const current = window.location.search.startsWith("?")
+        ? window.location.search.slice(1)
+        : window.location.search;
 
       if (current !== updated) {
-        startTransition(() => {
-          router.replace(updated ? `${pathname}?${updated}` : pathname, { scroll: false });
-        });
+        const nextUrl = updated ? `${pathname}?${updated}` : pathname;
+        window.history.replaceState(window.history.state, "", nextUrl);
       }
     }, 250);
 
     return () => clearTimeout(timeoutId);
-  }, [normalizedQuery, pathname, router, searchParams, searchType]);
+  }, [normalizedQuery, pathname, searchType]);
 
   const hasQuery = normalizedQuery.length > 0;
   const resultCountLabel = useMemo(() => {

@@ -41,7 +41,6 @@ export default async function SearchPage({
 
   return (
     <SearchPageClient
-      key={`${initialType}:${initialQuery}`}
       initialQuery={initialQuery}
       initialType={initialType}
       highlights={highlights}

@@ -120,6 +120,7 @@ export type Database = {
           deezer_url: string | null
           display_name: string | null
           id: string
+          onboarded: boolean
           spotify_url: string | null
           updated_at: string
           username: string
@@ -132,6 +133,7 @@ export type Database = {
           deezer_url?: string | null
           display_name?: string | null
           id: string
+          onboarded?: boolean
           spotify_url?: string | null
           updated_at?: string
           username: string
@@ -144,6 +146,7 @@ export type Database = {
           deezer_url?: string | null
           display_name?: string | null
           id?: string
+          onboarded?: boolean
           spotify_url?: string | null
           updated_at?: string
           username?: string

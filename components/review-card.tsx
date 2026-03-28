@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Music2, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ReviewBookmarkButton from "@/components/review-bookmark-button";
 import ReviewCommentsButton from "@/components/review-comments-button";
 import ReviewLikeButton from "@/components/review-like-button";
+import UserAvatar from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 
 export type ReviewCardEntity = {
@@ -156,17 +156,14 @@ export default function ReviewCard({
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               {showAuthor ? (
                 <>
-                  <div className="relative h-6 w-6 overflow-hidden rounded-full border border-border/20 bg-muted">
-                    {author?.avatar_url ? (
-                      <Image
-                        src={author.avatar_url}
-                        alt={authorLabel}
-                        fill
-                        sizes="24px"
-                        className="object-cover"
-                      />
-                    ) : null}
-                  </div>
+                  <UserAvatar
+                    avatarUrl={author?.avatar_url}
+                    displayName={author?.display_name ?? null}
+                    username={author?.username ?? null}
+                    size="sm"
+                    className="size-6"
+                    fallbackClassName="text-[10px]"
+                  />
 
                   {author ? (
                     <Link

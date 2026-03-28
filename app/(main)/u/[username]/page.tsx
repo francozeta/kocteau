@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import UserAvatar from "@/components/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
@@ -192,18 +192,14 @@ export default async function UserProfilePage({
     <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
       <section className="border-b border-border/30 pb-8">
         <div className="grid gap-6 lg:grid-cols-[8.5rem,minmax(0,1fr),14rem] lg:items-end">
-          <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border border-border/20 bg-muted sm:h-32 sm:w-32">
-            {profile.avatar_url ? (
-              <Image
-                src={profile.avatar_url}
-                alt={name}
-                fill
-                sizes="128px"
-                className="object-cover object-center"
-                quality={75}
-              />
-            ) : null}
-          </div>
+          <UserAvatar
+            avatarUrl={profile.avatar_url}
+            displayName={profile.display_name}
+            username={profile.username}
+            className="h-28 w-28 border-border/20 sm:h-32 sm:w-32"
+            fallbackClassName="text-3xl font-semibold sm:text-4xl"
+            initialsLength={2}
+          />
 
           <div className="min-w-0 space-y-4">
             <div className="space-y-1.5">

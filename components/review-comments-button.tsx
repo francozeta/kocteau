@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MessageCircle, Send, Trash2 } from "lucide-react";
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import UserAvatar from "@/components/user-avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewComments } from "@/hooks/use-review-comments";
 import { cn } from "@/lib/utils";
@@ -120,17 +120,12 @@ export default function ReviewCommentsButton({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted">
-                        {author?.avatar_url ? (
-                          <Image
-                            src={author.avatar_url}
-                            alt={authorLabel}
-                            fill
-                            sizes="32px"
-                            className="object-cover"
-                          />
-                        ) : null}
-                      </div>
+                      <UserAvatar
+                        avatarUrl={author?.avatar_url}
+                        displayName={author?.display_name ?? null}
+                        username={author?.username ?? null}
+                        className="size-8"
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-foreground">
                           {authorLabel}

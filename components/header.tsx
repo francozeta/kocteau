@@ -28,7 +28,8 @@ export default function Header({
   initialUnreadCount?: number;
   initialNotifications?: NotificationItem[];
 }) {
-  return (
+  return ( 
+    /* TODO: change to fixed */
     <header className="sticky top-0 z-30 border-b border-border/25 bg-background/72 backdrop-blur-xl">
       <div className="flex h-15 items-center gap-3 px-4 sm:h-16 sm:px-6">
         <div className="flex items-center gap-2">

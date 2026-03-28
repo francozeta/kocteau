@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -37,8 +36,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
+import UserAvatar from "@/components/user-avatar";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 type SidebarProfile = {
@@ -53,7 +52,6 @@ type SidebarProfile = {
 };
 
 export function NavUser({ profile }: { profile: SidebarProfile | null }) {
-  const { isMobile } = useSidebar();
   const supabase = supabaseBrowser();
   const router = useRouter();
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -92,21 +90,12 @@ export function NavUser({ profile }: { profile: SidebarProfile | null }) {
                 size="lg"
                 className="h-12 rounded-xl data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
-                <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-sidebar-border bg-sidebar-accent">
-                  {profile.avatar_url ? (
-                    <Image
-                      src={profile.avatar_url}
-                      alt={displayName}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs font-semibold">
-                      {displayName.slice(0, 1).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+                <UserAvatar
+                  avatarUrl={profile.avatar_url}
+                  displayName={profile.display_name}
+                  username={profile.username}
+                  className="size-8 border-sidebar-border after:border-sidebar-border"
+                />
                 <div className="grid flex-1 text-left text-[13px] leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-medium">{displayName}</span>
                   <span className="truncate text-xs text-muted-foreground">@{username}</span>
@@ -122,21 +111,12 @@ export function NavUser({ profile }: { profile: SidebarProfile | null }) {
             >
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-2 py-2 text-left text-sm">
-                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border/30 bg-muted">
-                    {profile.avatar_url ? (
-                      <Image
-                        src={profile.avatar_url}
-                        alt={displayName}
-                        fill
-                        sizes="32px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs font-semibold">
-                        {displayName.slice(0, 1).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
+                  <UserAvatar
+                    avatarUrl={profile.avatar_url}
+                    displayName={profile.display_name}
+                    username={profile.username}
+                    className="size-8"
+                  />
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{displayName}</span>
                     <span className="truncate text-xs text-muted-foreground">@{username}</span>
