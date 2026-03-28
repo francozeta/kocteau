@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-
-type CommentPayload = {
-  body?: string;
-  parent_id?: string | null;
-};
+import { createCommentSchema, reviewIdParamsSchema } from "@/lib/validation/schemas";
+import { validationErrorResponse } from "@/lib/validation/server";
 
 type ReconcileResult = {
   review_id: string;
@@ -31,7 +28,13 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ reviewId: string }> },
 ) {
-  const { reviewId } = await params;
+  const paramsResult = reviewIdParamsSchema.safeParse(await params);
+
+  if (!paramsResult.success) {
+    return validationErrorResponse(paramsResult.error, "Invalid review id.");
+  }
+
+  const { reviewId } = paramsResult.data;
   const supabase = await supabaseServer();
   const {
     data: { user },
@@ -76,7 +79,13 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ reviewId: string }> },
 ) {
-  const { reviewId } = await params;
+  const paramsResult = reviewIdParamsSchema.safeParse(await params);
+
+  if (!paramsResult.success) {
+    return validationErrorResponse(paramsResult.error, "Invalid review id.");
+  }
+
+  const { reviewId } = paramsResult.data;
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
 
@@ -84,19 +93,13 @@ export async function POST(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const payload = (await req.json().catch(() => null)) as CommentPayload | null;
-  const body = payload?.body?.trim();
+  const parsed = createCommentSchema.safeParse(await req.json().catch(() => null));
 
-  if (!body) {
-    return NextResponse.json({ error: "Comment body is required" }, { status: 400 });
+  if (!parsed.success) {
+    return validationErrorResponse(parsed.error, "Please review your comment before posting.");
   }
 
-  if (payload?.parent_id) {
-    return NextResponse.json(
-      { error: "Replies are not enabled yet" },
-      { status: 400 },
-    );
-  }
+  const payload = parsed.data;
 
   const { data, error } = await supabase
     .from("review_comments")
@@ -104,7 +107,7 @@ export async function POST(
       review_id: reviewId,
       author_id: auth.user.id,
       parent_id: null,
-      body,
+      body: payload.body,
     })
     .select(`
       id,

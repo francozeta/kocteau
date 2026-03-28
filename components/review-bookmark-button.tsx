@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bookmark } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
+import { toastActionError } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
 type ReviewBookmarkButtonProps = {
@@ -88,11 +88,7 @@ export default function ReviewBookmarkButton({
         router.refresh();
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "We couldn't update your saved reviews right now.",
-      );
+      toastActionError(error, "We couldn't update your saved reviews right now.");
     }
   }
 

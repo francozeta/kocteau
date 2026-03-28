@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Heart } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewLike } from "@/hooks/use-review-like";
+import { toastActionError } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
 type ReviewLikeButtonProps = {
@@ -83,11 +83,7 @@ export default function ReviewLikeButton({
     try {
       await toggleLike();
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "We couldn't update your like right now.",
-      );
+      toastActionError(error, "We couldn't update your like right now.");
     }
   }
 

@@ -1,36 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
-
-type EntityType = Database["public"]["Enums"]["entity_type"];
-
-type CreateReviewPayload = {
-  provider: string;
-  provider_id: string;
-  type: EntityType;
-  title: string;
-  artist_name?: string | null;
-  cover_url?: string | null;
-  deezer_url?: string | null;
-  review_title?: string | null;
-  review_body?: string | null;
-  rating: number;
-  is_pinned?: boolean;
-};
-
-function isValidPayload(payload: unknown): payload is CreateReviewPayload {
-  if (!payload || typeof payload !== "object") return false;
-
-  const candidate = payload as Record<string, unknown>;
-
-  return (
-    typeof candidate.provider === "string" &&
-    typeof candidate.provider_id === "string" &&
-    (candidate.type === "track" || candidate.type === "album") &&
-    typeof candidate.title === "string" &&
-    typeof candidate.rating === "number"
-  );
-}
+import { createReviewSchema } from "@/lib/validation/schemas";
+import { validationErrorResponse } from "@/lib/validation/server";
 
 export async function POST(req: Request) {
   const supabase = await supabaseServer();
@@ -40,24 +11,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const payload = (await req.json()) as unknown;
+  const payload = (await req.json().catch(() => null)) as unknown;
+  const parsed = createReviewSchema.safeParse(payload);
 
-  if (!isValidPayload(payload)) {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  if (!parsed.success) {
+    return validationErrorResponse(parsed.error, "Please review the track and rating before publishing.");
   }
 
+  const review = parsed.data;
+
   const { data, error } = await supabase.rpc("create_review_with_entity", {
-    p_provider: payload.provider,
-    p_provider_id: payload.provider_id,
-    p_type: payload.type,
-    p_title: payload.title,
-    p_artist_name: payload.artist_name ?? null,
-    p_cover_url: payload.cover_url ?? null,
-    p_deezer_url: payload.deezer_url ?? null,
-    p_review_title: payload.review_title ?? null,
-    p_review_body: payload.review_body ?? null,
-    p_rating: payload.rating,
-    p_is_pinned: payload.is_pinned ?? false,
+    p_provider: review.provider,
+    p_provider_id: review.provider_id,
+    p_type: review.type,
+    p_title: review.title,
+    p_artist_name: review.artist_name,
+    p_cover_url: review.cover_url,
+    p_deezer_url: review.deezer_url,
+    p_review_title: review.review_title,
+    p_review_body: review.review_body,
+    p_rating: review.rating,
+    p_is_pinned: review.is_pinned,
   });
 
   if (error) {

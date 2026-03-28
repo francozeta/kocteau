@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
-import { toast } from "sonner";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";
@@ -20,6 +19,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { toastActionError } from "@/lib/feedback";
 
 type NotificationsButtonProps = {
   userId: string;
@@ -66,11 +66,7 @@ export default function NotificationsButton({
 
     void markAllAsRead().catch((error) => {
       hasAutoMarkedRef.current = false;
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "We couldn't update notifications right now.",
-      );
+      toastActionError(error, "We couldn't update notifications right now.");
     });
   }, [markAllAsRead, open, unreadCount]);
 
@@ -78,11 +74,7 @@ export default function NotificationsButton({
     try {
       await markAsRead(notificationId);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "We couldn't update that notification right now.",
-      );
+      toastActionError(error, "We couldn't update that notification right now.");
     }
   }
 

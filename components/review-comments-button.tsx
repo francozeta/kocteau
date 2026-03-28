@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MessageCircle, Send, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import UserAvatar from "@/components/user-avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewComments } from "@/hooks/use-review-comments";
+import { toastActionError } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
 type ReviewCommentsButtonProps = {
@@ -73,11 +73,7 @@ export default function ReviewCommentsButton({
       await createComment(trimmedBody);
       setBody("");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "We couldn't post your comment right now.",
-      );
+      toastActionError(error, "We couldn't post your comment right now.");
     }
   }
 
@@ -85,11 +81,7 @@ export default function ReviewCommentsButton({
     try {
       await deleteComment(commentId);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "We couldn't delete your comment right now.",
-      );
+      toastActionError(error, "We couldn't delete your comment right now.");
     }
   }
 

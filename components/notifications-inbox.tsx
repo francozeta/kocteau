@@ -1,12 +1,12 @@
 "use client";
 
 import { Bell } from "lucide-react";
-import { toast } from "sonner";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { toastActionError } from "@/lib/feedback";
 
 type NotificationsInboxProps = {
   userId: string;
@@ -39,11 +39,7 @@ export default function NotificationsInbox({
     try {
       await markAsRead(notificationId);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "We couldn't update that notification right now.",
-      );
+      toastActionError(error, "We couldn't update that notification right now.");
     }
   }
 

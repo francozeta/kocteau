@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { searchDeezerTracks } from "@/lib/deezer";
-import { isSearchEntityType } from "@/lib/search-types";
 import { supabaseServer } from "@/lib/supabase/server";
+import { deezerSearchQuerySchema } from "@/lib/validation/schemas";
+import { validationErrorResponse } from "@/lib/validation/server";
 
 type ExistingEntity = {
   id: string;
@@ -10,9 +11,16 @@ type ExistingEntity = {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q")?.trim();
-  const requestedType = searchParams.get("type");
-  const type = isSearchEntityType(requestedType) ? requestedType : "track";
+  const parsed = deezerSearchQuerySchema.safeParse({
+    q: searchParams.get("q") ?? undefined,
+    type: searchParams.get("type") ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return validationErrorResponse(parsed.error, "Search query is invalid.");
+  }
+
+  const { q, type } = parsed.data;
 
   if (!q) return NextResponse.json([], { status: 200 });
   if (type !== "track") {

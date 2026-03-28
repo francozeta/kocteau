@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LoaderCircle, Music2, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch } from "@/hooks/use-deezer-search";
+import { toastActionSuccess } from "@/lib/feedback";
+import { ApiError, createApiError, getFirstFieldError } from "@/lib/validation/errors";
+import { createReviewSchema } from "@/lib/validation/schemas";
 import RatingStars from "./rating-stars";
 
 type DeezerResult = {
@@ -42,16 +47,24 @@ export default function NewReviewForm({
   initialSelection = null,
 }: NewReviewFormProps) {
   const router = useRouter();
+  const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const [step, setStep] = useState<Step>("search");
   const [query, setQuery] = useState(initialQuery);
   const [selected, setSelected] = useState<DeezerResult | null>(null);
+  const [activeResultIndex, setActiveResultIndex] = useState(-1);
 
   const [rating, setRating] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    selected?: string;
+    rating?: string;
+    review_title?: string;
+    review_body?: string;
+  }>({});
   const [saving, setSaving] = useState(false);
 
   const suggestedSearches = ["Radiohead", "Björk", "Bad Bunny", "Frank Ocean", "Massive Attack", "The Cure"];
@@ -80,6 +93,25 @@ export default function NewReviewForm({
     setStep("search");
   }, [initialSelection]);
 
+  useEffect(() => {
+    if (step !== "search" || normalizedQuery.length < 2 || results.length === 0) {
+      setActiveResultIndex(-1);
+      return;
+    }
+
+    setActiveResultIndex(0);
+  }, [normalizedQuery, results.length, step]);
+
+  useEffect(() => {
+    if (activeResultIndex < 0) {
+      return;
+    }
+
+    resultRefs.current[activeResultIndex]?.scrollIntoView({
+      block: "nearest",
+    });
+  }, [activeResultIndex]);
+
   function resetAll() {
     setStep(initialSelection ? "compose" : "search");
     setSelected(initialSelection);
@@ -103,16 +135,70 @@ export default function NewReviewForm({
     setErrorMsg(null);
   }
 
-  async function onSubmit() {
+  function handleResultSelect(result: DeezerResult) {
+    setSelected(result);
+    setStep("compose");
     setErrorMsg(null);
+    setFieldErrors((current) => ({
+      ...current,
+      selected: undefined,
+    }));
+  }
 
-    if (!selected) {
-      setErrorMsg("Select a track before publishing.");
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (normalizedQuery.length < 2 || results.length === 0) {
       return;
     }
 
-    if (rating === null) {
-      setErrorMsg("A rating is required to publish in the demo.");
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveResultIndex((current) => (current + 1) % results.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveResultIndex((current) =>
+        current <= 0 ? results.length - 1 : current - 1,
+      );
+      return;
+    }
+
+    if (event.key === "Enter" && activeResultIndex >= 0) {
+      event.preventDefault();
+      handleResultSelect(results[activeResultIndex]);
+    }
+  }
+
+  async function onSubmit() {
+    setErrorMsg(null);
+    setFieldErrors({});
+
+    if (!selected) {
+      setFieldErrors({ selected: "Select a track before publishing." });
+      return;
+    }
+    const parsed = createReviewSchema.safeParse({
+      provider: selected.provider,
+      provider_id: selected.provider_id,
+      type: selected.type,
+      title: selected.title,
+      artist_name: selected.artist_name,
+      cover_url: selected.cover_url,
+      deezer_url: selected.deezer_url,
+      review_title: title,
+      review_body: body,
+      rating,
+    });
+
+    if (!parsed.success) {
+      const errors = parsed.error.flatten().fieldErrors;
+      setFieldErrors({
+        rating: getFirstFieldError(errors, "rating") ?? undefined,
+        review_title: getFirstFieldError(errors, "review_title") ?? undefined,
+        review_body: getFirstFieldError(errors, "review_body") ?? undefined,
+      });
+      setErrorMsg(parsed.error.flatten().formErrors[0] ?? null);
       return;
     }
 
@@ -124,33 +210,27 @@ export default function NewReviewForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          provider: selected.provider,
-          provider_id: selected.provider_id,
-          type: selected.type,
-          title: selected.title,
-          artist_name: selected.artist_name,
-          cover_url: selected.cover_url,
-          deezer_url: selected.deezer_url,
-          review_title: title.trim() ? title.trim() : null,
-          review_body: body.trim() ? body.trim() : null,
-          rating,
-        }),
+        body: JSON.stringify(parsed.data),
       });
 
-      const payload = (await res.json()) as { error?: string; code?: string | null };
-
       if (!res.ok) {
-        const error = new Error(payload.error || "Something went wrong while publishing.") as ReviewSubmitError;
-        error.code = payload.code ?? undefined;
-        throw error;
+        throw await createApiError(res, "Something went wrong while publishing.");
       }
 
+      toastActionSuccess("Review published.");
       router.refresh();
       onSuccess?.();
       resetAll();
     } catch (error) {
-      const reviewError = error as ReviewSubmitError;
+      const reviewError = error as ReviewSubmitError | ApiError;
+
+      if (reviewError instanceof ApiError && reviewError.fieldErrors) {
+        setFieldErrors({
+          rating: getFirstFieldError(reviewError.fieldErrors, "rating") ?? undefined,
+          review_title: getFirstFieldError(reviewError.fieldErrors, "review_title") ?? undefined,
+          review_body: getFirstFieldError(reviewError.fieldErrors, "review_body") ?? undefined,
+        });
+      }
 
       if (reviewError.code === "42501") {
         setErrorMsg("Your session expired. Please sign in again.");
@@ -192,19 +272,39 @@ export default function NewReviewForm({
 
           <Input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setFieldErrors((current) => ({ ...current, selected: undefined }));
+            }}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Track name or artist..."
             disabled={saving}
             autoFocus
             className="mb-3 h-11 shrink-0 rounded-2xl border-border/25 bg-background/60"
+            maxLength={80}
           />
+          <FieldError>{fieldErrors.selected}</FieldError>
 
           <ScrollArea className="min-h-0 flex-1 rounded-[1.35rem] border border-border/20 bg-card/12">
             <div className="space-y-0">
-              {isFetching ? (
-                <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
-                  <LoaderCircle className="size-4 animate-spin" />
-                  Searching...
+              {isFetching && results.length === 0 ? (
+                <div className="space-y-3 px-4 py-4">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-xl" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3.5 w-1/2" />
+                        <Skeleton className="h-3 w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {isFetching && results.length > 0 ? (
+                <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
+                  <LoaderCircle className="size-3.5 animate-spin" />
+                  Updating results...
                 </div>
               ) : null}
 
@@ -246,16 +346,16 @@ export default function NewReviewForm({
 
               {results.length > 0 ? (
                 <div className="divide-y">
-                  {results.map((result) => (
+                  {results.map((result, index) => (
                     <button
                       key={result.provider_id}
                       type="button"
-                      onClick={() => {
-                        setSelected(result);
-                        setStep("compose");
-                        setErrorMsg(null);
+                      ref={(node) => {
+                        resultRefs.current[index] = node;
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/35"
+                      onClick={() => handleResultSelect(result)}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/35 data-[active=true]:bg-muted/40"
+                      data-active={activeResultIndex === index}
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
                         {result.cover_url ? (
@@ -343,7 +443,15 @@ export default function NewReviewForm({
               <div className="space-y-6">
                 <section>
                   <p className="text-sm font-medium mb-3">Rating</p>
-                  <RatingStars value={rating} onChange={setRating} disabled={saving} />
+                  <RatingStars
+                    value={rating}
+                    onChange={(nextRating) => {
+                      setRating(nextRating);
+                      setFieldErrors((current) => ({ ...current, rating: undefined }));
+                    }}
+                    disabled={saving}
+                  />
+                  <FieldError>{fieldErrors.rating}</FieldError>
                 </section>
 
                 <section className="space-y-2">
@@ -353,11 +461,17 @@ export default function NewReviewForm({
                   <Input
                     id="review-title"
                     value={title}
-                    onChange={(event) => setTitle(event.target.value)}
+                    onChange={(event) => {
+                      setTitle(event.target.value);
+                      setFieldErrors((current) => ({ ...current, review_title: undefined }));
+                    }}
                     placeholder="Give it a headline"
                     disabled={saving}
                     className="h-11 rounded-2xl border-border/25 bg-background/60 text-sm"
+                    maxLength={120}
+                    aria-invalid={Boolean(fieldErrors.review_title)}
                   />
+                  <FieldError>{fieldErrors.review_title}</FieldError>
                 </section>
 
                 <section className="space-y-2">
@@ -367,11 +481,17 @@ export default function NewReviewForm({
                   <Textarea
                     id="review-body"
                     value={body}
-                    onChange={(event) => setBody(event.target.value)}
+                    onChange={(event) => {
+                      setBody(event.target.value);
+                      setFieldErrors((current) => ({ ...current, review_body: undefined }));
+                    }}
                     placeholder="What did this track make you feel?"
                     className="min-h-24 resize-none rounded-2xl border-border/25 bg-background/60 text-sm"
                     disabled={saving}
+                    maxLength={2000}
+                    aria-invalid={Boolean(fieldErrors.review_body)}
                   />
+                  <FieldError>{fieldErrors.review_body}</FieldError>
                 </section>
               </div>
             </div>

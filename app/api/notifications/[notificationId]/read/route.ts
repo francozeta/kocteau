@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { getUnreadNotificationsCount } from "@/lib/queries/notifications";
 import { supabaseServer } from "@/lib/supabase/server";
+import { notificationParamsSchema } from "@/lib/validation/schemas";
+import { validationErrorResponse } from "@/lib/validation/server";
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ notificationId: string }> },
 ) {
-  const { notificationId } = await params;
+  const paramsResult = notificationParamsSchema.safeParse(await params);
+
+  if (!paramsResult.success) {
+    return validationErrorResponse(paramsResult.error, "Invalid notification id.");
+  }
+
+  const { notificationId } = paramsResult.data;
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
 

@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Camera, Check, Disc3, LoaderCircle, Upload } fro
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,9 @@ import {
   createAvatarPresetSvg,
   type AvatarPresetId,
 } from "@/lib/avatar-presets";
+import { toastActionSuccess } from "@/lib/feedback";
+import { getFirstFieldError } from "@/lib/validation/errors";
+import { profileEditorSchema } from "@/lib/validation/schemas";
 import { cn } from "@/lib/utils";
 
 type ProfileDraft = {
@@ -36,26 +40,6 @@ type ProfileEditorFormProps = {
   settingsLayout?: "default" | "panel";
   settingsSection?: "profile" | "avatar" | "links" | "all";
 };
-
-function isValidUsername(value: string) {
-  return /^[a-z0-9_]{3,20}$/.test(value);
-}
-
-function normalizeUrl(value: string) {
-  const trimmed = value.trim();
-
-  if (!trimmed) {
-    return null;
-  }
-
-  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-
-  try {
-    return new URL(withProtocol).toString();
-  } catch {
-    return "__invalid__";
-  }
-}
 
 export default function ProfileEditorForm({
   mode,
@@ -82,6 +66,14 @@ export default function ProfileEditorForm({
   );
   const [step, setStep] = useState<1 | 2>(1);
   const [message, setMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    username?: string;
+    display_name?: string;
+    bio?: string;
+    spotify_url?: string;
+    apple_music_url?: string;
+    deezer_url?: string;
+  }>({});
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -176,33 +168,30 @@ export default function ProfileEditorForm({
 
   async function onSubmit() {
     setMessage(null);
+    const parsed = profileEditorSchema.safeParse({
+      username,
+      display_name: displayName,
+      bio,
+      spotify_url: spotifyUrl,
+      apple_music_url: appleMusicUrl,
+      deezer_url: deezerUrl,
+    });
 
-    const normalizedUsername = username.trim().toLowerCase();
-    const normalizedDisplayName = displayName.trim();
-    const normalizedBio = bio.trim();
-    const normalizedSpotifyUrl = normalizeUrl(spotifyUrl);
-    const normalizedAppleMusicUrl = normalizeUrl(appleMusicUrl);
-    const normalizedDeezerUrl = normalizeUrl(deezerUrl);
-
-    if (!isValidUsername(normalizedUsername)) {
-      setMessage("Username must be 3-20 characters and use only a-z, 0-9, and _.");
+    if (!parsed.success) {
+      const errors = parsed.error.flatten().fieldErrors;
+      setFieldErrors({
+        username: getFirstFieldError(errors, "username") ?? undefined,
+        display_name: getFirstFieldError(errors, "display_name") ?? undefined,
+        bio: getFirstFieldError(errors, "bio") ?? undefined,
+        spotify_url: getFirstFieldError(errors, "spotify_url") ?? undefined,
+        apple_music_url: getFirstFieldError(errors, "apple_music_url") ?? undefined,
+        deezer_url: getFirstFieldError(errors, "deezer_url") ?? undefined,
+      });
+      setMessage(parsed.error.flatten().formErrors[0] ?? null);
       return;
     }
 
-    if (normalizedDisplayName.length < 2) {
-      setMessage("Display name must be at least 2 characters.");
-      return;
-    }
-
-    if (
-      normalizedSpotifyUrl === "__invalid__" ||
-      normalizedAppleMusicUrl === "__invalid__" ||
-      normalizedDeezerUrl === "__invalid__"
-    ) {
-      setMessage("Music links must be valid URLs.");
-      return;
-    }
-
+    setFieldErrors({});
     setSaving(true);
 
     const {
@@ -218,6 +207,7 @@ export default function ProfileEditorForm({
     }
 
     try {
+      const normalizedProfile = parsed.data;
       const avatarUrl = avatarFile
         ? await uploadAvatar(user.id)
         : selectedPresetId
@@ -226,14 +216,14 @@ export default function ProfileEditorForm({
 
       const profilePayload = {
         id: user.id,
-        username: normalizedUsername,
-        display_name: normalizedDisplayName,
-        bio: normalizedBio || null,
+        username: normalizedProfile.username,
+        display_name: normalizedProfile.display_name,
+        bio: normalizedProfile.bio,
         avatar_url: avatarUrl ?? null,
         onboarded: mode === "onboarding" ? true : (initialProfile?.onboarded ?? true),
-        spotify_url: normalizedSpotifyUrl,
-        apple_music_url: normalizedAppleMusicUrl,
-        deezer_url: normalizedDeezerUrl,
+        spotify_url: normalizedProfile.spotify_url,
+        apple_music_url: normalizedProfile.apple_music_url,
+        deezer_url: normalizedProfile.deezer_url,
       };
 
       const { error } = await supabase.from("profiles").upsert(profilePayload, {
@@ -254,17 +244,18 @@ export default function ProfileEditorForm({
 
       if (
         previousUsername &&
-        previousUsername !== normalizedUsername &&
+        previousUsername !== normalizedProfile.username &&
         currentProfilePath &&
         pathname.startsWith(currentProfilePath)
       ) {
-        const nextProfilePath = `/u/${normalizedUsername}`;
+        const nextProfilePath = `/u/${normalizedProfile.username}`;
         router.prefetch(nextProfilePath);
         router.replace(nextProfilePath);
       } else {
         router.refresh();
       }
 
+      toastActionSuccess("Profile updated.");
       onSaved?.();
     } catch (error) {
       const profileError = error as Error & { code?: string };
@@ -537,10 +528,15 @@ export default function ProfileEditorForm({
               <Input
                 id="display-name"
                 value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
+                onChange={(event) => {
+                  setDisplayName(event.target.value);
+                  setFieldErrors((current) => ({ ...current, display_name: undefined }));
+                }}
                 placeholder="Fran Cocteau"
                 disabled={saving}
+                aria-invalid={Boolean(fieldErrors.display_name)}
               />
+              <FieldError>{fieldErrors.display_name}</FieldError>
             </div>
 
             <div className="space-y-2">
@@ -548,10 +544,15 @@ export default function ProfileEditorForm({
               <Input
                 id="username"
                 value={username}
-                onChange={(event) => setUsername(event.target.value)}
+                onChange={(event) => {
+                  setUsername(event.target.value);
+                  setFieldErrors((current) => ({ ...current, username: undefined }));
+                }}
                 placeholder="fran_cocteau"
                 disabled={saving}
+                aria-invalid={Boolean(fieldErrors.username)}
               />
+              <FieldError>{fieldErrors.username}</FieldError>
             </div>
           </div>
 
@@ -560,11 +561,17 @@ export default function ProfileEditorForm({
             <Textarea
               id="bio"
               value={bio}
-              onChange={(event) => setBio(event.target.value)}
+              onChange={(event) => {
+                setBio(event.target.value);
+                setFieldErrors((current) => ({ ...current, bio: undefined }));
+              }}
               placeholder="A short note about your taste, mood, or musical obsessions."
               className="min-h-24 resize-none"
               disabled={saving}
+              maxLength={280}
+              aria-invalid={Boolean(fieldErrors.bio)}
             />
+            <FieldError>{fieldErrors.bio}</FieldError>
           </div>
         </section>
         ) : null}
@@ -582,10 +589,15 @@ export default function ProfileEditorForm({
               <Input
                 id="spotify-url"
                 value={spotifyUrl}
-                onChange={(event) => setSpotifyUrl(event.target.value)}
+                onChange={(event) => {
+                  setSpotifyUrl(event.target.value);
+                  setFieldErrors((current) => ({ ...current, spotify_url: undefined }));
+                }}
                 placeholder="open.spotify.com/..."
                 disabled={saving}
+                aria-invalid={Boolean(fieldErrors.spotify_url)}
               />
+              <FieldError>{fieldErrors.spotify_url}</FieldError>
             </div>
 
             <div className="space-y-2">
@@ -593,10 +605,15 @@ export default function ProfileEditorForm({
               <Input
                 id="apple-music-url"
                 value={appleMusicUrl}
-                onChange={(event) => setAppleMusicUrl(event.target.value)}
+                onChange={(event) => {
+                  setAppleMusicUrl(event.target.value);
+                  setFieldErrors((current) => ({ ...current, apple_music_url: undefined }));
+                }}
                 placeholder="music.apple.com/..."
                 disabled={saving}
+                aria-invalid={Boolean(fieldErrors.apple_music_url)}
               />
+              <FieldError>{fieldErrors.apple_music_url}</FieldError>
             </div>
 
             <div className="space-y-2">
@@ -604,10 +621,15 @@ export default function ProfileEditorForm({
               <Input
                 id="deezer-url"
                 value={deezerUrl}
-                onChange={(event) => setDeezerUrl(event.target.value)}
+                onChange={(event) => {
+                  setDeezerUrl(event.target.value);
+                  setFieldErrors((current) => ({ ...current, deezer_url: undefined }));
+                }}
                 placeholder="deezer.com/track/..."
                 disabled={saving}
+                aria-invalid={Boolean(fieldErrors.deezer_url)}
               />
+              <FieldError>{fieldErrors.deezer_url}</FieldError>
             </div>
           </section>
         ) : null}

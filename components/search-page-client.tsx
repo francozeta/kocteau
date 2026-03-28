@@ -1,20 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
 import type { SearchEntityType } from "@/lib/search-types";
+import { cn } from "@/lib/utils";
 
 type SearchPageClientProps = {
   initialQuery: string;
   initialType: SearchEntityType;
   highlights: DiscoveryTrack[];
+};
+
+type RecentSearch = {
+  label: string;
+  query: string;
 };
 
 const suggestedSearches = [
@@ -25,6 +32,8 @@ const suggestedSearches = [
   "Daft Punk",
   "Frank Ocean",
 ];
+
+const recentSearchesStorageKey = "kocteau:recent-searches";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -37,14 +46,47 @@ function getResultHref(result: DeezerSearchResult) {
   return result.entity_id ? `/track/${result.entity_id}` : `/track/deezer/${result.provider_id}`;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightMatch(text: string, query: string) {
+  const normalized = query.trim();
+
+  if (!normalized || normalized.length < 2) {
+    return text;
+  }
+
+  const matcher = new RegExp(`(${escapeRegExp(normalized)})`, "ig");
+  const parts = text.split(matcher);
+  const normalizedLower = normalized.toLowerCase();
+
+  return parts.map((part, index) =>
+    part.toLowerCase() === normalizedLower ? (
+      <mark
+        key={`${part}-${index}`}
+        className="rounded-[0.35rem] bg-foreground/10 px-0.5 text-foreground"
+      >
+        {part}
+      </mark>
+    ) : (
+      <span key={`${part}-${index}`}>{part}</span>
+    ),
+  );
+}
+
 export default function SearchPageClient({
   initialQuery,
   initialType,
   highlights,
 }: SearchPageClientProps) {
+  const router = useRouter();
   const pathname = usePathname();
 
   const [query, setQuery] = useState(initialQuery);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const resultRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   const searchType = initialType;
   const normalizedQuery = query.trim();
   const { data = [], isFetching, error } = useDeezerSearch({
@@ -57,6 +99,47 @@ export default function SearchPageClient({
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const stored = window.localStorage.getItem(recentSearchesStorageKey);
+
+      if (!stored) {
+        return;
+      }
+
+      const parsed = JSON.parse(stored) as RecentSearch[];
+
+      if (Array.isArray(parsed)) {
+        setRecentSearches(parsed.slice(0, 6));
+      }
+    } catch {
+      // Ignore broken local storage payloads and fall back to empty recent searches.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (normalizedQuery.length < 2 || results.length === 0) {
+      setActiveIndex(-1);
+      return;
+    }
+
+    setActiveIndex(0);
+  }, [normalizedQuery, results.length]);
+
+  useEffect(() => {
+    if (activeIndex < 0) {
+      return;
+    }
+
+    resultRefs.current[activeIndex]?.scrollIntoView({
+      block: "nearest",
+    });
+  }, [activeIndex]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -95,9 +178,68 @@ export default function SearchPageClient({
   const hasQuery = normalizedQuery.length > 0;
   const resultCountLabel = useMemo(() => {
     if (!hasQuery) return null;
-    if (isFetching) return "Searching...";
     return `${results.length} ${results.length === 1 ? "result" : "results"}`;
-  }, [hasQuery, isFetching, results.length]);
+  }, [hasQuery, results.length]);
+
+  const showSkeletonResults =
+    hasQuery && normalizedQuery.length >= 2 && isFetching && results.length === 0;
+
+  function persistRecentSearch(nextQuery: string) {
+    const label = nextQuery.trim();
+
+    if (label.length < 2 || typeof window === "undefined") {
+      return;
+    }
+
+    const nextItem = {
+      label,
+      query: label,
+    } satisfies RecentSearch;
+
+    setRecentSearches((current) => {
+      const next = [nextItem, ...current.filter((item) => item.query.toLowerCase() !== label.toLowerCase())].slice(0, 6);
+      window.localStorage.setItem(recentSearchesStorageKey, JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function clearRecentSearches() {
+    setRecentSearches([]);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(recentSearchesStorageKey);
+    }
+  }
+
+  function handleSearchSuggestionSelect(nextQuery: string) {
+    setQuery(nextQuery);
+    persistRecentSearch(nextQuery);
+  }
+
+  function handleInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (normalizedQuery.length < 2 || results.length === 0) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveIndex((current) => (current + 1) % results.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveIndex((current) => (current <= 0 ? results.length - 1 : current - 1));
+      return;
+    }
+
+    if (event.key === "Enter" && activeIndex >= 0) {
+      event.preventDefault();
+      const activeResult = results[activeIndex];
+      persistRecentSearch(activeResult.title);
+      router.push(getResultHref(activeResult));
+    }
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
@@ -108,7 +250,15 @@ export default function SearchPageClient({
               Search
             </h1>
             {resultCountLabel ? (
-              <p className="text-sm text-muted-foreground">{resultCountLabel}</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>{resultCountLabel}</span>
+                {isFetching ? (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <LoaderCircle className="size-3.5 animate-spin" />
+                    Updating
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>
@@ -120,26 +270,66 @@ export default function SearchPageClient({
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={handleInputKeyDown}
             placeholder="Search by track, artist..."
             className="h-12 rounded-[1.35rem] border-border/25 bg-card/20 pl-12 text-base"
             autoFocus
+            maxLength={80}
           />
         </div>
 
         {!hasQuery && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {suggestedSearches.map((suggestion) => (
-              <Button
-                key={suggestion}
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setQuery(suggestion)}
-                className="rounded-full border-border/25 bg-card/18 hover:border-border/50"
-              >
-                {suggestion}
-              </Button>
-            ))}
+          <div className="space-y-4 pt-2">
+            {recentSearches.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    Recent
+                  </p>
+                  <button
+                    type="button"
+                    onClick={clearRecentSearches}
+                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((item) => (
+                    <Button
+                      key={item.query}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSearchSuggestionSelect(item.query)}
+                      className="rounded-full border-border/25 bg-card/18 hover:border-border/50"
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="space-y-3">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Suggested
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestedSearches.map((suggestion) => (
+                  <Button
+                    key={suggestion}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSearchSuggestionSelect(suggestion)}
+                    className="rounded-full border-border/25 bg-card/18 hover:border-border/50"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -148,14 +338,25 @@ export default function SearchPageClient({
 
       {hasQuery ? (
         <div className="space-y-3">
-          {isFetching ? (
-            <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground justify-center">
-              <LoaderCircle className="size-4 animate-spin" />
-              Searching...
+          {showSkeletonResults ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5"
+                >
+                  <Skeleton className="h-16 w-16 rounded-[1.1rem]" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-3 w-18" />
+                    <Skeleton className="h-4 w-2/5" />
+                    <Skeleton className="h-3.5 w-1/3" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : null}
 
-          {!isFetching && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
+          {!showSkeletonResults && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
             <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -169,7 +370,7 @@ export default function SearchPageClient({
             </Empty>
           ) : null}
 
-          {!isFetching && normalizedQuery.length >= 2 && results.length === 0 ? (
+          {!showSkeletonResults && normalizedQuery.length >= 2 && results.length === 0 ? (
             <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -183,43 +384,67 @@ export default function SearchPageClient({
             </Empty>
           ) : null}
 
-          {results.map((result) => (
-            <Link
-              key={`${result.provider}-${result.provider_id}`}
-              href={getResultHref(result)}
-              className="group block"
-            >
-              <div className="flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-muted">
-                  {result.cover_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={result.cover_url}
-                      alt={result.title}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <Music2 className="size-6 text-muted-foreground" />
-                  )}
-                </div>
+          {results.length > 0 ? (
+            <div className="space-y-2">
+              <p className="px-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Use ↑ ↓ to move, Enter to open
+              </p>
+              {results.map((result, index) => (
+                <Link
+                  key={`${result.provider}-${result.provider_id}`}
+                  href={getResultHref(result)}
+                  onClick={() => persistRecentSearch(result.title)}
+                  ref={(node) => {
+                    resultRefs.current[index] = node;
+                  }}
+                  className="group block"
+                >
+                  <div
+                    className={cn(
+                      "flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30",
+                      activeIndex === index && "border-foreground/20 bg-card/28",
+                    )}
+                  >
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-muted">
+                      {result.cover_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={result.cover_url}
+                          alt={result.title}
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Music2 className="size-6 text-muted-foreground" />
+                      )}
+                    </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                    <span>{result.entity_id ? "In library" : "Deezer"}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                        <span>{result.entity_id ? "In library" : "Deezer"}</span>
+                      </div>
+                      <h3 className="line-clamp-1 font-medium group-hover:underline">
+                        {highlightMatch(result.title, normalizedQuery)}
+                      </h3>
+                      <p className="line-clamp-1 text-sm text-muted-foreground">
+                        {highlightMatch(result.artist_name ?? "Unknown artist", normalizedQuery)}
+                      </p>
+                    </div>
+
+                    <div className="hidden sm:block">
+                      {activeIndex === index ? (
+                        <span className="inline-flex rounded-full border border-border/30 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          Enter
+                        </span>
+                      ) : (
+                        <ArrowUpRight className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+                      )}
+                    </div>
                   </div>
-                  <h3 className="line-clamp-1 font-medium group-hover:underline">{result.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-1">
-                    {result.artist_name ?? "Unknown artist"}
-                  </p>
-                </div>
-
-                <div className="hidden sm:block">
-                  <ArrowUpRight className="size-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </div>
-              </div>
-            </Link>
-          ))}
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : (
         <section className="space-y-6">

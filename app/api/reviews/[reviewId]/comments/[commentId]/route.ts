@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { reviewCommentParamsSchema } from "@/lib/validation/schemas";
+import { validationErrorResponse } from "@/lib/validation/server";
 
 type ReconcileResult = {
   review_id: string;
@@ -26,7 +28,13 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ reviewId: string; commentId: string }> },
 ) {
-  const { reviewId, commentId } = await params;
+  const paramsResult = reviewCommentParamsSchema.safeParse(await params);
+
+  if (!paramsResult.success) {
+    return validationErrorResponse(paramsResult.error, "Invalid comment request.");
+  }
+
+  const { reviewId, commentId } = paramsResult.data;
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
 

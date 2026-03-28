@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { reviewIdParamsSchema } from "@/lib/validation/schemas";
+import { validationErrorResponse } from "@/lib/validation/server";
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ reviewId: string }> },
 ) {
-  const { reviewId } = await params;
+  const paramsResult = reviewIdParamsSchema.safeParse(await params);
+
+  if (!paramsResult.success) {
+    return validationErrorResponse(paramsResult.error, "Invalid review id.");
+  }
+
+  const { reviewId } = paramsResult.data;
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
 
