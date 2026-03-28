@@ -114,7 +114,7 @@ export default function LoginPageClient() {
             {msg ? (
               <Alert
                 variant="destructive"
-                className="rounded-xl border-destructive/35 bg-background/90 px-3 py-2.5"
+                className="rounded-xl px-3 py-2.5"
               >
                 <CircleAlert className="size-4" />
                 <AlertTitle>Couldn&apos;t sign you in</AlertTitle>

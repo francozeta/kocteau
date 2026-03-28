@@ -124,7 +124,7 @@ export default function SignupPageClient() {
             {msg ? (
               <Alert
                 variant={msgTone === "error" ? "destructive" : "default"}
-                className="rounded-xl border-border/25 bg-background/90 px-3 py-2.5"
+                className="rounded-xl px-3 py-2.5"
               >
                 {msgTone === "error" ? (
                   <CircleAlert className="size-4" />
