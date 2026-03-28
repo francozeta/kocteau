@@ -1,7 +1,6 @@
 import { cache } from "react";
 import {
   runReviewListQuery,
-  runReviewMaybeQuery,
 } from "@/lib/queries/review-likes";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -31,8 +30,14 @@ export type ProfileReview = {
   rating: number;
   likes_count: number;
   comments_count: number;
+  is_pinned?: boolean;
   created_at: string;
   entities: ProfileReviewEntity | ProfileReviewEntity[] | null;
+};
+
+export type ProfileReviewBundle = {
+  pinnedReview: ProfileReview | null;
+  reviews: ProfileReview[];
 };
 
 function reviewSelect(mode: "all" | "likes-only" | "base") {
@@ -43,6 +48,7 @@ function reviewSelect(mode: "all" | "likes-only" | "base") {
     "rating",
     ...(mode !== "base" ? ["likes_count"] : []),
     ...(mode === "all" ? ["comments_count"] : []),
+    "is_pinned",
     "created_at",
     `entities (
       id,
@@ -69,28 +75,29 @@ export const getPublicProfileByUsername = cache(async (username: string) => {
   return data;
 });
 
-export const getPinnedReviewForProfile = cache(async (authorId: string) => {
+export const getReviewsForProfile = cache(
+  async (authorId: string): Promise<ProfileReviewBundle> => {
   const supabase = await supabaseServer();
 
-  return runReviewMaybeQuery<ProfileReview>(async (mode) =>
-    supabase
-      .from("reviews")
-      .select(reviewSelect(mode))
-      .eq("author_id", authorId)
-      .eq("is_pinned", true)
-      .maybeSingle<ProfileReview>(),
-  );
-});
+    const rawReviews = await runReviewListQuery<ProfileReview>(async (mode) =>
+      supabase
+        .from("reviews")
+        .select(reviewSelect(mode))
+        .eq("author_id", authorId)
+        .order("is_pinned", { ascending: false })
+        .order("created_at", { ascending: false }),
+    );
 
-export const getRecentReviewsForProfile = cache(async (authorId: string) => {
-  const supabase = await supabaseServer();
+    const reviews = rawReviews.map((review) => ({
+      ...review,
+      is_pinned: Boolean(review.is_pinned),
+    }));
 
-  return runReviewListQuery<ProfileReview>(async (mode) =>
-    supabase
-      .from("reviews")
-      .select(reviewSelect(mode))
-      .eq("author_id", authorId)
-      .eq("is_pinned", false)
-      .order("created_at", { ascending: false }),
-  );
-});
+    const pinnedReview = reviews.find((review) => review.is_pinned) ?? null;
+
+    return {
+      pinnedReview,
+      reviews: reviews.filter((review) => review.id !== pinnedReview?.id),
+    };
+  },
+);

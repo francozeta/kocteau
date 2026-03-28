@@ -7,12 +7,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDeezerTrack } from "@/lib/deezer";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
-import { supabaseServer } from "@/lib/supabase/server";
+import { findEntityByProvider } from "@/lib/queries/entities";
 import { cn } from "@/lib/utils";
-
-type ExistingEntity = {
-  id: string;
-};
 
 export async function generateMetadata({
   params,
@@ -46,15 +42,7 @@ export default async function DeezerTrackResolverPage({
   params: Promise<{ providerId: string }>;
 }) {
   const { providerId } = await params;
-  const supabase = await supabaseServer();
-
-  const { data: existingEntity } = await supabase
-    .from("entities")
-    .select("id")
-    .eq("provider", "deezer")
-    .eq("type", "track")
-    .eq("provider_id", providerId)
-    .maybeSingle<ExistingEntity>();
+  const existingEntity = await findEntityByProvider("deezer", "track", providerId);
 
   if (existingEntity) {
     redirect(`/track/${existingEntity.id}`);

@@ -5,35 +5,17 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import ReviewCard, { type ReviewCardAuthor, type ReviewCardData } from "@/components/review-card";
+import ReviewCard from "@/components/review-card";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
+import {
+  getEntityPageById,
+  getReviewsForEntity,
+  type EntityReview,
+} from "@/lib/queries/entities";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
-import { getViewerLikedReviewIds, runReviewListQuery } from "@/lib/queries/review-likes";
+import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
 import { cn } from "@/lib/utils";
 import { supabaseServer } from "@/lib/supabase/server";
-
-type EntityPage = {
-  id: string;
-  provider: string;
-  provider_id: string;
-  title: string;
-  artist_name: string | null;
-  cover_url: string | null;
-  deezer_url: string | null;
-  type: "track" | "album";
-};
-
-type EntityReview = {
-  id: ReviewCardData["id"];
-  title: ReviewCardData["title"];
-  body: ReviewCardData["body"];
-  rating: ReviewCardData["rating"];
-  likes_count: ReviewCardData["likes_count"];
-  comments_count: ReviewCardData["comments_count"];
-  created_at: ReviewCardData["created_at"];
-  is_pinned: boolean;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
-};
 
 function getAuthor(review: EntityReview) {
   if (Array.isArray(review.author)) {
@@ -49,13 +31,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const supabase = await supabaseServer();
-
-  const { data: entity } = await supabase
-    .from("entities")
-    .select("title, artist_name, cover_url")
-    .eq("id", id)
-    .maybeSingle();
+  const entity = await getEntityPageById(id);
 
   if (!entity) {
     return createPageMetadata({
@@ -82,39 +58,17 @@ export default async function TrackPage({
 }) {
   const { id } = await params;
   const supabase = await supabaseServer();
+  const [auth, entity, trackReviews] = await Promise.all([
+    supabase.auth.getUser(),
+    getEntityPageById(id),
+    getReviewsForEntity(id),
+  ]);
+
+  if (!entity) notFound();
+
   const {
     data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: entity, error: entityError } = await supabase
-    .from("entities")
-    .select("id, provider, provider_id, title, artist_name, cover_url, deezer_url, type")
-    .eq("id", id)
-    .single<EntityPage>();
-
-  if (entityError || !entity) notFound();
-
-  const trackReviews = await runReviewListQuery<EntityReview>(async (mode) =>
-    supabase
-      .from("reviews")
-      .select([
-        "id",
-        "title",
-        "body",
-        "rating",
-        ...(mode !== "base" ? ["likes_count"] : []),
-        ...(mode === "all" ? ["comments_count"] : []),
-        "created_at",
-        "is_pinned",
-        `author:profiles!reviews_author_id_fkey (
-          username,
-          display_name,
-          avatar_url
-        )`,
-      ].join(","))
-      .eq("entity_id", entity.id)
-      .order("created_at", { ascending: false }),
-  );
+  } = auth;
   const likedReviewIds = await getViewerLikedReviewIds(
     supabase,
     user?.id,

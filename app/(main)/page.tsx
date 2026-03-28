@@ -2,25 +2,15 @@ import Link from "next/link";
 import { ArrowRight, Dot, Music2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import ReviewCard, { type ReviewCardAuthor, type ReviewCardData, type ReviewCardEntity } from "@/components/review-card";
+import ReviewCard from "@/components/review-card";
 import { createPageMetadata } from "@/lib/metadata";
-import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
-import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
-import { getViewerLikedReviewIds, runReviewListQuery } from "@/lib/queries/review-likes";
+import {
+  getFeedPublicBundle,
+  getFeedViewerState,
+  type FeedReview,
+} from "@/lib/queries/feed";
 import { supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
-
-type FeedReview = {
-  id: ReviewCardData["id"];
-  title: ReviewCardData["title"];
-  body: ReviewCardData["body"];
-  rating: ReviewCardData["rating"];
-  likes_count: ReviewCardData["likes_count"];
-  comments_count: ReviewCardData["comments_count"];
-  created_at: ReviewCardData["created_at"];
-  entities: ReviewCardEntity | ReviewCardEntity[] | null;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
-};
 
 function getEntity(review: FeedReview) {
   if (Array.isArray(review.entities)) {
@@ -46,47 +36,17 @@ export const metadata = createPageMetadata({
 
 export default async function HomePage() {
   const supabase = await supabaseServer();
+  const [auth, { feed, recentTracks }] = await Promise.all([
+    supabase.auth.getUser(),
+    getFeedPublicBundle(),
+  ]);
   const {
     data: { user },
-  } = await supabase.auth.getUser();
-
-  const feed = await runReviewListQuery<FeedReview>(async (mode) =>
-    supabase
-      .from("reviews")
-      .select([
-        "id",
-        "title",
-        "body",
-        "rating",
-        ...(mode !== "base" ? ["likes_count"] : []),
-        ...(mode === "all" ? ["comments_count"] : []),
-        "created_at",
-        `entities (
-          id,
-          title,
-          artist_name,
-          cover_url
-        )`,
-        `author:profiles!reviews_author_id_fkey (
-          username,
-          display_name,
-          avatar_url
-        )`,
-      ].join(","))
-      .order("created_at", { ascending: false })
-      .limit(24),
-  );
-  const likedReviewIds = await getViewerLikedReviewIds(
-    supabase,
+  } = auth;
+  const { likedReviewIds, bookmarkedReviewIds } = await getFeedViewerState(
     user?.id,
     feed.map((review) => review.id),
   );
-  const bookmarkedReviewIds = await getViewerBookmarkedReviewIds(
-    supabase,
-    user?.id,
-    feed.map((review) => review.id),
-  );
-  const recentTracks = await getRecentlyDiscussedTracks(4);
 
   return (
     <section className="mx-auto max-w-3xl space-y-6 sm:space-y-7">

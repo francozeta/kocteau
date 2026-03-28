@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Bookmark, ChevronRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -28,14 +29,7 @@ export default async function SavedReviewsPage() {
     redirect("/login");
   }
 
-  const [{ data: profile }, savedReviews] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("username, display_name")
-      .eq("id", user.id)
-      .maybeSingle(),
-    getSavedReviewsForUser(supabase, user.id),
-  ]);
+  const savedReviews = await getSavedReviewsForUser(supabase, user.id);
 
   const savedReviewIds = savedReviews
     .map((savedReview) => savedReview.review?.id)
@@ -59,14 +53,9 @@ export default async function SavedReviewsPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            {profile?.username ? (
-              <Link
-                href={`/u/${profile.username}`}
-                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
-              >
-                Profile
-              </Link>
-            ) : null}
+            <Suspense fallback={null}>
+              <SavedProfileAction userId={user.id} />
+            </Suspense>
             <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}>
               Search
             </Link>
@@ -127,5 +116,27 @@ export default async function SavedReviewsPage() {
         </Empty>
       )}
     </section>
+  );
+}
+
+async function SavedProfileAction({ userId }: { userId: string }) {
+  const supabase = await supabaseServer();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userId)
+    .maybeSingle<{ username: string }>();
+
+  if (!profile?.username) {
+    return null;
+  }
+
+  return (
+    <Link
+      href={`/u/${profile.username}`}
+      className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
+    >
+      Profile
+    </Link>
   );
 }

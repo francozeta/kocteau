@@ -9,9 +9,8 @@ import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import ReviewCard from "@/components/review-card";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
-  getPinnedReviewForProfile,
   getPublicProfileByUsername,
-  getRecentReviewsForProfile,
+  getReviewsForProfile,
   type ProfileReview,
 } from "@/lib/queries/profiles";
 import {
@@ -84,10 +83,7 @@ export default async function UserProfilePage({
   } = auth;
   const isOwnProfile = user?.id === profile.id;
 
-  const [pinnedReview, reviews] = await Promise.all([
-    getPinnedReviewForProfile(profile.id),
-    getRecentReviewsForProfile(profile.id),
-  ]);
+  const { pinnedReview, reviews } = await getReviewsForProfile(profile.id);
 
   const reviewIds = [
     ...(pinnedReview ? [pinnedReview.id] : []),
