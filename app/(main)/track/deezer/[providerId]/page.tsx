@@ -1,16 +1,44 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, MessageSquarePlus, Music2 } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDeezerTrack } from "@/lib/deezer";
+import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import { supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 type ExistingEntity = {
   id: string;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ providerId: string }>;
+}): Promise<Metadata> {
+  const { providerId } = await params;
+  const track = await getDeezerTrack(providerId);
+
+  if (!track) {
+    return createPageMetadata({
+      title: "Track",
+      description: "Track reviews and notes on Kocteau.",
+      path: `/track/deezer/${providerId}`,
+    });
+  }
+
+  const title = track.artist_name ? `${track.title} — ${track.artist_name}` : track.title;
+
+  return createPageMetadata({
+    title,
+    description: createTrackDescription(track.title, track.artist_name),
+    path: `/track/deezer/${providerId}`,
+    image: track.cover_url,
+  });
+}
 
 export default async function DeezerTrackResolverPage({
   params,
@@ -59,86 +87,75 @@ export default async function DeezerTrackResolverPage({
   }
 
   return (
-    <section className="space-y-6">
-      <Card className="overflow-hidden py-0">
-        <CardContent className="flex items-start gap-4 p-4 sm:gap-6 sm:p-6">
-          <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-32 sm:w-32">
-            {track.cover_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={track.cover_url}
-                alt={track.title}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <Music2 className="size-10 text-muted-foreground" />
-            )}
+    <section className="mx-auto max-w-4xl space-y-6">
+      <div className="grid gap-5 border-b border-border/30 pb-8 lg:grid-cols-[8.5rem,minmax(0,1fr)] lg:items-start">
+        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[1.75rem] bg-muted sm:h-36 sm:w-36">
+          {track.cover_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={track.cover_url}
+              alt={track.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <Music2 className="size-10 text-muted-foreground" />
+          )}
+        </div>
+
+        <div className="min-w-0 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="text-[11px] uppercase tracking-[0.18em]">Deezer</Badge>
+            <Badge variant="outline" className="border-border/25 text-[11px] uppercase tracking-[0.18em]">Track</Badge>
           </div>
 
-          <div className="min-w-0 space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">Deezer source</Badge>
-              <Badge variant="outline">track</Badge>
-            </div>
-
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight">{track.title}</h1>
-              <p className="mt-2 text-base text-muted-foreground">
-                {track.artist_name ?? "Unknown artist"}
-              </p>
-            </div>
-
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              This track does not exist as a local Kocteau entity yet. The first review
-              will turn it into a canonical page with its own internal URL and feed.
+          <div className="space-y-1.5">
+            <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-[3.15rem]">{track.title}</h1>
+            <p className="text-base text-muted-foreground sm:text-lg">
+              {track.artist_name ?? "Unknown artist"}
             </p>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/track/deezer/${providerId}?${composeParams.toString()}`}
-                className={cn(buttonVariants({ size: "sm" }))}
-              >
-                <MessageSquarePlus className="size-4" />
-                Review this track
-              </Link>
-              <Link
-                href={`/search?q=${encodeURIComponent(track.title)}`}
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-              >
-                Search in Kocteau
-              </Link>
-              {track.deezer_url ? (
-                <a
-                  href={track.deezer_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                >
-                  Open in Deezer
-                  <ExternalLink className="size-4" />
-                </a>
-              ) : null}
-            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>There are no reviews for this track yet</CardTitle>
-          <CardDescription>
-            Use the review button in the header and this song will be created as a local
-            entity automatically.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-            Keep exploring
-          </Link>
-          <Link href="/track" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
-            View existing tracks
+          <div className="flex flex-wrap gap-2.5">
+            <Link
+              href={`/track/deezer/${providerId}?${composeParams.toString()}`}
+              className={cn(buttonVariants({ size: "sm" }), "rounded-full bg-foreground text-background hover:bg-foreground/90")}
+            >
+              <MessageSquarePlus className="size-4" />
+              New review
+            </Link>
+            <Link
+              href={`/search?q=${encodeURIComponent(track.title)}`}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}
+            >
+              Search
+            </Link>
+            {track.deezer_url ? (
+              <a
+                href={track.deezer_url}
+                target="_blank"
+                rel="noreferrer"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}
+              >
+                Deezer
+                <ExternalLink className="size-4" />
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <Card className="rounded-[1.75rem] border-border/25 bg-card/20 shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardTitle>No reviews yet</CardTitle>
+          <Link href="/track" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}>
+            Tracks
             <ArrowRight className="size-4" />
+          </Link>
+        </CardHeader>
+        <CardContent>
+          <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}>
+            Search
           </Link>
         </CardContent>
       </Card>

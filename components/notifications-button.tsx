@@ -8,7 +8,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import {
   Popover,
   PopoverContent,
@@ -114,13 +114,13 @@ export default function NotificationsButton({
 
       <PopoverContent
         align="end"
-        className="w-[23rem] gap-0 rounded-3xl border-border/45 bg-popover/96 p-0 shadow-2xl sm:w-[25rem]"
+        className="w-[23rem] gap-0 rounded-[1.8rem] border-border/35 bg-popover/96 p-0 shadow-2xl sm:w-[25rem]"
         sideOffset={12}
       >
-        <PopoverHeader className="border-b border-border/35 px-4 py-3.5">
+        <PopoverHeader className="border-b border-border/25 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">
-              <PopoverTitle className="text-sm font-medium">Notifications</PopoverTitle>
+              <PopoverTitle className="text-sm font-medium">Activity</PopoverTitle>
               <PopoverDescription className="text-xs">
                 {unreadCount > 0
                   ? `${unreadCount} unread right now`
@@ -159,15 +159,12 @@ export default function NotificationsButton({
                 onMarkAsRead={handleMarkAsRead}
               />
             ) : (
-              <Empty className="rounded-3xl border-border/35 bg-card/35 px-4 py-9">
+              <Empty className="rounded-[1.5rem] border-border/25 bg-card/20 px-4 py-9">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
                     <Bell className="size-4" />
                   </EmptyMedia>
                   <EmptyTitle>No notifications yet</EmptyTitle>
-                  <EmptyDescription>
-                    Likes and comments on your reviews will land here first.
-                  </EmptyDescription>
                 </EmptyHeader>
               </Empty>
             )}

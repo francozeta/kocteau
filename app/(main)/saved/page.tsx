@@ -2,12 +2,20 @@ import Link from "next/link";
 import { Bookmark, ChevronRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReviewCard from "@/components/review-card";
+import { createPageMetadata } from "@/lib/metadata";
 import { getSavedReviewsForUser } from "@/lib/queries/review-bookmarks";
 import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
 import { supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+
+export const metadata = createPageMetadata({
+  title: "Saved",
+  description: "Private library of saved reviews on Kocteau.",
+  path: "/saved",
+  noIndex: true,
+});
 
 export default async function SavedReviewsPage() {
   const supabase = await supabaseServer();
@@ -34,50 +42,35 @@ export default async function SavedReviewsPage() {
   const likedReviewIds = await getViewerLikedReviewIds(supabase, user.id, savedReviewIds);
 
   return (
-    <section className="space-y-8">
-      <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-muted/60 via-background to-background py-0 shadow-sm">
-        <CardContent className="space-y-5 p-6 sm:p-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-            <Bookmark className="size-3.5" />
-            Private library
-          </div>
-
-          <div className="space-y-3">
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+    <section className="mx-auto max-w-3xl space-y-6">
+      <div className="border-b border-border/30 pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <Bookmark className="size-3.5" />
+              Saved
+            </div>
+            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
               Saved reviews
             </h1>
-            <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-              Keep the sharpest reviews close. This space is private to you and built for
-              revisiting ideas, tracks, and perspectives that deserve another listen.
+            <p className="text-sm text-muted-foreground">
+              {savedReviews.length} {savedReviews.length === 1 ? "review" : "reviews"}
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {profile?.username ? (
               <Link
                 href={`/u/${profile.username}`}
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/40")}
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
               >
-                Back to profile
+                Profile
               </Link>
             ) : null}
-            <Link href="/search" className={cn(buttonVariants({ size: "sm" }))}>
-              Find more reviews
+            <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}>
+              Search
             </Link>
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex items-end justify-between border-b border-border/50 pb-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Your saved stack</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Saved reviews are private and only visible to you.
-          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {savedReviews.length} {savedReviews.length === 1 ? "saved review" : "saved reviews"}
-        </p>
       </div>
 
       {savedReviews.length > 0 ? (
@@ -114,12 +107,9 @@ export default async function SavedReviewsPage() {
           })}
         </div>
       ) : (
-        <Card>
+        <Card className="rounded-[1.75rem] border-border/25 bg-card/20">
           <CardHeader>
             <CardTitle>No saved reviews yet</CardTitle>
-            <CardDescription>
-              Save reviews from the feed, track pages, or profiles and they will collect here.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground">

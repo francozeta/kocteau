@@ -2,11 +2,11 @@ import { supabaseServer } from "@/lib/supabase/server";
 import ReactQueryProvider from "../providers/react-query-provider";
 import Header from "@/components/header";
 import AppSidebar from "@/components/app-sidebar";
+import MobileBottomBar from "@/components/mobile-bottom-bar";
 import {
   getNotificationsForUser,
   getUnreadNotificationsCount,
 } from "@/lib/queries/notifications";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await supabaseServer();
@@ -39,19 +39,20 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <ReactQueryProvider>
-      <SidebarProvider defaultOpen>
+      <div className="min-h-svh bg-background">
         <AppSidebar profile={safeProfile} />
-        <SidebarInset className="min-h-svh bg-background">
+        <div className="md:pl-20 xl:pl-56">
           <Header
             profile={safeProfile}
             initialUnreadCount={initialUnreadCount}
             initialNotifications={initialNotifications}
           />
-          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+          <main className="mx-auto w-full max-w-5xl px-4 py-5 pb-24 sm:px-6 sm:py-7 sm:pb-28 lg:px-10 lg:py-9">
             {children}
           </main>
-        </SidebarInset>
-      </SidebarProvider>
+        </div>
+        <MobileBottomBar profile={safeProfile} />
+      </div>
     </ReactQueryProvider>
   );
 }

@@ -73,7 +73,12 @@ export default function NotificationList({
   const entries = groupNotifications(notifications);
 
   return (
-    <div className="divide-y divide-border/35 overflow-hidden rounded-[1.35rem] border border-border/35 bg-card/30">
+    <div
+      className={cn(
+        "divide-y divide-border/25",
+        compact ? "" : "overflow-hidden rounded-[1.55rem] border border-border/30 bg-card/18",
+      )}
+    >
       {entries.map((entry) => {
         const notification = entry.kind === "single" ? entry.notification : entry.primary;
         const actorLabel = getActorLabel(notification);
@@ -87,8 +92,8 @@ export default function NotificationList({
           <div
             key={entry.kind === "single" ? notification.id : entry.id}
             className={cn(
-              "group relative flex gap-3 px-4 py-3.5 transition-colors hover:bg-muted/20",
-              compact ? "px-3.5 py-3" : "px-4 py-4",
+              "group relative flex gap-3 transition-colors hover:bg-muted/14",
+              compact ? "rounded-[1.15rem] px-3 py-3" : "px-4 py-4",
             )}
           >
             <div className="pt-0.5">
@@ -103,7 +108,7 @@ export default function NotificationList({
                 <div className="min-w-0 space-y-1.5">
                   <div className="flex items-center gap-2 text-sm">
                     {unread ? (
-                      <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-foreground" />
+                      <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
                     ) : null}
                     <span className="truncate font-medium text-foreground">
                       {actorLabel}
@@ -114,7 +119,7 @@ export default function NotificationList({
                       <MessageCircle className="size-3.5 shrink-0 text-muted-foreground" />
                     )}
                   </div>
-                  <p className="line-clamp-2 text-sm leading-6 text-foreground/72">
+                  <p className="line-clamp-2 text-sm leading-6 text-foreground/78">
                     {getGroupedBody(entry)}
                   </p>
                 </div>
@@ -123,7 +128,7 @@ export default function NotificationList({
                 </span>
               </div>
 
-              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <div className="mt-2 flex flex-wrap items-center gap-1">
                 <Button asChild variant="ghost" size="sm" className="h-7 rounded-full px-2.5 text-xs text-muted-foreground hover:text-foreground">
                   <Link href={href}>
                     Open

@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import ReviewCard from "@/components/review-card";
+import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
   getSavedReviewsForUser,
   getViewerBookmarkedReviewIds,
@@ -40,6 +42,44 @@ function getEntity(review: ReviewWithEntity) {
   }
 
   return review.entities;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const supabase = await supabaseServer();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, display_name, bio, avatar_url")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (!profile) {
+    return createPageMetadata({
+      title: `@${username}`,
+      description: `Profile for @${username} on Kocteau.`,
+      path: `/u/${username}`,
+    });
+  }
+
+  const title = profile.display_name
+    ? `${profile.display_name} (@${profile.username})`
+    : `@${profile.username}`;
+
+  return createPageMetadata({
+    title,
+    description: createProfileDescription(
+      profile.username,
+      profile.display_name,
+      profile.bio,
+    ),
+    path: `/u/${profile.username}`,
+    image: profile.avatar_url,
+  });
 }
 
 export default async function UserProfilePage({
@@ -148,10 +188,10 @@ export default async function UserProfilePage({
   );
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-6 border-b border-border/30 pb-10">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-          <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-full bg-muted border border-border/30">
+    <div className="mx-auto max-w-4xl space-y-8">
+      <section className="border-b border-border/30 pb-8">
+        <div className="grid gap-6 lg:grid-cols-[8.5rem,minmax(0,1fr),14rem] lg:items-end">
+          <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border border-border/20 bg-muted sm:h-32 sm:w-32">
             {profile.avatar_url ? (
               <Image
                 src={profile.avatar_url}
@@ -164,9 +204,9 @@ export default async function UserProfilePage({
             ) : null}
           </div>
 
-          <div className="min-w-0 flex-1 space-y-4">
-            <div className="space-y-2">
-              <h1 className="font-serif text-4xl sm:text-5xl font-bold leading-tight text-balance">
+          <div className="min-w-0 space-y-4">
+            <div className="space-y-1.5">
+              <h1 className="font-serif text-4xl font-bold leading-tight text-balance sm:text-[3.35rem]">
                 {name}
               </h1>
               <p className="text-base text-muted-foreground">@{profile.username}</p>
@@ -183,7 +223,7 @@ export default async function UserProfilePage({
                     href={profile.spotify_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}
                   >
                     Spotify
                     <ExternalLink className="size-3" />
@@ -194,7 +234,7 @@ export default async function UserProfilePage({
                     href={profile.apple_music_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}
                   >
                     Apple Music
                     <ExternalLink className="size-3" />
@@ -205,7 +245,7 @@ export default async function UserProfilePage({
                     href={profile.deezer_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}
                   >
                     Deezer
                     <ExternalLink className="size-3" />
@@ -213,16 +253,25 @@ export default async function UserProfilePage({
                 ) : null}
               </div>
             ) : null}
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground pt-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-foreground">{totalReviews}</span>
-                {totalReviews === 1 ? "review" : "reviews"}
-              </div>
-              <span className="text-muted-foreground/50">•</span>
-              <span>Joined {memberSince}</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 rounded-[1.65rem] border border-border/20 bg-card/18 p-4 text-sm lg:grid-cols-1">
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                Reviews
+              </p>
+              <p className="text-2xl font-semibold text-foreground">{totalReviews}</p>
             </div>
+
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                Joined
+              </p>
+              <p className="text-sm text-muted-foreground">{memberSince}</p>
+            </div>
+
             {isOwnProfile ? (
-              <div className="pt-2">
+              <div className="col-span-2 pt-1 lg:col-span-1">
                 <ProfileSettingsDialog
                   profile={{
                     username: profile.username,
@@ -234,7 +283,7 @@ export default async function UserProfilePage({
                     deezer_url: profile.deezer_url,
                   }}
                   trigger={
-                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-border/30")}>
+                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full rounded-full border-border/25")}>
                       Edit profile
                     </button>
                   }
@@ -248,7 +297,11 @@ export default async function UserProfilePage({
       <div className="space-y-8">
         {pinnedReview && (
           <div className="space-y-3">
-            <h2 className="font-serif text-2xl font-bold">Pinned review</h2>
+            <div className="flex items-end justify-between border-b border-border/25 pb-4">
+              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                Pinned
+              </h2>
+            </div>
             <ReviewCard
               review={{
                 ...pinnedReview,
@@ -266,7 +319,14 @@ export default async function UserProfilePage({
 
         {reviews && reviews.length > 0 ? (
           <section className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold">{pinnedReview ? "More reviews" : "Reviews"}</h2>
+            <div className="flex items-end justify-between border-b border-border/25 pb-4">
+              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                {pinnedReview ? "Recent" : "Reviews"}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {reviews.length} {reviews.length === 1 ? "entry" : "entries"}
+              </p>
+            </div>
             <div className="space-y-4">
               {reviews.map((review) => (
                 <ReviewCard
@@ -292,10 +352,12 @@ export default async function UserProfilePage({
 
         {isOwnProfile ? (
           <section className="space-y-4 border-t border-border/30 pt-8">
-            <div className="space-y-1">
-              <h2 className="font-serif text-2xl font-bold">Saved reviews</h2>
+            <div className="flex items-end justify-between border-b border-border/25 pb-4">
+              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                Saved
+              </h2>
               <p className="text-sm text-muted-foreground">
-                Private to you. Keep strong reviews close and come back later.
+                {savedReviews.length} {savedReviews.length === 1 ? "review" : "reviews"}
               </p>
             </div>
 
@@ -333,8 +395,8 @@ export default async function UserProfilePage({
                 })}
               </div>
             ) : (
-              <div className="rounded-xl border border-border/30 bg-card/40 p-6 text-sm text-muted-foreground">
-                Save reviews from the feed, track pages, or profiles and they will show up here.
+              <div className="rounded-[1.65rem] border border-border/20 bg-card/18 p-6 text-sm text-muted-foreground">
+                No saved reviews
               </div>
             )}
           </section>

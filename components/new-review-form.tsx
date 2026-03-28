@@ -196,10 +196,10 @@ export default function NewReviewForm({
             placeholder="Track name or artist..."
             disabled={saving}
             autoFocus
-            className="mb-3 shrink-0"
+            className="mb-3 h-11 shrink-0 rounded-2xl border-border/25 bg-background/60"
           />
 
-          <ScrollArea className="min-h-0 flex-1">
+          <ScrollArea className="min-h-0 flex-1 rounded-[1.35rem] border border-border/20 bg-card/12">
             <div className="space-y-0">
               {isFetching ? (
                 <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
@@ -221,7 +221,7 @@ export default function NewReviewForm({
                         key={suggestion}
                         type="button"
                         onClick={() => setQuery(suggestion)}
-                        className="w-full px-4 py-3 text-left text-sm transition hover:bg-muted/50"
+                        className="w-full px-4 py-3 text-left text-sm transition hover:bg-muted/35"
                       >
                         {suggestion}
                       </button>
@@ -255,9 +255,9 @@ export default function NewReviewForm({
                         setStep("compose");
                         setErrorMsg(null);
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/50"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/35"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-muted">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
                         {result.cover_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -286,15 +286,20 @@ export default function NewReviewForm({
         </>
       ) : (
         <>
-          {/* Header: Selected Track */}
           <div className="mb-5 flex items-center gap-3 shrink-0">
-            <Button type="button" variant="ghost" size="icon" onClick={goBackToSearch} className="shrink-0">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={goBackToSearch}
+              className="shrink-0 rounded-full"
+            >
               <ArrowLeft className="size-4" />
               <span className="sr-only">Back to search</span>
             </Button>
 
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[1.35rem] border border-border/20 bg-card/12 px-3 py-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
                 {selected?.cover_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -316,7 +321,7 @@ export default function NewReviewForm({
               </div>
 
               {selected?.deezer_url ? (
-                <Button asChild type="button" variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                <Button asChild type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full">
                   <a href={selected.deezer_url} target="_blank" rel="noreferrer" title="Open on Deezer">
                     <FaDeezer className="size-4" />
                     <span className="sr-only">Open on Deezer</span>
@@ -326,7 +331,6 @@ export default function NewReviewForm({
             </div>
           </div>
 
-          {/* Error Alert */}
           {errorMsg ? (
             <Alert variant="destructive" className="mb-5 shrink-0">
               <AlertTitle>Error</AlertTitle>
@@ -334,17 +338,14 @@ export default function NewReviewForm({
             </Alert>
           ) : null}
 
-          {/* Form Content */}
-          <ScrollArea className="min-h-0 flex-1 rounded-lg border mb-5">
+          <ScrollArea className="mb-5 min-h-0 flex-1 rounded-[1.35rem] border border-border/20 bg-card/12">
             <div className="p-5">
               <div className="space-y-6">
-                {/* Rating Section */}
                 <section>
                   <p className="text-sm font-medium mb-3">Rating</p>
                   <RatingStars value={rating} onChange={setRating} disabled={saving} />
                 </section>
 
-                {/* Title Section */}
                 <section className="space-y-2">
                   <label className="text-xs font-medium  tracking-wide text-muted-foreground" htmlFor="review-title">
                     Title
@@ -355,11 +356,10 @@ export default function NewReviewForm({
                     onChange={(event) => setTitle(event.target.value)}
                     placeholder="Give it a headline"
                     disabled={saving}
-                    className="text-sm"
+                    className="h-11 rounded-2xl border-border/25 bg-background/60 text-sm"
                   />
                 </section>
 
-                {/* Note Section */}
                 <section className="space-y-2">
                   <label className="text-xs font-medium  tracking-wide text-muted-foreground" htmlFor="review-body">
                     Note
@@ -369,7 +369,7 @@ export default function NewReviewForm({
                     value={body}
                     onChange={(event) => setBody(event.target.value)}
                     placeholder="What did this track make you feel?"
-                    className="min-h-20 resize-none text-sm"
+                    className="min-h-24 resize-none rounded-2xl border-border/25 bg-background/60 text-sm"
                     disabled={saving}
                   />
                 </section>
@@ -377,9 +377,8 @@ export default function NewReviewForm({
             </div>
           </ScrollArea>
 
-          {/* Action Footer */}
           <div className="flex shrink-0 gap-3">
-            <Button type="button" variant="ghost" onClick={goBackToSearch} disabled={saving} className="flex-1">
+            <Button type="button" variant="ghost" onClick={goBackToSearch} disabled={saving} className="flex-1 rounded-2xl">
               Back
             </Button>
 
@@ -387,7 +386,7 @@ export default function NewReviewForm({
               type="button"
               onClick={onSubmit}
               disabled={saving || !selected || rating === null}
-              className="flex-1"
+              className="flex-1 rounded-2xl"
             >
               {saving ? "Publishing..." : "Publish"}
             </Button>

@@ -73,10 +73,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/30 bg-background/95 backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/25 bg-background/88 backdrop-blur-xl md:hidden">
       <div
         className={cn(
-          "mx-auto grid max-w-7xl px-1 py-1",
+          "mx-auto grid max-w-7xl px-2 py-2",
           profile ? "grid-cols-6" : "grid-cols-5",
         )}
       >
@@ -89,7 +89,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium transition-colors",
+                "flex flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-medium transition-colors",
                 active
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -107,7 +107,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
             trigger={
               <button
                 type="button"
-                className="flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="flex flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Cog className="size-4" />
                 <span className="truncate">Settings</span>
@@ -118,7 +118,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           <Link
             href="/signup"
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-2 text-[10px] font-medium transition-colors",
+              "flex flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-medium transition-colors",
               pathname.startsWith("/signup")
                 ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:text-foreground"

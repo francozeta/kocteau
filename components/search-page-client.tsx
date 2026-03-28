@@ -4,11 +4,8 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
 import type { SearchEntityType } from "@/lib/search-types";
@@ -49,7 +46,7 @@ export default function SearchPageClient({
   const searchParams = useSearchParams();
 
   const [query, setQuery] = useState(initialQuery);
-  const [searchType, setSearchType] = useState<SearchEntityType>(initialType);
+  const searchType = initialType;
   const normalizedQuery = query.trim();
   const { data = [], isFetching, error } = useDeezerSearch({
     query,
@@ -57,11 +54,6 @@ export default function SearchPageClient({
     enabled: searchType === "track",
   });
   const results = data as DeezerSearchResult[];
-
-  useEffect(() => {
-    setQuery(initialQuery);
-    setSearchType(initialType);
-  }, [initialQuery, initialType]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -100,22 +92,28 @@ export default function SearchPageClient({
   }, [hasQuery, isFetching, results.length]);
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <h1 className="font-serif text-4xl font-bold tracking-tight">Discover music</h1>
-          <p className="text-muted-foreground">
-            Search through thousands of tracks and discover what the community thinks.
-          </p>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="border-b border-border/30 pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
+              Search
+            </h1>
+            {resultCountLabel ? (
+              <p className="text-sm text-muted-foreground">{resultCountLabel}</p>
+            ) : null}
+          </div>
         </div>
+      </div>
 
-        <div className="relative max-w-2xl">
+      <div className="space-y-4">
+        <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by track, artist..."
-            className="pl-12 py-3 bg-card/50 border-border/30 text-base"
+            className="h-12 rounded-[1.35rem] border-border/25 bg-card/20 pl-12 text-base"
             autoFocus
           />
         </div>
@@ -129,16 +127,12 @@ export default function SearchPageClient({
                 variant="outline"
                 size="sm"
                 onClick={() => setQuery(suggestion)}
-                className="border-border/30 hover:border-border/60"
+                className="rounded-full border-border/25 bg-card/18 hover:border-border/50"
               >
                 {suggestion}
               </Button>
             ))}
           </div>
-        )}
-
-        {resultCountLabel && (
-          <p className="text-sm text-muted-foreground pt-2">{resultCountLabel}</p>
         )}
 
         {error && <p className="text-sm text-destructive">{error.message}</p>}
@@ -161,7 +155,7 @@ export default function SearchPageClient({
 
           {!isFetching && normalizedQuery.length >= 2 && results.length === 0 ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              No tracks found. Try a different search.
+              No results
             </div>
           ) : null}
 
@@ -169,16 +163,16 @@ export default function SearchPageClient({
             <Link
               key={`${result.provider}-${result.provider_id}`}
               href={getResultHref(result)}
-              className="block group"
+              className="group block"
             >
-              <div className="border border-border/30 rounded-lg overflow-hidden bg-card/50 hover:bg-card hover:border-border/60 transition-all flex flex-col sm:flex-row sm:items-center gap-4 p-4">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center bg-muted rounded-md overflow-hidden">
+              <div className="flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-muted">
                   {result.cover_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={result.cover_url}
                       alt={result.title}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
                       loading="lazy"
                     />
                   ) : (
@@ -186,13 +180,11 @@ export default function SearchPageClient({
                   )}
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <Badge variant={result.entity_id ? "secondary" : "outline"} className="text-xs">
-                      {result.entity_id ? "In Kocteau" : "From Deezer"}
-                    </Badge>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    <span>{result.entity_id ? "In library" : "Deezer"}</span>
                   </div>
-                  <h3 className="font-medium group-hover:underline line-clamp-1">{result.title}</h3>
+                  <h3 className="line-clamp-1 font-medium group-hover:underline">{result.title}</h3>
                   <p className="text-sm text-muted-foreground line-clamp-1">
                     {result.artist_name ?? "Unknown artist"}
                   </p>
@@ -207,50 +199,52 @@ export default function SearchPageClient({
         </div>
       ) : (
         <section className="space-y-6">
-          <div className="space-y-2 border-t border-border/30 pt-6">
-            <h2 className="font-serif text-2xl font-bold">Popular tracks</h2>
+          <div className="flex items-end justify-between border-b border-border/25 pb-4">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Active tracks
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Explore what others are discussing right now.
+              {highlights.length} {highlights.length === 1 ? "track" : "tracks"}
             </p>
           </div>
 
           {highlights.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {highlights.map((track) => (
-                <Link key={track.entityId} href={`/track/${track.entityId}`} className="group">
-                  <div className="overflow-hidden rounded-lg border border-border/30 bg-card/50 hover:border-border/60 hover:bg-card transition-all">
-                    <div className="aspect-square bg-muted overflow-hidden">
-                      {track.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={track.coverUrl}
-                          alt={track.title}
-                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <Music2 className="size-8 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
+                <Link
+                  key={track.entityId}
+                  href={`/track/${track.entityId}`}
+                  className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30"
+                >
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
+                    {track.coverUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={track.coverUrl}
+                        alt={track.title}
+                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Music2 className="size-5 text-muted-foreground" />
+                    )}
+                  </div>
 
-                    <div className="p-4 space-y-2">
-                      <h3 className="line-clamp-2 font-medium group-hover:underline">{track.title}</h3>
-                      <p className="line-clamp-1 text-sm text-muted-foreground">
-                        {track.artistName ?? "Unknown artist"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Updated {formatDate(track.latestReviewAt)}
-                      </p>
-                    </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="line-clamp-1 font-medium group-hover:underline">{track.title}</h3>
+                    <p className="line-clamp-1 text-sm text-muted-foreground">
+                      {track.artistName ?? "Unknown artist"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {formatDate(track.latestReviewAt)}
+                    </p>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              No tracks available yet.
+              No tracks yet
             </div>
           )}
         </section>

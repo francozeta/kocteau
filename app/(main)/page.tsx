@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, Dot, Music2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import ReviewCard, { type ReviewCardAuthor, type ReviewCardData, type ReviewCardEntity } from "@/components/review-card";
+import { createPageMetadata } from "@/lib/metadata";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
 import { getViewerLikedReviewIds, runReviewListQuery } from "@/lib/queries/review-likes";
@@ -36,6 +37,12 @@ function getAuthor(review: FeedReview) {
 
   return review.author;
 }
+
+export const metadata = createPageMetadata({
+  title: "Feed",
+  description: "Latest music reviews, ratings, and notes from the Kocteau feed.",
+  path: "/",
+});
 
 export default async function HomePage() {
   const supabase = await supabaseServer();
@@ -82,43 +89,41 @@ export default async function HomePage() {
   const recentTracks = await getRecentlyDiscussedTracks(4);
 
   return (
-    <section className="space-y-8">
-      <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
-        <div className="space-y-5">
-          <div className="space-y-2 border-b border-border/40 pb-5">
-            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-muted-foreground">
-              Latest reviews
-            </p>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-[2.55rem]">
-                  What people are saying track by track.
-                </h1>
-                <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  Short notes, sharp ratings, and a running map of what is landing with people right now.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2.5 text-sm">
-                <Link href="/search" className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full")}>
-                  Search music
-                </Link>
-                <Link href="/track" className={cn(buttonVariants({ size: "sm", variant: "ghost" }), "rounded-full")}>
-                  Browse tracks
-                </Link>
-              </div>
+    <section className="mx-auto max-w-3xl space-y-7">
+      <div className="border-b border-border/30 pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
+              Feed
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{feed.length}</span>
+              <span>{feed.length === 1 ? "review" : "reviews"}</span>
+              <Dot className="size-4" />
+              <span className="font-medium text-foreground">{recentTracks.length}</span>
+              <span>{recentTracks.length === 1 ? "track" : "tracks"}</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{feed.length}</span>
-            <span>{feed.length === 1 ? "review in the feed" : "reviews in the feed"}</span>
-            <Dot className="size-4" />
-            <span className="font-medium text-foreground">{recentTracks.length}</span>
-            <span>{recentTracks.length === 1 ? "active track page" : "active track pages"}</span>
+          <div className="flex flex-wrap gap-2.5 text-sm">
+            <Link
+              href="/search"
+              className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full border-border/30")}
+            >
+              Search
+            </Link>
+            <Link
+              href="/track"
+              className={cn(buttonVariants({ size: "sm", variant: "ghost" }), "rounded-full")}
+            >
+              Tracks
+            </Link>
           </div>
         </div>
+      </div>
 
-        <aside className="space-y-3 xl:pt-4">
+      {recentTracks.length > 0 ? (
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               Active tracks
@@ -130,61 +135,47 @@ export default async function HomePage() {
               View all
             </Link>
           </div>
-          {recentTracks.length > 0 ? (
-            <div className="space-y-2.5">
-              {recentTracks.map((track) => (
-                <Link
-                  key={track.entityId}
-                  href={`/track/${track.entityId}`}
-                  className="group flex items-center gap-3 rounded-2xl border border-border/40 bg-card/45 px-3 py-3 transition-colors hover:bg-card/80"
-                >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
-                    {track.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={track.coverUrl}
-                        alt={track.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Music2 className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-sm font-medium text-foreground">
-                      {track.title}
-                    </p>
-                    <p className="line-clamp-1 text-xs text-muted-foreground">
-                      {track.artistName ?? "Unknown artist"}
-                    </p>
-                  </div>
-                  <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <Card className="border-border/40 bg-card/45 py-0">
-              <CardHeader className="py-5">
-                <CardTitle className="text-base">No active tracks yet</CardTitle>
-                <CardDescription>
-                  Published reviews will start building the track pages automatically.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-        </aside>
-      </div>
-
-      <div className="flex items-end justify-between border-b border-border/40 pb-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Feed</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track first, then the angle, then the note.
-          </p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {recentTracks.map((track) => (
+              <Link
+                key={track.entityId}
+                href={`/track/${track.entityId}`}
+                className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/20 px-3 py-3 transition-colors hover:bg-card/35"
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted">
+                  {track.coverUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={track.coverUrl}
+                      alt={track.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Music2 className="size-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-1 text-sm font-medium text-foreground">
+                    {track.title}
+                  </p>
+                  <p className="line-clamp-1 text-xs text-muted-foreground">
+                    {track.artistName ?? "Unknown artist"}
+                  </p>
+                </div>
+                <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
         </div>
+      ) : null}
+
+      <div className="flex items-end justify-between border-b border-border/30 pb-4">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+          Latest
+        </h2>
         <p className="text-sm text-muted-foreground">
-          {feed.length} {feed.length === 1 ? "recent review" : "recent reviews"}
+          {feed.length} {feed.length === 1 ? "entry" : "entries"}
         </p>
       </div>
 
@@ -212,12 +203,9 @@ export default async function HomePage() {
           })}
         </div>
       ) : (
-        <Card>
+        <Card className="rounded-[1.75rem] border-border/25 bg-card/20">
           <CardHeader>
             <CardTitle>There are no reviews yet</CardTitle>
-            <CardDescription>
-              Publish the first one from the button above and it will appear here automatically.
-            </CardDescription>
           </CardHeader>
         </Card>
       )}

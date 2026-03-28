@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Drawer,
@@ -65,12 +65,6 @@ export default function NewReviewDialog({
     } satisfies InitialSelection;
   }, [searchParams]);
 
-  useEffect(() => {
-    if (shouldOpenFromUrl) {
-      setOpen(true);
-    }
-  }, [shouldOpenFromUrl]);
-
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
 
@@ -93,6 +87,8 @@ export default function NewReviewDialog({
     }
   }
 
+  const resolvedOpen = shouldOpenFromUrl || open;
+
   const trigger = (
     <Button
       size="sm"
@@ -110,10 +106,6 @@ export default function NewReviewDialog({
     <div className="flex h-full flex-col justify-between gap-6 px-6 py-6">
       <div className="space-y-3">
         <h3 className="text-2xl font-semibold tracking-tight">Sign in to interact</h3>
-        <p className="text-sm leading-6 text-muted-foreground">
-          You can browse the feed, track pages, and profiles without an account. To publish
-          a review, we need you signed in first.
-        </p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -129,7 +121,7 @@ export default function NewReviewDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={handleOpenChange}>
+      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
 
         <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/30">
@@ -137,10 +129,8 @@ export default function NewReviewDialog({
             <DrawerTitle className="font-serif text-2xl">
               {isAuthenticated ? "New review" : "Authentication required"}
             </DrawerTitle>
-            <DrawerDescription>
-              {isAuthenticated
-                ? "Share your thoughts on your favorite music."
-                : "Create an account or log in to publish a review."}
+            <DrawerDescription className="sr-only">
+              Create or publish a review.
             </DrawerDescription>
           </DrawerHeader>
 
@@ -161,7 +151,7 @@ export default function NewReviewDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/30 p-0">
@@ -169,10 +159,8 @@ export default function NewReviewDialog({
           <DialogTitle className="font-serif text-2xl">
             {isAuthenticated ? "New review" : "Authentication required"}
           </DialogTitle>
-          <DialogDescription>
-            {isAuthenticated
-              ? "Search for a track, rate it, and share your thoughts."
-              : "Create an account or log in to publish a review."}
+          <DialogDescription className="sr-only">
+            Create or publish a review.
           </DialogDescription>
         </DialogHeader>
 

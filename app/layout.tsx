@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Inter, Merriweather } from "next/font/google";
+import { Geist, Merriweather } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { getMetadataBase } from "@/lib/metadata";
 
 const merriweatherHeading = Merriweather({subsets:['latin'],variable:'--font-heading'});
 
@@ -20,7 +21,12 @@ const geistSans = Geist({
 
 
 export const metadata: Metadata = {
-  title: "Kocteau",
+  metadataBase: getMetadataBase(),
+  applicationName: "Kocteau",
+  title: {
+    default: "Kocteau",
+    template: "%s | Kocteau",
+  },
   description: "Social platform for music review and curation",
   icons: {
     icon: "/logo.svg",

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Music2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createPageMetadata } from "@/lib/metadata";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
 import { cn } from "@/lib/utils";
 
@@ -13,91 +13,96 @@ function formatDate(value: string) {
   });
 }
 
+export const metadata = createPageMetadata({
+  title: "Tracks",
+  description: "Browse the tracks that already have reviews and history inside Kocteau.",
+  path: "/track",
+});
+
 export default async function TrackIndexPage() {
   const tracks = await getRecentlyDiscussedTracks(12);
 
   return (
-    <section className="space-y-6">
-      <Card className="overflow-hidden py-0">
-        <CardHeader className="border-b">
-          <div className="space-y-3">
-            <Badge variant="secondary">Tracks</Badge>
-            <div className="space-y-2">
-              <CardTitle className="text-3xl">Track pages</CardTitle>
-              <CardDescription className="max-w-2xl">
-                This is the living catalog of the demo: each track exists because someone
-                found it, rated it, and left a review.
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/search" className={cn(buttonVariants({ size: "sm" }))}>
-                Search music
-              </Link>
-              <Link href="/" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-                Back to feed
-              </Link>
-            </div>
+    <section className="mx-auto max-w-4xl space-y-6">
+      <div className="border-b border-border/30 pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
+              Tracks
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {tracks.length} {tracks.length === 1 ? "track" : "tracks"}
+            </p>
           </div>
-        </CardHeader>
-      </Card>
 
-      <div className="flex items-end justify-between border-b pb-4">
-        <div>
-          <h2 className="text-xl font-semibold">Recently reviewed</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Tracks that already have history inside Kocteau.
-          </p>
+          <div className="flex flex-wrap gap-2.5">
+            <Link
+              href="/search"
+              className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full border-border/30")}
+            >
+              Search
+            </Link>
+            <Link
+              href="/"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
+            >
+              Feed
+            </Link>
+          </div>
         </div>
       </div>
 
       {tracks.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 xl:grid-cols-2">
           {tracks.map((track) => (
-            <Link key={track.entityId} href={`/track/${track.entityId}`} className="block">
-              <Card className="overflow-hidden py-0 transition-transform hover:-translate-y-0.5">
-                <CardContent className="space-y-4 p-0">
-                  <div className="aspect-square bg-muted">
-                    {track.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={track.coverUrl}
-                        alt={track.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <Music2 className="size-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
+            <Link
+              key={track.entityId}
+              href={`/track/${track.entityId}`}
+              className="group flex items-center gap-4 rounded-[1.65rem] border border-border/20 bg-card/20 px-3.5 py-3.5 transition-colors hover:bg-card/35"
+            >
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.2rem] bg-muted">
+                {track.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={track.coverUrl}
+                    alt={track.title}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <Music2 className="size-5 text-muted-foreground" />
+                )}
+              </div>
 
-                  <div className="space-y-3 px-5 pb-5">
-                    <div className="space-y-1">
-                      <h3 className="line-clamp-1 font-semibold">{track.title}</h3>
-                      <p className="line-clamp-1 text-sm text-muted-foreground">
-                        {track.artistName ?? "Unknown artist"}
-                      </p>
-                    </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <h2 className="line-clamp-1 text-base font-medium text-foreground">
+                  {track.title}
+                </h2>
+                <p className="line-clamp-1 text-sm text-muted-foreground">
+                  {track.artistName ?? "Unknown artist"}
+                </p>
+              </div>
 
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>Latest review: {formatDate(track.latestReviewAt)}</span>
-                      <ArrowRight className="size-4" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                <span>{formatDate(track.latestReviewAt)}</span>
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </div>
             </Link>
           ))}
         </div>
       ) : (
-        <Card>
+        <Card className="rounded-[1.75rem] border-border/25 bg-card/20">
           <CardHeader>
-            <CardTitle>There are no published tracks yet</CardTitle>
-            <CardDescription>
-              Start from search and leave the first review to create the first local track.
-            </CardDescription>
+            <CardTitle>No tracks yet</CardTitle>
           </CardHeader>
+          <CardContent>
+            <Link
+              href="/search"
+              className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full border-border/30")}
+            >
+              Search
+            </Link>
+          </CardContent>
         </Card>
       )}
     </section>

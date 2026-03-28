@@ -6,7 +6,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 type NotificationsInboxProps = {
   userId: string;
@@ -48,26 +48,20 @@ export default function NotificationsInbox({
   }
 
   return (
-    <section className="space-y-8">
-      <div className="space-y-3 border-b border-border/40 pb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-muted-foreground">
-          Activity
-        </p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section className="mx-auto max-w-3xl space-y-6">
+      <div className="border-b border-border/30 pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-[2.4rem]">
-              Notifications
+            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
+              Activity
             </h1>
-            <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-              Likes and comments on your reviews arrive here first, then settle into your archive.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{notifications.length}</span>
-            <span>{notifications.length === 1 ? "recent item" : "recent items"}</span>
-            <span>•</span>
-            <span className="font-medium text-foreground">{unreadCount}</span>
-            <span>{unreadCount === 1 ? "unread" : "unread"}</span>
+            <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{notifications.length}</span>
+              <span>{notifications.length === 1 ? "item" : "items"}</span>
+              <span>•</span>
+              <span className="font-medium text-foreground">{unreadCount}</span>
+              <span>unread</span>
+            </div>
           </div>
         </div>
       </div>
@@ -92,15 +86,12 @@ export default function NotificationsInbox({
           onMarkAsRead={handleMarkAsRead}
         />
       ) : (
-        <Empty className="rounded-3xl border-border/40 bg-card/30 px-8 py-12">
+        <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-8 py-12">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <Bell className="size-4" />
             </EmptyMedia>
             <EmptyTitle>No notifications yet</EmptyTitle>
-            <EmptyDescription>
-              When someone likes or comments on one of your reviews, it will show up here.
-            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       )}

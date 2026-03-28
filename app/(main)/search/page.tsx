@@ -1,6 +1,33 @@
+import type { Metadata } from "next";
 import SearchPageClient from "@/components/search-page-client";
+import { createPageMetadata } from "@/lib/metadata";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
 import { isSearchEntityType } from "@/lib/search-types";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; type?: string }>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const query = params.q?.trim();
+
+  if (!query) {
+    return createPageMetadata({
+      title: "Search",
+      description: "Search tracks and move from discovery to reviews on Kocteau.",
+      path: "/search",
+      noIndex: true,
+    });
+  }
+
+  return createPageMetadata({
+    title: `Search: ${query}`,
+    description: `Search results for ${query} on Kocteau.`,
+    path: `/search?q=${encodeURIComponent(query)}`,
+    noIndex: true,
+  });
+}
 
 export default async function SearchPage({
   searchParams,
@@ -14,6 +41,7 @@ export default async function SearchPage({
 
   return (
     <SearchPageClient
+      key={`${initialType}:${initialQuery}`}
       initialQuery={initialQuery}
       initialType={initialType}
       highlights={highlights}
