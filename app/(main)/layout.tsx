@@ -47,7 +47,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             initialUnreadCount={initialUnreadCount}
             initialNotifications={initialNotifications}
           />
-          <main className="mx-auto w-full max-w-5xl px-4 py-5 pb-24 sm:px-6 sm:py-7 sm:pb-28 lg:px-10 lg:py-9">
+          <main className="mx-auto w-full max-w-5xl px-3.5 py-4 pb-32 sm:px-6 sm:py-7 sm:pb-28 lg:px-10 lg:py-9">
             {children}
           </main>
         </div>

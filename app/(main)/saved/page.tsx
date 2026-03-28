@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Bookmark, ChevronRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import ReviewCard from "@/components/review-card";
 import { createPageMetadata } from "@/lib/metadata";
 import { getSavedReviewsForUser } from "@/lib/queries/review-bookmarks";
@@ -42,7 +43,7 @@ export default async function SavedReviewsPage() {
   const likedReviewIds = await getViewerLikedReviewIds(supabase, user.id, savedReviewIds);
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6">
+    <section className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
@@ -107,17 +108,23 @@ export default async function SavedReviewsPage() {
           })}
         </div>
       ) : (
-        <Card className="rounded-[1.75rem] border-border/25 bg-card/20">
-          <CardHeader>
-            <CardTitle>No saved reviews yet</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Bookmark className="size-4" />
+            </EmptyMedia>
+            <EmptyTitle>No saved reviews yet</EmptyTitle>
+            <EmptyDescription>
+              Save a review and it will appear here.
+            </EmptyDescription>
+          </EmptyHeader>
+          <CardContent className="p-0 pt-2">
             <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
               Go to the feed
               <ChevronRight className="size-4" />
             </Link>
           </CardContent>
-        </Card>
+        </Empty>
       )}
     </section>
   );

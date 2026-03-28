@@ -4,6 +4,7 @@ import { MessageSquarePlus, Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import ReviewCard, { type ReviewCardAuthor, type ReviewCardData } from "@/components/review-card";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
@@ -149,7 +150,7 @@ export default async function TrackPage({
   }
 
   return (
-    <section className="mx-auto max-w-4xl space-y-8">
+    <section className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
       <div className="grid gap-5 border-b border-border/30 pb-8 lg:grid-cols-[8.5rem,minmax(0,1fr),13rem] lg:items-start">
         <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[1.75rem] bg-muted sm:h-36 sm:w-36">
           {entity.cover_url ? (
@@ -267,9 +268,17 @@ export default async function TrackPage({
             })}
           </div>
         ) : (
-          <div className="rounded-[1.65rem] border border-border/20 bg-card/18 px-5 py-6 text-sm text-muted-foreground">
-            No reviews yet
-          </div>
+          <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-9">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Music2 className="size-4" />
+              </EmptyMedia>
+              <EmptyTitle>No reviews yet</EmptyTitle>
+              <EmptyDescription>
+                Be the first to leave a note on this track.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </div>
     </section>

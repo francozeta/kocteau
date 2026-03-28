@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Dot, Music2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import ReviewCard, { type ReviewCardAuthor, type ReviewCardData, type ReviewCardEntity } from "@/components/review-card";
 import { createPageMetadata } from "@/lib/metadata";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
@@ -89,7 +89,7 @@ export default async function HomePage() {
   const recentTracks = await getRecentlyDiscussedTracks(4);
 
   return (
-    <section className="mx-auto max-w-3xl space-y-7">
+    <section className="mx-auto max-w-3xl space-y-6 sm:space-y-7">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
@@ -203,11 +203,17 @@ export default async function HomePage() {
           })}
         </div>
       ) : (
-        <Card className="rounded-[1.75rem] border-border/25 bg-card/20">
-          <CardHeader>
-            <CardTitle>There are no reviews yet</CardTitle>
-          </CardHeader>
-        </Card>
+        <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Music2 className="size-4" />
+            </EmptyMedia>
+            <EmptyTitle>No reviews yet</EmptyTitle>
+            <EmptyDescription>
+              Start a new review and the feed will pick it up here.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
     </section>
   );

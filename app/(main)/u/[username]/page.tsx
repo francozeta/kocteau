@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import ReviewCard from "@/components/review-card";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
@@ -188,7 +189,7 @@ export default async function UserProfilePage({
   );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
       <section className="border-b border-border/30 pb-8">
         <div className="grid gap-6 lg:grid-cols-[8.5rem,minmax(0,1fr),14rem] lg:items-end">
           <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border border-border/20 bg-muted sm:h-32 sm:w-32">
@@ -345,9 +346,14 @@ export default async function UserProfilePage({
             </div>
           </section>
         ) : !pinnedReview ? (
-          <div className="py-12 text-center text-muted-foreground">
-            <p className="text-base">No reviews yet</p>
-          </div>
+          <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-10">
+            <EmptyHeader>
+              <EmptyTitle>No reviews yet</EmptyTitle>
+              <EmptyDescription>
+                Nothing published here yet.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : null}
 
         {isOwnProfile ? (
@@ -395,9 +401,11 @@ export default async function UserProfilePage({
                 })}
               </div>
             ) : (
-              <div className="rounded-[1.65rem] border border-border/20 bg-card/18 p-6 text-sm text-muted-foreground">
-                No saved reviews
-              </div>
+              <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-9">
+                <EmptyHeader>
+                  <EmptyTitle>No saved reviews</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
             )}
           </section>
         ) : null}

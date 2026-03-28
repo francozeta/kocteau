@@ -6,7 +6,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 type NotificationsInboxProps = {
   userId: string;
@@ -48,7 +48,7 @@ export default function NotificationsInbox({
   }
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6">
+    <section className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
@@ -67,7 +67,7 @@ export default function NotificationsInbox({
       </div>
 
       {isLoadingNotifications ? (
-        <div className="rounded-3xl border border-border/35 bg-card/30 px-5 py-8 text-sm text-muted-foreground">
+        <div className="rounded-[1.75rem] border border-border/25 bg-card/20 px-5 py-8 text-sm text-muted-foreground">
           Loading notifications...
         </div>
       ) : isNotificationsError ? (
@@ -86,12 +86,15 @@ export default function NotificationsInbox({
           onMarkAsRead={handleMarkAsRead}
         />
       ) : (
-        <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-8 py-12">
+        <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10 sm:px-8 sm:py-12">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <Bell className="size-4" />
             </EmptyMedia>
             <EmptyTitle>No notifications yet</EmptyTitle>
+            <EmptyDescription>
+              Likes and comments will show up here.
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       )}

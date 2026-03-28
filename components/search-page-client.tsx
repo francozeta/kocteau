@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
@@ -92,7 +93,7 @@ export default function SearchPageClient({
   }, [hasQuery, isFetching, results.length]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
@@ -148,15 +149,31 @@ export default function SearchPageClient({
           ) : null}
 
           {!isFetching && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              Type at least 2 characters to search
-            </div>
+            <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Search className="size-4" />
+                </EmptyMedia>
+                <EmptyTitle>Keep typing</EmptyTitle>
+                <EmptyDescription>
+                  Type at least 2 characters to search.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : null}
 
           {!isFetching && normalizedQuery.length >= 2 && results.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No results
-            </div>
+            <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Search className="size-4" />
+                </EmptyMedia>
+                <EmptyTitle>No results</EmptyTitle>
+                <EmptyDescription>
+                  Try another track or artist.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : null}
 
           {results.map((result) => (
@@ -243,9 +260,14 @@ export default function SearchPageClient({
               ))}
             </div>
           ) : (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No tracks yet
-            </div>
+            <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Music2 className="size-4" />
+                </EmptyMedia>
+                <EmptyTitle>No tracks yet</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           )}
         </section>
       )}

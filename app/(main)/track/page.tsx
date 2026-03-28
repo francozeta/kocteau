@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Music2 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { createPageMetadata } from "@/lib/metadata";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,7 @@ export default async function TrackIndexPage() {
   const tracks = await getRecentlyDiscussedTracks(12);
 
   return (
-    <section className="mx-auto max-w-4xl space-y-6">
+    <section className="mx-auto max-w-4xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
@@ -91,11 +92,17 @@ export default async function TrackIndexPage() {
           ))}
         </div>
       ) : (
-        <Card className="rounded-[1.75rem] border-border/25 bg-card/20">
-          <CardHeader>
-            <CardTitle>No tracks yet</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Music2 className="size-4" />
+            </EmptyMedia>
+            <EmptyTitle>No tracks yet</EmptyTitle>
+            <EmptyDescription>
+              Search for a track and publish the first review.
+            </EmptyDescription>
+          </EmptyHeader>
+          <CardContent className="p-0 pt-2">
             <Link
               href="/search"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full border-border/30")}
@@ -103,7 +110,7 @@ export default async function TrackIndexPage() {
               Search
             </Link>
           </CardContent>
-        </Card>
+        </Empty>
       )}
     </section>
   );
