@@ -7,6 +7,8 @@ import {
   getNotificationsForUser,
   getUnreadNotificationsCount,
 } from "@/lib/queries/notifications";
+import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await supabaseServer();
@@ -14,7 +16,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [safeProfile, initialUnreadCount, initialNotifications] = user
+  const [safeProfile, initialUnreadCount, initialNotifications, recentTracks] = user
     ? await Promise.all([
         (
           await supabase
@@ -34,14 +36,27 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         },
         getUnreadNotificationsCount(supabase, user.id),
         getNotificationsForUser(supabase, user.id, 8),
+        getRecentlyDiscussedTracks(4),
       ])
-    : [null, 0, []];
+    : [null, 0, [], await getRecentlyDiscussedTracks(4)];
 
   return (
     <ReactQueryProvider>
-      <div className="min-h-svh bg-background">
-        <AppSidebar profile={safeProfile} />
-        <div className="md:pl-20 xl:pl-56">
+      <SidebarProvider
+        defaultOpen={true}
+        style={
+          {
+            "--sidebar-width": "17rem",
+            "--sidebar-width-icon": "3.1rem",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar
+          profile={safeProfile}
+          recentTracks={recentTracks}
+          unreadCount={initialUnreadCount}
+        />
+        <SidebarInset className="min-h-svh bg-background">
           <Header
             profile={safeProfile}
             initialUnreadCount={initialUnreadCount}
@@ -50,9 +65,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           <main className="mx-auto w-full max-w-5xl px-3.5 py-4 pb-32 sm:px-6 sm:py-7 sm:pb-28 lg:px-10 lg:py-9">
             {children}
           </main>
-        </div>
-        <MobileBottomBar profile={safeProfile} />
-      </div>
+          <MobileBottomBar profile={safeProfile} />
+        </SidebarInset>
+      </SidebarProvider>
     </ReactQueryProvider>
   );
 }

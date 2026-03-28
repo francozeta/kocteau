@@ -2,18 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Bell,
-  Bookmark,
-  Compass,
-  Disc3,
-  Search,
-  Settings2,
-  UserRound,
-} from "lucide-react";
+import { Bell, Bookmark, Compass, Disc3, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
-import ProfileSettingsDialog from "@/components/profile-settings-dialog";
-import { cn } from "@/lib/utils";
+import NewReviewDialog from "@/components/new-review-dialog";
+import { NavMain } from "@/components/nav-main";
+import { NavRecentReviews } from "@/components/nav-recent-reviews";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 type AppSidebarProfile = {
   id: string;
@@ -26,148 +34,131 @@ type AppSidebarProfile = {
   deezer_url: string | null;
 };
 
-type AppSidebarProps = {
+type SidebarRecentTrack = {
+  entityId: string;
+  title: string;
+  artistName: string | null;
+  coverUrl: string | null;
+};
+
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
+  recentTracks?: SidebarRecentTrack[];
+  unreadCount?: number;
 };
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  active: (pathname: string) => boolean;
-};
-
-function NavLink({
-  item,
-  pathname,
-}: {
-  item: NavItem;
-  pathname: string;
-}) {
-  const Icon = item.icon;
-  const active = item.active(pathname);
-
-  return (
-    <Link
-      href={item.href}
-      className={cn(
-        "group flex h-11 items-center justify-center rounded-2xl text-muted-foreground transition-all xl:justify-start xl:gap-3 xl:px-3",
-        active
-          ? "bg-muted text-foreground"
-          : "hover:bg-muted/45 hover:text-foreground",
-      )}
-    >
-      <Icon className="size-4 shrink-0" />
-      <span className="hidden text-sm font-medium xl:inline">{item.label}</span>
-    </Link>
-  );
-}
-
-export default function AppSidebar({ profile }: AppSidebarProps) {
+export default function AppSidebar({
+  profile,
+  recentTracks = [],
+  unreadCount = 0,
+  ...props
+}: AppSidebarProps) {
   const pathname = usePathname();
 
-  const items: NavItem[] = [
+  const mainItems = [
     {
-      href: "/",
-      label: "Feed",
+      title: "Feed",
+      url: "/",
       icon: Compass,
-      active: (current) => current === "/",
+      isActive: pathname === "/",
     },
     {
-      href: "/search",
-      label: "Discover",
+      title: "Discover",
+      url: "/search",
       icon: Search,
-      active: (current) => current.startsWith("/search"),
+      isActive: pathname.startsWith("/search"),
     },
     {
-      href: "/track",
-      label: "Tracks",
+      title: "Tracks",
+      url: "/track",
       icon: Disc3,
-      active: (current) => current.startsWith("/track"),
+      isActive: pathname.startsWith("/track"),
     },
   ];
 
-  if (profile) {
-    items.push(
-      {
-        href: "/saved",
-        label: "Saved",
-        icon: Bookmark,
-        active: (current) => current.startsWith("/saved"),
-      },
-      {
-        href: "/notifications",
-        label: "Activity",
-        icon: Bell,
-        active: (current) => current.startsWith("/notifications"),
-      },
-    );
-  }
+  const secondaryItems = profile
+    ? [
+        {
+          title: "Saved",
+          url: "/saved",
+          icon: Bookmark,
+          isActive: pathname.startsWith("/saved"),
+        },
+        {
+          title: "Activity",
+          url: "/notifications",
+          icon: Bell,
+          isActive: pathname.startsWith("/notifications"),
+          badge: unreadCount,
+        },
+      ]
+    : [];
+
+  const canShowRecentReviews = Boolean(profile) && recentTracks.length > 0;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden border-r border-border/35 bg-background/90 backdrop-blur-xl md:flex md:w-20 xl:w-56">
-      <div className="flex h-full w-full flex-col px-3 py-4">
-        <div className="flex h-12 items-center justify-center xl:justify-start xl:px-2">
-          <Link href="/" className="inline-flex items-center transition-opacity hover:opacity-80">
-            <BrandLogo priority iconClassName="h-6 w-6" />
-          </Link>
-        </div>
-
-        <nav className="mt-8 flex flex-1 flex-col gap-2">
-          {items.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} />
-          ))}
-        </nav>
-
-        <div className="mt-auto space-y-2 border-t border-border/30 pt-3">
-          {profile ? (
-            <>
-              <Link
-                href={`/u/${profile.username}`}
-                className={cn(
-                  "group flex h-11 items-center justify-center rounded-2xl text-muted-foreground transition-all xl:justify-start xl:gap-3 xl:px-3",
-                  pathname.startsWith(`/u/${profile.username}`)
-                    ? "bg-muted text-foreground"
-                    : "hover:bg-muted/45 hover:text-foreground",
-                )}
+    <TooltipProvider delayDuration={80}>
+      <Sidebar
+        variant="inset"
+        collapsible="icon"
+        className="border-sidebar-border/70 !p-1.5 group-data-[collapsible=icon]:!p-1"
+        {...props}
+      >
+        <SidebarHeader className="gap-2.5 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-1.5">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                size="lg"
+                className="h-10 justify-start rounded-xl px-2 data-[state=open]:bg-sidebar-accent group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
-                  {(profile.display_name ?? profile.username).slice(0, 1).toUpperCase()}
-                </div>
-                <div className="hidden min-w-0 xl:block">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {profile.display_name ?? `@${profile.username}`}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    @{profile.username}
-                  </p>
-                </div>
-              </Link>
+                <Link href="/">
+                  <BrandLogo priority iconClassName="h-5 w-5" />
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
 
-              <ProfileSettingsDialog
-                profile={profile}
-                trigger={
-                  <button
-                    type="button"
-                    className="flex h-11 w-full items-center justify-center rounded-2xl text-muted-foreground transition-all hover:bg-muted/45 hover:text-foreground xl:justify-start xl:gap-3 xl:px-3"
-                  >
-                    <Settings2 className="size-4 shrink-0" />
-                    <span className="hidden text-sm font-medium xl:inline">Settings</span>
-                  </button>
-                }
-              />
-            </>
-          ) : (
-            <Link
-              href="/login"
-              className="flex h-11 items-center justify-center rounded-2xl text-muted-foreground transition-all hover:bg-muted/45 hover:text-foreground xl:justify-start xl:gap-3 xl:px-3"
-            >
-              <UserRound className="size-4 shrink-0" />
-              <span className="hidden text-sm font-medium xl:inline">Join</span>
-            </Link>
-          )}
-        </div>
-      </div>
-    </aside>
+        <div className="group-data-[collapsible=icon]:hidden">
+          <NewReviewDialog
+            isAuthenticated={Boolean(profile)}
+              triggerClassName="h-9 w-full justify-center rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none hover:bg-sidebar-primary/95"
+              triggerLabelClassName="inline"
+            />
+          </div>
+
+          <div className="hidden group-data-[collapsible=icon]:block">
+            <NewReviewDialog
+              isAuthenticated={Boolean(profile)}
+              triggerClassName="size-9 justify-center rounded-xl bg-sidebar-primary px-0 text-sidebar-primary-foreground shadow-none hover:bg-sidebar-primary/95"
+              triggerLabelClassName="sr-only"
+            />
+          </div>
+
+          <SidebarGroup className="px-0 py-0 group-data-[collapsible=icon]:hidden">
+            <SidebarGroupContent>
+              <Link
+                href="/search"
+                className="flex h-9 items-center gap-2 rounded-xl border border-sidebar-border bg-background/40 px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+              >
+                <Search className="size-4 shrink-0" />
+                <span>Search tracks</span>
+              </Link>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarHeader>
+
+        <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
+          <NavMain items={mainItems} />
+          {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} /> : null}
+          {canShowRecentReviews ? <NavRecentReviews items={recentTracks} /> : null}
+        </SidebarContent>
+
+        <SidebarFooter className="p-2.5 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-1.5">
+          <NavUser profile={profile} />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    </TooltipProvider>
   );
 }
