@@ -13,6 +13,7 @@ import {
   runReviewListQuery,
 } from "@/lib/queries/review-likes";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
+import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -36,30 +37,31 @@ export type FeedPageBundle = {
 };
 
 export const getFeedPublicBundle = unstable_cache(
-  async () => {
-    const supabase = supabasePublic();
+  async () =>
+    measureServerTask("getFeedPublicBundle", async () => {
+      const supabase = supabasePublic();
 
-    const [feed, recentTracks] = await Promise.all([
-      runReviewListQuery<FeedReview>(async (mode) =>
-        supabase
-          .from("reviews")
-          .select(
-            buildReviewHydrationSelect(mode, {
-              includeAuthor: true,
-              includeEntity: true,
-            }),
-          )
-          .order("created_at", { ascending: false })
-          .limit(24),
-      ),
-      getRecentlyDiscussedTracks(4),
-    ]);
+      const [feed, recentTracks] = await Promise.all([
+        runReviewListQuery<FeedReview>(async (mode) =>
+          supabase
+            .from("reviews")
+            .select(
+              buildReviewHydrationSelect(mode, {
+                includeAuthor: true,
+                includeEntity: true,
+              }),
+            )
+            .order("created_at", { ascending: false })
+            .limit(24),
+        ),
+        getRecentlyDiscussedTracks(4),
+      ]);
 
-    return {
-      feed,
-      recentTracks,
-    };
-  },
+      return {
+        feed,
+        recentTracks,
+      };
+    }),
   ["feed-page-public-bundle"],
   {
     revalidate: 60,
@@ -78,11 +80,22 @@ export async function getFeedViewerState(
     };
   }
 
-  const supabase = await supabaseServer();
-  const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
-    getViewerLikedReviewIds(supabase, viewerId, reviewIds),
-    getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
-  ]);
+  const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
+    "getFeedViewerState",
+    async () => {
+      const supabase = await supabaseServer();
+      const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
+        getViewerLikedReviewIds(supabase, viewerId, reviewIds),
+        getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
+      ]);
+
+      return {
+        likedReviewIds,
+        bookmarkedReviewIds,
+      };
+    },
+    { viewerId, reviewCount: reviewIds.length },
+  );
 
   return {
     likedReviewIds,

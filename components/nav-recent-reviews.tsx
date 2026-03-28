@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import PrefetchLink from "@/components/prefetch-link";
 import {
   Collapsible,
   CollapsibleContent,
@@ -56,7 +56,7 @@ export function NavRecentReviews({
                     asChild
                     className="h-11 rounded-xl px-2.5 text-[13px] font-medium"
                   >
-                    <Link href={`/track/${item.entityId}`}>
+                    <PrefetchLink href={`/track/${item.entityId}`}>
                       <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-sidebar-border bg-sidebar-accent">
                         {item.coverUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -74,7 +74,7 @@ export function NavRecentReviews({
                           <span className="text-muted-foreground"> — {item.artistName}</span>
                         ) : null}
                       </span>
-                    </Link>
+                    </PrefetchLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

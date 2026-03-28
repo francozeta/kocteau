@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
 
 type DiscoveryRow = {
@@ -39,7 +40,10 @@ function getEntity(row: DiscoveryRow) {
 
 export async function getRecentlyDiscussedTracks(limit = 12): Promise<DiscoveryTrack[]> {
   return unstable_cache(
-    async () => {
+    async () =>
+      measureServerTask(
+        "getRecentlyDiscussedTracks",
+        async () => {
       const supabase = supabasePublic();
 
       const { data } = await supabase
@@ -80,8 +84,10 @@ export async function getRecentlyDiscussedTracks(limit = 12): Promise<DiscoveryT
         }
       }
 
-      return tracks;
-    },
+          return tracks;
+        },
+        { limit },
+      ),
     ["discovery-recent-tracks", String(limit)],
     {
       revalidate: 60,

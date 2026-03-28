@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Bookmark, ChevronRight } from "lucide-react";
 import { redirect } from "next/navigation";
+import PrefetchLink from "@/components/prefetch-link";
 import { buttonVariants } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -132,11 +133,11 @@ async function SavedProfileAction({ userId }: { userId: string }) {
   }
 
   return (
-    <Link
+    <PrefetchLink
       href={`/u/${profile.username}`}
       className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
     >
       Profile
-    </Link>
+    </PrefetchLink>
   );
 }

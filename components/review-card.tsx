@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Music2, Star } from "lucide-react";
+import PrefetchLink from "@/components/prefetch-link";
 import { Badge } from "@/components/ui/badge";
 import ReviewBookmarkButton from "@/components/review-bookmark-button";
 import ReviewCommentsButton from "@/components/review-comments-button";
@@ -66,7 +66,7 @@ function TrackInfo({
 
   if (mode === "inline") {
     return (
-      <Link
+      <PrefetchLink
         href={`/track/${entity.id}`}
         className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/20 bg-muted/18 px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/28 hover:text-foreground"
       >
@@ -87,12 +87,12 @@ function TrackInfo({
         <span className="truncate text-muted-foreground/70">
           {entity.artist_name ?? "Unknown artist"}
         </span>
-      </Link>
+      </PrefetchLink>
     );
   }
 
   return (
-    <Link
+    <PrefetchLink
       href={`/track/${entity.id}`}
       className="group/track flex items-center gap-3 rounded-[1.35rem] border border-border/18 bg-muted/16 px-3 py-3 transition-colors hover:bg-muted/26"
     >
@@ -118,7 +118,7 @@ function TrackInfo({
           {entity.artist_name ?? "Unknown artist"}
         </p>
       </div>
-    </Link>
+    </PrefetchLink>
   );
 }
 
@@ -166,12 +166,12 @@ export default function ReviewCard({
                   />
 
                   {author ? (
-                    <Link
+                    <PrefetchLink
                       href={`/u/${author.username}`}
                       className="text-xs font-medium text-foreground transition-colors hover:underline sm:text-sm"
                     >
                       {authorLabel}
-                    </Link>
+                    </PrefetchLink>
                   ) : (
                     <span className="text-xs sm:text-sm">Unknown user</span>
                   )}

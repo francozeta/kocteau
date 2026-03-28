@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Dot, Music2 } from "lucide-react";
+import PrefetchLink from "@/components/prefetch-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import ReviewCard from "@/components/review-card";
@@ -97,7 +98,7 @@ export default async function HomePage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {recentTracks.map((track) => (
-              <Link
+              <PrefetchLink
                 key={track.entityId}
                 href={`/track/${track.entityId}`}
                 className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/20 px-3 py-3 transition-colors hover:bg-card/35"
@@ -124,7 +125,7 @@ export default async function HomePage() {
                   </p>
                 </div>
                 <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              </PrefetchLink>
             ))}
           </div>
         </div>

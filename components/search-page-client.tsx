@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
+import PrefetchLink from "@/components/prefetch-link";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
@@ -390,7 +390,7 @@ export default function SearchPageClient({
                 Use ↑ ↓ to move, Enter to open
               </p>
               {results.map((result, index) => (
-                <Link
+                <PrefetchLink
                   key={`${result.provider}-${result.provider_id}`}
                   href={getResultHref(result)}
                   onClick={() => persistRecentSearch(result.title)}
@@ -441,7 +441,7 @@ export default function SearchPageClient({
                       )}
                     </div>
                   </div>
-                </Link>
+                </PrefetchLink>
               ))}
             </div>
           ) : null}
@@ -460,7 +460,7 @@ export default function SearchPageClient({
           {highlights.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {highlights.map((track) => (
-                <Link
+                <PrefetchLink
                   key={track.entityId}
                   href={`/track/${track.entityId}`}
                   className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30"
@@ -488,7 +488,7 @@ export default function SearchPageClient({
                       {formatDate(track.latestReviewAt)}
                     </p>
                   </div>
-                </Link>
+                </PrefetchLink>
               ))}
             </div>
           ) : (
