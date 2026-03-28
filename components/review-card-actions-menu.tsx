@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { MoreHorizontal, Share2, Trash2 } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import { createApiError } from "@/lib/validation/errors";
 import {
@@ -40,7 +40,6 @@ export default function ReviewCardActionsMenu({
 }: ReviewCardActionsMenuProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -60,19 +59,12 @@ export default function ReviewCardActionsMenu({
   }, [entityTitle, reviewTitle]);
 
   const shareUrl = useMemo(() => {
-    if (typeof window === "undefined" || !pathname) {
+    if (typeof window === "undefined") {
       return "";
     }
 
-    const search = searchParams.toString();
-    const url = new URL(
-      `${window.location.origin}${pathname}${search ? `?${search}` : ""}`,
-    );
-
-    url.hash = `review-${reviewId}`;
-
-    return url.toString();
-  }, [pathname, reviewId, searchParams]);
+    return new URL(`/review/${reviewId}`, window.location.origin).toString();
+  }, [reviewId]);
 
   async function handleShare() {
     try {
@@ -122,8 +114,27 @@ export default function ReviewCardActionsMenu({
         );
       }
 
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            entityId?: string | null;
+            username?: string | null;
+          }
+        | null;
+
       toastActionSuccess("Review deleted");
       setConfirmOpen(false);
+
+      if (pathname === `/review/${reviewId}`) {
+        if (payload?.entityId) {
+          router.replace(`/track/${payload.entityId}`);
+        } else if (payload?.username) {
+          router.replace(`/u/${payload.username}`);
+        } else {
+          router.replace("/");
+        }
+        return;
+      }
+
       router.refresh();
     } catch (error) {
       toastActionError(error, "We couldn't delete this review right now.");

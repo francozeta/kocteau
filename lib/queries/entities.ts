@@ -6,6 +6,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
+import { getViewerReview } from "@/lib/queries/reviews";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { measureServerTask } from "@/lib/perf";
 import type {
@@ -170,35 +171,40 @@ export async function getTrackPublicBundle(entityId: string) {
 
 export async function getTrackViewerState(
   viewerId: string | null | undefined,
+  entityId: string,
   reviewIds: string[],
 ) {
   if (!viewerId || reviewIds.length === 0) {
     return {
       likedReviewIds: new Set<string>(),
       bookmarkedReviewIds: new Set<string>(),
+      viewerReviewId: null as string | null,
     };
   }
 
-  const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
+  const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await measureServerTask(
     "getTrackViewerState",
     async () => {
       const supabase = await supabaseServer();
-      const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
+      const [likedReviewIds, bookmarkedReviewIds, viewerReview] = await Promise.all([
         getViewerLikedReviewIds(supabase, viewerId, reviewIds),
         getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
+        getViewerReview(entityId, viewerId),
       ]);
 
       return {
         likedReviewIds,
         bookmarkedReviewIds,
+        viewerReviewId: viewerReview?.id ?? null,
       };
     },
-    { viewerId, reviewCount: reviewIds.length },
+    { viewerId, entityId, reviewCount: reviewIds.length },
   );
 
   return {
     likedReviewIds,
     bookmarkedReviewIds,
+    viewerReviewId,
   };
 }
 
@@ -218,11 +224,13 @@ export async function getTrackPageBundle(
       reviews: publicBundle.reviews,
       likedReviewIds: new Set<string>(),
       bookmarkedReviewIds: new Set<string>(),
+      viewerReviewId: null as string | null,
     };
   }
 
-  const { likedReviewIds, bookmarkedReviewIds } = await getTrackViewerState(
+  const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await getTrackViewerState(
     viewerId,
+    entityId,
     publicBundle.reviews.map((review) => review.id),
   );
 
@@ -231,5 +239,6 @@ export async function getTrackPageBundle(
     reviews: publicBundle.reviews,
     likedReviewIds,
     bookmarkedReviewIds,
+    viewerReviewId,
   };
 }

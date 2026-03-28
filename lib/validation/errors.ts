@@ -7,6 +7,7 @@ export type ApiErrorPayload = {
   code?: string | null;
   fieldErrors?: ValidationFieldErrors;
   formErrors?: string[];
+  [key: string]: unknown;
 };
 
 export class ApiError extends Error {
@@ -14,6 +15,7 @@ export class ApiError extends Error {
   fieldErrors?: ValidationFieldErrors;
   formErrors?: string[];
   status?: number;
+  payload?: ApiErrorPayload;
 
   constructor({
     message,
@@ -21,12 +23,14 @@ export class ApiError extends Error {
     fieldErrors,
     formErrors,
     status,
+    payload,
   }: {
     message: string;
     code?: string | null;
     fieldErrors?: ValidationFieldErrors;
     formErrors?: string[];
     status?: number;
+    payload?: ApiErrorPayload;
   }) {
     super(message);
     this.name = "ApiError";
@@ -34,6 +38,7 @@ export class ApiError extends Error {
     this.fieldErrors = fieldErrors;
     this.formErrors = formErrors;
     this.status = status;
+    this.payload = payload;
   }
 }
 
@@ -78,5 +83,6 @@ export async function createApiError(
     fieldErrors: payload?.fieldErrors,
     formErrors: payload?.formErrors,
     status: response.status,
+    payload: payload ?? undefined,
   });
 }

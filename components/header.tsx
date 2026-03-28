@@ -58,7 +58,7 @@ export default function Header({
             variant="ghost"
             size="icon-lg"
             onClick={toggleSidebar}
-            className="rounded-full border border-border/35 bg-background/60 text-foreground shadow-none hover:bg-muted/45"
+            className="size-10 rounded-full border border-border/40 bg-background/65 text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground md:hidden"
             aria-label="Toggle navigation"
           >
             <HamburgerIcon className="size-[1.15rem]" />

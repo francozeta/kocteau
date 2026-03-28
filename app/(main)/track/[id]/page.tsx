@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MessageSquarePlus, Music2, Star } from "lucide-react";
+import { MessageSquarePlus, Music2, PencilLine, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -68,8 +68,9 @@ export default async function TrackPage({
     data: { user },
   } = auth;
   const { entity, reviews: trackReviews } = publicBundle;
-  const { likedReviewIds, bookmarkedReviewIds } = await getTrackViewerState(
+  const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await getTrackViewerState(
     user?.id,
+    entity.id,
     trackReviews.map((review) => review.id),
   );
   const averageRating =
@@ -133,11 +134,15 @@ export default async function TrackPage({
 
           <div className="flex flex-wrap gap-2.5 pt-1">
             <Link
-              href={`/track/${entity.id}?${composeParams.toString()}`}
+              href={
+                viewerReviewId
+                  ? `/review/${viewerReviewId}/edit`
+                  : `/track/${entity.id}?${composeParams.toString()}`
+              }
               className={cn(buttonVariants({ size: "sm" }), "gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90")}
             >
-              <MessageSquarePlus className="size-4" />
-              New review
+              {viewerReviewId ? <PencilLine className="size-4" /> : <MessageSquarePlus className="size-4" />}
+              {viewerReviewId ? "Edit review" : "Write review"}
             </Link>
 
             {entity.deezer_url ? (

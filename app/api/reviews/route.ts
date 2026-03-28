@@ -1,7 +1,33 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import { findEntityByProvider } from "@/lib/queries/entities";
+import { getViewerReview } from "@/lib/queries/reviews";
 import { supabaseServer } from "@/lib/supabase/server";
 import { createReviewSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
+
+function logReviewCreationError(
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: {
+    userId: string;
+    providerId: string;
+    type: string;
+    title: string;
+  },
+) {
+  console.error("[reviews.create] failed", {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
 
 export async function POST(req: Request) {
   const supabase = await supabaseServer();
@@ -35,13 +61,91 @@ export async function POST(req: Request) {
   });
 
   if (error) {
+    logReviewCreationError(error, {
+      userId: auth.user.id,
+      providerId: review.provider_id,
+      type: review.type,
+      title: review.title,
+    });
+
+    const isDuplicateReview =
+      error.code === "23505" ||
+      error.message?.toLowerCase().includes("duplicate key") ||
+      false;
+
+    if (isDuplicateReview) {
+      const existingEntity = await findEntityByProvider(
+        review.provider,
+        review.type,
+        review.provider_id,
+      );
+      const existingReview =
+        existingEntity?.id
+          ? await getViewerReview(existingEntity.id, auth.user.id)
+          : null;
+
+      return NextResponse.json(
+        {
+          error:
+            "No puedes hacer una reseña de la misma canción dos veces. Puedes editar tu reseña existente.",
+          code: "ALREADY_REVIEWED",
+          reviewId: existingReview?.id ?? null,
+          entityId: existingEntity?.id ?? null,
+          editUrl: existingReview?.id ? `/review/${existingReview.id}/edit` : null,
+        },
+        { status: 409 },
+      );
+    }
+
     return NextResponse.json(
-      { error: error.message, code: error.code ?? null },
-      { status: error.code === "42501" ? 401 : 400 }
+      {
+        error: "Ocurrió un error al crear la reseña. Intenta nuevamente.",
+        code: error.code === "42501" ? "UNAUTHORIZED" : "CREATE_REVIEW_FAILED",
+      },
+      { status: error.code === "42501" ? 401 : 500 }
     );
   }
 
   const result = Array.isArray(data) ? data[0] : data;
+  const reviewId = result?.review_id ?? null;
+  const entityId = result?.entity_id ?? null;
 
-  return NextResponse.json({ ok: true, review: result });
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", auth.user.id)
+    .maybeSingle<{ username: string }>();
+
+  revalidateTag("feed", "max");
+  revalidateTag("reviews", "max");
+  revalidateTag("profiles", "max");
+  revalidateTag("entities", "max");
+  revalidateTag(`profile:${auth.user.id}:reviews`, "max");
+
+  if (entityId) {
+    revalidateTag(`entity:${entityId}`, "max");
+    revalidateTag(`entity:${entityId}:reviews`, "max");
+    revalidatePath(`/track/${entityId}`);
+  }
+
+  if (reviewId) {
+    revalidateTag(`review:${reviewId}`, "max");
+    revalidatePath(`/review/${reviewId}`);
+  }
+
+  if (profile?.username) {
+    revalidateTag(`profile:${profile.username}`, "max");
+    revalidatePath(`/u/${profile.username}`);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/track");
+
+  return NextResponse.json({
+    ok: true,
+    review: result,
+    reviewId,
+    entityId,
+    authorUsername: profile?.username ?? null,
+  });
 }

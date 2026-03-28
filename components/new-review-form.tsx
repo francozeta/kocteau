@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LoaderCircle, Music2, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
+import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import { toastActionSuccess } from "@/lib/feedback";
 import { ApiError, createApiError, getFirstFieldError } from "@/lib/validation/errors";
-import { createReviewSchema } from "@/lib/validation/schemas";
+import { createReviewSchema, updateReviewSchema } from "@/lib/validation/schemas";
+import { cn } from "@/lib/utils";
 import RatingStars from "./rating-stars";
 
 type DeezerResult = {
@@ -33,30 +35,52 @@ type ReviewSubmitError = Error & {
   code?: string;
 };
 
+type PublishReviewResponse = {
+  ok: boolean;
+  reviewId?: string | null;
+  entityId?: string | null;
+  authorUsername?: string | null;
+};
+
 type NewReviewFormProps = {
+  mode?: "create" | "edit";
+  reviewId?: string | null;
   onSuccess?: () => void;
   initialQuery?: string;
   initialSelection?: DeezerResult | null;
+  initialRating?: number | null;
+  initialTitle?: string;
+  initialBody?: string;
+  initialPinned?: boolean;
+  redirectToOnSuccess?: string | null;
 };
 
 type Step = "search" | "compose";
 
 export default function NewReviewForm({
+  mode = "create",
+  reviewId = null,
   onSuccess,
   initialQuery = "",
   initialSelection = null,
+  initialRating = null,
+  initialTitle = "",
+  initialBody = "",
+  initialPinned = false,
+  redirectToOnSuccess = null,
 }: NewReviewFormProps) {
   const router = useRouter();
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const isEditMode = mode === "edit" && Boolean(reviewId);
 
-  const [step, setStep] = useState<Step>("search");
+  const [step, setStep] = useState<Step>(initialSelection ? "compose" : "search");
   const [query, setQuery] = useState(initialQuery);
-  const [selected, setSelected] = useState<DeezerResult | null>(null);
+  const [selected, setSelected] = useState<DeezerResult | null>(initialSelection);
   const [activeResultIndex, setActiveResultIndex] = useState(-1);
 
-  const [rating, setRating] = useState<number | null>(null);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const [rating, setRating] = useState<number | null>(initialRating);
+  const [title, setTitle] = useState(initialTitle);
+  const [body, setBody] = useState(initialBody);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
@@ -94,6 +118,12 @@ export default function NewReviewForm({
   }, [initialSelection]);
 
   useEffect(() => {
+    setRating(initialRating);
+    setTitle(initialTitle);
+    setBody(initialBody);
+  }, [initialBody, initialRating, initialTitle, reviewId]);
+
+  useEffect(() => {
     if (step !== "search" || normalizedQuery.length < 2 || results.length === 0) {
       setActiveResultIndex(-1);
       return;
@@ -116,13 +146,17 @@ export default function NewReviewForm({
     setStep(initialSelection ? "compose" : "search");
     setSelected(initialSelection);
     setQuery(initialQuery);
-    setRating(null);
-    setTitle("");
-    setBody("");
+    setRating(initialRating);
+    setTitle(initialTitle);
+    setBody(initialBody);
     setErrorMsg(null);
   }
 
   function goBackToSearch() {
+    if (isEditMode) {
+      return;
+    }
+
     if (initialSelection) {
       setSelected(initialSelection);
       setStep("compose");
@@ -175,21 +209,29 @@ export default function NewReviewForm({
     setFieldErrors({});
 
     if (!selected) {
-      setFieldErrors({ selected: "Select a track before publishing." });
+      setFieldErrors({ selected: isEditMode ? "Track unavailable for this review." : "Select a track before publishing." });
       return;
     }
-    const parsed = createReviewSchema.safeParse({
-      provider: selected.provider,
-      provider_id: selected.provider_id,
-      type: selected.type,
-      title: selected.title,
-      artist_name: selected.artist_name,
-      cover_url: selected.cover_url,
-      deezer_url: selected.deezer_url,
-      review_title: title,
-      review_body: body,
-      rating,
-    });
+
+    const parsed = isEditMode
+      ? updateReviewSchema.safeParse({
+          review_title: title,
+          review_body: body,
+          rating,
+          is_pinned: initialPinned,
+        })
+      : createReviewSchema.safeParse({
+          provider: selected.provider,
+          provider_id: selected.provider_id,
+          type: selected.type,
+          title: selected.title,
+          artist_name: selected.artist_name,
+          cover_url: selected.cover_url,
+          deezer_url: selected.deezer_url,
+          review_title: title,
+          review_body: body,
+          rating,
+        });
 
     if (!parsed.success) {
       const errors = parsed.error.flatten().fieldErrors;
@@ -205,8 +247,8 @@ export default function NewReviewForm({
     setSaving(true);
 
     try {
-      const res = await fetch("/api/reviews", {
-        method: "POST",
+      const res = await fetch(isEditMode ? `/api/reviews/${reviewId}` : "/api/reviews", {
+        method: isEditMode ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -217,8 +259,27 @@ export default function NewReviewForm({
         throw await createApiError(res, "Something went wrong while publishing.");
       }
 
-      toastActionSuccess("Review published.");
+      const payload = (await res.json()) as PublishReviewResponse;
+
+      if (payload.reviewId) {
+        router.prefetch(`/review/${payload.reviewId}`);
+      }
+
+      router.prefetch("/");
+
+      if (payload.entityId) {
+        router.prefetch(`/track/${payload.entityId}`);
+      }
+
+      if (payload.authorUsername) {
+        router.prefetch(`/u/${payload.authorUsername}`);
+      }
+
+      toastActionSuccess(isEditMode ? "Review updated." : "Review published.");
       router.refresh();
+      if (redirectToOnSuccess) {
+        router.push(redirectToOnSuccess);
+      }
       onSuccess?.();
       resetAll();
     } catch (error) {
@@ -232,10 +293,29 @@ export default function NewReviewForm({
         });
       }
 
-      if (reviewError.code === "42501") {
+      const existingReviewId =
+        reviewError instanceof ApiError && typeof reviewError.payload?.reviewId === "string"
+          ? reviewError.payload.reviewId
+          : null;
+
+      if (reviewError.code === "ALREADY_REVIEWED" && existingReviewId) {
+        setErrorMsg(reviewError.message);
+        router.prefetch(`/review/${existingReviewId}/edit`);
+        toast.error(reviewError.message, {
+          action: {
+            label: "Edit review",
+            onClick: () => router.push(`/review/${existingReviewId}/edit`),
+          },
+        });
+      } else if (reviewError.code === "42501" || reviewError.code === "UNAUTHORIZED") {
         setErrorMsg("Your session expired. Please sign in again.");
       } else {
-        setErrorMsg(reviewError.message || "Something went wrong while publishing.");
+        setErrorMsg(
+          reviewError.message ||
+            (isEditMode
+              ? "We couldn't update this review right now."
+              : "Ocurrió un error al crear la reseña. Intenta nuevamente."),
+        );
       }
     } finally {
       setSaving(false);
@@ -387,16 +467,18 @@ export default function NewReviewForm({
       ) : (
         <>
           <div className="mb-5 flex items-center gap-3 shrink-0">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={goBackToSearch}
-              className="shrink-0 rounded-full"
-            >
-              <ArrowLeft className="size-4" />
-              <span className="sr-only">Back to search</span>
-            </Button>
+            {!isEditMode ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={goBackToSearch}
+                className="shrink-0 rounded-full"
+              >
+                <ArrowLeft className="size-4" />
+                <span className="sr-only">Back to search</span>
+              </Button>
+            ) : null}
 
             <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[1.35rem] border border-border/20 bg-card/12 px-3 py-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
@@ -498,17 +580,19 @@ export default function NewReviewForm({
           </ScrollArea>
 
           <div className="flex shrink-0 gap-3">
-            <Button type="button" variant="ghost" onClick={goBackToSearch} disabled={saving} className="flex-1 rounded-2xl">
-              Back
-            </Button>
+            {!isEditMode ? (
+              <Button type="button" variant="ghost" onClick={goBackToSearch} disabled={saving} className="flex-1 rounded-2xl">
+                Back
+              </Button>
+            ) : null}
 
             <Button
               type="button"
               onClick={onSubmit}
               disabled={saving || !selected || rating === null}
-              className="flex-1 rounded-2xl"
+              className={cn("rounded-2xl", !isEditMode && "flex-1", isEditMode && "w-full")}
             >
-              {saving ? "Publishing..." : "Publish"}
+              {saving ? (isEditMode ? "Saving..." : "Publishing...") : isEditMode ? "Save changes" : "Publish"}
             </Button>
           </div>
         </>

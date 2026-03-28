@@ -119,6 +119,20 @@ export const createReviewSchema = z.object({
   is_pinned: z.boolean().optional().default(false),
 });
 
+export const updateReviewSchema = z.object({
+  review_title: optionalTrimmedString(120),
+  review_body: optionalTrimmedString(2000),
+  rating: z.preprocess(
+    (value) => (value === null ? undefined : value),
+    z
+      .number({ error: "A rating is required." })
+      .min(0.5, "Rating must be at least 0.5.")
+      .max(5, "Rating must be 5 or less.")
+      .multipleOf(0.5, "Rating must use 0.5 steps."),
+  ),
+  is_pinned: z.boolean().optional().default(false),
+});
+
 export const createCommentSchema = z
   .object({
     body: z
@@ -142,4 +156,5 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type ProfileEditorInput = z.infer<typeof profileEditorSchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
+export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
