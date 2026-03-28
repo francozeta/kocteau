@@ -33,10 +33,12 @@ export default function NewReviewDialog({
   isAuthenticated = true,
   triggerClassName,
   triggerLabelClassName,
+  trigger,
 }: {
   isAuthenticated?: boolean;
   triggerClassName?: string;
   triggerLabelClassName?: string;
+  trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -89,7 +91,7 @@ export default function NewReviewDialog({
 
   const resolvedOpen = shouldOpenFromUrl || open;
 
-  const trigger = (
+  const resolvedTrigger = trigger ?? (
     <Button
       size="sm"
       className={cn(
@@ -122,7 +124,7 @@ export default function NewReviewDialog({
   if (isMobile) {
     return (
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
-        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+        <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger>
 
         <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/30">
           <DrawerHeader className="border-b border-border/30 pb-3 text-left">
@@ -152,7 +154,7 @@ export default function NewReviewDialog({
 
   return (
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger>
 
       <DialogContent className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/30 p-0">
         <DialogHeader className="border-b border-border/30 px-6 py-4">

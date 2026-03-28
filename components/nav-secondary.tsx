@@ -28,7 +28,7 @@ export function NavSecondary({
   label?: string;
 }) {
   return (
-    <SidebarGroup>
+    <SidebarGroup className="px-0">
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
@@ -38,7 +38,7 @@ export function NavSecondary({
                 asChild
                 isActive={item.isActive}
                 tooltip={item.title}
-                className="rounded-xl text-[13px] font-medium group-data-[collapsible=icon]:justify-center"
+                className="rounded-xl text-[13px] font-medium group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
                 <Link href={item.url}>
                   <item.icon />

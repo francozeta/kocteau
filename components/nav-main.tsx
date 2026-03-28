@@ -22,7 +22,7 @@ type NavMainItem = {
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
   return (
-    <SidebarGroup>
+    <SidebarGroup className="px-0">
       <SidebarGroupLabel>Browse</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
@@ -33,7 +33,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                 isActive={item.isActive}
                 tooltip={item.title}
                 size="lg"
-                className="h-10 rounded-xl text-[13px] font-medium group-data-[collapsible=icon]:justify-center"
+                className="h-10 rounded-xl text-[13px] font-medium group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
                 <Link href={item.url}>
                   <item.icon />

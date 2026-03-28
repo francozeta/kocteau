@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Bookmark, Compass, Disc3, Search } from "lucide-react";
+import { Bell, Bookmark, Compass, Disc3, Plus, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { NavMain } from "@/components/nav-main";
@@ -16,9 +16,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -104,20 +101,13 @@ export default function AppSidebar({
         className="border-sidebar-border/70 !p-1.5 group-data-[collapsible=icon]:!p-1"
         {...props}
       >
-        <SidebarHeader className="gap-2.5 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-1.5">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                size="lg"
-                className="h-10 justify-start rounded-xl px-2 data-[state=open]:bg-sidebar-accent group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-              >
-                <Link href="/">
-                  <BrandLogo priority iconClassName="h-5 w-5" />
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+        <SidebarHeader className="gap-2.5 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
+          <Link
+            href="/"
+            className="flex h-10 items-center justify-start rounded-xl px-2 transition-colors hover:bg-sidebar-accent/70 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          >
+            <BrandLogo priority iconClassName="h-5 w-5" />
+          </Link>
 
         <div className="group-data-[collapsible=icon]:hidden">
           <NewReviewDialog
@@ -130,8 +120,15 @@ export default function AppSidebar({
           <div className="hidden group-data-[collapsible=icon]:block">
             <NewReviewDialog
               isAuthenticated={Boolean(profile)}
-              triggerClassName="size-9 justify-center rounded-xl bg-sidebar-primary px-0 text-sidebar-primary-foreground shadow-none hover:bg-sidebar-primary/95"
-              triggerLabelClassName="sr-only"
+              trigger={
+                <button
+                  type="button"
+                  aria-label="New review"
+                  className="mx-auto flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground transition-colors hover:bg-sidebar-primary/95"
+                >
+                  <Plus className="size-4" />
+                </button>
+              }
             />
           </div>
 
@@ -154,7 +151,7 @@ export default function AppSidebar({
           {canShowRecentReviews ? <NavRecentReviews items={recentTracks} /> : null}
         </SidebarContent>
 
-        <SidebarFooter className="p-2.5 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-1.5">
+        <SidebarFooter className="p-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
           <NavUser profile={profile} />
         </SidebarFooter>
         <SidebarRail />
