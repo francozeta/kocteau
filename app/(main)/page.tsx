@@ -159,6 +159,7 @@ export default async function HomePage() {
                 showAuthor={true}
                 entityMode="full"
                 isAuthenticated={Boolean(user)}
+                canManage={Boolean(user?.id && author?.id === user.id)}
               />
             );
           })}

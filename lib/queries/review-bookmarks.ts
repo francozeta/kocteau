@@ -11,6 +11,7 @@ type QueryError = {
 } | null;
 
 type ReviewBookmarkAuthor = {
+  id: string;
   username: string;
   display_name: string | null;
   avatar_url: string | null;
@@ -118,6 +119,7 @@ export async function getSavedReviewsForUser(
           ${mode === "all" ? "comments_count," : ""}
           created_at,
           author:profiles!reviews_author_id_fkey (
+            id,
             username,
             display_name,
             avatar_url

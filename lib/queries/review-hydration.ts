@@ -38,6 +38,7 @@ export function buildReviewHydrationSelect(
     ...(includeAuthor
       ? [
           `author:profiles!reviews_author_id_fkey (
+            id,
             username,
             display_name,
             avatar_url

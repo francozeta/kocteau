@@ -219,6 +219,7 @@ export default async function UserProfilePage({
               featured={true}
               entityMode="full"
               isAuthenticated={Boolean(user)}
+              canManage={isOwnProfile}
             />
           </div>
         ) : null}
@@ -246,6 +247,7 @@ export default async function UserProfilePage({
                   showAuthor={false}
                   entityMode="inline"
                   isAuthenticated={Boolean(user)}
+                  canManage={isOwnProfile}
                 />
               ))}
             </div>
@@ -325,6 +327,7 @@ async function SavedReviewsSection({
                 eyebrow="Saved for later"
                 isAuthenticated={isAuthenticated}
                 bookmarkRefreshOnToggle={true}
+                canManage={reviewAuthor?.id === userId}
               />
             );
           })}

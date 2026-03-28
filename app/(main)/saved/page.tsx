@@ -93,6 +93,7 @@ export default async function SavedReviewsPage() {
                 eyebrow="Saved for later"
                 isAuthenticated={true}
                 bookmarkRefreshOnToggle={true}
+                canManage={reviewAuthor?.id === user.id}
               />
             );
           })}

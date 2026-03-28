@@ -1,5 +1,6 @@
 import { Music2, Star } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
+import ReviewCardActionsMenu from "@/components/review-card-actions-menu";
 import { Badge } from "@/components/ui/badge";
 import ReviewBookmarkButton from "@/components/review-bookmark-button";
 import ReviewCommentsButton from "@/components/review-comments-button";
@@ -15,6 +16,7 @@ export type ReviewCardEntity = {
 };
 
 export type ReviewCardAuthor = {
+  id?: string;
   username: string;
   display_name: string | null;
   avatar_url: string | null;
@@ -43,6 +45,7 @@ type ReviewCardProps = {
   featured?: boolean;
   isAuthenticated?: boolean;
   bookmarkRefreshOnToggle?: boolean;
+  canManage?: boolean;
 };
 
 function formatDate(value: string) {
@@ -132,6 +135,7 @@ export default function ReviewCard({
   featured = false,
   isAuthenticated = false,
   bookmarkRefreshOnToggle = false,
+  canManage = false,
 }: ReviewCardProps) {
   const hasTitle = Boolean(review.title?.trim());
   const authorLabel = author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
@@ -185,9 +189,17 @@ export default function ReviewCard({
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-border/20 bg-muted/14 px-2.5 py-1 text-sm font-medium whitespace-nowrap">
-            <Star className="size-3.5 fill-current text-amber-400" />
-            {review.rating.toFixed(1)}
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/20 bg-muted/14 px-2.5 py-1 text-sm font-medium whitespace-nowrap">
+              <Star className="size-3.5 fill-current text-amber-400" />
+              {review.rating.toFixed(1)}
+            </div>
+            <ReviewCardActionsMenu
+              reviewId={review.id}
+              reviewTitle={review.title}
+              entityTitle={entity?.title ?? null}
+              canManage={canManage}
+            />
           </div>
         </div>
 

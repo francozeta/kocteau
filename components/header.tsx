@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import BrandLogo from "@/components/brand-logo";
-import NewReviewDialog from "@/components/new-review-dialog";
 import NotificationsButton from "@/components/notifications-button";
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import { useSidebar } from "@/components/ui/sidebar";
 import type { NotificationItem } from "@/lib/notifications";
 
 type HeaderProfile = {
@@ -19,6 +19,25 @@ type HeaderProfile = {
   deezer_url: string | null;
 };
 
+function HamburgerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 16 16"
+      className={cn("size-5 shrink-0", className)}
+      fill="none"
+    >
+      <path
+        d="M1 2.75h14M1 7.75h9M1 12.75h11"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function Header({
   profile,
   initialUnreadCount = 0,
@@ -28,18 +47,33 @@ export default function Header({
   initialUnreadCount?: number;
   initialNotifications?: NotificationItem[];
 }) {
-  return ( 
-    /* TODO: change to fixed */
+  const { toggleSidebar } = useSidebar();
+
+  return (
     <header className="sticky top-0 z-30 border-b border-border/25 bg-background/72 backdrop-blur-xl">
-      <div className="flex h-15 items-center gap-3 px-4 sm:h-16 sm:px-6">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="-ml-1 rounded-full border border-border/35 bg-background/60 hover:bg-muted/45" />
-          <Link href="/" className="inline-flex items-center md:hidden" aria-label="Go to feed">
-            <BrandLogo iconClassName="h-5 w-5" />
-          </Link>
+      <div className="relative flex h-15 items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
+        <div className="flex items-center">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            onClick={toggleSidebar}
+            className="rounded-full border border-border/35 bg-background/60 text-foreground shadow-none hover:bg-muted/45"
+            aria-label="Toggle navigation"
+          >
+            <HamburgerIcon className="size-[1.15rem]" />
+          </Button>
         </div>
 
-        <div className="min-w-0 flex-1" />
+        <div className="pointer-events-none absolute inset-x-0 flex justify-center md:hidden">
+          <Link
+            href="/"
+            className="pointer-events-auto inline-flex items-center rounded-full px-2 py-1"
+            aria-label="Go to feed"
+          >
+            <BrandLogo iconClassName="h-[1.35rem] w-[1.35rem]" />
+          </Link>
+        </div>
 
         <div className="flex items-center gap-2">
           {profile ? (
@@ -48,23 +82,16 @@ export default function Header({
               initialUnreadCount={initialUnreadCount}
               initialNotifications={initialNotifications}
             />
-          ) : null}
-          <div className="hidden md:block">
-            <NewReviewDialog isAuthenticated={Boolean(profile)} />
-          </div>
-          {profile ? null : (
-            <>
-              <Link href="/login" className="hidden sm:inline-flex">
-                <Button variant="ghost" size="sm" className="rounded-full px-4 text-muted-foreground hover:text-foreground">
-                  Log in
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm" className="rounded-full px-4">
-                  Sign up
-                </Button>
-              </Link>
-            </>
+          ) : (
+            <Link href="/login">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full border-border/30 px-4 text-foreground"
+              >
+                Log in
+              </Button>
+            </Link>
           )}
         </div>
       </div>

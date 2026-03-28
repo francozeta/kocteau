@@ -210,6 +210,7 @@ export default async function TrackPage({
                   showAuthor={true}
                   entityMode="inline"
                   isAuthenticated={Boolean(user)}
+                  canManage={Boolean(user?.id && author?.id === user.id)}
                 />
               );
             })}
