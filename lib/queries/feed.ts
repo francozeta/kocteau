@@ -12,6 +12,7 @@ import {
   getViewerLikedReviewIds,
   runReviewListQuery,
 } from "@/lib/queries/review-likes";
+import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -34,29 +35,6 @@ export type FeedPageBundle = {
   bookmarkedReviewIds: Set<string>;
 };
 
-function reviewSelect(mode: "all" | "likes-only" | "base") {
-  return [
-    "id",
-    "title",
-    "body",
-    "rating",
-    ...(mode !== "base" ? ["likes_count"] : []),
-    ...(mode === "all" ? ["comments_count"] : []),
-    "created_at",
-    `entities (
-      id,
-      title,
-      artist_name,
-      cover_url
-    )`,
-    `author:profiles!reviews_author_id_fkey (
-      username,
-      display_name,
-      avatar_url
-    )`,
-  ].join(",");
-}
-
 export const getFeedPublicBundle = unstable_cache(
   async () => {
     const supabase = supabasePublic();
@@ -65,7 +43,12 @@ export const getFeedPublicBundle = unstable_cache(
       runReviewListQuery<FeedReview>(async (mode) =>
         supabase
           .from("reviews")
-          .select(reviewSelect(mode))
+          .select(
+            buildReviewHydrationSelect(mode, {
+              includeAuthor: true,
+              includeEntity: true,
+            }),
+          )
           .order("created_at", { ascending: false })
           .limit(24),
       ),

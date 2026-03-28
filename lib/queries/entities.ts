@@ -6,6 +6,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
+import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import type {
   ReviewCardAuthor,
   ReviewCardData,
@@ -38,23 +39,10 @@ export type EntityReview = {
   author: ReviewCardAuthor | ReviewCardAuthor[] | null;
 };
 
-function reviewSelect(mode: "all" | "likes-only" | "base") {
-  return [
-    "id",
-    "title",
-    "body",
-    "rating",
-    ...(mode !== "base" ? ["likes_count"] : []),
-    ...(mode === "all" ? ["comments_count"] : []),
-    "created_at",
-    "is_pinned",
-    `author:profiles!reviews_author_id_fkey (
-      username,
-      display_name,
-      avatar_url
-    )`,
-  ].join(",");
-}
+export type TrackPagePublicBundle = {
+  entity: EntityPage;
+  reviews: EntityReview[];
+};
 
 export async function getEntityPageById(entityId: string) {
   return unstable_cache(
@@ -120,7 +108,12 @@ export async function getReviewsForEntity(entityId: string) {
       const reviews = await runReviewListQuery<EntityReview>(async (mode) =>
         supabase
           .from("reviews")
-          .select(reviewSelect(mode))
+          .select(
+            buildReviewHydrationSelect(mode, {
+              includeAuthor: true,
+              includePinned: true,
+            }),
+          )
           .eq("entity_id", entityId)
           .order("created_at", { ascending: false }),
       );
@@ -138,10 +131,7 @@ export async function getReviewsForEntity(entityId: string) {
   )();
 }
 
-export async function getTrackPageBundle(
-  entityId: string,
-  viewerId?: string | null,
-) {
+export async function getTrackPublicBundle(entityId: string) {
   const [entity, reviews] = await Promise.all([
     getEntityPageById(entityId),
     getReviewsForEntity(entityId),
@@ -151,25 +141,62 @@ export async function getTrackPageBundle(
     return null;
   }
 
-  if (!viewerId || reviews.length === 0) {
+  return {
+    entity,
+    reviews,
+  } satisfies TrackPagePublicBundle;
+}
+
+export async function getTrackViewerState(
+  viewerId: string | null | undefined,
+  reviewIds: string[],
+) {
+  if (!viewerId || reviewIds.length === 0) {
     return {
-      entity,
-      reviews,
       likedReviewIds: new Set<string>(),
       bookmarkedReviewIds: new Set<string>(),
     };
   }
 
   const supabase = await supabaseServer();
-  const reviewIds = reviews.map((review) => review.id);
   const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
     getViewerLikedReviewIds(supabase, viewerId, reviewIds),
     getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
   ]);
 
   return {
-    entity,
-    reviews,
+    likedReviewIds,
+    bookmarkedReviewIds,
+  };
+}
+
+export async function getTrackPageBundle(
+  entityId: string,
+  viewerId?: string | null,
+) {
+  const publicBundle = await getTrackPublicBundle(entityId);
+
+  if (!publicBundle) {
+    return null;
+  }
+
+  if (!viewerId || publicBundle.reviews.length === 0) {
+    return {
+      entity: publicBundle.entity,
+      reviews: publicBundle.reviews,
+      likedReviewIds: new Set<string>(),
+      bookmarkedReviewIds: new Set<string>(),
+    };
+  }
+
+  const { likedReviewIds, bookmarkedReviewIds } = await getTrackViewerState(
+    viewerId,
+    publicBundle.reviews.map((review) => review.id),
+  );
+
+  return {
+    entity: publicBundle.entity,
+    reviews: publicBundle.reviews,
     likedReviewIds,
     bookmarkedReviewIds,
   };

@@ -9,11 +9,10 @@ import ReviewCard from "@/components/review-card";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {
   getEntityPageById,
-  getReviewsForEntity,
+  getTrackPublicBundle,
+  getTrackViewerState,
   type EntityReview,
 } from "@/lib/queries/entities";
-import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
-import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
 import { cn } from "@/lib/utils";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -58,24 +57,18 @@ export default async function TrackPage({
 }) {
   const { id } = await params;
   const supabase = await supabaseServer();
-  const [auth, entity, trackReviews] = await Promise.all([
+  const [auth, publicBundle] = await Promise.all([
     supabase.auth.getUser(),
-    getEntityPageById(id),
-    getReviewsForEntity(id),
+    getTrackPublicBundle(id),
   ]);
 
-  if (!entity) notFound();
+  if (!publicBundle) notFound();
 
   const {
     data: { user },
   } = auth;
-  const likedReviewIds = await getViewerLikedReviewIds(
-    supabase,
-    user?.id,
-    trackReviews.map((review) => review.id),
-  );
-  const bookmarkedReviewIds = await getViewerBookmarkedReviewIds(
-    supabase,
+  const { entity, reviews: trackReviews } = publicBundle;
+  const { likedReviewIds, bookmarkedReviewIds } = await getTrackViewerState(
     user?.id,
     trackReviews.map((review) => review.id),
   );

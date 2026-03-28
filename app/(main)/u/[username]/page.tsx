@@ -10,13 +10,11 @@ import ReviewCard from "@/components/review-card";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
   getPublicProfileByUsername,
-  getReviewsForProfile,
+  getProfilePublicBundle,
+  getProfileViewerState,
   type ProfileReview,
 } from "@/lib/queries/profiles";
-import {
-  getSavedReviewsForUser,
-  getViewerBookmarkedReviewIds,
-} from "@/lib/queries/review-bookmarks";
+import { getSavedReviewsForUser } from "@/lib/queries/review-bookmarks";
 import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
 import { supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -69,31 +67,28 @@ export default async function UserProfilePage({
   const { username } = await params;
   const supabase = await supabaseServer();
 
-  const [profile, auth] = await Promise.all([
-    getPublicProfileByUsername(username),
+  const [publicBundle, auth] = await Promise.all([
+    getProfilePublicBundle(username),
     supabase.auth.getUser(),
   ]);
 
-  if (!profile) {
+  if (!publicBundle) {
     notFound();
   }
 
   const {
     data: { user },
   } = auth;
+  const { profile, pinnedReview, reviews } = publicBundle;
   const isOwnProfile = user?.id === profile.id;
 
-  const { pinnedReview, reviews } = await getReviewsForProfile(profile.id);
-
-  const reviewIds = [
-    ...(pinnedReview ? [pinnedReview.id] : []),
-    ...reviews.map((review) => review.id),
-  ];
-
-  const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
-    getViewerLikedReviewIds(supabase, user?.id, reviewIds),
-    getViewerBookmarkedReviewIds(supabase, user?.id, reviewIds),
-  ]);
+  const { likedReviewIds, bookmarkedReviewIds } = await getProfileViewerState(
+    user?.id,
+    [
+      ...(pinnedReview ? [pinnedReview.id] : []),
+      ...reviews.map((review) => review.id),
+    ],
+  );
 
   const totalReviews = reviews.length + (pinnedReview ? 1 : 0);
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
