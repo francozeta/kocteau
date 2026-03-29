@@ -1,6 +1,16 @@
 "use client";
 
-import { startTransition, useMemo, useState } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type ReactElement,
+} from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Drawer,
@@ -16,7 +26,7 @@ import NewReviewForm from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus } from "lucide-react";
-import Link from "next/link";
+import { toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
 type InitialSelection = {
@@ -67,31 +77,44 @@ export default function NewReviewDialog({
     } satisfies InitialSelection;
   }, [searchParams]);
 
+  const clearComposeParams = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("compose");
+    next.delete("reviewQuery");
+    next.delete("composeProvider");
+    next.delete("composeProviderId");
+    next.delete("composeTitle");
+    next.delete("composeArtist");
+    next.delete("composeCover");
+    next.delete("composeDeezer");
+
+    startTransition(() => {
+      router.replace(next.toString() ? `${pathname}?${next.toString()}` : pathname, {
+        scroll: false,
+      });
+    });
+  }, [pathname, router, searchParams]);
+
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
 
     if (!nextOpen && shouldOpenFromUrl) {
-      const next = new URLSearchParams(searchParams.toString());
-      next.delete("compose");
-      next.delete("reviewQuery");
-      next.delete("composeProvider");
-      next.delete("composeProviderId");
-      next.delete("composeTitle");
-      next.delete("composeArtist");
-      next.delete("composeCover");
-      next.delete("composeDeezer");
-
-      startTransition(() => {
-        router.replace(next.toString() ? `${pathname}?${next.toString()}` : pathname, {
-          scroll: false,
-        });
-      });
+      clearComposeParams();
     }
   }
 
-  const resolvedOpen = shouldOpenFromUrl || open;
+  useEffect(() => {
+    if (!shouldOpenFromUrl || isAuthenticated) {
+      return;
+    }
 
-  const resolvedTrigger = trigger ?? (
+    toastAuthRequired("create-review");
+    clearComposeParams();
+  }, [clearComposeParams, isAuthenticated, shouldOpenFromUrl]);
+
+  const resolvedOpen = isAuthenticated && (shouldOpenFromUrl || open);
+
+  const baseTrigger = trigger ?? (
     <Button
       size="sm"
       className={cn(
@@ -104,22 +127,29 @@ export default function NewReviewDialog({
     </Button>
   );
 
-  const authPrompt = (
-    <div className="flex h-full flex-col justify-between gap-6 px-6 py-6">
-      <div className="space-y-3">
-        <h3 className="text-2xl font-semibold tracking-tight">Sign in to interact</h3>
-      </div>
+  const resolvedTrigger = !isAuthenticated && isValidElement(baseTrigger)
+    ? cloneElement(
+        baseTrigger as ReactElement<{
+          onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
+        }>,
+        {
+          onClick: (event: ReactMouseEvent<HTMLElement>) => {
+            const originalOnClick = (
+              baseTrigger.props as { onClick?: (event: ReactMouseEvent<HTMLElement>) => void }
+            ).onClick;
+            originalOnClick?.(event);
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Link href="/login" className="flex-1">
-          <Button className="w-full">Log in</Button>
-        </Link>
-        <Link href="/signup" className="flex-1">
-          <Button variant="outline" className="w-full">Create account</Button>
-        </Link>
-      </div>
-    </div>
-  );
+            if (!event.defaultPrevented) {
+              toastAuthRequired("create-review");
+            }
+          },
+        },
+      )
+    : baseTrigger;
+
+  if (!isAuthenticated) {
+    return <>{resolvedTrigger}</>;
+  }
 
   if (isMobile) {
     return (
@@ -128,24 +158,18 @@ export default function NewReviewDialog({
 
         <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/30">
           <DrawerHeader className="border-b border-border/30 pb-3 text-left">
-            <DrawerTitle className="font-serif text-2xl">
-              {isAuthenticated ? "New review" : "Authentication required"}
-            </DrawerTitle>
+            <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
             <DrawerDescription className="sr-only">
               Create or publish a review.
             </DrawerDescription>
           </DrawerHeader>
 
           <div className="min-h-0 flex-1 overflow-hidden">
-            {isAuthenticated ? (
-              <NewReviewForm
-                initialQuery={initialQuery}
-                initialSelection={initialSelection}
-                onSuccess={() => handleOpenChange(false)}
-              />
-            ) : (
-              authPrompt
-            )}
+            <NewReviewForm
+              initialQuery={initialQuery}
+              initialSelection={initialSelection}
+              onSuccess={() => handleOpenChange(false)}
+            />
           </div>
         </DrawerContent>
       </Drawer>
@@ -158,24 +182,18 @@ export default function NewReviewDialog({
 
       <DialogContent className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/30 p-0">
         <DialogHeader className="border-b border-border/30 px-6 py-4">
-          <DialogTitle className="font-serif text-2xl">
-            {isAuthenticated ? "New review" : "Authentication required"}
-          </DialogTitle>
+          <DialogTitle className="font-serif text-2xl">New review</DialogTitle>
           <DialogDescription className="sr-only">
             Create or publish a review.
           </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-hidden">
-          {isAuthenticated ? (
-            <NewReviewForm
-              initialQuery={initialQuery}
-              initialSelection={initialSelection}
-              onSuccess={() => handleOpenChange(false)}
-            />
-          ) : (
-            authPrompt
-          )}
+          <NewReviewForm
+            initialQuery={initialQuery}
+            initialSelection={initialSelection}
+            onSuccess={() => handleOpenChange(false)}
+          />
         </div>
       </DialogContent>
     </Dialog>
