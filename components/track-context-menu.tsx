@@ -64,7 +64,9 @@ export default function TrackContextMenu({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+      <ContextMenuTrigger asChild>
+        <div className="h-full">{children}</div>
+      </ContextMenuTrigger>
 
       <ContextMenuContent className="w-48 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-xl">
         <ContextMenuLabel>Track</ContextMenuLabel>
