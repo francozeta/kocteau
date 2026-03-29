@@ -90,11 +90,40 @@ function TrackInfo({
 
   if (mode === "inline") {
     return (
+      <div data-prevent-review-link="true">
+        <PrefetchLink
+          href={`/track/${entity.id}`}
+          className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/18 bg-muted/18 px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:border-border/28 hover:bg-muted/30 hover:text-foreground active:bg-muted/36"
+        >
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+            {entity.cover_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={entity.cover_url}
+                alt={entity.title}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <Music2 className="size-3 text-muted-foreground" />
+            )}
+          </div>
+          <span className="truncate font-medium text-foreground">{entity.title}</span>
+          <span className="truncate text-muted-foreground/70">
+            {entity.artist_name ?? "Unknown artist"}
+          </span>
+        </PrefetchLink>
+      </div>
+    );
+  }
+
+  return (
+    <div data-prevent-review-link="true">
       <PrefetchLink
         href={`/track/${entity.id}`}
-        className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/20 bg-muted/18 px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/28 hover:text-foreground"
+        className="group/track flex items-center gap-3 rounded-[1.35rem] border border-border/18 bg-muted/16 px-3 py-3 transition-colors hover:border-border/28 hover:bg-muted/28 active:bg-muted/34"
       >
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
           {entity.cover_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -104,45 +133,20 @@ function TrackInfo({
               loading="lazy"
             />
           ) : (
-            <Music2 className="size-3 text-muted-foreground" />
+            <Music2 className="size-4 text-muted-foreground" />
           )}
         </div>
-        <span className="truncate font-medium text-foreground">{entity.title}</span>
-        <span className="truncate text-muted-foreground/70">
-          {entity.artist_name ?? "Unknown artist"}
-        </span>
+
+        <div className="min-w-0">
+          <p className="line-clamp-1 font-medium text-foreground">
+            {entity.title}
+          </p>
+          <p className="line-clamp-1 text-xs text-muted-foreground">
+            {entity.artist_name ?? "Unknown artist"}
+          </p>
+        </div>
       </PrefetchLink>
-    );
-  }
-
-  return (
-    <PrefetchLink
-      href={`/track/${entity.id}`}
-      className="group/track flex items-center gap-3 rounded-[1.35rem] border border-border/18 bg-muted/16 px-3 py-3 transition-colors hover:bg-muted/26"
-    >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
-        {entity.cover_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={entity.cover_url}
-            alt={entity.title}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <Music2 className="size-4 text-muted-foreground" />
-        )}
-      </div>
-
-      <div className="min-w-0">
-        <p className="line-clamp-1 font-medium text-foreground">
-          {entity.title}
-        </p>
-        <p className="line-clamp-1 text-xs text-muted-foreground">
-          {entity.artist_name ?? "Unknown artist"}
-        </p>
-      </div>
-    </PrefetchLink>
+    </div>
   );
 }
 
@@ -304,7 +308,10 @@ export default function ReviewCard({
               </p>
             )}
 
-            <div className="flex items-center justify-between gap-3 border-t border-border/10 pt-2.5">
+            <div
+              data-prevent-review-link="true"
+              className="flex items-center justify-between gap-3 border-t border-border/10 pt-2.5"
+            >
               <div className="flex items-center gap-0.5">
                 <ReviewLikeButton
                   reviewId={review.id}

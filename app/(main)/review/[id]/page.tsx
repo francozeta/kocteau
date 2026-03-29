@@ -5,6 +5,7 @@ import EditReviewDialog from "@/components/edit-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
 import ReviewCard from "@/components/review-card";
+import ReviewFloatingCommentInput from "@/components/review-floating-comment-input";
 import ReviewMobileHeader from "@/components/review-mobile-header";
 import UserAvatar from "@/components/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -125,6 +126,7 @@ export default async function ReviewPage({
     "Untitled review";
   const authorLabel =
     author?.display_name?.trim() || (author?.username ? `@${author.username}` : "Unknown user");
+  const replyTarget = author?.username ? `@${author.username}` : authorLabel;
   const commentsLabel = `${bundle.review.comments_count} ${
     bundle.review.comments_count === 1 ? "comment" : "comments"
   }`;
@@ -140,8 +142,14 @@ export default async function ReviewPage({
         canManage={isOwner}
         fallbackHref={fallbackHref}
       />
+      <ReviewFloatingCommentInput
+        reviewId={bundle.review.id}
+        initialCount={bundle.review.comments_count}
+        isAuthenticated={Boolean(user)}
+        replyTarget={replyTarget}
+      />
 
-      <section className="mx-auto max-w-[44rem] space-y-6 sm:space-y-8">
+      <section className="mx-auto max-w-[44rem] space-y-6 pb-24 sm:space-y-8 md:pb-0">
         <div className="space-y-5 border-b border-border/24 pb-5 sm:pb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="hidden flex-wrap items-center gap-2 text-sm text-muted-foreground md:flex">
@@ -293,6 +301,7 @@ export default async function ReviewPage({
               initialCount={bundle.review.comments_count}
               isAuthenticated={Boolean(user)}
               variant="inline"
+              hideForm
             />
           </div>
         </section>

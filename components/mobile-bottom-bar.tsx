@@ -56,6 +56,10 @@ function NavTab({
 export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
 
+  if (/^\/review\/[^/]+$/.test(pathname)) {
+    return null;
+  }
+
   const leftItems: NavItem[] = [
     {
       href: "/",

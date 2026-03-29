@@ -16,6 +16,7 @@ type ReviewCommentsPanelProps = {
   initialCount: number;
   isAuthenticated: boolean;
   variant?: "dialog" | "inline";
+  hideForm?: boolean;
 };
 
 function formatDate(value: string) {
@@ -30,6 +31,7 @@ export default function ReviewCommentsPanel({
   initialCount,
   isAuthenticated,
   variant = "dialog",
+  hideForm = false,
 }: ReviewCommentsPanelProps) {
   const [body, setBody] = useState("");
   const {
@@ -186,7 +188,7 @@ export default function ReviewCommentsPanel({
     return (
       <div className="space-y-5">
         {commentsList}
-        <div className="border-t border-border/20 pt-4">{form}</div>
+        {!hideForm ? <div className="border-t border-border/20 pt-4">{form}</div> : null}
       </div>
     );
   }
@@ -198,7 +200,7 @@ export default function ReviewCommentsPanel({
       </ScrollArea>
 
       <div className="border-t border-border/30 px-6 py-4">
-        {form}
+        {!hideForm ? form : null}
       </div>
     </div>
   );
