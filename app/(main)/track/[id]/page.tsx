@@ -71,7 +71,7 @@ export default async function TrackPage({
   const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await getTrackViewerState(
     user?.id,
     entity.id,
-    trackReviews.map((review) => review.id),
+    trackReviews,
   );
   const averageRating =
     trackReviews.length > 0

@@ -13,6 +13,7 @@ type UseNotificationsOptions = {
   userId: string | null;
   initialNotifications?: NotificationItem[];
   initialUnreadCount?: number;
+  hasInitialNotificationsData?: boolean;
   limit?: number;
   subscribe?: boolean;
   enableList?: boolean;
@@ -39,6 +40,8 @@ export function notificationsListKey(limit: number) {
 
 export const notificationsUnreadCountKey = ["notifications", "unread-count"] as const;
 const notificationsListPrefix = ["notifications", "list"] as const;
+const NOTIFICATIONS_STALE_MS = 60_000;
+const UNREAD_FALLBACK_POLL_MS = 45_000;
 
 function upsertNotification(
   current: NotificationItem[],
@@ -76,6 +79,7 @@ export function useNotifications({
   userId,
   initialNotifications = [],
   initialUnreadCount = 0,
+  hasInitialNotificationsData = true,
   limit = 25,
   subscribe = false,
   enableList = true,
@@ -137,11 +141,11 @@ export function useNotifications({
     },
     enabled: Boolean(userId),
     initialData: initialUnreadCount,
-    staleTime: 30_000,
+    staleTime: NOTIFICATIONS_STALE_MS,
     gcTime: 10 * 60_000,
-    refetchInterval: userId ? 15_000 : false,
+    refetchInterval: userId ? UNREAD_FALLBACK_POLL_MS : false,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   const notificationsQuery = useQuery({
@@ -168,12 +172,12 @@ export function useNotifications({
       return Array.isArray(payload?.notifications) ? payload.notifications : [];
     },
     enabled: Boolean(userId) && enableList,
-    initialData: initialNotifications,
-    staleTime: 30_000,
+    initialData: hasInitialNotificationsData ? initialNotifications : undefined,
+    staleTime: NOTIFICATIONS_STALE_MS,
     gcTime: 10 * 60_000,
-    refetchInterval: userId && enableList ? 15_000 : false,
+    refetchInterval: false,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   const markAsRead = useMutation({
@@ -515,6 +519,7 @@ export function useNotifications({
     notifications: notificationsQuery.data ?? initialNotifications,
     unreadCount: unreadQuery.data ?? initialUnreadCount,
     isLoadingNotifications: notificationsQuery.isLoading,
+    isFetchingNotifications: notificationsQuery.isFetching,
     isNotificationsError: notificationsQuery.isError,
     notificationsError: notificationsQuery.error,
     isLoadingUnreadCount: unreadQuery.isLoading,

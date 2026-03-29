@@ -5,7 +5,6 @@ import AppSidebar from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import {
-  getNotificationsForUser,
   getUnreadNotificationsCount,
 } from "@/lib/queries/notifications";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
@@ -17,7 +16,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [safeProfile, initialUnreadCount, initialNotifications, recentTracks] = user
+  const [safeProfile, initialUnreadCount, recentTracks] = user
     ? await Promise.all([
         (
           await supabase
@@ -36,10 +35,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           deezer_url: null,
         },
         getUnreadNotificationsCount(supabase, user.id),
-        getNotificationsForUser(supabase, user.id, 8),
         getRecentlyDiscussedTracks(4),
       ])
-    : [null, 0, [], await getRecentlyDiscussedTracks(4)];
+    : [null, 0, await getRecentlyDiscussedTracks(4)];
 
   return (
     <ReactQueryProvider>
@@ -58,11 +56,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           unreadCount={initialUnreadCount}
         />
         <SidebarInset className="min-h-svh">
-          <GlobalShortcuts profileUsername={safeProfile?.username ?? null} />
+          <GlobalShortcuts />
           <Header
             profile={safeProfile}
             initialUnreadCount={initialUnreadCount}
-            initialNotifications={initialNotifications}
+            initialNotifications={[]}
           />
           <main className="mx-auto w-full max-w-5xl px-3.5 pt-20 pb-32 sm:px-6 sm:pt-24 sm:pb-28 lg:px-10 lg:pt-24 lg:pb-10">
             {children}

@@ -6,7 +6,6 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
-import { getViewerReview } from "@/lib/queries/reviews";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { measureServerTask } from "@/lib/perf";
 import type {
@@ -45,6 +44,18 @@ export type TrackPagePublicBundle = {
   entity: EntityPage;
   reviews: EntityReview[];
 };
+
+function getHydratedAuthorId(author: EntityReview["author"]) {
+  if (!author) {
+    return null;
+  }
+
+  if (Array.isArray(author)) {
+    return author[0]?.id ?? null;
+  }
+
+  return author.id ?? null;
+}
 
 export async function getEntityPageById(entityId: string) {
   return unstable_cache(
@@ -172,9 +183,9 @@ export async function getTrackPublicBundle(entityId: string) {
 export async function getTrackViewerState(
   viewerId: string | null | undefined,
   entityId: string,
-  reviewIds: string[],
+  reviews: EntityReview[],
 ) {
-  if (!viewerId || reviewIds.length === 0) {
+  if (!viewerId || reviews.length === 0) {
     return {
       likedReviewIds: new Set<string>(),
       bookmarkedReviewIds: new Set<string>(),
@@ -182,20 +193,22 @@ export async function getTrackViewerState(
     };
   }
 
-  const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await measureServerTask(
+  const reviewIds = reviews.map((review) => review.id);
+  const viewerReviewId =
+    reviews.find((review) => getHydratedAuthorId(review.author) === viewerId)?.id ?? null;
+
+  const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
     "getTrackViewerState",
     async () => {
       const supabase = await supabaseServer();
-      const [likedReviewIds, bookmarkedReviewIds, viewerReview] = await Promise.all([
+      const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
         getViewerLikedReviewIds(supabase, viewerId, reviewIds),
         getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
-        getViewerReview(entityId, viewerId),
       ]);
 
       return {
         likedReviewIds,
         bookmarkedReviewIds,
-        viewerReviewId: viewerReview?.id ?? null,
       };
     },
     { viewerId, entityId, reviewCount: reviewIds.length },
@@ -231,7 +244,7 @@ export async function getTrackPageBundle(
   const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await getTrackViewerState(
     viewerId,
     entityId,
-    publicBundle.reviews.map((review) => review.id),
+    publicBundle.reviews,
   );
 
   return {

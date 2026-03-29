@@ -11,9 +11,7 @@ import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import ReviewBookmarkButton from "@/components/review-bookmark-button";
 import ReviewCommentsButton from "@/components/review-comments-button";
 import ReviewLikeButton from "@/components/review-like-button";
-import { useReviewCardActions } from "@/components/review-card-actions";
 import UserAvatar from "@/components/user-avatar";
-import { useReviewShortcuts } from "@/hooks/use-review-shortcuts";
 import { cn } from "@/lib/utils";
 
 export type ReviewCardEntity = {
@@ -164,30 +162,10 @@ export default function ReviewCard({
   interactive = true,
 }: ReviewCardProps) {
   const router = useRouter();
-  const likeButtonRef = useRef<HTMLButtonElement | null>(null);
   const bookmarkButtonRef = useRef<HTMLButtonElement | null>(null);
   const hasTitle = Boolean(review.title?.trim());
   const authorLabel = author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
   const reviewHref = `/review/${review.id}`;
-  const actions = useReviewCardActions({
-    reviewId: review.id,
-    reviewTitle: review.title,
-    entityTitle: entity?.title ?? null,
-    entityId: entity?.id ?? null,
-  });
-  const reviewShortcuts = useReviewShortcuts({
-    enabled: interactive,
-    canManage,
-    canOpenTrack: actions.canOpenTrack,
-    likeButtonRef,
-    bookmarkButtonRef,
-    onOpenReview: actions.openReview,
-    onOpenTrack: actions.openTrack,
-    onEditReview: actions.editReview,
-    onCopyReviewLink: actions.copyReviewLink,
-    onRequestDelete: actions.requestDeleteReview,
-    onReportReview: actions.reportReview,
-  });
 
   function handleOpenReview() {
     void router.prefetch(reviewHref);
@@ -233,7 +211,6 @@ export default function ReviewCard({
           onMouseEnter={
             interactive
               ? () => {
-                  reviewShortcuts.handleMouseEnter();
                   void router.prefetch(reviewHref);
                 }
               : undefined
@@ -241,13 +218,10 @@ export default function ReviewCard({
           onFocusCapture={
             interactive
               ? () => {
-                  reviewShortcuts.handleFocusCapture();
                   void router.prefetch(reviewHref);
                 }
               : undefined
           }
-          onMouseLeave={interactive ? reviewShortcuts.handleMouseLeave : undefined}
-          onBlurCapture={interactive ? reviewShortcuts.handleBlurCapture : undefined}
           className={cn(
             "overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors",
             interactive &&
@@ -330,14 +304,13 @@ export default function ReviewCard({
               </p>
             )}
 
-        <div className="flex items-center justify-between gap-3 border-t border-border/10 pt-2.5">
-          <div className="flex items-center gap-0.5">
-            <ReviewLikeButton
-              reviewId={review.id}
-              initialCount={review.likes_count}
-              initialLiked={Boolean(review.viewer_has_liked)}
+            <div className="flex items-center justify-between gap-3 border-t border-border/10 pt-2.5">
+              <div className="flex items-center gap-0.5">
+                <ReviewLikeButton
+                  reviewId={review.id}
+                  initialCount={review.likes_count}
+                  initialLiked={Boolean(review.viewer_has_liked)}
                   isAuthenticated={isAuthenticated}
-                  buttonRef={likeButtonRef}
                 />
                 <ReviewCommentsButton
                   reviewId={review.id}

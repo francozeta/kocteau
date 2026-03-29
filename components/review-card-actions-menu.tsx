@@ -7,7 +7,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -79,7 +78,6 @@ export default function ReviewCardActionsMenu({
           >
             <TextQuote className="size-4" />
             Copy review link
-            <DropdownMenuShortcut>⇧L</DropdownMenuShortcut>
           </DropdownMenuItem>
 
           {canOpenTrack ? (
@@ -90,7 +88,6 @@ export default function ReviewCardActionsMenu({
             >
               <Music2 className="size-4" />
               Open track
-              <DropdownMenuShortcut>T</DropdownMenuShortcut>
             </DropdownMenuItem>
           ) : null}
 
@@ -101,7 +98,6 @@ export default function ReviewCardActionsMenu({
           >
             <Bookmark className="size-4" />
             Bookmark
-            <DropdownMenuShortcut>B</DropdownMenuShortcut>
           </DropdownMenuItem>
 
           {canManage ? (
@@ -114,7 +110,6 @@ export default function ReviewCardActionsMenu({
               >
                 <PencilLine className="size-4" />
                 Edit review
-                <DropdownMenuShortcut>E</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
@@ -126,7 +121,6 @@ export default function ReviewCardActionsMenu({
               >
                 <Trash2 className="size-4" />
                 Delete review
-                <DropdownMenuShortcut>Del</DropdownMenuShortcut>
               </DropdownMenuItem>
             </>
           ) : (
@@ -139,7 +133,6 @@ export default function ReviewCardActionsMenu({
               >
                 <Flag className="size-4" />
                 Report
-                <DropdownMenuShortcut>R</DropdownMenuShortcut>
               </DropdownMenuItem>
             </>
           )}

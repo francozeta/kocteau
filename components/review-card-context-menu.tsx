@@ -6,7 +6,6 @@ import {
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
-  ContextMenuShortcut,
 } from "@/components/ui/context-menu";
 import {
   ReviewCardDeleteDialog,
@@ -56,13 +55,11 @@ export default function ReviewCardContextMenu({
         <ContextMenuItem onSelect={openReview}>
           <CornerUpRight className="size-4" />
           Open review
-          <ContextMenuShortcut>O</ContextMenuShortcut>
         </ContextMenuItem>
         {canOpenTrack ? (
           <ContextMenuItem onSelect={openTrack}>
             <Music2 className="size-4" />
             Open track
-            <ContextMenuShortcut>T</ContextMenuShortcut>
           </ContextMenuItem>
         ) : null}
         <ContextMenuItem
@@ -72,7 +69,6 @@ export default function ReviewCardContextMenu({
         >
           <TextQuote className="size-4" />
           Copy review link
-          <ContextMenuShortcut>⇧L</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuItem
           onSelect={() => {
@@ -81,7 +77,6 @@ export default function ReviewCardContextMenu({
         >
           <Bookmark className="size-4" />
           Bookmark
-          <ContextMenuShortcut>B</ContextMenuShortcut>
         </ContextMenuItem>
 
         {canManage ? (
@@ -90,7 +85,6 @@ export default function ReviewCardContextMenu({
             <ContextMenuItem onSelect={editReview}>
               <PencilLine className="size-4" />
               Edit review
-              <ContextMenuShortcut>E</ContextMenuShortcut>
             </ContextMenuItem>
             <ContextMenuItem
               variant="destructive"
@@ -101,7 +95,6 @@ export default function ReviewCardContextMenu({
             >
               <Trash2 className="size-4" />
               Delete review
-              <ContextMenuShortcut>Del</ContextMenuShortcut>
             </ContextMenuItem>
           </>
         ) : (
@@ -114,7 +107,6 @@ export default function ReviewCardContextMenu({
             >
               <Flag className="size-4" />
               Report
-              <ContextMenuShortcut>R</ContextMenuShortcut>
             </ContextMenuItem>
           </>
         )}

@@ -38,6 +38,7 @@ export default function NotificationsButton({
     notifications,
     unreadCount,
     isLoadingNotifications,
+    isFetchingNotifications,
     isNotificationsError,
     notificationsError,
     markAsRead,
@@ -48,8 +49,9 @@ export default function NotificationsButton({
     initialUnreadCount,
     initialNotifications,
     limit: 8,
+    hasInitialNotificationsData: false,
     subscribe: true,
-    enableList: true,
+    enableList: open,
   });
 
   useEffect(() => {
@@ -131,6 +133,10 @@ export default function NotificationsButton({
         <ScrollArea className="max-h-[28rem]">
           <div className="p-2.5">
             {isLoadingNotifications ? (
+              <div className="px-3 py-6 text-sm text-muted-foreground">
+                Loading notifications...
+              </div>
+            ) : isFetchingNotifications && notifications.length === 0 ? (
               <div className="px-3 py-6 text-sm text-muted-foreground">
                 Loading notifications...
               </div>
