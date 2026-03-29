@@ -231,9 +231,9 @@ export default async function ReviewPage({
             {entity ? (
               <PrefetchLink
                 href={`/track/${entity.id}`}
-                className="inline-flex max-w-full items-center gap-3 rounded-full border border-border/18 bg-card/12 px-3 py-2 transition-colors hover:bg-card/18"
+                className="inline-flex max-w-full items-center gap-3 rounded-[1.15rem] border border-border/16 bg-card/10 px-3 py-2 transition-colors hover:bg-card/16"
               >
-                <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted/25">
+                <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/12 bg-muted/22">
                   {entity.cover_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -245,20 +245,20 @@ export default async function ReviewPage({
                   ) : null}
                 </div>
                 <div className="min-w-0 text-left">
-                  <p className="truncate text-sm font-medium text-foreground">{entity.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">
+                  <p className="truncate font-serif text-[15px] font-medium text-foreground">{entity.title}</p>
+                  <p className="truncate text-[13px] text-muted-foreground">
                     {entity.artist_name ?? "Unknown artist"}
                   </p>
                 </div>
               </PrefetchLink>
             ) : null}
 
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/18 bg-card/12 px-3 py-2 text-sm text-foreground">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/16 bg-card/10 px-3 py-2 text-sm text-foreground">
               <Star className="size-3.5 fill-current text-amber-400" />
               {bundle.review.rating.toFixed(1)}
             </div>
 
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/18 bg-card/12 px-3 py-2 text-sm text-muted-foreground">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/16 bg-card/10 px-3 py-2 text-sm text-muted-foreground">
               <MessageSquareText className="size-3.5" />
               {commentsLabel}
             </div>
@@ -283,14 +283,11 @@ export default async function ReviewPage({
           canManage={isOwner}
         />
 
-        <section className="overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/12">
+        <section className="overflow-hidden rounded-[1.7rem] border border-border/14 bg-card/10">
           <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border/18 px-4 py-4 sm:px-5">
-            <div className="space-y-1">
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                Discussion
-              </p>
-              <h2 className="text-base font-medium text-foreground sm:text-lg">Comments</h2>
-            </div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Discussion
+            </p>
 
             <p className="text-sm text-muted-foreground">{commentsLabel}</p>
           </div>

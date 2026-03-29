@@ -99,8 +99,8 @@ export default async function TrackPage({
 
   return (
     <section className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
-      <div className="grid gap-5 border-b border-border/30 pb-8 lg:grid-cols-[8.5rem,minmax(0,1fr),13rem] lg:items-start">
-        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[1.75rem] bg-muted sm:h-36 sm:w-36">
+      <div className="grid gap-5 border-b border-border/24 pb-7 lg:grid-cols-[9rem,minmax(0,1fr)] lg:items-start">
+        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[1.6rem] border border-border/14 bg-muted/20 sm:h-36 sm:w-36">
           {entity.cover_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -110,25 +110,47 @@ export default async function TrackPage({
               loading="lazy"
             />
           ) : (
-              <Music2 className="size-10 text-muted-foreground" />
+            <Music2 className="size-10 text-muted-foreground" />
           )}
-          </div>
+        </div>
 
         <div className="min-w-0 space-y-5">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-border/25 text-[11px] uppercase tracking-[0.18em]">
+              <Badge variant="outline" className="border-border/18 bg-card/10 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                 {entity.type}
+              </Badge>
+              <Badge variant="outline" className="border-border/18 bg-card/10 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                {entity.provider === "deezer" ? "Deezer" : entity.provider}
               </Badge>
             </div>
 
-            <div className="space-y-1.5">
-              <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight text-balance sm:text-[3.35rem]">
+            <div className="space-y-2">
+              <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight text-balance sm:text-[3.15rem]">
                 {entity.title}
               </h1>
-              <p className="text-base text-muted-foreground sm:text-lg">
+              <p className="text-base font-medium text-muted-foreground sm:text-[1.05rem]">
                 {entity.artist_name ?? "Unknown artist"}
               </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 text-sm text-muted-foreground">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-2">
+              <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Reviews
+              </span>
+              <span className="text-sm font-medium text-foreground">{trackReviews.length}</span>
+            </div>
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-2 text-foreground">
+              <Star className="size-3.5 fill-current text-amber-400" />
+              <span className="text-sm font-medium">
+                {averageRating ? averageRating.toFixed(1) : "—"}
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Average
+              </span>
             </div>
           </div>
 
@@ -157,34 +179,6 @@ export default async function TrackPage({
             ) : null}
           </div>
         </div>
-
-        <dl className="grid grid-cols-3 gap-3 rounded-[1.65rem] border border-border/20 bg-card/18 p-4 text-sm lg:grid-cols-1">
-          <div className="space-y-1">
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Reviews
-            </dt>
-            <dd className="text-2xl font-semibold text-foreground">{trackReviews.length}</dd>
-          </div>
-
-          <div className="space-y-1">
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Average
-            </dt>
-            <dd className="inline-flex items-center gap-2 text-2xl font-semibold text-foreground">
-              <Star className="size-4 fill-current text-amber-400" />
-              {averageRating ? averageRating.toFixed(1) : "—"}
-            </dd>
-          </div>
-
-          <div className="space-y-1">
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Source
-            </dt>
-            <dd className="text-sm text-muted-foreground">
-              {entity.provider === "deezer" ? "Deezer" : entity.provider}
-            </dd>
-          </div>
-        </dl>
       </div>
 
       <div className="space-y-4">
@@ -192,9 +186,7 @@ export default async function TrackPage({
           <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
             Reviews
           </h2>
-          <p className="text-sm text-muted-foreground">
-            {trackReviews.length} {trackReviews.length === 1 ? "entry" : "entries"}
-          </p>
+          <span className="text-xs text-muted-foreground">Newest first</span>
         </div>
 
         {trackReviews.length > 0 ? (

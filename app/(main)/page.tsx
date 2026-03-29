@@ -115,13 +115,6 @@ export default async function HomePage({
 
   const reviewsSection = orderedFeed.length > 0 ? (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-border/24 pb-3">
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          {activeView === "top-rated" ? "Top rated reviews" : "Latest reviews"}
-        </h2>
-        <span className="text-xs text-muted-foreground">{getReviewSortLabel(activeView)}</span>
-      </div>
-
       <div className="space-y-4">
         {orderedFeed.map((review, index) => {
           const entity = getEntity(review);
