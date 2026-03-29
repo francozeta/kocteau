@@ -1,9 +1,11 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { ArrowLeft, MessageSquareText, Star } from "lucide-react";
 import { notFound } from "next/navigation";
+import EditReviewDialog from "@/components/edit-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
 import ReviewCard from "@/components/review-card";
+import UserAvatar from "@/components/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import { getReviewPageBundle, getPublicReviewById } from "@/lib/queries/reviews";
@@ -50,6 +52,14 @@ function buildReviewDescription(
   }
 
   return "Music review on Kocteau.";
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export async function generateMetadata({
@@ -108,33 +118,131 @@ export default async function ReviewPage({
   const entity = getEntity(bundle.review);
   const author = getAuthor(bundle.review);
   const isOwner = Boolean(user?.id && author?.id === user.id);
+  const headline =
+    bundle.review.title?.trim() ||
+    entity?.title ||
+    "Untitled review";
+  const authorLabel =
+    author?.display_name?.trim() || (author?.username ? `@${author.username}` : "Unknown user");
+  const commentsLabel = `${bundle.review.comments_count} ${
+    bundle.review.comments_count === 1 ? "comment" : "comments"
+  }`;
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6 sm:space-y-7">
-      <div className="border-b border-border/30 pb-4">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          {entity ? (
+    <section className="mx-auto max-w-[44rem] space-y-6 sm:space-y-8">
+      <div className="space-y-5 border-b border-border/24 pb-5 sm:pb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <PrefetchLink
-              href={`/track/${entity.id}`}
-              className="font-medium text-foreground transition-colors hover:text-foreground/80 hover:underline"
+              href={entity ? `/track/${entity.id}` : "/"}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "h-8 rounded-full border border-border/20 bg-card/10 px-3 text-muted-foreground hover:bg-card/18 hover:text-foreground",
+              )}
             >
-              {entity.title}
+              <ArrowLeft className="size-3.5" />
+              {entity ? "Back to track" : "Back to feed"}
             </PrefetchLink>
+          </div>
+
+          {isOwner && entity ? (
+            <EditReviewDialog
+              reviewId={bundle.review.id}
+              initialSelection={{
+                provider: "deezer",
+                provider_id: entity.provider_id,
+                type: "track",
+                title: entity.title,
+                artist_name: entity.artist_name,
+                cover_url: entity.cover_url,
+                deezer_url: entity.deezer_url,
+                entity_id: entity.id,
+              }}
+              initialTitle={bundle.review.title ?? ""}
+              initialBody={bundle.review.body ?? ""}
+              initialRating={bundle.review.rating}
+              initialPinned={Boolean(bundle.review.is_pinned)}
+            />
           ) : null}
-          {entity?.artist_name ? (
-            <span className="truncate">{entity.artist_name}</span>
-          ) : null}
-          {author ? (
-            <>
-              <span className="text-muted-foreground/40">•</span>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Review
+            </p>
+            <h1 className="max-w-3xl font-serif text-[2.1rem] font-semibold tracking-tight text-foreground sm:text-[2.55rem]">
+              {headline}
+            </h1>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex min-w-0 items-center gap-2">
+              <UserAvatar
+                avatarUrl={author?.avatar_url}
+                displayName={author?.display_name ?? null}
+                username={author?.username ?? null}
+                size="sm"
+                className="size-7"
+                fallbackClassName="text-[10px]"
+              />
+              {author ? (
+                <PrefetchLink
+                  href={`/u/${author.username}`}
+                  className="font-medium text-foreground transition-colors hover:text-foreground/80"
+                >
+                  {authorLabel}
+                </PrefetchLink>
+              ) : (
+                <span className="font-medium text-foreground">{authorLabel}</span>
+              )}
+            </div>
+            <span className="text-muted-foreground/45">•</span>
+            <span>{formatDate(bundle.review.created_at)}</span>
+            {entity?.artist_name ? (
+              <>
+                <span className="text-muted-foreground/45">•</span>
+                <span>{entity.artist_name}</span>
+              </>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            {entity ? (
               <PrefetchLink
-                href={`/u/${author.username}`}
-                className="font-medium text-muted-foreground transition-colors hover:text-foreground"
+                href={`/track/${entity.id}`}
+                className="inline-flex max-w-full items-center gap-3 rounded-full border border-border/18 bg-card/12 px-3 py-2 transition-colors hover:bg-card/18"
               >
-                @{author.username}
+                <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted/25">
+                  {entity.cover_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={entity.cover_url}
+                      alt={entity.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 text-left">
+                  <p className="truncate text-sm font-medium text-foreground">{entity.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {entity.artist_name ?? "Unknown artist"}
+                  </p>
+                </div>
               </PrefetchLink>
-            </>
-          ) : null}
+            ) : null}
+
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/18 bg-card/12 px-3 py-2 text-sm text-foreground">
+              <Star className="size-3.5 fill-current text-amber-400" />
+              {bundle.review.rating.toFixed(1)}
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/18 bg-card/12 px-3 py-2 text-sm text-muted-foreground">
+              <MessageSquareText className="size-3.5" />
+              {commentsLabel}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -146,38 +254,35 @@ export default async function ReviewPage({
         }}
         entity={entity}
         author={author}
-        showAuthor={true}
-        entityMode="full"
+        showAuthor={false}
+        showEntity={false}
+        showRatingBadge={false}
+        interactive={false}
         featured={true}
         isAuthenticated={Boolean(user)}
         canManage={isOwner}
       />
 
-      <section className="space-y-4 rounded-[1.75rem] border border-border/18 bg-card/12 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/20 pb-4">
-          <div>
-            <h2 className="text-sm font-medium text-foreground">Comments</h2>
-            <p className="text-xs text-muted-foreground">
-              Join the conversation around this review.
+      <section className="overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/12">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border/18 px-4 py-4 sm:px-5">
+          <div className="space-y-1">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Discussion
             </p>
+            <h2 className="text-base font-medium text-foreground sm:text-lg">Comments</h2>
           </div>
 
-          {isOwner ? (
-            <Link
-              href={`/review/${bundle.review.id}/edit`}
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}
-            >
-              Edit review
-            </Link>
-          ) : null}
+          <p className="text-sm text-muted-foreground">{commentsLabel}</p>
         </div>
 
-        <ReviewCommentsPanel
-          reviewId={bundle.review.id}
-          initialCount={bundle.review.comments_count}
-          isAuthenticated={Boolean(user)}
-          variant="inline"
-        />
+        <div className="px-4 py-5 sm:px-5">
+          <ReviewCommentsPanel
+            reviewId={bundle.review.id}
+            initialCount={bundle.review.comments_count}
+            isAuthenticated={Boolean(user)}
+            variant="inline"
+          />
+        </div>
       </section>
     </section>
   );

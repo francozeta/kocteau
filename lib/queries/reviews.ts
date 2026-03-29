@@ -25,8 +25,15 @@ export type ReviewPageReview = {
   comments_count: ReviewCardData["comments_count"];
   created_at: ReviewCardData["created_at"];
   is_pinned?: boolean;
-  entities: ReviewCardEntity | ReviewCardEntity[] | null;
+  entities: ReviewPageEntity | ReviewPageEntity[] | null;
   author: ReviewCardAuthor | ReviewCardAuthor[] | null;
+};
+
+export type ReviewPageEntity = ReviewCardEntity & {
+  provider: "deezer";
+  provider_id: string;
+  type: "track";
+  deezer_url: string | null;
 };
 
 export type ViewerReview = {

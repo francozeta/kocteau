@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Music2 } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
+import TrackContextMenu from "@/components/track-context-menu";
 import { buttonVariants } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -57,39 +58,45 @@ export default async function TrackIndexPage() {
       {tracks.length > 0 ? (
         <div className="grid gap-3 xl:grid-cols-2">
           {tracks.map((track) => (
-            <PrefetchLink
+            <TrackContextMenu
               key={track.entityId}
               href={`/track/${track.entityId}`}
-              className="group flex items-center gap-4 rounded-[1.65rem] border border-border/20 bg-card/20 px-3.5 py-3.5 transition-colors hover:bg-card/35"
+              title={track.title}
+              artistName={track.artistName}
             >
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.2rem] bg-muted">
-                {track.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={track.coverUrl}
-                    alt={track.title}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <Music2 className="size-5 text-muted-foreground" />
-                )}
-              </div>
+              <PrefetchLink
+                href={`/track/${track.entityId}`}
+                className="group flex items-center gap-4 rounded-[1.65rem] border border-border/20 bg-card/20 px-3.5 py-3.5 transition-colors hover:bg-card/35"
+              >
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.2rem] bg-muted">
+                  {track.coverUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={track.coverUrl}
+                      alt={track.title}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Music2 className="size-5 text-muted-foreground" />
+                  )}
+                </div>
 
-              <div className="min-w-0 flex-1 space-y-1">
-                <h2 className="line-clamp-1 text-base font-medium text-foreground">
-                  {track.title}
-                </h2>
-                <p className="line-clamp-1 text-sm text-muted-foreground">
-                  {track.artistName ?? "Unknown artist"}
-                </p>
-              </div>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <h2 className="line-clamp-1 text-base font-medium text-foreground">
+                    {track.title}
+                  </h2>
+                  <p className="line-clamp-1 text-sm text-muted-foreground">
+                    {track.artistName ?? "Unknown artist"}
+                  </p>
+                </div>
 
-              <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                <span>{formatDate(track.latestReviewAt)}</span>
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-              </div>
-            </PrefetchLink>
+                <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                  <span>{formatDate(track.latestReviewAt)}</span>
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </PrefetchLink>
+            </TrackContextMenu>
           ))}
         </div>
       ) : (

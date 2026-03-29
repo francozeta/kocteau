@@ -136,7 +136,7 @@ export default async function TrackPage({
             <Link
               href={
                 viewerReviewId
-                  ? `/review/${viewerReviewId}/edit`
+                  ? `/review/${viewerReviewId}?edit=1`
                   : `/track/${entity.id}?${composeParams.toString()}`
               }
               className={cn(buttonVariants({ size: "sm" }), "gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90")}

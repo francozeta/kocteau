@@ -300,11 +300,11 @@ export default function NewReviewForm({
 
       if (reviewError.code === "ALREADY_REVIEWED" && existingReviewId) {
         setErrorMsg(reviewError.message);
-        router.prefetch(`/review/${existingReviewId}/edit`);
+        router.prefetch(`/review/${existingReviewId}?edit=1`);
         toast.error(reviewError.message, {
           action: {
             label: "Edit review",
-            onClick: () => router.push(`/review/${existingReviewId}/edit`),
+            onClick: () => router.push(`/review/${existingReviewId}?edit=1`),
           },
         });
       } else if (reviewError.code === "42501" || reviewError.code === "UNAUTHORIZED") {

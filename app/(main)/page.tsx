@@ -4,6 +4,7 @@ import PrefetchLink from "@/components/prefetch-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import ReviewCard from "@/components/review-card";
+import TrackContextMenu from "@/components/track-context-menu";
 import { createPageMetadata } from "@/lib/metadata";
 import {
   getFeedPublicBundle,
@@ -98,34 +99,40 @@ export default async function HomePage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {recentTracks.map((track) => (
-              <PrefetchLink
+              <TrackContextMenu
                 key={track.entityId}
                 href={`/track/${track.entityId}`}
-                className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/20 px-3 py-3 transition-colors hover:bg-card/35"
+                title={track.title}
+                artistName={track.artistName}
               >
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted">
-                  {track.coverUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={track.coverUrl}
-                      alt={track.title}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <Music2 className="size-5 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="line-clamp-1 text-sm font-medium text-foreground">
-                    {track.title}
-                  </p>
-                  <p className="line-clamp-1 text-xs text-muted-foreground">
-                    {track.artistName ?? "Unknown artist"}
-                  </p>
-                </div>
-                <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-              </PrefetchLink>
+                <PrefetchLink
+                  href={`/track/${track.entityId}`}
+                  className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/20 px-3 py-3 transition-colors hover:bg-card/35"
+                >
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted">
+                    {track.coverUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={track.coverUrl}
+                        alt={track.title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Music2 className="size-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-1 text-sm font-medium text-foreground">
+                      {track.title}
+                    </p>
+                    <p className="line-clamp-1 text-xs text-muted-foreground">
+                      {track.artistName ?? "Unknown artist"}
+                    </p>
+                  </div>
+                  <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </PrefetchLink>
+              </TrackContextMenu>
             ))}
           </div>
         </div>

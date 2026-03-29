@@ -29,9 +29,13 @@ export function buildReviewHydrationSelect(
       ? [
           `entities (
             id,
+            provider,
+            provider_id,
+            type,
             title,
             artist_name,
-            cover_url
+            cover_url,
+            deezer_url
           )`,
         ]
       : []),

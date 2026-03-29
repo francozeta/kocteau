@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
+import TrackContextMenu from "@/components/track-context-menu";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
@@ -390,58 +391,64 @@ export default function SearchPageClient({
                 Use ↑ ↓ to move, Enter to open
               </p>
               {results.map((result, index) => (
-                <PrefetchLink
+                <TrackContextMenu
                   key={`${result.provider}-${result.provider_id}`}
                   href={getResultHref(result)}
-                  onClick={() => persistRecentSearch(result.title)}
-                  ref={(node) => {
-                    resultRefs.current[index] = node;
-                  }}
-                  className="group block"
+                  title={result.title}
+                  artistName={result.artist_name}
                 >
-                  <div
-                    className={cn(
-                      "flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30",
-                      activeIndex === index && "border-foreground/20 bg-card/28",
-                    )}
+                  <PrefetchLink
+                    href={getResultHref(result)}
+                    onClick={() => persistRecentSearch(result.title)}
+                    ref={(node) => {
+                      resultRefs.current[index] = node;
+                    }}
+                    className="group block"
                   >
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-muted">
-                      {result.cover_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={result.cover_url}
-                          alt={result.title}
-                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Music2 className="size-6 text-muted-foreground" />
+                    <div
+                      className={cn(
+                        "flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30",
+                        activeIndex === index && "border-foreground/20 bg-card/28",
                       )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                        <span>{result.entity_id ? "In library" : "Deezer"}</span>
+                    >
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-muted">
+                        {result.cover_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={result.cover_url}
+                            alt={result.title}
+                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Music2 className="size-6 text-muted-foreground" />
+                        )}
                       </div>
-                      <h3 className="line-clamp-1 font-medium group-hover:underline">
-                        {highlightMatch(result.title, normalizedQuery)}
-                      </h3>
-                      <p className="line-clamp-1 text-sm text-muted-foreground">
-                        {highlightMatch(result.artist_name ?? "Unknown artist", normalizedQuery)}
-                      </p>
-                    </div>
 
-                    <div className="hidden sm:block">
-                      {activeIndex === index ? (
-                        <span className="inline-flex rounded-full border border-border/30 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                          Enter
-                        </span>
-                      ) : (
-                        <ArrowUpRight className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" />
-                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          <span>{result.entity_id ? "In library" : "Deezer"}</span>
+                        </div>
+                        <h3 className="line-clamp-1 font-medium group-hover:underline">
+                          {highlightMatch(result.title, normalizedQuery)}
+                        </h3>
+                        <p className="line-clamp-1 text-sm text-muted-foreground">
+                          {highlightMatch(result.artist_name ?? "Unknown artist", normalizedQuery)}
+                        </p>
+                      </div>
+
+                      <div className="hidden sm:block">
+                        {activeIndex === index ? (
+                          <span className="inline-flex rounded-full border border-border/30 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                            Enter
+                          </span>
+                        ) : (
+                          <ArrowUpRight className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </PrefetchLink>
+                  </PrefetchLink>
+                </TrackContextMenu>
               ))}
             </div>
           ) : null}
@@ -460,35 +467,41 @@ export default function SearchPageClient({
           {highlights.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {highlights.map((track) => (
-                <PrefetchLink
+                <TrackContextMenu
                   key={track.entityId}
                   href={`/track/${track.entityId}`}
-                  className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30"
+                  title={track.title}
+                  artistName={track.artistName}
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
-                    {track.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={track.coverUrl}
-                        alt={track.title}
-                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Music2 className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
+                  <PrefetchLink
+                    href={`/track/${track.entityId}`}
+                    className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30"
+                  >
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
+                      {track.coverUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={track.coverUrl}
+                          alt={track.title}
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Music2 className="size-5 text-muted-foreground" />
+                      )}
+                    </div>
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className="line-clamp-1 font-medium group-hover:underline">{track.title}</h3>
-                    <p className="line-clamp-1 text-sm text-muted-foreground">
-                      {track.artistName ?? "Unknown artist"}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatDate(track.latestReviewAt)}
-                    </p>
-                  </div>
-                </PrefetchLink>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="line-clamp-1 font-medium group-hover:underline">{track.title}</h3>
+                      <p className="line-clamp-1 text-sm text-muted-foreground">
+                        {track.artistName ?? "Unknown artist"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {formatDate(track.latestReviewAt)}
+                      </p>
+                    </div>
+                  </PrefetchLink>
+                </TrackContextMenu>
               ))}
             </div>
           ) : (
