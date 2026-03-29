@@ -41,21 +41,33 @@ export type ReviewCardData = {
   viewer_has_bookmarked?: boolean;
 };
 
-type ReviewCardProps = {
-  review: ReviewCardData;
-  entity: ReviewCardEntity | null;
-  author?: ReviewCardAuthor | null;
+export type ReviewCardDisplayOptions = {
   showAuthor?: boolean;
   showEntity?: boolean;
   showRatingBadge?: boolean;
   entityMode?: "full" | "inline";
   eyebrow?: string;
   featured?: boolean;
-  isAuthenticated?: boolean;
-  bookmarkRefreshOnToggle?: boolean;
-  canManage?: boolean;
-  interactive?: boolean;
   bodyClampLines?: 3 | 4 | 5;
+};
+
+export type ReviewCardBehaviorOptions = {
+  interactive?: boolean;
+  bookmarkRefreshOnToggle?: boolean;
+};
+
+export type ReviewCardPermissions = {
+  isAuthenticated?: boolean;
+  canManage?: boolean;
+};
+
+type ReviewCardProps = {
+  review: ReviewCardData;
+  entity: ReviewCardEntity | null;
+  author?: ReviewCardAuthor | null;
+  display?: ReviewCardDisplayOptions;
+  behavior?: ReviewCardBehaviorOptions;
+  permissions?: ReviewCardPermissions;
 };
 
 function formatDate(value: string) {
@@ -155,20 +167,23 @@ export default function ReviewCard({
   review,
   entity,
   author = null,
-  showAuthor = true,
-  showEntity = true,
-  showRatingBadge = true,
-  entityMode = "full",
-  eyebrow,
-  featured = false,
-  isAuthenticated = false,
-  bookmarkRefreshOnToggle = false,
-  canManage = false,
-  interactive = true,
-  bodyClampLines,
+  display,
+  behavior,
+  permissions,
 }: ReviewCardProps) {
   const router = useRouter();
   const bookmarkButtonRef = useRef<HTMLButtonElement | null>(null);
+  const {
+    showAuthor = true,
+    showEntity = true,
+    showRatingBadge = true,
+    entityMode = "full",
+    eyebrow,
+    featured = false,
+    bodyClampLines,
+  } = display ?? {};
+  const { interactive = true, bookmarkRefreshOnToggle = false } = behavior ?? {};
+  const { isAuthenticated = false, canManage = false } = permissions ?? {};
   const hasTitle = Boolean(review.title?.trim());
   const authorLabel = author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
   const reviewHref = `/review/${review.id}`;

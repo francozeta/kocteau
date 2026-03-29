@@ -215,11 +215,14 @@ export default async function UserProfilePage({
                 viewer_has_bookmarked: bookmarkedReviewIds.has(pinnedReview.id),
               }}
               entity={getEntity(pinnedReview)}
-              showAuthor={false}
-              featured={true}
-              entityMode="full"
-              isAuthenticated={Boolean(user)}
-              canManage={isOwnProfile}
+              display={{
+                showAuthor: false,
+                featured: true,
+              }}
+              permissions={{
+                isAuthenticated: Boolean(user),
+                canManage: isOwnProfile,
+              }}
             />
           </div>
         ) : null}
@@ -244,10 +247,14 @@ export default async function UserProfilePage({
                     viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
                   }}
                   entity={getEntity(review)}
-                  showAuthor={false}
-                  entityMode="inline"
-                  isAuthenticated={Boolean(user)}
-                  canManage={isOwnProfile}
+                  display={{
+                    showAuthor: false,
+                    entityMode: "inline",
+                  }}
+                  permissions={{
+                    isAuthenticated: Boolean(user),
+                    canManage: isOwnProfile,
+                  }}
                 />
               ))}
             </div>
@@ -322,12 +329,15 @@ async function SavedReviewsSection({
                 }}
                 entity={reviewEntity}
                 author={reviewAuthor}
-                showAuthor={true}
-                entityMode="inline"
-                eyebrow="Saved for later"
-                isAuthenticated={isAuthenticated}
-                bookmarkRefreshOnToggle={true}
-                canManage={reviewAuthor?.id === userId}
+                display={{
+                  entityMode: "inline",
+                  eyebrow: "Saved for later",
+                }}
+                behavior={{ bookmarkRefreshOnToggle: true }}
+                permissions={{
+                  isAuthenticated,
+                  canManage: reviewAuthor?.id === userId,
+                }}
               />
             );
           })}

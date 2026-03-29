@@ -274,13 +274,17 @@ export default async function ReviewPage({
           }}
           entity={entity}
           author={author}
-          showAuthor={false}
-          showEntity={false}
-          showRatingBadge={false}
-          interactive={false}
-          featured={true}
-          isAuthenticated={Boolean(user)}
-          canManage={isOwner}
+          display={{
+            showAuthor: false,
+            showEntity: false,
+            showRatingBadge: false,
+            featured: true,
+          }}
+          behavior={{ interactive: false }}
+          permissions={{
+            isAuthenticated: Boolean(user),
+            canManage: isOwner,
+          }}
         />
 
         <section className="overflow-hidden rounded-[1.7rem] border border-border/14 bg-card/10">

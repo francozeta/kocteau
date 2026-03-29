@@ -88,12 +88,15 @@ export default async function SavedReviewsPage() {
                 }}
                 entity={reviewEntity}
                 author={reviewAuthor}
-                showAuthor={true}
-                entityMode="inline"
-                eyebrow="Saved for later"
-                isAuthenticated={true}
-                bookmarkRefreshOnToggle={true}
-                canManage={reviewAuthor?.id === user.id}
+                display={{
+                  entityMode: "inline",
+                  eyebrow: "Saved for later",
+                }}
+                behavior={{ bookmarkRefreshOnToggle: true }}
+                permissions={{
+                  isAuthenticated: true,
+                  canManage: reviewAuthor?.id === user.id,
+                }}
               />
             );
           })}

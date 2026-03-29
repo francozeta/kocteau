@@ -58,14 +58,6 @@ function getAuthor(review: FeedReview) {
   return review.author;
 }
 
-function getReviewSortLabel(view: FeedView) {
-  if (view === "top-rated") {
-    return "Sorted by rating";
-  }
-
-  return "Sorted by newest";
-}
-
 function sortFeed(feed: FeedReview[], view: FeedView) {
   if (view !== "top-rated") {
     return feed;
@@ -130,12 +122,14 @@ export default async function HomePage({
               }}
               entity={entity}
               author={author}
-              showAuthor={true}
-              entityMode="full"
-              featured={shouldLeadWithReviews && index === 0}
-              bodyClampLines={4}
-              isAuthenticated={Boolean(user)}
-              canManage={Boolean(user?.id && author?.id === user.id)}
+              display={{
+                featured: shouldLeadWithReviews && index === 0,
+                bodyClampLines: 4,
+              }}
+              permissions={{
+                isAuthenticated: Boolean(user),
+                canManage: Boolean(user?.id && author?.id === user.id),
+              }}
             />
           );
         })}

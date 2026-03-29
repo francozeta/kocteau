@@ -204,10 +204,11 @@ export default async function TrackPage({
                   }}
                   entity={entity}
                   author={author}
-                  showAuthor={true}
-                  entityMode="inline"
-                  isAuthenticated={Boolean(user)}
-                  canManage={Boolean(user?.id && author?.id === user.id)}
+                  display={{ entityMode: "inline" }}
+                  permissions={{
+                    isAuthenticated: Boolean(user),
+                    canManage: Boolean(user?.id && author?.id === user.id),
+                  }}
                 />
               );
             })}
