@@ -39,15 +39,16 @@ function NavTab({
   return (
     <Link
       href={item.href}
+      aria-label={item.label}
       className={cn(
-        "flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1rem] px-1 py-2 text-[10px] font-medium transition-colors",
+        "group flex size-10.5 items-center justify-center rounded-[1rem] border border-transparent text-muted-foreground transition-all duration-200",
         active
-          ? "text-foreground"
-          : "text-muted-foreground hover:text-foreground",
+          ? "border-border/18 bg-muted/34 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+          : "hover:bg-muted/16 hover:text-foreground",
       )}
     >
-      <Icon className={cn("size-[1.05rem]", active && "text-foreground")} />
-      <span className="truncate">{item.label}</span>
+      <Icon className={cn("size-[1.08rem]", active && "text-foreground")} />
+      <span className="sr-only">{item.label}</span>
     </Link>
   );
 }
@@ -60,7 +61,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       href: "/",
       label: "Feed",
       icon: Home,
-      active: (current) => current === "/",
+      active: (current) => current === "/" || current.startsWith("/review/"),
     },
     {
       href: "/search",
@@ -88,31 +89,34 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           href: "/login",
           label: "Log in",
           icon: UserRound,
-          active: (current) => current.startsWith("/login"),
+          active: (current) => current.startsWith("/login") || current.startsWith("/signup"),
         },
   ];
 
   return (
-    <nav className="fixed inset-x-3 bottom-3 z-50 md:hidden">
-      <div className="mx-auto flex max-w-md items-center rounded-[1.85rem] border border-border/25 bg-background/88 px-2 py-2 shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-        <div className="grid min-w-0 flex-1 grid-cols-2">
+    <nav className="fixed inset-x-0 bottom-4 z-50 px-3 md:hidden">
+      <div className="mx-auto max-w-[22rem]">
+        <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-center gap-1.5 rounded-[1.7rem] border border-border/22 bg-background/88 px-2 py-2 shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl">
           {leftItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
-        </div>
-
-        <div className="px-1">
-          <NewReviewDialog
-            isAuthenticated={Boolean(profile)}
-            triggerClassName="size-12 rounded-[1.2rem] bg-foreground px-0 text-background shadow-none hover:bg-foreground/92"
-            triggerLabelClassName="sr-only"
-          />
-        </div>
-
-        <div className="grid min-w-0 flex-1 grid-cols-2">
           {rightItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
+          <NewReviewDialog
+            isAuthenticated={Boolean(profile)}
+            trigger={
+              <button
+                type="button"
+                aria-label="New review"
+                className="flex size-11 items-center justify-center rounded-[1.05rem] bg-foreground text-background shadow-none transition-transform duration-200 hover:bg-foreground/92 active:scale-[0.98]"
+              >
+                <Plus className="size-[1.15rem]" />
+                <span className="sr-only">New review</span>
+              </button>
+            }
+            triggerLabelClassName="sr-only"
+          />
         </div>
       </div>
     </nav>
