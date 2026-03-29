@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Dot, Music2 } from "lucide-react";
+import { ArrowRight, Music2, Search, SlidersHorizontal } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -51,45 +51,53 @@ export default async function HomePage() {
   );
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6 sm:space-y-7">
-      <div className="border-b border-border/30 pb-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Feed
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{feed.length}</span>
-              <span>{feed.length === 1 ? "review" : "reviews"}</span>
-              <Dot className="size-4" />
-              <span className="font-medium text-foreground">{recentTracks.length}</span>
-              <span>{recentTracks.length === 1 ? "track" : "tracks"}</span>
-            </div>
+    <section className="mx-auto max-w-3xl space-y-7 sm:space-y-8">
+      <div className="flex flex-col gap-4 border-b border-border/24 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/24 bg-card/18 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            <Music2 className="size-3.5" />
+            Discovery
           </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-muted/12 px-3 py-1.5 text-sm text-muted-foreground">
+            <SlidersHorizontal className="size-3.5" />
+            Latest reviews
+          </div>
+        </div>
 
-          <div className="flex flex-wrap gap-2.5 text-sm">
-            <Link
-              href="/search"
-              className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full border-border/30")}
-            >
-              Search
-            </Link>
-            <Link
-              href="/track"
-              className={cn(buttonVariants({ size: "sm", variant: "ghost" }), "rounded-full")}
-            >
-              Tracks
-            </Link>
-          </div>
+        <div className="flex flex-wrap gap-2 text-sm">
+          <Link
+            href="/search"
+            className={cn(
+              buttonVariants({ size: "sm", variant: "outline" }),
+              "rounded-full border-border/26 bg-card/12 text-foreground hover:bg-card/22",
+            )}
+          >
+            <Search className="size-4" />
+            Search
+          </Link>
+          <Link
+            href="/track"
+            className={cn(
+              buttonVariants({ size: "sm", variant: "ghost" }),
+              "rounded-full text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Tracks
+          </Link>
         </div>
       </div>
 
       {recentTracks.length > 0 ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              Active tracks
-            </p>
+        <div className="space-y-4">
+          <div className="flex items-end justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                Now in rotation
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Tracks shaping the latest notes in Kocteau.
+              </p>
+            </div>
             <Link
               href="/track"
               className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -107,9 +115,9 @@ export default async function HomePage() {
               >
                 <PrefetchLink
                   href={`/track/${track.entityId}`}
-                  className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/20 px-3 py-3 transition-colors hover:bg-card/35"
+                  className="group flex items-center gap-3 rounded-[1.55rem] border border-border/20 bg-card/18 px-3 py-3 transition-colors hover:border-border/28 hover:bg-card/30"
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] bg-muted">
                     {track.coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -123,10 +131,10 @@ export default async function HomePage() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-sm font-medium text-foreground">
+                    <p className="line-clamp-1 text-[15px] font-medium text-foreground">
                       {track.title}
                     </p>
-                    <p className="line-clamp-1 text-xs text-muted-foreground">
+                    <p className="line-clamp-1 text-sm text-muted-foreground">
                       {track.artistName ?? "Unknown artist"}
                     </p>
                   </div>
@@ -138,13 +146,13 @@ export default async function HomePage() {
         </div>
       ) : null}
 
-      <div className="flex items-end justify-between border-b border-border/30 pb-4">
+      <div className="flex items-center justify-between border-b border-border/24 pb-3">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Latest
+          Latest reviews
         </h2>
-        <p className="text-sm text-muted-foreground">
-          {feed.length} {feed.length === 1 ? "entry" : "entries"}
-        </p>
+        <span className="text-xs text-muted-foreground">
+          Sorted by newest
+        </span>
       </div>
 
       {feed.length > 0 ? (
