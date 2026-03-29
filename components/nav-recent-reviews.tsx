@@ -37,7 +37,7 @@ export function NavRecentReviews({
 
   return (
     <Collapsible defaultOpen className="group/collapsible">
-      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+      <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden">
         <SidebarGroupLabel asChild>
           <CollapsibleTrigger className="cursor-pointer">
             Recent Reviews
@@ -56,7 +56,7 @@ export function NavRecentReviews({
                 <SidebarMenuItem key={item.entityId}>
                   <SidebarMenuButton
                     asChild
-                    className="h-11 rounded-xl px-2.5 text-[13px] font-medium"
+                    className="h-11 rounded-xl px-2 text-[13px] font-medium"
                   >
                     <PrefetchLink href={`/track/${item.entityId}`} onClick={onNavigate}>
                       <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-sidebar-border bg-sidebar-accent">

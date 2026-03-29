@@ -194,7 +194,7 @@ export default function AppSidebar({
           {canShowRecentReviews ? <NavRecentReviews items={recentTracks} onNavigate={closeMobileSidebar} /> : null}
         </SidebarContent>
 
-        <SidebarFooter className="p-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
+        <SidebarFooter className="px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
           <NavUser profile={profile} onNavigate={closeMobileSidebar} />
         </SidebarFooter>
         <SidebarRail />
