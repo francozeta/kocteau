@@ -6,6 +6,8 @@ import { supabasePublic } from "@/lib/supabase/public";
 
 type DiscoveryRow = {
   created_at: string;
+  entity_id: string;
+  rating: number;
   entities:
     | {
         id: string;
@@ -28,6 +30,8 @@ export type DiscoveryTrack = {
   artistName: string | null;
   coverUrl: string | null;
   latestReviewAt: string;
+  reviewCount: number;
+  averageRating: number | null;
 };
 
 function getEntity(row: DiscoveryRow) {
@@ -50,6 +54,8 @@ export async function getRecentlyDiscussedTracks(limit = 12): Promise<DiscoveryT
         .from("reviews")
         .select(`
           created_at,
+          entity_id,
+          rating,
           entities!inner (
             id,
             title,
@@ -62,6 +68,7 @@ export async function getRecentlyDiscussedTracks(limit = 12): Promise<DiscoveryT
 
       const seen = new Set<string>();
       const tracks: DiscoveryTrack[] = [];
+      const recentEntityIds: string[] = [];
 
       for (const row of (data ?? []) as DiscoveryRow[]) {
         const entity = getEntity(row);
@@ -71,12 +78,15 @@ export async function getRecentlyDiscussedTracks(limit = 12): Promise<DiscoveryT
         }
 
         seen.add(entity.id);
+        recentEntityIds.push(entity.id);
         tracks.push({
           entityId: entity.id,
           title: entity.title,
           artistName: entity.artist_name,
           coverUrl: entity.cover_url,
           latestReviewAt: row.created_at,
+          reviewCount: 0,
+          averageRating: null,
         });
 
         if (tracks.length >= limit) {
@@ -84,7 +94,38 @@ export async function getRecentlyDiscussedTracks(limit = 12): Promise<DiscoveryT
         }
       }
 
-          return tracks;
+      if (recentEntityIds.length === 0) {
+        return tracks;
+      }
+
+      const { data: ratings } = await supabase
+        .from("reviews")
+        .select("entity_id, rating")
+        .in("entity_id", recentEntityIds);
+
+      const ratingMap = new Map<string, { total: number; count: number }>();
+
+      for (const row of ratings ?? []) {
+        const current = ratingMap.get(row.entity_id) ?? { total: 0, count: 0 };
+        current.total += row.rating;
+        current.count += 1;
+        ratingMap.set(row.entity_id, current);
+      }
+
+      return tracks.map((track) => {
+        const aggregate = ratingMap.get(track.entityId);
+
+        if (!aggregate || aggregate.count === 0) {
+          return track;
+        }
+
+        return {
+          ...track,
+          reviewCount: aggregate.count,
+          averageRating: Number((aggregate.total / aggregate.count).toFixed(1)),
+        };
+      });
+
         },
         { limit },
       ),

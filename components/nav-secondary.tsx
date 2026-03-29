@@ -40,7 +40,7 @@ export function NavSecondary({
                 asChild
                 isActive={item.isActive}
                 tooltip={item.title}
-                className="rounded-xl text-[13px] font-medium group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
+                className="rounded-xl text-[13px] font-medium data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] data-[active=true]:[&_svg]:text-sidebar-primary group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
                 <Link href={item.url} onClick={onNavigate}>
                   <item.icon />

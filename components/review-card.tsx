@@ -55,6 +55,7 @@ type ReviewCardProps = {
   bookmarkRefreshOnToggle?: boolean;
   canManage?: boolean;
   interactive?: boolean;
+  bodyClampLines?: 3 | 4 | 5;
 };
 
 function formatDate(value: string) {
@@ -93,7 +94,7 @@ function TrackInfo({
       <div data-prevent-review-link="true">
         <PrefetchLink
           href={`/track/${entity.id}`}
-          className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/18 bg-muted/18 px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:border-border/28 hover:bg-muted/30 hover:text-foreground active:bg-muted/36"
+          className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/14 bg-transparent px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/18 hover:text-foreground active:bg-muted/24"
         >
           <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
             {entity.cover_url ? (
@@ -108,7 +109,7 @@ function TrackInfo({
               <Music2 className="size-3 text-muted-foreground" />
             )}
           </div>
-          <span className="truncate font-medium text-foreground">{entity.title}</span>
+          <span className="truncate font-serif text-[15px] font-medium text-foreground">{entity.title}</span>
           <span className="truncate text-muted-foreground/70">
             {entity.artist_name ?? "Unknown artist"}
           </span>
@@ -121,9 +122,9 @@ function TrackInfo({
     <div data-prevent-review-link="true">
       <PrefetchLink
         href={`/track/${entity.id}`}
-        className="group/track flex items-center gap-3 rounded-[1.35rem] border border-border/18 bg-muted/16 px-3 py-3 transition-colors hover:border-border/28 hover:bg-muted/28 active:bg-muted/34"
+        className="group/track -mx-1 flex items-center gap-3 rounded-[1.15rem] px-1 py-1.5 transition-colors hover:bg-muted/16 active:bg-muted/22"
       >
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/12 bg-muted/18">
           {entity.cover_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -137,11 +138,11 @@ function TrackInfo({
           )}
         </div>
 
-        <div className="min-w-0">
-          <p className="line-clamp-1 font-medium text-foreground">
+        <div className="min-w-0 space-y-0.5">
+          <p className="line-clamp-1 font-serif text-[1rem] font-medium text-foreground">
             {entity.title}
           </p>
-          <p className="line-clamp-1 text-xs text-muted-foreground">
+          <p className="line-clamp-1 text-[13px] text-muted-foreground">
             {entity.artist_name ?? "Unknown artist"}
           </p>
         </div>
@@ -164,6 +165,7 @@ export default function ReviewCard({
   bookmarkRefreshOnToggle = false,
   canManage = false,
   interactive = true,
+  bodyClampLines,
 }: ReviewCardProps) {
   const router = useRouter();
   const bookmarkButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -227,13 +229,13 @@ export default function ReviewCard({
               : undefined
           }
           className={cn(
-            "overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors",
+            "overflow-hidden rounded-[1.65rem] border border-border/14 bg-card/12 transition-colors",
             interactive &&
-              "cursor-pointer hover:bg-card/26 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-            featured && "border-border/30 bg-card/22",
+              "cursor-pointer hover:bg-card/18 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+            featured && "border-border/22 bg-card/16",
           )}
         >
-          <div className="space-y-4 p-4 sm:p-5">
+          <div className="space-y-4 p-4 sm:p-[1.125rem]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2">
                 {eyebrow ? (
@@ -295,13 +297,22 @@ export default function ReviewCard({
             {showEntity ? <TrackInfo entity={entity} mode={entityMode} /> : null}
 
             {hasTitle ? (
-              <h3 className="font-serif text-[1.08rem] font-semibold tracking-tight text-foreground sm:text-[1.15rem]">
+              <h3 className="font-serif text-[1.15rem] font-semibold tracking-tight text-foreground sm:text-[1.22rem]">
                 {review.title}
               </h3>
             ) : null}
 
             {review.body ? (
-              <p className="text-[15px] leading-7 text-foreground/82">{review.body}</p>
+              <p
+                className={cn(
+                  "font-serif text-[15.5px] leading-[1.6] text-foreground/86",
+                  bodyClampLines === 3 && "line-clamp-3",
+                  bodyClampLines === 4 && "line-clamp-4",
+                  bodyClampLines === 5 && "line-clamp-5",
+                )}
+              >
+                {review.body}
+              </p>
             ) : (
               <p className="text-sm italic text-muted-foreground">
                 Only a rating was left for this track.

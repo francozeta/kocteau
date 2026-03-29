@@ -15,8 +15,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
   SidebarRail,
   useSidebar,
@@ -170,22 +168,6 @@ export default function AppSidebar({
               }
             />
           </div>
-
-          <SidebarGroup className="px-0 py-0 group-data-[collapsible=icon]:hidden">
-            <SidebarGroupContent>
-              <Link
-                href="/search"
-                onClick={closeMobileSidebar}
-                className="flex h-9 items-center gap-2 rounded-xl border border-sidebar-border bg-background/40 px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
-              >
-                <Search className="size-4 shrink-0" />
-                <span>Search tracks</span>
-                <Kbd className="ml-auto border border-sidebar-border/70 bg-sidebar-accent/55 px-1.5 text-[0.6rem] text-muted-foreground">
-                  F
-                </Kbd>
-              </Link>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </SidebarHeader>
 
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NotificationsButton from "@/components/notifications-button";
+import { Kbd } from "@/components/ui/kbd";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -82,6 +84,19 @@ export default function Header({
         </div>
 
         <div className="flex items-center gap-2">
+          <Link href="/search" className="hidden md:block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground"
+            >
+              <Search className="size-4" />
+              <span>Search</span>
+              <Kbd className="ml-1 border-border/60 bg-muted/32 text-[0.62rem] text-muted-foreground">
+                F
+              </Kbd>
+            </Button>
+          </Link>
           {profile ? (
             <NotificationsButton
               userId={profile.id}
