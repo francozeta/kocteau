@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, PencilLine, Share2, Trash2 } from "lucide-react";
+import { Bookmark, Flag, MoreHorizontal, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ type ReviewCardActionsMenuProps = {
   entityTitle: string | null;
   entityId?: string | null;
   canManage?: boolean;
+  onToggleBookmark?: () => void;
 };
 
 export default function ReviewCardActionsMenu({
@@ -29,14 +31,19 @@ export default function ReviewCardActionsMenu({
   entityTitle,
   entityId = null,
   canManage = false,
+  onToggleBookmark,
 }: ReviewCardActionsMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const {
+    canOpenTrack,
     confirmOpen,
     setConfirmOpen,
     isDeleting,
+    openTrack,
     editReview,
-    shareReview,
+    copyReviewLink,
+    reportReview,
+    requestDeleteReview,
     deleteReview,
   } = useReviewCardActions({
     reviewId,
@@ -53,7 +60,7 @@ export default function ReviewCardActionsMenu({
             type="button"
             variant="ghost"
             size="icon"
-            className="size-8 rounded-full border border-border/18 bg-muted/12 text-muted-foreground hover:bg-muted/24 hover:text-foreground"
+            className="size-7 rounded-full border border-transparent bg-transparent text-muted-foreground/82 hover:bg-muted/22 hover:text-foreground"
             aria-label="Review actions"
           >
             <MoreHorizontal className="size-4" />
@@ -67,11 +74,34 @@ export default function ReviewCardActionsMenu({
         >
           <DropdownMenuItem
             onSelect={() => {
-              void shareReview();
+              void copyReviewLink();
             }}
           >
-            <Share2 className="size-4" />
-            Share review
+            <TextQuote className="size-4" />
+            Copy review link
+            <DropdownMenuShortcut>⇧L</DropdownMenuShortcut>
+          </DropdownMenuItem>
+
+          {canOpenTrack ? (
+            <DropdownMenuItem
+              onSelect={() => {
+                openTrack();
+              }}
+            >
+              <Music2 className="size-4" />
+              Open track
+              <DropdownMenuShortcut>T</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          ) : null}
+
+          <DropdownMenuItem
+            onSelect={() => {
+              onToggleBookmark?.();
+            }}
+          >
+            <Bookmark className="size-4" />
+            Bookmark
+            <DropdownMenuShortcut>B</DropdownMenuShortcut>
           </DropdownMenuItem>
 
           {canManage ? (
@@ -84,20 +114,35 @@ export default function ReviewCardActionsMenu({
               >
                 <PencilLine className="size-4" />
                 Edit review
+                <DropdownMenuShortcut>E</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onSelect={(event) => {
                   event.preventDefault();
                   setMenuOpen(false);
-                  setConfirmOpen(true);
+                  requestDeleteReview();
                 }}
               >
                 <Trash2 className="size-4" />
                 Delete review
+                <DropdownMenuShortcut>Del</DropdownMenuShortcut>
               </DropdownMenuItem>
             </>
-          ) : null}
+          ) : (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => {
+                  void reportReview();
+                }}
+              >
+                <Flag className="size-4" />
+                Report
+                <DropdownMenuShortcut>R</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

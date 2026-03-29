@@ -2,6 +2,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import ReactQueryProvider from "../providers/react-query-provider";
 import Header from "@/components/header";
 import AppSidebar from "@/components/app-sidebar";
+import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import {
   getNotificationsForUser,
@@ -57,6 +58,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           unreadCount={initialUnreadCount}
         />
         <SidebarInset className="min-h-svh">
+          <GlobalShortcuts profileUsername={safeProfile?.username ?? null} />
           <Header
             profile={safeProfile}
             initialUnreadCount={initialUnreadCount}

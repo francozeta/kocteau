@@ -57,6 +57,23 @@ export function useReviewCardActions({
     return new URL(`/review/${reviewId}`, window.location.origin).toString();
   }, [reviewId]);
 
+  async function copyReviewLink() {
+    try {
+      if (!shareUrl) {
+        throw new Error("Review link isn't available right now.");
+      }
+
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Copy isn't available on this device right now.");
+      }
+
+      await navigator.clipboard.writeText(shareUrl);
+      toastActionSuccess("Review link copied");
+    } catch (error) {
+      toastActionError(error, "We couldn't copy this review link right now.");
+    }
+  }
+
   function openReview() {
     router.prefetch(`/review/${reviewId}`);
     router.push(`/review/${reviewId}`);
@@ -74,6 +91,10 @@ export function useReviewCardActions({
   function editReview() {
     router.prefetch(`/review/${reviewId}?edit=1`);
     router.push(`/review/${reviewId}?edit=1`);
+  }
+
+  function requestDeleteReview() {
+    setConfirmOpen(true);
   }
 
   async function shareReview() {
@@ -106,6 +127,20 @@ export function useReviewCardActions({
       throw new Error("Sharing isn't available on this device right now.");
     } catch (error) {
       toastActionError(error, "We couldn't share this review right now.");
+    }
+  }
+
+  async function reportReview() {
+    try {
+      if (navigator.clipboard?.writeText && shareUrl) {
+        await navigator.clipboard.writeText(shareUrl);
+        toastActionSuccess("Review link copied. Reporting tools are coming soon.");
+        return;
+      }
+
+      toastActionSuccess("Reporting tools are coming soon.");
+    } catch (error) {
+      toastActionError(error, "We couldn't prepare this report right now.");
     }
   }
 
@@ -161,7 +196,10 @@ export function useReviewCardActions({
     openReview,
     openTrack,
     editReview,
+    requestDeleteReview,
+    copyReviewLink,
     shareReview,
+    reportReview,
     deleteReview,
   };
 }

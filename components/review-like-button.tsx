@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Ref } from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ type ReviewLikeButtonProps = {
   initialCount: number;
   initialLiked: boolean;
   isAuthenticated: boolean;
+  buttonRef?: Ref<HTMLButtonElement>;
 };
 
 export default function ReviewLikeButton({
@@ -35,6 +37,7 @@ export default function ReviewLikeButton({
   initialCount,
   initialLiked,
   isAuthenticated,
+  buttonRef,
 }: ReviewLikeButtonProps) {
   const isMobile = useIsMobile();
   const [authOpen, setAuthOpen] = useState(false);
@@ -113,6 +116,7 @@ export default function ReviewLikeButton({
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={handleClick}
         disabled={isPending}
@@ -120,7 +124,7 @@ export default function ReviewLikeButton({
         aria-busy={isPending}
         aria-label={state.liked ? "Unlike this review" : "Like this review"}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all duration-200 hover:border-border/40 hover:bg-muted/40 hover:text-foreground active:scale-[0.98] disabled:pointer-events-none",
+          "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-all duration-200 hover:bg-muted/34 hover:text-foreground active:scale-[0.98] disabled:pointer-events-none",
           state.liked && "text-foreground",
           animatePulse && "bg-rose-500/8",
           isPending && "opacity-80",
@@ -134,7 +138,9 @@ export default function ReviewLikeButton({
             isPending && "scale-110",
           )}
         />
-        <span className={cn(animatePulse && "kocteau-like-count-pop")}>{state.count}</span>
+        {state.count > 0 ? (
+          <span className={cn(animatePulse && "kocteau-like-count-pop")}>{state.count}</span>
+        ) : null}
       </button>
 
       {isMobile ? (

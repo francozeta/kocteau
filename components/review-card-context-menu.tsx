@@ -1,11 +1,12 @@
 "use client";
 
-import { CornerUpRight, Music2, PencilLine, Share2, Trash2 } from "lucide-react";
+import { Bookmark, CornerUpRight, Flag, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
 import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
+  ContextMenuShortcut,
 } from "@/components/ui/context-menu";
 import {
   ReviewCardDeleteDialog,
@@ -18,6 +19,7 @@ type ReviewCardContextMenuProps = {
   entityTitle: string | null;
   entityId?: string | null;
   canManage?: boolean;
+  onToggleBookmark?: () => void;
 };
 
 export default function ReviewCardContextMenu({
@@ -26,6 +28,7 @@ export default function ReviewCardContextMenu({
   entityTitle,
   entityId = null,
   canManage = false,
+  onToggleBookmark,
 }: ReviewCardContextMenuProps) {
   const {
     canOpenTrack,
@@ -35,7 +38,9 @@ export default function ReviewCardContextMenu({
     openReview,
     openTrack,
     editReview,
-    shareReview,
+    copyReviewLink,
+    requestDeleteReview,
+    reportReview,
     deleteReview,
   } = useReviewCardActions({
     reviewId,
@@ -51,20 +56,32 @@ export default function ReviewCardContextMenu({
         <ContextMenuItem onSelect={openReview}>
           <CornerUpRight className="size-4" />
           Open review
+          <ContextMenuShortcut>O</ContextMenuShortcut>
         </ContextMenuItem>
         {canOpenTrack ? (
           <ContextMenuItem onSelect={openTrack}>
             <Music2 className="size-4" />
             Open track
+            <ContextMenuShortcut>T</ContextMenuShortcut>
           </ContextMenuItem>
         ) : null}
         <ContextMenuItem
           onSelect={() => {
-            void shareReview();
+            void copyReviewLink();
           }}
         >
-          <Share2 className="size-4" />
-          Share review
+          <TextQuote className="size-4" />
+          Copy review link
+          <ContextMenuShortcut>⇧L</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem
+          onSelect={() => {
+            onToggleBookmark?.();
+          }}
+        >
+          <Bookmark className="size-4" />
+          Bookmark
+          <ContextMenuShortcut>B</ContextMenuShortcut>
         </ContextMenuItem>
 
         {canManage ? (
@@ -73,19 +90,34 @@ export default function ReviewCardContextMenu({
             <ContextMenuItem onSelect={editReview}>
               <PencilLine className="size-4" />
               Edit review
+              <ContextMenuShortcut>E</ContextMenuShortcut>
             </ContextMenuItem>
             <ContextMenuItem
               variant="destructive"
               onSelect={(event) => {
                 event.preventDefault();
-                setConfirmOpen(true);
+                requestDeleteReview();
               }}
             >
               <Trash2 className="size-4" />
               Delete review
+              <ContextMenuShortcut>Del</ContextMenuShortcut>
             </ContextMenuItem>
           </>
-        ) : null}
+        ) : (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              onSelect={() => {
+                void reportReview();
+              }}
+            >
+              <Flag className="size-4" />
+              Report
+              <ContextMenuShortcut>R</ContextMenuShortcut>
+            </ContextMenuItem>
+          </>
+        )}
       </ContextMenuContent>
 
       <ReviewCardDeleteDialog

@@ -8,6 +8,7 @@ import NewReviewDialog from "@/components/new-review-dialog";
 import { NavMain } from "@/components/nav-main";
 import { NavRecentReviews } from "@/components/nav-recent-reviews";
 import { NavSecondary } from "@/components/nav-secondary";
+import { Kbd } from "@/components/ui/kbd";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -112,10 +113,22 @@ export default function AppSidebar({
         <div className="group-data-[collapsible=icon]:hidden">
           <NewReviewDialog
             isAuthenticated={Boolean(profile)}
-              triggerClassName="h-9 w-full justify-center rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none hover:bg-sidebar-primary/95"
-              triggerLabelClassName="inline"
-            />
-          </div>
+            trigger={
+              <button
+                type="button"
+                className="flex h-9 w-full items-center justify-between rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none transition-colors hover:bg-sidebar-primary/95"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Plus className="size-4" />
+                  <span>New review</span>
+                </span>
+                <Kbd className="border border-sidebar-primary-foreground/12 bg-sidebar-primary-foreground/10 px-1.5 text-[0.6rem] text-sidebar-primary-foreground/78">
+                  N
+                </Kbd>
+              </button>
+            }
+          />
+        </div>
 
           <div className="hidden group-data-[collapsible=icon]:block">
             <NewReviewDialog
@@ -140,6 +153,9 @@ export default function AppSidebar({
               >
                 <Search className="size-4 shrink-0" />
                 <span>Search tracks</span>
+                <Kbd className="ml-auto border border-sidebar-border/70 bg-sidebar-accent/55 px-1.5 text-[0.6rem] text-muted-foreground">
+                  F
+                </Kbd>
               </Link>
             </SidebarGroupContent>
           </SidebarGroup>

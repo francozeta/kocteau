@@ -41,17 +41,17 @@ export default function ReviewCommentsButton({
   });
 
   const trigger = (
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      aria-label="Open comments"
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all duration-200 hover:border-border/40 hover:bg-muted/40 hover:text-foreground active:scale-[0.98]",
-        open && "text-foreground",
-      )}
-    >
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Open comments"
+        className={cn(
+          "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-all duration-200 hover:bg-muted/34 hover:text-foreground active:scale-[0.98]",
+          open && "text-foreground",
+        )}
+      >
       <MessageCircle className="size-4" />
-      <span>{commentsCount}</span>
+      {commentsCount > 0 ? <span>{commentsCount}</span> : null}
     </button>
   );
 
