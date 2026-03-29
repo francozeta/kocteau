@@ -23,9 +23,11 @@ type NavSecondaryItem = {
 export function NavSecondary({
   items,
   label = "Library",
+  onNavigate,
 }: {
   items: NavSecondaryItem[];
   label?: string;
+  onNavigate?: () => void;
 }) {
   return (
     <SidebarGroup className="px-0">
@@ -40,7 +42,7 @@ export function NavSecondary({
                 tooltip={item.title}
                 className="rounded-xl text-[13px] font-medium group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
-                <Link href={item.url}>
+                <Link href={item.url} onClick={onNavigate}>
                   <item.icon />
                   <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                 </Link>

@@ -26,8 +26,10 @@ type RecentReviewItem = {
 
 export function NavRecentReviews({
   items,
+  onNavigate,
 }: {
   items: RecentReviewItem[];
+  onNavigate?: () => void;
 }) {
   if (items.length === 0) {
     return null;
@@ -56,7 +58,7 @@ export function NavRecentReviews({
                     asChild
                     className="h-11 rounded-xl px-2.5 text-[13px] font-medium"
                   >
-                    <PrefetchLink href={`/track/${item.entityId}`}>
+                    <PrefetchLink href={`/track/${item.entityId}`} onClick={onNavigate}>
                       <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-sidebar-border bg-sidebar-accent">
                         {item.coverUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element

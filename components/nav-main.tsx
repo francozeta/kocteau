@@ -20,7 +20,13 @@ type NavMainItem = {
   badge?: number | null;
 };
 
-export function NavMain({ items }: { items: NavMainItem[] }) {
+export function NavMain({
+  items,
+  onNavigate,
+}: {
+  items: NavMainItem[];
+  onNavigate?: () => void;
+}) {
   return (
     <SidebarGroup className="px-0">
       <SidebarGroupLabel>Browse</SidebarGroupLabel>
@@ -35,7 +41,7 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
                 size="lg"
                 className="h-10 rounded-xl text-[13px] font-medium group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
-                <Link href={item.url}>
+                <Link href={item.url} onClick={onNavigate}>
                   <item.icon />
                   <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                 </Link>

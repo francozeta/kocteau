@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Bookmark, Flag, MoreHorizontal, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,6 +22,7 @@ type ReviewCardActionsMenuProps = {
   entityId?: string | null;
   canManage?: boolean;
   onToggleBookmark?: () => void;
+  trigger?: ReactNode;
 };
 
 export default function ReviewCardActionsMenu({
@@ -31,6 +32,7 @@ export default function ReviewCardActionsMenu({
   entityId = null,
   canManage = false,
   onToggleBookmark,
+  trigger,
 }: ReviewCardActionsMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const {
@@ -55,15 +57,17 @@ export default function ReviewCardActionsMenu({
     <>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7 rounded-full border border-transparent bg-transparent text-muted-foreground/82 hover:bg-muted/22 hover:text-foreground"
-            aria-label="Review actions"
-          >
-            <MoreHorizontal className="size-4" />
-          </Button>
+          {trigger ?? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-full border border-transparent bg-transparent text-muted-foreground/82 hover:bg-muted/22 hover:text-foreground"
+              aria-label="Review actions"
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          )}
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
@@ -91,14 +95,16 @@ export default function ReviewCardActionsMenu({
             </DropdownMenuItem>
           ) : null}
 
-          <DropdownMenuItem
-            onSelect={() => {
-              onToggleBookmark?.();
-            }}
-          >
-            <Bookmark className="size-4" />
-            Bookmark
-          </DropdownMenuItem>
+          {onToggleBookmark ? (
+            <DropdownMenuItem
+              onSelect={() => {
+                onToggleBookmark();
+              }}
+            >
+              <Bookmark className="size-4" />
+              Bookmark
+            </DropdownMenuItem>
+          ) : null}
 
           {canManage ? (
             <>

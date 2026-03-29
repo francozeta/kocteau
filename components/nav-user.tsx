@@ -51,7 +51,13 @@ type SidebarProfile = {
   deezer_url: string | null;
 };
 
-export function NavUser({ profile }: { profile: SidebarProfile | null }) {
+export function NavUser({
+  profile,
+  onNavigate,
+}: {
+  profile: SidebarProfile | null;
+  onNavigate?: () => void;
+}) {
   const supabase = supabaseBrowser();
   const router = useRouter();
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -124,15 +130,30 @@ export function NavUser({ profile }: { profile: SidebarProfile | null }) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push(`/u/${username}`)}>
+              <DropdownMenuItem
+                onSelect={() => {
+                  onNavigate?.();
+                  router.push(`/u/${username}`);
+                }}
+              >
                 <UserRound className="size-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => router.push("/saved")}>
+              <DropdownMenuItem
+                onSelect={() => {
+                  onNavigate?.();
+                  router.push("/saved");
+                }}
+              >
                 <Bookmark className="size-4" />
                 Saved reviews
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => router.push("/notifications")}>
+              <DropdownMenuItem
+                onSelect={() => {
+                  onNavigate?.();
+                  router.push("/notifications");
+                }}
+              >
                 <Bell className="size-4" />
                 Activity
               </DropdownMenuItem>

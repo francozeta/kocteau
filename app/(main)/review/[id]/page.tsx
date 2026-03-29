@@ -5,6 +5,7 @@ import EditReviewDialog from "@/components/edit-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
 import ReviewCard from "@/components/review-card";
+import ReviewMobileHeader from "@/components/review-mobile-header";
 import UserAvatar from "@/components/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
@@ -127,14 +128,25 @@ export default async function ReviewPage({
   const commentsLabel = `${bundle.review.comments_count} ${
     bundle.review.comments_count === 1 ? "comment" : "comments"
   }`;
+  const fallbackHref = entity ? `/track/${entity.id}` : "/";
 
   return (
-    <section className="mx-auto max-w-[44rem] space-y-6 sm:space-y-8">
-      <div className="space-y-5 border-b border-border/24 pb-5 sm:pb-6">
+    <>
+      <ReviewMobileHeader
+        reviewId={bundle.review.id}
+        reviewTitle={bundle.review.title}
+        entityTitle={entity?.title ?? null}
+        entityId={entity?.id ?? null}
+        canManage={isOwner}
+        fallbackHref={fallbackHref}
+      />
+
+      <section className="mx-auto max-w-[44rem] space-y-6 sm:space-y-8">
+        <div className="space-y-5 border-b border-border/24 pb-5 sm:pb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <div className="hidden flex-wrap items-center gap-2 text-sm text-muted-foreground md:flex">
             <PrefetchLink
-              href={entity ? `/track/${entity.id}` : "/"}
+              href={fallbackHref}
               className={cn(
                 buttonVariants({ variant: "ghost", size: "sm" }),
                 "h-8 rounded-full border border-border/20 bg-card/10 px-3 text-muted-foreground hover:bg-card/18 hover:text-foreground",
@@ -244,46 +256,47 @@ export default async function ReviewPage({
             </div>
           </div>
         </div>
-      </div>
+        </div>
 
-      <ReviewCard
-        review={{
-          ...bundle.review,
-          viewer_has_liked: bundle.liked,
-          viewer_has_bookmarked: bundle.bookmarked,
-        }}
-        entity={entity}
-        author={author}
-        showAuthor={false}
-        showEntity={false}
-        showRatingBadge={false}
-        interactive={false}
-        featured={true}
-        isAuthenticated={Boolean(user)}
-        canManage={isOwner}
-      />
+        <ReviewCard
+          review={{
+            ...bundle.review,
+            viewer_has_liked: bundle.liked,
+            viewer_has_bookmarked: bundle.bookmarked,
+          }}
+          entity={entity}
+          author={author}
+          showAuthor={false}
+          showEntity={false}
+          showRatingBadge={false}
+          interactive={false}
+          featured={true}
+          isAuthenticated={Boolean(user)}
+          canManage={isOwner}
+        />
 
-      <section className="overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/12">
-        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border/18 px-4 py-4 sm:px-5">
-          <div className="space-y-1">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              Discussion
-            </p>
-            <h2 className="text-base font-medium text-foreground sm:text-lg">Comments</h2>
+        <section className="overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/12">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border/18 px-4 py-4 sm:px-5">
+            <div className="space-y-1">
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                Discussion
+              </p>
+              <h2 className="text-base font-medium text-foreground sm:text-lg">Comments</h2>
+            </div>
+
+            <p className="text-sm text-muted-foreground">{commentsLabel}</p>
           </div>
 
-          <p className="text-sm text-muted-foreground">{commentsLabel}</p>
-        </div>
-
-        <div className="px-4 py-5 sm:px-5">
-          <ReviewCommentsPanel
-            reviewId={bundle.review.id}
-            initialCount={bundle.review.comments_count}
-            isAuthenticated={Boolean(user)}
-            variant="inline"
-          />
-        </div>
+          <div className="px-4 py-5 sm:px-5">
+            <ReviewCommentsPanel
+              reviewId={bundle.review.id}
+              initialCount={bundle.review.comments_count}
+              isAuthenticated={Boolean(user)}
+              variant="inline"
+            />
+          </div>
+        </section>
       </section>
-    </section>
+    </>
   );
 }

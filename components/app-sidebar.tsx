@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Bell, Bookmark, Compass, Disc3, Plus, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
@@ -18,6 +19,7 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -52,6 +54,29 @@ export default function AppSidebar({
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const { isMobile, openMobile, setOpenMobile } = useSidebar();
+  const previousPathnameRef = useRef(pathname);
+
+  const closeMobileSidebar = useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [isMobile, setOpenMobile]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      previousPathnameRef.current = pathname;
+      return;
+    }
+
+    const previousPathname = previousPathnameRef.current;
+
+    if (openMobile && previousPathname !== pathname) {
+      setOpenMobile(false);
+    }
+
+    previousPathnameRef.current = pathname;
+  }, [isMobile, openMobile, pathname, setOpenMobile]);
 
   const mainItems = [
     {
@@ -105,6 +130,7 @@ export default function AppSidebar({
         <SidebarHeader className="gap-2.5 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
           <Link
             href="/"
+            onClick={closeMobileSidebar}
             className="flex h-10 items-center justify-start rounded-xl px-2 transition-colors hover:bg-sidebar-accent/70 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
           >
             <BrandLogo priority iconClassName="h-5 w-5" />
@@ -149,6 +175,7 @@ export default function AppSidebar({
             <SidebarGroupContent>
               <Link
                 href="/search"
+                onClick={closeMobileSidebar}
                 className="flex h-9 items-center gap-2 rounded-xl border border-sidebar-border bg-background/40 px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
               >
                 <Search className="size-4 shrink-0" />
@@ -162,13 +189,13 @@ export default function AppSidebar({
         </SidebarHeader>
 
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
-          <NavMain items={mainItems} />
-          {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} /> : null}
-          {canShowRecentReviews ? <NavRecentReviews items={recentTracks} /> : null}
+          <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
+          {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} onNavigate={closeMobileSidebar} /> : null}
+          {canShowRecentReviews ? <NavRecentReviews items={recentTracks} onNavigate={closeMobileSidebar} /> : null}
         </SidebarContent>
 
         <SidebarFooter className="p-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
-          <NavUser profile={profile} />
+          <NavUser profile={profile} onNavigate={closeMobileSidebar} />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
