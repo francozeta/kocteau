@@ -45,12 +45,13 @@ export default async function TrackIndexPage() {
             >
               Search
             </Link>
-            <Link
+            <PrefetchLink
               href="/"
+              queryWarmup={{ kind: "feed" }}
               className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
             >
               Feed
-            </Link>
+            </PrefetchLink>
           </div>
         </div>
       </div>
@@ -66,6 +67,7 @@ export default async function TrackIndexPage() {
             >
               <PrefetchLink
                 href={`/track/${track.entityId}`}
+                queryWarmup={{ kind: "track", id: track.entityId }}
                 className="group flex items-center gap-4 rounded-[1.65rem] border border-border/20 bg-card/20 px-3.5 py-3.5 transition-colors hover:bg-card/35"
               >
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.2rem] bg-muted">

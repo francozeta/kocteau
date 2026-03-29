@@ -9,14 +9,12 @@ import type { ReviewCardData } from "@/components/review-card";
 type ReviewCardInteractionBarProps = {
   review: ReviewCardData;
   isAuthenticated?: boolean;
-  bookmarkRefreshOnToggle?: boolean;
   bookmarkButtonRef?: Ref<HTMLButtonElement>;
 };
 
 export default function ReviewCardInteractionBar({
   review,
   isAuthenticated = false,
-  bookmarkRefreshOnToggle = false,
   bookmarkButtonRef,
 }: ReviewCardInteractionBarProps) {
   return (
@@ -36,7 +34,6 @@ export default function ReviewCardInteractionBar({
         reviewId={review.id}
         initialBookmarked={Boolean(review.viewer_has_bookmarked)}
         isAuthenticated={isAuthenticated}
-        refreshOnToggle={bookmarkRefreshOnToggle}
         buttonRef={bookmarkButtonRef}
       />
     </div>

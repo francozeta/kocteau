@@ -1,26 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
-export type ReviewCommentAuthor = {
-  username: string;
-  display_name: string | null;
-  avatar_url: string | null;
-};
-
-export type ReviewComment = {
-  id: string;
-  review_id: string;
-  author_id: string;
-  parent_id: string | null;
-  body: string;
-  created_at: string;
-  updated_at: string;
-  author: ReviewCommentAuthor | ReviewCommentAuthor[] | null;
-  is_owner: boolean;
-  optimistic?: boolean;
-};
+import {
+  reviewCommentsQueryOptions,
+  reviewKeys,
+  type ReviewComment,
+} from "@/queries/reviews";
+import { syncReviewCommentsCount } from "@/queries/viewer";
 
 type UseReviewCommentsOptions = {
   reviewId: string;
@@ -48,43 +35,16 @@ export function useReviewComments({
 }: UseReviewCommentsOptions) {
   const queryClient = useQueryClient();
   const previousInitialCount = useRef(initialCount);
-  const commentsKey = useMemo(
-    () => ["review-comments", reviewId] as const,
-    [reviewId],
-  );
-  const countKey = useMemo(
-    () => ["review-comments-count", reviewId] as const,
-    [reviewId],
-  );
+  const commentsKey = reviewKeys.comments(reviewId);
+  const countKey = reviewKeys.commentsCount(reviewId);
 
   function syncCommentsCount(nextCount: number) {
-    queryClient.setQueryData<number>(countKey, nextCount);
+    syncReviewCommentsCount(queryClient, reviewId, nextCount);
   }
 
   const commentsQuery = useQuery({
-    queryKey: commentsKey,
-    queryFn: async () => {
-      const response = await fetch(`/api/reviews/${reviewId}/comments`, {
-        cache: "no-store",
-      });
-
-      if (response.status === 503) {
-        return [] as ReviewComment[];
-      }
-
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; comments?: ReviewComment[] }
-        | null;
-
-      if (!response.ok) {
-        throw new Error(payload?.error ?? "We couldn't load comments right now.");
-      }
-
-      return Array.isArray(payload?.comments) ? payload.comments : [];
-    },
+    ...reviewCommentsQueryOptions(reviewId),
     enabled,
-    staleTime: 5 * 60_000,
-    gcTime: 15 * 60_000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
@@ -102,11 +62,11 @@ export function useReviewComments({
     const serverSnapshotChanged = previousInitialCount.current !== initialCount;
 
     if (cached === undefined || serverSnapshotChanged) {
-      queryClient.setQueryData(countKey, initialCount);
+      syncReviewCommentsCount(queryClient, reviewId, initialCount);
     }
 
     previousInitialCount.current = initialCount;
-  }, [countKey, initialCount, queryClient]);
+  }, [countKey, initialCount, queryClient, reviewId]);
 
   const createComment = useMutation({
     mutationFn: async (body: string) => {
@@ -164,7 +124,7 @@ export function useReviewComments({
         ...previousComments,
         optimisticComment,
       ]);
-      queryClient.setQueryData<number>(countKey, previousCount + 1);
+      syncCommentsCount(previousCount + 1);
 
       return { previousComments, previousCount, tempId };
     },
@@ -174,7 +134,7 @@ export function useReviewComments({
       }
 
       if (typeof context?.previousCount === "number") {
-        queryClient.setQueryData(countKey, context.previousCount);
+        syncCommentsCount(context.previousCount);
       }
     },
     onSuccess: async (result, _body, context) => {
@@ -234,10 +194,7 @@ export function useReviewComments({
         commentsKey,
         previousComments.filter((comment) => comment.id !== commentId),
       );
-      queryClient.setQueryData<number>(
-        countKey,
-        Math.max(previousCount - 1, 0),
-      );
+      syncCommentsCount(Math.max(previousCount - 1, 0));
 
       return { previousComments, previousCount, commentId };
     },
@@ -247,7 +204,7 @@ export function useReviewComments({
       }
 
       if (typeof context?.previousCount === "number") {
-        queryClient.setQueryData(countKey, context.previousCount);
+        syncCommentsCount(context.previousCount);
       }
     },
     onSuccess: async (result, _commentId, context) => {

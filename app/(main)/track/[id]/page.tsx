@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import Link from "next/link";
 import { MessageSquarePlus, Music2, PencilLine, Star } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -6,15 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { TrackReviewCard } from "@/components/review-route-cards";
+import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {
   getEntityPageById,
-  getTrackPublicBundle,
-  getTrackViewerState,
+  getTrackPageBundle,
   type EntityReview,
 } from "@/lib/queries/entities";
+import { createServerQueryClient } from "@/lib/react-query/server";
 import { cn } from "@/lib/utils";
-import { supabaseServer } from "@/lib/supabase/server";
+import { trackKeys } from "@/queries/tracks";
 
 function getAuthor(review: EntityReview) {
   if (Array.isArray(review.author)) {
@@ -56,23 +58,26 @@ export default async function TrackPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await supabaseServer();
-  const [auth, publicBundle] = await Promise.all([
-    supabase.auth.getUser(),
-    getTrackPublicBundle(id),
-  ]);
+  const user = await getCurrentUser();
+  const bundle = await getTrackPageBundle(id, user?.id);
 
-  if (!publicBundle) notFound();
+  if (!bundle) notFound();
 
-  const {
-    data: { user },
-  } = auth;
-  const { entity, reviews: trackReviews } = publicBundle;
-  const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await getTrackViewerState(
-    user?.id,
-    entity.id,
-    trackReviews,
-  );
+  const queryClient = createServerQueryClient();
+  const trackData = {
+    entity: bundle.entity,
+    viewerReviewId: bundle.viewerReviewId,
+    reviews: bundle.reviews.map((review) => ({
+      ...review,
+      viewer_has_liked: bundle.likedReviewIds.has(review.id),
+      viewer_has_bookmarked: bundle.bookmarkedReviewIds.has(review.id),
+    })),
+  };
+
+  queryClient.setQueryData(trackKeys.detail(id), trackData);
+
+  const { entity, reviews: trackReviews } = trackData;
+  const { viewerReviewId } = trackData;
   const averageRating =
     trackReviews.length > 0
       ? trackReviews.reduce((sum, review) => sum + review.rating, 0) / trackReviews.length
@@ -98,8 +103,9 @@ export default async function TrackPage({
   }
 
   return (
-    <section className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
-      <div className="grid gap-5 border-b border-border/24 pb-7 lg:grid-cols-[9rem,minmax(0,1fr)] lg:items-start">
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <section className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
+        <div className="grid gap-5 border-b border-border/24 pb-7 lg:grid-cols-[9rem,minmax(0,1fr)] lg:items-start">
         <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[1.6rem] border border-border/14 bg-muted/20 sm:h-36 sm:w-36">
           {entity.cover_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -179,51 +185,48 @@ export default async function TrackPage({
             ) : null}
           </div>
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-end justify-between border-b border-border/25 pb-4">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-            Reviews
-          </h2>
-          <span className="text-xs text-muted-foreground">Newest first</span>
         </div>
 
-        {trackReviews.length > 0 ? (
-          <div className="space-y-4">
-            {trackReviews.map((review) => {
-              const author = getAuthor(review);
-
-              return (
-                <TrackReviewCard
-                  key={review.id}
-                  review={{
-                    ...review,
-                    viewer_has_liked: likedReviewIds.has(review.id),
-                    viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
-                  }}
-                  entity={entity}
-                  author={author}
-                  isAuthenticated={Boolean(user)}
-                  canManage={Boolean(user?.id && author?.id === user.id)}
-                />
-              );
-            })}
+        <div className="max-w-3xl space-y-4">
+          <div className="flex items-end justify-between border-b border-border/25 pb-4">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Reviews
+            </h2>
+            <span className="text-xs text-muted-foreground">Newest first</span>
           </div>
-        ) : (
-          <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-9">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Music2 className="size-4" />
-              </EmptyMedia>
-              <EmptyTitle>No reviews yet</EmptyTitle>
-              <EmptyDescription>
-                Be the first to leave a note on this track.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
-      </div>
-    </section>
+
+          {trackReviews.length > 0 ? (
+            <div className="space-y-4">
+              {trackReviews.map((review) => {
+                const author = getAuthor(review);
+
+                return (
+                  <TrackReviewCard
+                    key={review.id}
+                    review={review}
+                    entity={entity}
+                    author={author}
+                    isAuthenticated={Boolean(user)}
+                    canManage={Boolean(user?.id && author?.id === user.id)}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-9">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Music2 className="size-4" />
+                </EmptyMedia>
+                <EmptyTitle>No reviews yet</EmptyTitle>
+                <EmptyDescription>
+                  Be the first to leave a note on this track.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+        </div>
+      </section>
+    </HydrationBoundary>
   );
 }

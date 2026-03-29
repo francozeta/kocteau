@@ -6,16 +6,14 @@ import type {
   ReviewCardData,
   ReviewCardEntity,
 } from "@/components/review-card";
-import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import { getRecentlyDiscussedTracks, type DiscoveryTrack } from "@/lib/queries/discovery";
 import {
-  getViewerLikedReviewIds,
   runReviewListQuery,
 } from "@/lib/queries/review-likes";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
+import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
-import { supabaseServer } from "@/lib/supabase/server";
 
 export type FeedReview = {
   id: ReviewCardData["id"];
@@ -80,27 +78,11 @@ export async function getFeedViewerState(
     };
   }
 
-  const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
+  return measureServerTask(
     "getFeedViewerState",
-    async () => {
-      const supabase = await supabaseServer();
-      const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
-        getViewerLikedReviewIds(supabase, viewerId, reviewIds),
-        getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
-      ]);
-
-      return {
-        likedReviewIds,
-        bookmarkedReviewIds,
-      };
-    },
+    async () => getViewerReviewCollectionState(viewerId, reviewIds),
     { viewerId, reviewCount: reviewIds.length },
   );
-
-  return {
-    likedReviewIds,
-    bookmarkedReviewIds,
-  };
 }
 
 export async function getFeedPageBundle(viewerId?: string | null): Promise<FeedPageBundle> {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { searchDeezerTracks } from "@/lib/deezer";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabasePublic } from "@/lib/supabase/public";
 import { deezerSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
 
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
       return NextResponse.json([], { status: 200 });
     }
 
-    const supabase = await supabaseServer();
+    const supabase = supabasePublic();
     const { data: entities } = await supabase
       .from("entities")
       .select("id, provider_id")

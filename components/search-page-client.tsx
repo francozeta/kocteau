@@ -400,6 +400,11 @@ export default function SearchPageClient({
                 >
                   <PrefetchLink
                     href={getResultHref(result)}
+                    queryWarmup={
+                      result.entity_id
+                        ? { kind: "track", id: result.entity_id }
+                        : undefined
+                    }
                     onClick={() => persistRecentSearch(result.title)}
                     ref={(node) => {
                       resultRefs.current[index] = node;
@@ -476,6 +481,7 @@ export default function SearchPageClient({
                 >
                   <PrefetchLink
                     href={`/track/${track.entityId}`}
+                    queryWarmup={{ kind: "track", id: track.entityId }}
                     className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30"
                   >
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">

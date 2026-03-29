@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NotificationsButton from "@/components/notifications-button";
+import PrefetchLink from "@/components/prefetch-link";
 import { Kbd } from "@/components/ui/kbd";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -74,13 +75,14 @@ export default function Header({
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 flex justify-center md:hidden">
-          <Link
+          <PrefetchLink
             href="/"
+            queryWarmup={{ kind: "feed" }}
             className="pointer-events-auto inline-flex items-center rounded-full px-2 py-1"
             aria-label="Go to feed"
           >
             <BrandLogo iconClassName="h-[1.35rem] w-[1.35rem]" />
-          </Link>
+          </PrefetchLink>
         </div>
 
         <div className="flex items-center gap-2">

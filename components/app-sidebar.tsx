@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Bell, Bookmark, Compass, Disc3, Plus, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
+import PrefetchLink from "@/components/prefetch-link";
 import { NavMain } from "@/components/nav-main";
 import { NavRecentReviews } from "@/components/nav-recent-reviews";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -126,13 +126,14 @@ export default function AppSidebar({
         {...props}
       >
         <SidebarHeader className="gap-2.5 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
-          <Link
+          <PrefetchLink
             href="/"
             onClick={closeMobileSidebar}
+            queryWarmup={{ kind: "feed" }}
             className="flex h-10 items-center justify-start rounded-xl px-2 transition-colors hover:bg-sidebar-accent/70 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
           >
             <BrandLogo priority iconClassName="h-5 w-5" />
-          </Link>
+          </PrefetchLink>
 
         <div className="group-data-[collapsible=icon]:hidden">
           <NewReviewDialog

@@ -1,13 +1,10 @@
 import { unstable_cache } from "next/cache";
-import {
-  getViewerLikedReviewIds,
-  runReviewListQuery,
-} from "@/lib/queries/review-likes";
-import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
-import { measureServerTask } from "@/lib/perf";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
+import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { runReviewListQuery } from "@/lib/queries/review-likes";
+import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
+import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
-import { supabaseServer } from "@/lib/supabase/server";
 
 export type PublicProfile = {
   id: string;
@@ -45,77 +42,90 @@ export type ProfileReviewBundle = {
   reviews: ProfileReview[];
 };
 
+const publicProfileLoaders = new Map<string, () => Promise<PublicProfile | null>>();
+const profileReviewLoaders = new Map<string, () => Promise<ProfileReviewBundle>>();
+
 export async function getPublicProfileByUsername(username: string) {
-  return unstable_cache(
-    async () =>
-      measureServerTask(
-        "getPublicProfileByUsername",
-        async () => {
-          const supabase = supabasePublic();
-
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("id, username, display_name, avatar_url, bio, spotify_url, apple_music_url, deezer_url, created_at")
-            .eq("username", username)
-            .maybeSingle<PublicProfile>();
-
-          if (error) {
-            return null;
-          }
-
-          return data;
-        },
-        { username },
-      ),
+  return getOrCreateLoader(
+    publicProfileLoaders,
     ["public-profile", username],
-    {
-      revalidate: 120,
-      tags: ["profiles", `profile:${username}`],
-    },
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getPublicProfileByUsername",
+            async () => {
+              const supabase = supabasePublic();
+
+              const { data, error } = await supabase
+                .from("profiles")
+                .select("id, username, display_name, avatar_url, bio, spotify_url, apple_music_url, deezer_url, created_at")
+                .eq("username", username)
+                .maybeSingle<PublicProfile>();
+
+              if (error) {
+                return null;
+              }
+
+              return data;
+            },
+            { username },
+          ),
+        ["public-profile", username],
+        {
+          revalidate: 120,
+          tags: ["profiles", `profile:${username}`],
+        },
+      ),
   )();
 }
 
 export async function getReviewsForProfile(authorId: string): Promise<ProfileReviewBundle> {
-  return unstable_cache(
-    async () =>
-      measureServerTask(
-        "getReviewsForProfile",
-        async () => {
-          const supabase = supabasePublic();
-
-          const rawReviews = await runReviewListQuery<ProfileReview>(async (mode) =>
-            supabase
-              .from("reviews")
-              .select(
-                buildReviewHydrationSelect(mode, {
-                  includeEntity: true,
-                  includePinned: true,
-                }),
-              )
-              .eq("author_id", authorId)
-              .order("is_pinned", { ascending: false })
-              .order("created_at", { ascending: false }),
-          );
-
-          const reviews = rawReviews.map((review) => ({
-            ...review,
-            is_pinned: Boolean(review.is_pinned),
-          }));
-
-          const pinnedReview = reviews.find((review) => review.is_pinned) ?? null;
-
-          return {
-            pinnedReview,
-            reviews: reviews.filter((review) => review.id !== pinnedReview?.id),
-          };
-        },
-        { authorId },
-      ),
+  return getOrCreateLoader(
+    profileReviewLoaders,
     ["profile-reviews", authorId],
-    {
-      revalidate: 60,
-      tags: ["reviews", `profile:${authorId}:reviews`],
-    },
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getReviewsForProfile",
+            async () => {
+              const supabase = supabasePublic();
+
+              const rawReviews = await runReviewListQuery<ProfileReview>(async (mode) =>
+                supabase
+                  .from("reviews")
+                  .select(
+                    buildReviewHydrationSelect(mode, {
+                      includeEntity: true,
+                      includePinned: true,
+                    }),
+                  )
+                  .eq("author_id", authorId)
+                  .order("is_pinned", { ascending: false })
+                  .order("created_at", { ascending: false }),
+              );
+
+              const reviews = rawReviews.map((review) => ({
+                ...review,
+                is_pinned: Boolean(review.is_pinned),
+              }));
+
+              const pinnedReview = reviews.find((review) => review.is_pinned) ?? null;
+
+              return {
+                pinnedReview,
+                reviews: reviews.filter((review) => review.id !== pinnedReview?.id),
+              };
+            },
+            { authorId },
+          ),
+        ["profile-reviews", authorId],
+        {
+          revalidate: 60,
+          tags: ["reviews", `profile:${authorId}:reviews`],
+        },
+      ),
   )();
 }
 
@@ -150,27 +160,11 @@ export async function getProfileViewerState(
     };
   }
 
-  const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
+  return measureServerTask(
     "getProfileViewerState",
-    async () => {
-      const supabase = await supabaseServer();
-      const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
-        getViewerLikedReviewIds(supabase, viewerId, reviewIds),
-        getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
-      ]);
-
-      return {
-        likedReviewIds,
-        bookmarkedReviewIds,
-      };
-    },
+    async () => getViewerReviewCollectionState(viewerId, reviewIds),
     { viewerId, reviewCount: reviewIds.length },
   );
-
-  return {
-    likedReviewIds,
-    bookmarkedReviewIds,
-  };
 }
 
 export async function getProfilePageBundle(

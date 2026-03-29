@@ -1,43 +1,30 @@
-import { supabaseServer } from "@/lib/supabase/server";
 import ReactQueryProvider from "../providers/react-query-provider";
 import Header from "@/components/header";
 import AppSidebar from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
+import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import {
   getUnreadNotificationsCount,
 } from "@/lib/queries/notifications";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
+import { supabaseServer } from "@/lib/supabase/server";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  const safeProfile = await getCurrentViewerProfile();
 
-  const [safeProfile, initialUnreadCount, recentTracks] = user
-    ? await Promise.all([
-        (
-          await supabase
-            .from("profiles")
-            .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url")
-            .eq("id", user.id)
-            .maybeSingle()
-        ).data ?? {
-          id: user.id,
-          username: "user",
-          avatar_url: null,
-          display_name: null,
-          bio: null,
-          spotify_url: null,
-          apple_music_url: null,
-          deezer_url: null,
-        },
-        getUnreadNotificationsCount(supabase, user.id),
-        getRecentlyDiscussedTracks(4),
-      ])
-    : [null, 0, await getRecentlyDiscussedTracks(4)];
+  const [initialUnreadCount, recentTracks] = user
+    ? await (async () => {
+        const supabase = await supabaseServer();
+
+        return Promise.all([
+          getUnreadNotificationsCount(supabase, user.id),
+          getRecentlyDiscussedTracks(4),
+        ]);
+      })()
+    : [0, [] as Awaited<ReturnType<typeof getRecentlyDiscussedTracks>>];
 
   return (
     <ReactQueryProvider>

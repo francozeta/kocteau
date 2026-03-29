@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
 import { Bookmark } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
@@ -12,7 +11,6 @@ type ReviewBookmarkButtonProps = {
   reviewId: string;
   initialBookmarked: boolean;
   isAuthenticated: boolean;
-  refreshOnToggle?: boolean;
   buttonRef?: Ref<HTMLButtonElement>;
 };
 
@@ -20,10 +18,8 @@ export default function ReviewBookmarkButton({
   reviewId,
   initialBookmarked,
   isAuthenticated,
-  refreshOnToggle = false,
   buttonRef,
 }: ReviewBookmarkButtonProps) {
-  const router = useRouter();
   const [animatePulse, setAnimatePulse] = useState(false);
   const pulseTimeoutRef = useRef<number | null>(null);
   const initialState = useMemo(
@@ -67,10 +63,6 @@ export default function ReviewBookmarkButton({
 
     try {
       await toggleBookmark();
-
-      if (refreshOnToggle) {
-        router.refresh();
-      }
     } catch (error) {
       toastActionError(error, "We couldn't update your saved reviews right now.");
     }

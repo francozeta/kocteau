@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-
-export type ReviewLikeState = {
-  liked: boolean;
-  count: number;
-};
+import {
+  syncReviewLikeState,
+  type ReviewLikeState,
+  viewerKeys,
+} from "@/queries/viewer";
 
 type UseReviewLikeOptions = {
   reviewId: string;
@@ -23,10 +23,7 @@ export function useReviewLike({
 }: UseReviewLikeOptions) {
   const queryClient = useQueryClient();
   const previousInitialState = useRef(initialState);
-  const queryKey = useMemo(
-    () => ["review-like-state", reviewId] as const,
-    [reviewId],
-  );
+  const queryKey = viewerKeys.reviewLike(reviewId);
 
   const { data: state } = useQuery({
     queryKey,
@@ -43,11 +40,11 @@ export function useReviewLike({
       previousInitialState.current.liked !== initialState.liked;
 
     if (!cached || serverSnapshotChanged) {
-      queryClient.setQueryData<ReviewLikeState>(queryKey, initialState);
+      syncReviewLikeState(queryClient, reviewId, initialState);
     }
 
     previousInitialState.current = initialState;
-  }, [initialState, queryClient, queryKey]);
+  }, [initialState, queryClient, queryKey, reviewId]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -77,17 +74,17 @@ export function useReviewLike({
         count: Math.max(previous.count + (previous.liked ? -1 : 1), 0),
       } satisfies ReviewLikeState;
 
-      queryClient.setQueryData(queryKey, next);
+      syncReviewLikeState(queryClient, reviewId, next);
 
       return { previous };
     },
     onError: (_error, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
+        syncReviewLikeState(queryClient, reviewId, context.previous);
       }
     },
     onSuccess: (nextState) => {
-      queryClient.setQueryData(queryKey, nextState);
+      syncReviewLikeState(queryClient, reviewId, nextState);
     },
   });
 

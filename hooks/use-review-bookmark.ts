@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
-export type ReviewBookmarkState = {
-  bookmarked: boolean;
-};
+import {
+  syncReviewBookmarkState,
+  type ReviewBookmarkState,
+  viewerKeys,
+} from "@/queries/viewer";
 
 type UseReviewBookmarkOptions = {
   reviewId: string;
@@ -18,10 +19,7 @@ export function useReviewBookmark({
 }: UseReviewBookmarkOptions) {
   const queryClient = useQueryClient();
   const previousInitialState = useRef(initialState);
-  const queryKey = useMemo(
-    () => ["review-bookmark-state", reviewId] as const,
-    [reviewId],
-  );
+  const queryKey = viewerKeys.reviewBookmark(reviewId);
 
   const { data: state } = useQuery({
     queryKey,
@@ -37,11 +35,11 @@ export function useReviewBookmark({
       previousInitialState.current.bookmarked !== initialState.bookmarked;
 
     if (!cached || serverSnapshotChanged) {
-      queryClient.setQueryData<ReviewBookmarkState>(queryKey, initialState);
+      syncReviewBookmarkState(queryClient, reviewId, initialState);
     }
 
     previousInitialState.current = initialState;
-  }, [initialState, queryClient, queryKey]);
+  }, [initialState, queryClient, queryKey, reviewId]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -72,17 +70,17 @@ export function useReviewBookmark({
         bookmarked: !previous.bookmarked,
       } satisfies ReviewBookmarkState;
 
-      queryClient.setQueryData(queryKey, next);
+      syncReviewBookmarkState(queryClient, reviewId, next);
 
       return { previous };
     },
     onError: (_error, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
+        syncReviewBookmarkState(queryClient, reviewId, context.previous);
       }
     },
     onSuccess: (nextState) => {
-      queryClient.setQueryData(queryKey, nextState);
+      syncReviewBookmarkState(queryClient, reviewId, nextState);
     },
   });
 

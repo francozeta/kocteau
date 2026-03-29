@@ -1,18 +1,17 @@
 import Link from "next/link";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { ArrowRight, Music2, Star } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import TrackContextMenu from "@/components/track-context-menu";
+import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
-import {
-  getFeedPublicBundle,
-  getFeedViewerState,
-  type FeedReview,
-} from "@/lib/queries/feed";
-import { supabaseServer } from "@/lib/supabase/server";
+import { getFeedPageBundle, type FeedReview } from "@/lib/queries/feed";
+import { createServerQueryClient } from "@/lib/react-query/server";
 import { cn } from "@/lib/utils";
+import { feedKeys } from "@/queries/feed";
 
 type FeedView = "discovery" | "latest" | "top-rated";
 
@@ -87,22 +86,23 @@ export default async function HomePage({
 }) {
   const params = await searchParams;
   const activeView = isFeedView(params.view) ? params.view : "latest";
+  const user = await getCurrentUser();
+  const bundle = await getFeedPageBundle(user?.id);
+  const queryClient = createServerQueryClient();
+  const feedData = {
+    feed: bundle.feed.map((review) => ({
+      ...review,
+      viewer_has_liked: bundle.likedReviewIds.has(review.id),
+      viewer_has_bookmarked: bundle.bookmarkedReviewIds.has(review.id),
+    })),
+    recentTracks: bundle.recentTracks,
+  };
 
-  const supabase = await supabaseServer();
-  const [auth, { feed, recentTracks }] = await Promise.all([
-    supabase.auth.getUser(),
-    getFeedPublicBundle(),
-  ]);
-  const {
-    data: { user },
-  } = auth;
-  const orderedFeed = sortFeed(feed, activeView);
-  const { likedReviewIds, bookmarkedReviewIds } = await getFeedViewerState(
-    user?.id,
-    orderedFeed.map((review) => review.id),
-  );
+  queryClient.setQueryData(feedKeys.bundle(), feedData);
 
-  const discoveryRail = recentTracks.slice(0, activeView === "discovery" ? 6 : 4);
+  const orderedFeed = sortFeed(feedData.feed, activeView);
+
+  const discoveryRail = feedData.recentTracks.slice(0, activeView === "discovery" ? 6 : 4);
   const shouldLeadWithReviews = activeView !== "discovery";
 
   const reviewsSection = orderedFeed.length > 0 ? (
@@ -115,11 +115,7 @@ export default async function HomePage({
           return (
             <FeedReviewCard
               key={review.id}
-              review={{
-                ...review,
-                viewer_has_liked: likedReviewIds.has(review.id),
-                viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
-              }}
+              review={review}
               entity={entity}
               author={author}
               featured={shouldLeadWithReviews && index === 0}
@@ -185,6 +181,7 @@ export default async function HomePage({
               <div className="rounded-[1.35rem] border border-border/18 bg-card/16 p-2.5">
                 <PrefetchLink
                   href={`/track/${track.entityId}`}
+                  queryWarmup={{ kind: "track", id: track.entityId }}
                   className="group flex items-center gap-3 rounded-[1.2rem] transition-colors hover:text-foreground"
                 >
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] bg-muted">
@@ -245,33 +242,35 @@ export default async function HomePage({
   ) : null;
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6 sm:space-y-7">
-      <div className="border-b border-border/24 pb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {feedViews.map((view) => {
-            const isActive = activeView === view.value;
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <section className="mx-auto max-w-3xl space-y-6 sm:space-y-7">
+        <div className="border-b border-border/24 pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {feedViews.map((view) => {
+              const isActive = activeView === view.value;
 
-            return (
-              <Link
-                key={view.value}
-                href={getFeedViewHref(view.value)}
-                className={cn(
-                  "inline-flex items-center rounded-full border px-3 py-1.5 text-sm transition-colors",
-                  isActive
-                    ? "border-border/22 bg-card/14 font-medium text-foreground"
-                    : "border-transparent bg-transparent text-muted-foreground hover:bg-card/10 hover:text-foreground",
-                )}
-              >
-                {view.label}
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  key={view.value}
+                  href={getFeedViewHref(view.value)}
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-3 py-1.5 text-sm transition-colors",
+                    isActive
+                      ? "border-border/22 bg-card/14 font-medium text-foreground"
+                      : "border-transparent bg-transparent text-muted-foreground hover:bg-card/10 hover:text-foreground",
+                  )}
+                >
+                  {view.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {shouldLeadWithReviews ? reviewsSection : null}
-      {discoverySection}
-      {shouldLeadWithReviews ? null : reviewsSection}
-    </section>
+        {shouldLeadWithReviews ? reviewsSection : null}
+        {discoverySection}
+        {shouldLeadWithReviews ? null : reviewsSection}
+      </section>
+    </HydrationBoundary>
   );
 }

@@ -21,7 +21,6 @@ export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
   showInteractionBar?: boolean;
   showContextMenu?: boolean;
-  bookmarkRefreshOnToggle?: boolean;
 };
 
 export type ReviewCardPermissions = {
@@ -52,8 +51,16 @@ type FeedReviewCardProps = ReviewCardRouteProps & {
 
 type ProfileReviewCardProps = ReviewCardRouteProps & {
   featured?: boolean;
-  entityMode?: "full" | "inline";
 };
+
+function buildFeedReviewCardDisplay(
+  featured = false,
+): ReviewCardDisplayOptions {
+  return {
+    featured,
+    bodyClampLines: 4,
+  };
+}
 
 function isInteractiveTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {
@@ -100,7 +107,11 @@ function LinkedEntitySummary({
 
   return (
     <div data-prevent-review-link="true">
-      <PrefetchLink href={`/track/${entity.id}`} className="block">
+      <PrefetchLink
+        href={`/track/${entity.id}`}
+        queryWarmup={{ kind: "track", id: entity.id }}
+        className="block"
+      >
         <ReviewCardEntitySummary entity={entity} mode={mode} interactive />
       </PrefetchLink>
     </div>
@@ -124,7 +135,6 @@ function RoutedReviewCard({
     showHeaderActions = true,
     showInteractionBar = true,
     showContextMenu = true,
-    bookmarkRefreshOnToggle = false,
   } = behavior ?? {};
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
 
@@ -201,7 +211,6 @@ function RoutedReviewCard({
           <ReviewCardInteractionBar
             review={review}
             isAuthenticated={isAuthenticated}
-            bookmarkRefreshOnToggle={bookmarkRefreshOnToggle}
             bookmarkButtonRef={bookmarkButtonRef}
           />
         ) : null,
@@ -243,10 +252,7 @@ export function FeedReviewCard({
       review={review}
       entity={entity}
       author={author}
-      display={{
-        featured,
-        bodyClampLines: 4,
-      }}
+      display={buildFeedReviewCardDisplay(featured)}
       permissions={{ isAuthenticated, canManage }}
     />
   );
@@ -264,7 +270,7 @@ export function TrackReviewCard({
       review={review}
       entity={entity}
       author={author}
-      display={{ entityMode: "inline" }}
+      display={buildFeedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
     />
   );
@@ -277,18 +283,13 @@ export function ProfileReviewCard({
   isAuthenticated = false,
   canManage = false,
   featured = false,
-  entityMode = "inline",
 }: ProfileReviewCardProps) {
   return (
     <RoutedReviewCard
       review={review}
       entity={entity}
       author={author}
-      display={{
-        showAuthor: false,
-        featured,
-        entityMode,
-      }}
+      display={buildFeedReviewCardDisplay(featured)}
       permissions={{ isAuthenticated, canManage }}
     />
   );
@@ -306,11 +307,7 @@ export function SavedReviewCard({
       review={review}
       entity={entity}
       author={author}
-      display={{
-        entityMode: "inline",
-        eyebrow: "Saved for later",
-      }}
-      behavior={{ bookmarkRefreshOnToggle: true }}
+      display={buildFeedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
     />
   );
@@ -328,13 +325,7 @@ export function ReviewPageCard({
       review={review}
       entity={entity}
       author={author}
-      display={{
-        showAuthor: false,
-        showEntity: false,
-        showRatingBadge: false,
-        featured: true,
-      }}
-      behavior={{ interactive: false }}
+      display={buildFeedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
     />
   );

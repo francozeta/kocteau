@@ -5,11 +5,25 @@ import { useRouter } from "next/navigation";
 import { forwardRef, startTransition } from "react";
 import type { AnchorHTMLAttributes } from "react";
 
+export type QueryWarmupDescriptor =
+  | {
+      kind: "feed";
+    }
+  | {
+      kind: "review";
+      id: string;
+    }
+  | {
+      kind: "track";
+      id: string;
+    };
+
 type PrefetchLinkProps = LinkProps &
   Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & {
     warmOnHover?: boolean;
     warmOnFocus?: boolean;
     warmOnTouch?: boolean;
+    queryWarmup?: QueryWarmupDescriptor | QueryWarmupDescriptor[];
   };
 
 function canWarmHref(href: LinkProps["href"]): href is string {
@@ -26,12 +40,15 @@ const PrefetchLink = forwardRef<HTMLAnchorElement, PrefetchLinkProps>(
       warmOnHover = true,
       warmOnFocus = true,
       warmOnTouch = true,
+      queryWarmup: _queryWarmup,
       prefetch = true,
       ...props
     },
     ref,
   ) => {
     const router = useRouter();
+    // Route prefetch already carries the server-rendered query state for these pages.
+    void _queryWarmup;
 
     function warmRoute() {
       if (!canWarmHref(href)) {

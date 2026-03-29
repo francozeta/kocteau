@@ -46,12 +46,20 @@ export const reviewCommentParamsSchema = reviewIdParamsSchema.extend({
   commentId: z.string().uuid("Invalid comment id."),
 });
 
+export const entityIdParamsSchema = z.object({
+  id: z.string().uuid("Invalid entity id."),
+});
+
 export const notificationParamsSchema = z.object({
   notificationId: z.string().uuid("Invalid notification id."),
 });
 
 export const notificationsListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(25),
+});
+
+export const recentTracksQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(24).default(12),
 });
 
 export const deezerSearchQuerySchema = z.object({

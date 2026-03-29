@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { ArrowLeft, MessageSquareText, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import EditReviewDialog from "@/components/edit-review-dialog";
@@ -9,10 +10,12 @@ import ReviewFloatingCommentInput from "@/components/review-floating-comment-inp
 import ReviewMobileHeader from "@/components/review-mobile-header";
 import UserAvatar from "@/components/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
+import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import { getReviewPageBundle, getPublicReviewById } from "@/lib/queries/reviews";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerQueryClient } from "@/lib/react-query/server";
 import { cn } from "@/lib/utils";
+import { reviewKeys } from "@/queries/reviews";
 
 function getEntity(
   review: NonNullable<Awaited<ReturnType<typeof getPublicReviewById>>>,
@@ -107,15 +110,23 @@ export default async function ReviewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   const bundle = await getReviewPageBundle(id, user?.id);
 
   if (!bundle) {
     notFound();
   }
+
+  const queryClient = createServerQueryClient();
+  const reviewData = {
+    review: {
+      ...bundle.review,
+      viewer_has_liked: bundle.liked,
+      viewer_has_bookmarked: bundle.bookmarked,
+    },
+  };
+
+  queryClient.setQueryData(reviewKeys.detail(id), reviewData);
 
   const entity = getEntity(bundle.review);
   const author = getAuthor(bundle.review);
@@ -133,7 +144,7 @@ export default async function ReviewPage({
   const fallbackHref = entity ? `/track/${entity.id}` : "/";
 
   return (
-    <>
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <ReviewMobileHeader
         reviewId={bundle.review.id}
         reviewTitle={bundle.review.title}
@@ -149,12 +160,13 @@ export default async function ReviewPage({
         replyTarget={replyTarget}
       />
 
-      <section className="mx-auto max-w-[44rem] space-y-6 pb-24 sm:space-y-8 md:pb-0">
+      <section className="mx-auto max-w-3xl space-y-6 pb-24 sm:space-y-8 md:pb-0">
         <div className="space-y-5 border-b border-border/24 pb-5 sm:pb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="hidden flex-wrap items-center gap-2 text-sm text-muted-foreground md:flex">
             <PrefetchLink
               href={fallbackHref}
+              queryWarmup={entity ? { kind: "track", id: entity.id } : { kind: "feed" }}
               className={cn(
                 buttonVariants({ variant: "ghost", size: "sm" }),
                 "h-8 rounded-full border border-border/20 bg-card/10 px-3 text-muted-foreground hover:bg-card/18 hover:text-foreground",
@@ -231,6 +243,7 @@ export default async function ReviewPage({
             {entity ? (
               <PrefetchLink
                 href={`/track/${entity.id}`}
+                queryWarmup={{ kind: "track", id: entity.id }}
                 className="inline-flex max-w-full items-center gap-3 rounded-[1.15rem] border border-border/16 bg-card/10 px-3 py-2 transition-colors hover:bg-card/16"
               >
                 <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/12 bg-muted/22">
@@ -267,11 +280,7 @@ export default async function ReviewPage({
         </div>
 
         <ReviewPageCard
-          review={{
-            ...bundle.review,
-            viewer_has_liked: bundle.liked,
-            viewer_has_bookmarked: bundle.bookmarked,
-          }}
+          review={reviewData.review}
           entity={entity}
           author={author}
           isAuthenticated={Boolean(user)}
@@ -298,6 +307,6 @@ export default async function ReviewPage({
           </div>
         </section>
       </section>
-    </>
+    </HydrationBoundary>
   );
 }

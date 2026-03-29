@@ -3,14 +3,13 @@ import { Suspense } from "react";
 import { Bookmark, ChevronRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import PrefetchLink from "@/components/prefetch-link";
+import SavedReviewsList from "@/components/saved-reviews-list";
 import { buttonVariants } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { SavedReviewCard } from "@/components/review-route-cards";
+import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
-import { getSavedReviewsForUser } from "@/lib/queries/review-bookmarks";
-import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
-import { supabaseServer } from "@/lib/supabase/server";
+import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
 import { cn } from "@/lib/utils";
 
 export const metadata = createPageMetadata({
@@ -21,21 +20,13 @@ export const metadata = createPageMetadata({
 });
 
 export default async function SavedReviewsPage() {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const savedReviews = await getSavedReviewsForUser(supabase, user.id);
-
-  const savedReviewIds = savedReviews
-    .map((savedReview) => savedReview.review?.id)
-    .filter((reviewId): reviewId is string => Boolean(reviewId));
-  const likedReviewIds = await getViewerLikedReviewIds(supabase, user.id, savedReviewIds);
+  const { reviews: savedReviews } = await getViewerSavedReviewsBundle(user.id);
 
   return (
     <section className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
@@ -64,37 +55,11 @@ export default async function SavedReviewsPage() {
         </div>
       </div>
 
-      {savedReviews.length > 0 ? (
-        <div className="space-y-4">
-          {savedReviews.map((savedReview) => {
-            if (!savedReview.review) {
-              return null;
-            }
-
-            const reviewAuthor = Array.isArray(savedReview.review.author)
-              ? savedReview.review.author[0] ?? null
-              : savedReview.review.author;
-            const reviewEntity = Array.isArray(savedReview.review.entities)
-              ? savedReview.review.entities[0] ?? null
-              : savedReview.review.entities;
-
-            return (
-              <SavedReviewCard
-                key={savedReview.review.id}
-                review={{
-                  ...savedReview.review,
-                  viewer_has_liked: likedReviewIds.has(savedReview.review.id),
-                  viewer_has_bookmarked: true,
-                }}
-                entity={reviewEntity}
-                author={reviewAuthor}
-                isAuthenticated
-                canManage={reviewAuthor?.id === user.id}
-              />
-            );
-          })}
-        </div>
-      ) : (
+      <SavedReviewsList
+        initialReviews={savedReviews}
+        userId={user.id}
+        isAuthenticated
+        emptyState={
         <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10">
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -106,26 +71,26 @@ export default async function SavedReviewsPage() {
             </EmptyDescription>
           </EmptyHeader>
           <CardContent className="p-0 pt-2">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+            <PrefetchLink
+              href="/"
+              queryWarmup={{ kind: "feed" }}
+              className="inline-flex items-center gap-2 text-sm font-medium text-foreground"
+            >
               Go to the feed
               <ChevronRight className="size-4" />
-            </Link>
+            </PrefetchLink>
           </CardContent>
         </Empty>
-      )}
+        }
+      />
     </section>
   );
 }
 
 async function SavedProfileAction({ userId }: { userId: string }) {
-  const supabase = await supabaseServer();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", userId)
-    .maybeSingle<{ username: string }>();
+  const profile = await getCurrentViewerProfile();
 
-  if (!profile?.username) {
+  if (!profile?.username || profile.id !== userId) {
     return null;
   }
 

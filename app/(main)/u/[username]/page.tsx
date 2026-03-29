@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import SavedReviewsList from "@/components/saved-reviews-list";
 import UserAvatar from "@/components/user-avatar";
+import type { ReviewCardAuthor } from "@/components/review-card";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
-import { ProfileReviewCard, SavedReviewCard } from "@/components/review-route-cards";
+import { ProfileReviewCard } from "@/components/review-route-cards";
+import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
   getPublicProfileByUsername,
-  getProfilePublicBundle,
-  getProfileViewerState,
+  getProfilePageBundle,
   type ProfileReview,
 } from "@/lib/queries/profiles";
-import { getSavedReviewsForUser } from "@/lib/queries/review-bookmarks";
-import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
-import { supabaseServer } from "@/lib/supabase/server";
+import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
 import { cn } from "@/lib/utils";
 
 function getEntity(review: ProfileReview) {
@@ -65,30 +65,15 @@ export default async function UserProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const supabase = await supabaseServer();
-
-  const [publicBundle, auth] = await Promise.all([
-    getProfilePublicBundle(username),
-    supabase.auth.getUser(),
-  ]);
+  const user = await getCurrentUser();
+  const publicBundle = await getProfilePageBundle(username, user?.id);
 
   if (!publicBundle) {
     notFound();
   }
 
-  const {
-    data: { user },
-  } = auth;
   const { profile, pinnedReview, reviews } = publicBundle;
   const isOwnProfile = user?.id === profile.id;
-
-  const { likedReviewIds, bookmarkedReviewIds } = await getProfileViewerState(
-    user?.id,
-    [
-      ...(pinnedReview ? [pinnedReview.id] : []),
-      ...reviews.map((review) => review.id),
-    ],
-  );
 
   const totalReviews = reviews.length + (pinnedReview ? 1 : 0);
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
@@ -96,6 +81,12 @@ export default async function UserProfilePage({
     month: "long",
   });
   const name = profile.display_name ?? `@${profile.username}`;
+  const profileAuthor: ReviewCardAuthor = {
+    id: profile.id,
+    username: profile.username,
+    display_name: profile.display_name,
+    avatar_url: profile.avatar_url,
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
@@ -200,7 +191,7 @@ export default async function UserProfilePage({
         </div>
       </section>
 
-      <div className="space-y-8">
+      <div className="max-w-3xl space-y-8">
         {pinnedReview ? (
           <div className="space-y-3">
             <div className="flex items-end justify-between border-b border-border/25 pb-4">
@@ -211,12 +202,12 @@ export default async function UserProfilePage({
             <ProfileReviewCard
               review={{
                 ...pinnedReview,
-                viewer_has_liked: likedReviewIds.has(pinnedReview.id),
-                viewer_has_bookmarked: bookmarkedReviewIds.has(pinnedReview.id),
+                viewer_has_liked: publicBundle.likedReviewIds.has(pinnedReview.id),
+                viewer_has_bookmarked: publicBundle.bookmarkedReviewIds.has(pinnedReview.id),
               }}
               entity={getEntity(pinnedReview)}
+              author={profileAuthor}
               featured
-              entityMode="full"
               isAuthenticated={Boolean(user)}
               canManage={isOwnProfile}
             />
@@ -239,10 +230,11 @@ export default async function UserProfilePage({
                   key={review.id}
                   review={{
                     ...review,
-                    viewer_has_liked: likedReviewIds.has(review.id),
-                    viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
+                    viewer_has_liked: publicBundle.likedReviewIds.has(review.id),
+                    viewer_has_bookmarked: publicBundle.bookmarkedReviewIds.has(review.id),
                   }}
                   entity={getEntity(review)}
+                  author={profileAuthor}
                   isAuthenticated={Boolean(user)}
                   canManage={isOwnProfile}
                 />
@@ -277,12 +269,7 @@ async function SavedReviewsSection({
   userId: string;
   isAuthenticated: boolean;
 }) {
-  const supabase = await supabaseServer();
-  const savedReviews = await getSavedReviewsForUser(supabase, userId);
-  const savedReviewIds = savedReviews
-    .map((savedReview) => savedReview.review?.id)
-    .filter((reviewId): reviewId is string => Boolean(reviewId));
-  const likedSavedReviewIds = await getViewerLikedReviewIds(supabase, userId, savedReviewIds);
+  const { reviews: savedReviews } = await getViewerSavedReviewsBundle(userId);
 
   return (
     <section className="space-y-4 border-t border-border/30 pt-8">
@@ -295,43 +282,18 @@ async function SavedReviewsSection({
         </p>
       </div>
 
-      {savedReviews.length > 0 ? (
-        <div className="space-y-4">
-          {savedReviews.map((savedReview) => {
-            if (!savedReview.review) {
-              return null;
-            }
-
-            const reviewAuthor = Array.isArray(savedReview.review.author)
-              ? savedReview.review.author[0] ?? null
-              : savedReview.review.author;
-            const reviewEntity = Array.isArray(savedReview.review.entities)
-              ? savedReview.review.entities[0] ?? null
-              : savedReview.review.entities;
-
-            return (
-              <SavedReviewCard
-                key={savedReview.review.id}
-                review={{
-                  ...savedReview.review,
-                  viewer_has_liked: likedSavedReviewIds.has(savedReview.review.id),
-                  viewer_has_bookmarked: true,
-                }}
-                entity={reviewEntity}
-                author={reviewAuthor}
-                isAuthenticated={isAuthenticated}
-                canManage={reviewAuthor?.id === userId}
-              />
-            );
-          })}
-        </div>
-      ) : (
+      <SavedReviewsList
+        initialReviews={savedReviews}
+        userId={userId}
+        isAuthenticated={isAuthenticated}
+        emptyState={
         <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-9">
           <EmptyHeader>
             <EmptyTitle>No saved reviews</EmptyTitle>
           </EmptyHeader>
         </Empty>
-      )}
+        }
+      />
     </section>
   );
 }

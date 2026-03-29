@@ -1,12 +1,11 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { getOrCreateLoader } from "@/lib/queries/cache-loader";
 import { runReviewListQuery } from "@/lib/queries/review-likes";
 import { supabasePublic } from "@/lib/supabase/public";
-import { supabaseServer } from "@/lib/supabase/server";
-import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
-import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
+import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
 import type {
   ReviewCardAuthor,
@@ -57,33 +56,42 @@ function getHydratedAuthorId(author: EntityReview["author"]) {
   return author.id ?? null;
 }
 
+const entityPageLoaders = new Map<string, () => Promise<EntityPage | null>>();
+const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | null>>();
+const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
+
 export async function getEntityPageById(entityId: string) {
-  return unstable_cache(
-    async () =>
-      measureServerTask(
-        "getEntityPageById",
-        async () => {
-          const supabase = supabasePublic();
-
-          const { data, error } = await supabase
-            .from("entities")
-            .select("id, provider, provider_id, title, artist_name, cover_url, deezer_url, type")
-            .eq("id", entityId)
-            .maybeSingle<EntityPage>();
-
-          if (error) {
-            return null;
-          }
-
-          return data;
-        },
-        { entityId },
-      ),
+  return getOrCreateLoader(
+    entityPageLoaders,
     ["entity-page", entityId],
-    {
-      revalidate: 120,
-      tags: ["entities", `entity:${entityId}`],
-    },
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getEntityPageById",
+            async () => {
+              const supabase = supabasePublic();
+
+              const { data, error } = await supabase
+                .from("entities")
+                .select("id, provider, provider_id, title, artist_name, cover_url, deezer_url, type")
+                .eq("id", entityId)
+                .maybeSingle<EntityPage>();
+
+              if (error) {
+                return null;
+              }
+
+              return data;
+            },
+            { entityId },
+          ),
+        ["entity-page", entityId],
+        {
+          revalidate: 120,
+          tags: ["entities", `entity:${entityId}`],
+        },
+      ),
   )();
 }
 
@@ -92,70 +100,80 @@ export async function findEntityByProvider(
   type: EntityPage["type"],
   providerId: string,
 ) {
-  return unstable_cache(
-    async () =>
-      measureServerTask(
-        "findEntityByProvider",
-        async () => {
-          const supabase = supabasePublic();
-
-          const { data, error } = await supabase
-            .from("entities")
-            .select("id")
-            .eq("provider", provider)
-            .eq("type", type)
-            .eq("provider_id", providerId)
-            .maybeSingle<ExistingEntity>();
-
-          if (error) {
-            return null;
-          }
-
-          return data;
-        },
-        { provider, type, providerId },
-      ),
+  return getOrCreateLoader(
+    entityByProviderLoaders,
     ["entity-by-provider", provider, type, providerId],
-    {
-      revalidate: 120,
-      tags: ["entities", `entity-provider:${provider}:${type}:${providerId}`],
-    },
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "findEntityByProvider",
+            async () => {
+              const supabase = supabasePublic();
+
+              const { data, error } = await supabase
+                .from("entities")
+                .select("id")
+                .eq("provider", provider)
+                .eq("type", type)
+                .eq("provider_id", providerId)
+                .maybeSingle<ExistingEntity>();
+
+              if (error) {
+                return null;
+              }
+
+              return data;
+            },
+            { provider, type, providerId },
+          ),
+        ["entity-by-provider", provider, type, providerId],
+        {
+          revalidate: 120,
+          tags: ["entities", `entity-provider:${provider}:${type}:${providerId}`],
+        },
+      ),
   )();
 }
 
 export async function getReviewsForEntity(entityId: string) {
-  return unstable_cache(
-    async () =>
-      measureServerTask(
-        "getReviewsForEntity",
-        async () => {
-          const supabase = supabasePublic();
-
-          const reviews = await runReviewListQuery<EntityReview>(async (mode) =>
-            supabase
-              .from("reviews")
-              .select(
-                buildReviewHydrationSelect(mode, {
-                  includeAuthor: true,
-                  includePinned: true,
-                }),
-              )
-              .eq("entity_id", entityId)
-              .order("created_at", { ascending: false }),
-          );
-
-          return reviews.map((review) => ({
-            ...review,
-            is_pinned: Boolean(review.is_pinned),
-          }));
-        },
-        { entityId },
-      ),
+  return getOrCreateLoader(
+    entityReviewLoaders,
     ["entity-reviews", entityId],
-    {
-      revalidate: 60,
-      tags: ["reviews", `entity:${entityId}:reviews`],
-    },
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getReviewsForEntity",
+            async () => {
+              const supabase = supabasePublic();
+
+              const reviews = await runReviewListQuery<EntityReview>(async (mode) =>
+                supabase
+                  .from("reviews")
+                  .select(
+                    buildReviewHydrationSelect(mode, {
+                      includeAuthor: true,
+                      includePinned: true,
+                    }),
+                  )
+                  .eq("entity_id", entityId)
+                  .order("created_at", { ascending: false }),
+              );
+
+              return reviews.map((review) => ({
+                ...review,
+                is_pinned: Boolean(review.is_pinned),
+              }));
+            },
+            { entityId },
+          ),
+        ["entity-reviews", entityId],
+        {
+          revalidate: 60,
+          tags: ["reviews", `entity:${entityId}:reviews`],
+        },
+      ),
   )();
 }
 
@@ -199,18 +217,7 @@ export async function getTrackViewerState(
 
   const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
     "getTrackViewerState",
-    async () => {
-      const supabase = await supabaseServer();
-      const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
-        getViewerLikedReviewIds(supabase, viewerId, reviewIds),
-        getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),
-      ]);
-
-      return {
-        likedReviewIds,
-        bookmarkedReviewIds,
-      };
-    },
+    async () => getViewerReviewCollectionState(viewerId, reviewIds),
     { viewerId, entityId, reviewCount: reviewIds.length },
   );
 

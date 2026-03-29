@@ -58,7 +58,11 @@ export function NavRecentReviews({
                     asChild
                     className="h-11 rounded-xl px-2 text-[13px] font-medium"
                   >
-                    <PrefetchLink href={`/track/${item.entityId}`} onClick={onNavigate}>
+                    <PrefetchLink
+                      href={`/track/${item.entityId}`}
+                      queryWarmup={{ kind: "track", id: item.entityId }}
+                      onClick={onNavigate}
+                    >
                       <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-sidebar-border bg-sidebar-accent">
                         {item.coverUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element

@@ -6,12 +6,12 @@ import type {
   ReviewCardData,
   ReviewCardEntity,
 } from "@/components/review-card";
-import { getViewerBookmarkedReviewIds } from "@/lib/queries/review-bookmarks";
 import {
-  getViewerLikedReviewIds,
   runReviewMaybeQuery,
 } from "@/lib/queries/review-likes";
+import { getOrCreateLoader } from "@/lib/queries/cache-loader";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
+import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -40,35 +40,42 @@ export type ViewerReview = {
   id: string;
 };
 
-export async function getPublicReviewById(reviewId: string) {
-  return unstable_cache(
-    async () =>
-      measureServerTask(
-        "getPublicReviewById",
-        async () => {
-          const supabase = supabasePublic();
+const publicReviewLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
 
-          return runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
-            supabase
-              .from("reviews")
-              .select(
-                buildReviewHydrationSelect(mode, {
-                  includeAuthor: true,
-                  includeEntity: true,
-                  includePinned: true,
-                }),
-              )
-              .eq("id", reviewId)
-              .maybeSingle(),
-          );
-        },
-        { reviewId },
-      ),
+export async function getPublicReviewById(reviewId: string) {
+  return getOrCreateLoader(
+    publicReviewLoaders,
     ["review", reviewId],
-    {
-      revalidate: 60,
-      tags: ["reviews", `review:${reviewId}`],
-    },
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getPublicReviewById",
+            async () => {
+              const supabase = supabasePublic();
+
+              return runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
+                supabase
+                  .from("reviews")
+                  .select(
+                    buildReviewHydrationSelect(mode, {
+                      includeAuthor: true,
+                      includeEntity: true,
+                      includePinned: true,
+                    }),
+                  )
+                  .eq("id", reviewId)
+                  .maybeSingle(),
+              );
+            },
+            { reviewId },
+          ),
+        ["review", reviewId],
+        {
+          revalidate: 60,
+          tags: ["reviews", `review:${reviewId}`],
+        },
+      ),
   )();
 }
 
@@ -83,26 +90,15 @@ export async function getReviewViewerState(
     };
   }
 
-  const { liked, bookmarked } = await measureServerTask(
+  const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
     "getReviewViewerState",
-    async () => {
-      const supabase = await supabaseServer();
-      const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
-        getViewerLikedReviewIds(supabase, viewerId, [reviewId]),
-        getViewerBookmarkedReviewIds(supabase, viewerId, [reviewId]),
-      ]);
-
-      return {
-        liked: likedReviewIds.has(reviewId),
-        bookmarked: bookmarkedReviewIds.has(reviewId),
-      };
-    },
+    async () => getViewerReviewCollectionState(viewerId, [reviewId]),
     { viewerId, reviewId },
   );
 
   return {
-    liked,
-    bookmarked,
+    liked: likedReviewIds.has(reviewId),
+    bookmarked: bookmarkedReviewIds.has(reviewId),
   };
 }
 
@@ -110,13 +106,14 @@ export async function getReviewPageBundle(
   reviewId: string,
   viewerId?: string | null,
 ) {
-  const review = await getPublicReviewById(reviewId);
+  const [review, viewerState] = await Promise.all([
+    getPublicReviewById(reviewId),
+    getReviewViewerState(viewerId, reviewId),
+  ]);
 
   if (!review) {
     return null;
   }
-
-  const viewerState = await getReviewViewerState(viewerId, reviewId);
 
   return {
     review,
