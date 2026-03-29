@@ -8,15 +8,12 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import {
-  ReviewCardDeleteDialog,
-  useReviewCardActions,
-} from "@/components/review-card-actions";
+  ReviewDeleteDialog,
+  type ReviewActionTarget,
+  useReviewActions,
+} from "@/components/review-actions";
 
-type ReviewCardContextMenuProps = {
-  reviewId: string;
-  reviewTitle: string | null;
-  entityTitle: string | null;
-  entityId?: string | null;
+type ReviewCardContextMenuProps = ReviewActionTarget & {
   canManage?: boolean;
   onToggleBookmark?: () => void;
 };
@@ -41,7 +38,7 @@ export default function ReviewCardContextMenu({
     requestDeleteReview,
     reportReview,
     deleteReview,
-  } = useReviewCardActions({
+  } = useReviewActions({
     reviewId,
     reviewTitle,
     entityTitle,
@@ -112,7 +109,7 @@ export default function ReviewCardContextMenu({
         )}
       </ContextMenuContent>
 
-      <ReviewCardDeleteDialog
+      <ReviewDeleteDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         isDeleting={isDeleting}

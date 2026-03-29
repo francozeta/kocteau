@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
-import ReviewCard from "@/components/review-card";
+import { ReviewPageCard } from "@/components/review-route-cards";
 import ReviewFloatingCommentInput from "@/components/review-floating-comment-input";
 import ReviewMobileHeader from "@/components/review-mobile-header";
 import UserAvatar from "@/components/user-avatar";
@@ -266,7 +266,7 @@ export default async function ReviewPage({
         </div>
         </div>
 
-        <ReviewCard
+        <ReviewPageCard
           review={{
             ...bundle.review,
             viewer_has_liked: bundle.liked,
@@ -274,17 +274,8 @@ export default async function ReviewPage({
           }}
           entity={entity}
           author={author}
-          display={{
-            showAuthor: false,
-            showEntity: false,
-            showRatingBadge: false,
-            featured: true,
-          }}
-          behavior={{ interactive: false }}
-          permissions={{
-            isAuthenticated: Boolean(user),
-            canManage: isOwner,
-          }}
+          isAuthenticated={Boolean(user)}
+          canManage={isOwner}
         />
 
         <section className="overflow-hidden rounded-[1.7rem] border border-border/14 bg-card/10">

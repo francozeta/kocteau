@@ -17,19 +17,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-type UseReviewCardActionsOptions = {
+export type ReviewActionTarget = {
   reviewId: string;
   reviewTitle: string | null;
   entityTitle: string | null;
   entityId?: string | null;
 };
 
-export function useReviewCardActions({
+export function useReviewActions({
   reviewId,
   reviewTitle,
   entityTitle,
   entityId = null,
-}: UseReviewCardActionsOptions) {
+}: ReviewActionTarget) {
   const router = useRouter();
   const pathname = usePathname();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -204,7 +204,7 @@ export function useReviewCardActions({
   };
 }
 
-export function ReviewCardDeleteDialog({
+export function ReviewDeleteDialog({
   open,
   onOpenChange,
   isDeleting,

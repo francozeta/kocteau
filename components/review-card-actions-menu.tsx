@@ -11,15 +11,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
-  ReviewCardDeleteDialog,
-  useReviewCardActions,
-} from "@/components/review-card-actions";
+  ReviewDeleteDialog,
+  type ReviewActionTarget,
+  useReviewActions,
+} from "@/components/review-actions";
 
-type ReviewCardActionsMenuProps = {
-  reviewId: string;
-  reviewTitle: string | null;
-  entityTitle: string | null;
-  entityId?: string | null;
+type ReviewCardActionsMenuProps = ReviewActionTarget & {
   canManage?: boolean;
   onToggleBookmark?: () => void;
   trigger?: ReactNode;
@@ -46,7 +43,7 @@ export default function ReviewCardActionsMenu({
     reportReview,
     requestDeleteReview,
     deleteReview,
-  } = useReviewCardActions({
+  } = useReviewActions({
     reviewId,
     reviewTitle,
     entityTitle,
@@ -145,7 +142,7 @@ export default function ReviewCardActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ReviewCardDeleteDialog
+      <ReviewDeleteDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         isDeleting={isDeleting}

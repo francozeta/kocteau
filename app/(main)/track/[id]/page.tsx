@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import ReviewCard from "@/components/review-card";
+import { TrackReviewCard } from "@/components/review-route-cards";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {
   getEntityPageById,
@@ -195,7 +195,7 @@ export default async function TrackPage({
               const author = getAuthor(review);
 
               return (
-                <ReviewCard
+                <TrackReviewCard
                   key={review.id}
                   review={{
                     ...review,
@@ -204,11 +204,8 @@ export default async function TrackPage({
                   }}
                   entity={entity}
                   author={author}
-                  display={{ entityMode: "inline" }}
-                  permissions={{
-                    isAuthenticated: Boolean(user),
-                    canManage: Boolean(user?.id && author?.id === user.id),
-                  }}
+                  isAuthenticated={Boolean(user)}
+                  canManage={Boolean(user?.id && author?.id === user.id)}
                 />
               );
             })}

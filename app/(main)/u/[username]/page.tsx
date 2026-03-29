@@ -6,7 +6,7 @@ import UserAvatar from "@/components/user-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
-import ReviewCard from "@/components/review-card";
+import { ProfileReviewCard, SavedReviewCard } from "@/components/review-route-cards";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
   getPublicProfileByUsername,
@@ -208,21 +208,17 @@ export default async function UserProfilePage({
                 Pinned
               </h2>
             </div>
-            <ReviewCard
+            <ProfileReviewCard
               review={{
                 ...pinnedReview,
                 viewer_has_liked: likedReviewIds.has(pinnedReview.id),
                 viewer_has_bookmarked: bookmarkedReviewIds.has(pinnedReview.id),
               }}
               entity={getEntity(pinnedReview)}
-              display={{
-                showAuthor: false,
-                featured: true,
-              }}
-              permissions={{
-                isAuthenticated: Boolean(user),
-                canManage: isOwnProfile,
-              }}
+              featured
+              entityMode="full"
+              isAuthenticated={Boolean(user)}
+              canManage={isOwnProfile}
             />
           </div>
         ) : null}
@@ -239,7 +235,7 @@ export default async function UserProfilePage({
             </div>
             <div className="space-y-4">
               {reviews.map((review) => (
-                <ReviewCard
+                <ProfileReviewCard
                   key={review.id}
                   review={{
                     ...review,
@@ -247,14 +243,8 @@ export default async function UserProfilePage({
                     viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
                   }}
                   entity={getEntity(review)}
-                  display={{
-                    showAuthor: false,
-                    entityMode: "inline",
-                  }}
-                  permissions={{
-                    isAuthenticated: Boolean(user),
-                    canManage: isOwnProfile,
-                  }}
+                  isAuthenticated={Boolean(user)}
+                  canManage={isOwnProfile}
                 />
               ))}
             </div>
@@ -320,7 +310,7 @@ async function SavedReviewsSection({
               : savedReview.review.entities;
 
             return (
-              <ReviewCard
+              <SavedReviewCard
                 key={savedReview.review.id}
                 review={{
                   ...savedReview.review,
@@ -329,15 +319,8 @@ async function SavedReviewsSection({
                 }}
                 entity={reviewEntity}
                 author={reviewAuthor}
-                display={{
-                  entityMode: "inline",
-                  eyebrow: "Saved for later",
-                }}
-                behavior={{ bookmarkRefreshOnToggle: true }}
-                permissions={{
-                  isAuthenticated,
-                  canManage: reviewAuthor?.id === userId,
-                }}
+                isAuthenticated={isAuthenticated}
+                canManage={reviewAuthor?.id === userId}
               />
             );
           })}

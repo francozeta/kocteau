@@ -3,7 +3,7 @@ import { ArrowRight, Music2, Star } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import ReviewCard from "@/components/review-card";
+import { FeedReviewCard } from "@/components/review-route-cards";
 import TrackContextMenu from "@/components/track-context-menu";
 import { createPageMetadata } from "@/lib/metadata";
 import {
@@ -113,7 +113,7 @@ export default async function HomePage({
           const author = getAuthor(review);
 
           return (
-            <ReviewCard
+            <FeedReviewCard
               key={review.id}
               review={{
                 ...review,
@@ -122,14 +122,9 @@ export default async function HomePage({
               }}
               entity={entity}
               author={author}
-              display={{
-                featured: shouldLeadWithReviews && index === 0,
-                bodyClampLines: 4,
-              }}
-              permissions={{
-                isAuthenticated: Boolean(user),
-                canManage: Boolean(user?.id && author?.id === user.id),
-              }}
+              featured={shouldLeadWithReviews && index === 0}
+              isAuthenticated={Boolean(user)}
+              canManage={Boolean(user?.id && author?.id === user.id)}
             />
           );
         })}

@@ -6,7 +6,7 @@ import PrefetchLink from "@/components/prefetch-link";
 import { buttonVariants } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import ReviewCard from "@/components/review-card";
+import { SavedReviewCard } from "@/components/review-route-cards";
 import { createPageMetadata } from "@/lib/metadata";
 import { getSavedReviewsForUser } from "@/lib/queries/review-bookmarks";
 import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
@@ -79,7 +79,7 @@ export default async function SavedReviewsPage() {
               : savedReview.review.entities;
 
             return (
-              <ReviewCard
+              <SavedReviewCard
                 key={savedReview.review.id}
                 review={{
                   ...savedReview.review,
@@ -88,15 +88,8 @@ export default async function SavedReviewsPage() {
                 }}
                 entity={reviewEntity}
                 author={reviewAuthor}
-                display={{
-                  entityMode: "inline",
-                  eyebrow: "Saved for later",
-                }}
-                behavior={{ bookmarkRefreshOnToggle: true }}
-                permissions={{
-                  isAuthenticated: true,
-                  canManage: reviewAuthor?.id === user.id,
-                }}
+                isAuthenticated
+                canManage={reviewAuthor?.id === user.id}
               />
             );
           })}
