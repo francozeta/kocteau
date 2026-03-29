@@ -1,3 +1,7 @@
+"use client";
+
+import type { KeyboardEvent, MouseEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Music2, Star } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewCardActionsMenu from "@/components/review-card-actions-menu";
@@ -54,6 +58,18 @@ function formatDate(value: string) {
     month: "short",
     year: "numeric",
   });
+}
+
+function isInteractiveTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return Boolean(
+    target.closest(
+      "a,button,[role='button'],input,textarea,select,summary,[data-prevent-review-link='true']",
+    ),
+  );
 }
 
 function TrackInfo({
@@ -137,14 +153,54 @@ export default function ReviewCard({
   bookmarkRefreshOnToggle = false,
   canManage = false,
 }: ReviewCardProps) {
+  const router = useRouter();
   const hasTitle = Boolean(review.title?.trim());
   const authorLabel = author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
+  const reviewHref = `/review/${review.id}`;
+
+  function handleOpenReview() {
+    void router.prefetch(reviewHref);
+    router.push(reviewHref);
+  }
+
+  function handleCardClick(event: MouseEvent<HTMLElement>) {
+    if (isInteractiveTarget(event.target)) {
+      return;
+    }
+
+    if (typeof window !== "undefined" && window.getSelection?.()?.toString()) {
+      return;
+    }
+
+    handleOpenReview();
+  }
+
+  function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpenReview();
+    }
+  }
 
   return (
     <article
       id={`review-${review.id}`}
+      role="link"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      onMouseEnter={() => {
+        void router.prefetch(reviewHref);
+      }}
+      onFocusCapture={() => {
+        void router.prefetch(reviewHref);
+      }}
       className={cn(
-        "overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-card/26",
+        "cursor-pointer overflow-hidden rounded-[1.85rem] border border-border/18 bg-card/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-card/26 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
         featured && "border-border/30 bg-card/22",
       )}
     >

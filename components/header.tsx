@@ -50,7 +50,7 @@ export default function Header({
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/25 bg-background/72 backdrop-blur-xl">
+    <header className="fixed inset-x-0 top-0 z-30 border-b border-border/25 bg-background/72 backdrop-blur-xl md:left-[var(--sidebar-width)] md:right-0 md:border md:border-border/20 md:bg-background/78 md:peer-data-[state=collapsed]:left-[var(--sidebar-width-icon)]">
       <div className="relative flex h-15 items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
         <div className="flex items-center">
           <Button

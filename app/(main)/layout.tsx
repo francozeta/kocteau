@@ -56,13 +56,13 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           recentTracks={recentTracks}
           unreadCount={initialUnreadCount}
         />
-        <SidebarInset className="min-h-svh bg-background">
+        <SidebarInset className="min-h-svh">
           <Header
             profile={safeProfile}
             initialUnreadCount={initialUnreadCount}
             initialNotifications={initialNotifications}
           />
-          <main className="mx-auto w-full max-w-5xl px-3.5 py-4 pb-32 sm:px-6 sm:py-7 sm:pb-28 lg:px-10 lg:py-9">
+          <main className="mx-auto w-full max-w-5xl px-3.5 pt-20 pb-32 sm:px-6 sm:pt-24 sm:pb-28 lg:px-10 lg:pt-24 lg:pb-10">
             {children}
           </main>
           <MobileBottomBar profile={safeProfile} />
