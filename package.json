@@ -8,6 +8,9 @@
   ],
   "scripts": {
     "dev:web": "pnpm --filter web dev",
+    "dev:mobile": "pnpm --filter mobile run start",
+    "dev:mobile:tunnel": "pnpm --filter mobile run start:tunnel",
+    "dev:mobile:clear": "pnpm --filter mobile run start:clear",
     "build": "turbo run build",
     "lint": "turbo run lint"
   },

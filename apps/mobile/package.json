@@ -3,15 +3,22 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --lan --port 8082",
     "start:lan": "expo start --lan --port 8082",
     "start:tunnel": "expo start --tunnel --port 8082",
-    "start:clear": "expo start --clear",
+    "start:clear": "expo start --lan --port 8082 --clear",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "@types/react"
+      ]
+    }
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
