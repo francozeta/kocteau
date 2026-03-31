@@ -1,7 +1,8 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
+# Monorepo dependencies
+node_modules/
+apps/*/node_modules/
+packages/*/node_modules/
+.pnpm-store/
 /.pnp
 .pnp.*
 .yarn/*
@@ -10,35 +11,51 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Turborepo
+.turbo/
+apps/*/.turbo/
+packages/*/.turbo/
 
-# next.js
-/.next/
-/out/
+# Build output
+.next/
+apps/*/.next/
+packages/*/.next/
+out/
+apps/*/out/
+dist/
+build/
+coverage/
 
-# production
-/build
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+apps/*/next-env.d.ts
+apps/*/tsconfig.tsbuildinfo
+packages/*/tsconfig.tsbuildinfo
 
-# misc
-.DS_Store
-*.pem
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.sentry-build-plugin
+apps/*/.env
+apps/*/.env.local
+apps/*/.env.*.local
+apps/*/.env.sentry-build-plugin
+packages/*/.env
+packages/*/.env.local
+packages/*/.env.*.local
 
-# debug
+# Vercel
+.vercel/
+apps/*/.vercel/
+
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# Sentry Config File
-.env.sentry-build-plugin
+# Misc
+.DS_Store
+*.pem
