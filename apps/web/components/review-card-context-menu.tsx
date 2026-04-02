@@ -1,6 +1,8 @@
 "use client";
 
-import { Bookmark, CornerUpRight, Flag, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Bookmark, Flag, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
+import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -16,6 +18,7 @@ import {
 type ReviewCardContextMenuProps = ReviewActionTarget & {
   canManage?: boolean;
   onToggleBookmark?: () => void;
+  editSeed?: EditReviewDialogSeed | null;
 };
 
 export default function ReviewCardContextMenu({
@@ -25,15 +28,15 @@ export default function ReviewCardContextMenu({
   entityId = null,
   canManage = false,
   onToggleBookmark,
+  editSeed = null,
 }: ReviewCardContextMenuProps) {
+  const [editOpen, setEditOpen] = useState(false);
   const {
     canOpenTrack,
     confirmOpen,
     setConfirmOpen,
     isDeleting,
-    openReview,
     openTrack,
-    editReview,
     copyReviewLink,
     requestDeleteReview,
     reportReview,
@@ -49,10 +52,6 @@ export default function ReviewCardContextMenu({
     <>
       <ContextMenuContent className="w-48 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-xl">
         <ContextMenuLabel>Review</ContextMenuLabel>
-        <ContextMenuItem onSelect={openReview}>
-          <CornerUpRight className="size-4" />
-          Open review
-        </ContextMenuItem>
         {canOpenTrack ? (
           <ContextMenuItem onSelect={openTrack}>
             <Music2 className="size-4" />
@@ -79,10 +78,17 @@ export default function ReviewCardContextMenu({
         {canManage ? (
           <>
             <ContextMenuSeparator />
-            <ContextMenuItem onSelect={editReview}>
-              <PencilLine className="size-4" />
-              Edit review
-            </ContextMenuItem>
+            {editSeed ? (
+              <ContextMenuItem
+                onSelect={(event) => {
+                  event.preventDefault();
+                  setEditOpen(true);
+                }}
+              >
+                <PencilLine className="size-4" />
+                Edit review
+              </ContextMenuItem>
+            ) : null}
             <ContextMenuItem
               variant="destructive"
               onSelect={(event) => {
@@ -115,6 +121,16 @@ export default function ReviewCardContextMenu({
         isDeleting={isDeleting}
         onConfirm={deleteReview}
       />
+
+      {editSeed ? (
+        <EditReviewDialog
+          reviewId={reviewId}
+          {...editSeed}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          showTrigger={false}
+        />
+      ) : null}
     </>
   );
 }

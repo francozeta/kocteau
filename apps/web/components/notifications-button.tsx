@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toastActionError } from "@/lib/feedback";
@@ -133,12 +134,12 @@ export default function NotificationsButton({
         <ScrollArea className="max-h-[28rem]">
           <div className="p-2.5">
             {isLoadingNotifications ? (
-              <div className="px-3 py-6 text-sm text-muted-foreground">
-                Loading notifications...
+              <div className="flex justify-center px-3 py-8">
+                <Spinner className="size-4 text-muted-foreground/70" />
               </div>
             ) : isFetchingNotifications && notifications.length === 0 ? (
-              <div className="px-3 py-6 text-sm text-muted-foreground">
-                Loading notifications...
+              <div className="flex justify-center px-3 py-8">
+                <Spinner className="size-4 text-muted-foreground/70" />
               </div>
             ) : isNotificationsError ? (
               <Alert className="rounded-2xl border-border/40 bg-card/50 p-3">

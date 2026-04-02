@@ -91,7 +91,6 @@ export async function POST(req: Request) {
           code: "ALREADY_REVIEWED",
           reviewId: existingReview?.id ?? null,
           entityId: existingEntity?.id ?? null,
-          editUrl: existingReview?.id ? `/review/${existingReview.id}/edit` : null,
         },
         { status: 409 },
       );
@@ -130,7 +129,6 @@ export async function POST(req: Request) {
 
   if (reviewId) {
     revalidateTag(`review:${reviewId}`, "max");
-    revalidatePath(`/review/${reviewId}`);
   }
 
   if (profile?.username) {

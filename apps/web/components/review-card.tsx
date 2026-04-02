@@ -6,9 +6,13 @@ import { cn } from "@/lib/utils";
 
 export type ReviewCardEntity = {
   id: string;
+  provider?: string;
+  provider_id?: string;
+  type?: string;
   title: string;
   artist_name: string | null;
   cover_url: string | null;
+  deezer_url?: string | null;
 };
 
 export type ReviewCardAuthor = {

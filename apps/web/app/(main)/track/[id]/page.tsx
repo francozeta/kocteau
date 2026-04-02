@@ -3,6 +3,7 @@ import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import Link from "next/link";
 import { MessageSquarePlus, Music2, PencilLine, Star } from "lucide-react";
 import { notFound } from "next/navigation";
+import EditReviewDialog from "@/components/edit-review-dialog";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -54,10 +55,13 @@ export async function generateMetadata({
 
 export default async function TrackPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ editReview?: string }>;
 }) {
   const { id } = await params;
+  const query = await searchParams;
   const user = await getCurrentUser();
   const bundle = await getTrackPageBundle(id, user?.id);
 
@@ -78,6 +82,15 @@ export default async function TrackPage({
 
   const { entity, reviews: trackReviews } = trackData;
   const { viewerReviewId } = trackData;
+  const viewerReview =
+    viewerReviewId
+      ? trackReviews.find((review) => review.id === viewerReviewId) ?? null
+      : null;
+  const shouldOpenViewerEditor = Boolean(
+    viewerReview &&
+      query.editReview &&
+      query.editReview === viewerReview.id,
+  );
   const averageRating =
     trackReviews.length > 0
       ? trackReviews.reduce((sum, review) => sum + review.rating, 0) / trackReviews.length
@@ -161,17 +174,47 @@ export default async function TrackPage({
           </div>
 
           <div className="flex flex-wrap gap-2.5 pt-1">
-            <Link
-              href={
-                viewerReviewId
-                  ? `/review/${viewerReviewId}?edit=1`
-                  : `/track/${entity.id}?${composeParams.toString()}`
-              }
-              className={cn(buttonVariants({ size: "sm" }), "gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90")}
-            >
-              {viewerReviewId ? <PencilLine className="size-4" /> : <MessageSquarePlus className="size-4" />}
-              {viewerReviewId ? "Edit review" : "Write review"}
-            </Link>
+            {viewerReview ? (
+              <EditReviewDialog
+                reviewId={viewerReview.id}
+                defaultOpen={shouldOpenViewerEditor}
+                dismissSearchParam="editReview"
+                initialSelection={{
+                  provider: "deezer",
+                  provider_id: entity.provider_id,
+                  type: "track",
+                  title: entity.title,
+                  artist_name: entity.artist_name,
+                  cover_url: entity.cover_url,
+                  deezer_url: entity.deezer_url,
+                  entity_id: entity.id,
+                }}
+                initialTitle={viewerReview.title ?? ""}
+                initialBody={viewerReview.body ?? ""}
+                initialRating={viewerReview.rating}
+                initialPinned={Boolean(viewerReview.is_pinned)}
+                trigger={
+                  <button
+                    type="button"
+                    className={cn(
+                      buttonVariants({ size: "sm" }),
+                      "gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90",
+                    )}
+                  >
+                    <PencilLine className="size-4" />
+                    Edit review
+                  </button>
+                }
+              />
+            ) : (
+              <Link
+                href={`/track/${entity.id}?${composeParams.toString()}`}
+                className={cn(buttonVariants({ size: "sm" }), "gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90")}
+              >
+                <MessageSquarePlus className="size-4" />
+                Write review
+              </Link>
+            )}
 
             {entity.deezer_url ? (
               <a

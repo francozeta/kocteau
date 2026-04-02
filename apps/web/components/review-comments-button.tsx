@@ -47,14 +47,14 @@ export default function ReviewCommentsButton({
       return;
     }
 
-    setOpen(true);
+    setOpen((current) => !current);
   }
 
   const trigger = (
     <button
       type="button"
       onClick={handleTriggerClick}
-      aria-label="Open comments"
+      aria-label={open ? "Close comments" : "Open comments"}
       aria-expanded={open}
       className={cn(
         "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-all duration-200 hover:bg-muted/34 hover:text-foreground active:scale-[0.98]",
@@ -83,6 +83,7 @@ export default function ReviewCommentsButton({
               initialCount={initialCount}
               isAuthenticated={isAuthenticated}
               variant="dialog"
+              autoFocusComposer={open}
             />
           </DrawerContent>
         </Drawer>
@@ -97,9 +98,9 @@ export default function ReviewCommentsButton({
         <SheetContent
           side="right"
           showOverlay={false}
-          className="border-border/30 bg-background/95 p-0 supports-backdrop-filter:backdrop-blur-xl data-[side=right]:w-[min(30rem,calc(100vw-1rem))] data-[side=right]:rounded-l-[1.5rem] data-[side=right]:sm:max-w-[30rem]"
+          className="border-border/30 bg-background/95 p-0 supports-backdrop-filter:backdrop-blur-xl data-[side=right]:w-[min(21.5rem,calc(100vw-0.75rem))] data-[side=right]:rounded-l-[1.5rem] data-[side=right]:sm:max-w-[21.5rem]"
         >
-          <SheetHeader className="border-b border-border/30 pr-14">
+          <SheetHeader className="border-b border-border/30 px-4 py-4 pr-12">
             <SheetTitle>Comments</SheetTitle>
             <SheetDescription>
               {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
@@ -110,6 +111,7 @@ export default function ReviewCommentsButton({
             initialCount={initialCount}
             isAuthenticated={isAuthenticated}
             variant="dialog"
+            autoFocusComposer={open}
           />
         </SheetContent>
       </Sheet>

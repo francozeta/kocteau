@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { ProfileReviewCard } from "@/components/review-route-cards";
+import { Spinner } from "@/components/ui/spinner";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
@@ -305,11 +306,10 @@ function SavedReviewsSectionFallback() {
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
           Saved
         </h2>
-        <p className="text-sm text-muted-foreground">Loading...</p>
       </div>
 
-      <div className="rounded-[1.65rem] border border-border/20 bg-card/18 px-6 py-9 text-sm text-muted-foreground">
-        Loading saved reviews...
+      <div className="flex justify-center rounded-[1.65rem] border border-border/20 bg-card/18 px-6 py-10">
+        <Spinner className="size-4 text-muted-foreground/70" />
       </div>
     </section>
   );

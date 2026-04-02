@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { Bell, Bookmark, Compass, Plus, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
+import { NavOwnedReviews } from "@/components/nav-owned-reviews";
 import PrefetchLink from "@/components/prefetch-link";
-import { NavActiveUsers } from "@/components/nav-active-users";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { Kbd } from "@/components/ui/kbd";
@@ -32,25 +32,33 @@ type AppSidebarProfile = {
   deezer_url: string | null;
 };
 
-type SidebarActiveUser = {
+export type SidebarOwnedReview = {
   id: string;
-  username: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  latest_track_title: string | null;
-  latest_track_artist_name: string | null;
-  review_count: number;
+  title: string | null;
+  body: string | null;
+  rating: number;
+  is_pinned?: boolean;
+  entity: {
+    provider: "deezer";
+    provider_id: string;
+    type: "track";
+    title: string;
+    artist_name: string | null;
+    cover_url: string | null;
+    deezer_url: string | null;
+    entity_id: string;
+  };
 };
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
-  activeUsers?: SidebarActiveUser[];
+  ownedReviews?: SidebarOwnedReview[];
   unreadCount?: number;
 };
 
 export default function AppSidebar({
   profile,
-  activeUsers = [],
+  ownedReviews = [],
   unreadCount = 0,
   ...props
 }: AppSidebarProps) {
@@ -112,7 +120,7 @@ export default function AppSidebar({
       ]
     : [];
 
-  const canShowActiveUsers = activeUsers.length > 0;
+  const canShowOwnedReviews = Boolean(profile) && ownedReviews.length > 0;
 
   return (
     <TooltipProvider delayDuration={80}>
@@ -171,7 +179,7 @@ export default function AppSidebar({
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
           <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
           {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} onNavigate={closeMobileSidebar} /> : null}
-          {canShowActiveUsers ? <NavActiveUsers items={activeUsers} onNavigate={closeMobileSidebar} /> : null}
+          {canShowOwnedReviews ? <NavOwnedReviews items={ownedReviews} onNavigate={closeMobileSidebar} /> : null}
         </SidebarContent>
 
         <SidebarFooter className="px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">

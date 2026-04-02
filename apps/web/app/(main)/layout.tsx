@@ -1,30 +1,66 @@
 import ReactQueryProvider from "../providers/react-query-provider";
 import Header from "@/components/header";
-import AppSidebar from "@/components/app-sidebar";
+import AppSidebar, { type SidebarOwnedReview } from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import {
   getUnreadNotificationsCount,
 } from "@/lib/queries/notifications";
-import { getRecentlyActiveProfiles } from "@/lib/queries/profiles";
+import { getOwnedSidebarReviews } from "@/lib/queries/reviews";
 import { supabaseServer } from "@/lib/supabase/server";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const [user, safeProfile, activeUsers] = await Promise.all([
+  const [user, safeProfile] = await Promise.all([
     getCurrentUser(),
     getCurrentViewerProfile(),
-    getRecentlyActiveProfiles(5),
   ]);
 
-  const initialUnreadCount = user
+  const [initialUnreadCount, ownedReviews] = user
     ? await (async () => {
         const supabase = await supabaseServer();
 
-        return getUnreadNotificationsCount(supabase, user.id);
+        const sidebarReviews = await getOwnedSidebarReviews(user.id, 4);
+
+        return [
+          await getUnreadNotificationsCount(supabase, user.id),
+          sidebarReviews
+            .flatMap((review) => {
+              const entity = Array.isArray(review.entities)
+                ? review.entities[0] ?? null
+                : review.entities;
+
+              if (
+                !entity ||
+                entity.provider !== "deezer" ||
+                !entity.provider_id ||
+                entity.type !== "track"
+              ) {
+                return [];
+              }
+
+              return [{
+                id: review.id,
+                title: review.title,
+                body: review.body,
+                rating: review.rating,
+                is_pinned: review.is_pinned,
+                entity: {
+                  provider: "deezer" as const,
+                  provider_id: entity.provider_id,
+                  type: "track" as const,
+                  title: entity.title,
+                  artist_name: entity.artist_name,
+                  cover_url: entity.cover_url,
+                  deezer_url: entity.deezer_url,
+                  entity_id: entity.id,
+                },
+              }];
+            })
+        ] as const;
       })()
-    : 0;
+    : [0, [] as SidebarOwnedReview[]] as const;
 
   return (
     <ReactQueryProvider>
@@ -39,7 +75,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       >
         <AppSidebar
           profile={safeProfile}
-          activeUsers={activeUsers}
+          ownedReviews={ownedReviews}
           unreadCount={initialUnreadCount}
         />
         <SidebarInset className="min-h-svh">

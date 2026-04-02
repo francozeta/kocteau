@@ -1,14 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Send, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Flag, MoreHorizontal, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import UserAvatar from "@/components/user-avatar";
 import { useReviewComments } from "@/hooks/use-review-comments";
-import { toastActionError } from "@/lib/feedback";
+import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
 type ReviewCommentsPanelProps = {
@@ -17,6 +25,7 @@ type ReviewCommentsPanelProps = {
   isAuthenticated: boolean;
   variant?: "dialog" | "inline";
   hideForm?: boolean;
+  autoFocusComposer?: boolean;
 };
 
 function formatDate(value: string) {
@@ -32,8 +41,10 @@ export default function ReviewCommentsPanel({
   isAuthenticated,
   variant = "dialog",
   hideForm = false,
+  autoFocusComposer = false,
 }: ReviewCommentsPanelProps) {
   const [body, setBody] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const {
     comments,
     commentsCount,
@@ -51,6 +62,22 @@ export default function ReviewCommentsPanel({
 
   const trimmedBody = useMemo(() => body.trim(), [body]);
   const isInline = variant === "inline";
+
+  useEffect(() => {
+    if (!autoFocusComposer || hideForm || !isAuthenticated) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      const end = textareaRef.current?.value.length ?? 0;
+      textareaRef.current?.setSelectionRange(end, end);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [autoFocusComposer, hideForm, isAuthenticated]);
 
   async function handleSubmit() {
     if (!trimmedBody) {
@@ -73,10 +100,31 @@ export default function ReviewCommentsPanel({
     }
   }
 
+  async function handleReport(commentId: string) {
+    try {
+      if (typeof window !== "undefined") {
+        const reportUrl = new URL(window.location.href);
+        reportUrl.hash = `comment-${commentId}`;
+
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(reportUrl.toString());
+          toastActionSuccess("Comment link copied. Reporting tools are coming soon.");
+          return;
+        }
+      }
+
+      toastActionSuccess("Reporting tools are coming soon.");
+    } catch (error) {
+      toastActionError(error, "We couldn't prepare this report right now.");
+    }
+  }
+
   const commentsList = (
     <div className={cn("space-y-4", isInline ? "py-0" : "py-5")}>
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading comments...</div>
+        <div className="flex justify-center py-10">
+          <Spinner className="size-4 text-muted-foreground/70" />
+        </div>
       ) : isError ? (
         <div className="rounded-xl border border-border/30 bg-card/40 p-4 text-sm text-muted-foreground">
           Comments are temporarily unavailable.
@@ -91,6 +139,7 @@ export default function ReviewCommentsPanel({
           return (
             <div
               key={comment.id}
+              id={`comment-${comment.id}`}
               className={cn(
                 "rounded-xl border border-border/30 bg-card/40 p-4 transition-opacity",
                 comment.optimistic && "opacity-70",
@@ -114,20 +163,54 @@ export default function ReviewCommentsPanel({
                   </div>
                 </div>
 
-                {comment.is_owner ? (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(comment.id)}
-                    disabled={comment.optimistic || isDeleting}
-                    className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={comment.optimistic}
+                      className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                      aria-label="Comment options"
+                    >
+                      <MoreHorizontal className="size-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-40 min-w-40 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-xl"
+                    sideOffset={8}
                   >
-                    <Trash2 className="size-3.5" />
-                    Delete
-                  </button>
-                ) : null}
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        void handleReport(comment.id);
+                      }}
+                    >
+                      <Flag className="size-4" />
+                      Report comment
+                    </DropdownMenuItem>
+                    {comment.is_owner ? (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          disabled={isDeleting}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            void handleDelete(comment.id);
+                          }}
+                        >
+                          <Trash2 className="size-4" />
+                          Delete comment
+                        </DropdownMenuItem>
+                      </>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
-              <p className="mt-3 text-sm leading-6 text-foreground/85">{comment.body}</p>
+              <p className="mt-3 max-w-full whitespace-pre-wrap text-sm leading-6 text-foreground/85 [overflow-wrap:anywhere]">
+                {comment.body}
+              </p>
             </div>
           );
         })
@@ -142,10 +225,11 @@ export default function ReviewCommentsPanel({
   const form = isAuthenticated ? (
     <div className="space-y-3">
       <Textarea
+        ref={textareaRef}
         value={body}
         onChange={(event) => setBody(event.target.value)}
         placeholder="Add a short comment..."
-        className="min-h-24"
+        className={cn("min-h-24", !isInline && "min-h-28")}
         maxLength={1000}
       />
       <div className="flex items-center justify-between gap-3">
@@ -195,11 +279,11 @@ export default function ReviewCommentsPanel({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <ScrollArea className="min-h-0 flex-1 px-6">
+      <ScrollArea className="min-h-0 flex-1 px-4">
         {commentsList}
       </ScrollArea>
 
-      <div className="border-t border-border/30 px-6 py-4">
+      <div className="border-t border-border/30 px-4 py-4">
         {!hideForm ? form : null}
       </div>
     </div>

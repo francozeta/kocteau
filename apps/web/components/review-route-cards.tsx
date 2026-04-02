@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, type ComponentPropsWithoutRef, type KeyboardEvent, type MouseEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRef, type ComponentPropsWithoutRef } from "react";
+import type { EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import ReviewCard, {
   ReviewCardEntitySummary,
   type ReviewCardAuthor,
@@ -14,10 +14,8 @@ import ReviewCardContextMenu from "@/components/review-card-context-menu";
 import ReviewCardInteractionBar from "@/components/review-card-interaction-bar";
 import PrefetchLink from "@/components/prefetch-link";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { cn } from "@/lib/utils";
 
 export type ReviewCardBehaviorOptions = {
-  interactive?: boolean;
   showHeaderActions?: boolean;
   showInteractionBar?: boolean;
   showContextMenu?: boolean;
@@ -60,18 +58,6 @@ function buildFeedReviewCardDisplay(
     featured,
     bodyClampLines: 4,
   };
-}
-
-function isInteractiveTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-
-  return Boolean(
-    target.closest(
-      "a,button,[role='button'],input,textarea,select,summary,[data-prevent-review-link='true']",
-    ),
-  );
 }
 
 function getAuthorLabel(author: ReviewCardAuthor | null | undefined) {
@@ -126,66 +112,40 @@ function RoutedReviewCard({
   behavior,
   permissions,
 }: RoutedReviewCardProps) {
-  const router = useRouter();
   const bookmarkButtonRef = useRef<HTMLButtonElement | null>(null);
-  const reviewHref = `/review/${review.id}`;
   const { entityMode = "full" } = display ?? {};
   const {
-    interactive = true,
     showHeaderActions = true,
     showInteractionBar = true,
     showContextMenu = true,
   } = behavior ?? {};
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
-
-  function openReview() {
-    void router.prefetch(reviewHref);
-    router.push(reviewHref);
-  }
-
-  function prefetchReview() {
-    void router.prefetch(reviewHref);
-  }
-
-  function handleCardClick(event: MouseEvent<HTMLElement>) {
-    if (isInteractiveTarget(event.target)) {
-      return;
-    }
-
-    if (typeof window !== "undefined" && window.getSelection?.()?.toString()) {
-      return;
-    }
-
-    openReview();
-  }
-
-  function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (event.target !== event.currentTarget) {
-      return;
-    }
-
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openReview();
-    }
-  }
+  const editSeed: EditReviewDialogSeed | null =
+    canManage &&
+    entity?.provider === "deezer" &&
+    entity.provider_id &&
+    entity.type === "track"
+      ? {
+          initialSelection: {
+            provider: "deezer",
+            provider_id: entity.provider_id,
+            type: "track",
+            title: entity.title,
+            artist_name: entity.artist_name,
+            cover_url: entity.cover_url,
+            deezer_url: entity.deezer_url ?? null,
+            entity_id: entity.id,
+          },
+          initialTitle: review.title ?? "",
+          initialBody: review.body ?? "",
+          initialRating: review.rating,
+          initialPinned: Boolean(review.is_pinned),
+        }
+      : null;
 
   const rootProps: ComponentPropsWithoutRef<"article"> = {
     id: `review-${review.id}`,
-    className: cn(
-      interactive &&
-        "cursor-pointer hover:bg-card/18 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-    ),
   };
-
-  if (interactive) {
-    rootProps.role = "link";
-    rootProps.tabIndex = 0;
-    rootProps.onClick = handleCardClick;
-    rootProps.onKeyDown = handleCardKeyDown;
-    rootProps.onMouseEnter = prefetchReview;
-    rootProps.onFocusCapture = prefetchReview;
-  }
 
   const card = (
     <ReviewCard
@@ -204,6 +164,7 @@ function RoutedReviewCard({
             entityTitle={entity?.title ?? null}
             entityId={entity?.id ?? null}
             canManage={canManage}
+            editSeed={editSeed}
             onToggleBookmark={() => bookmarkButtonRef.current?.click()}
           />
         ) : null,
@@ -233,6 +194,7 @@ function RoutedReviewCard({
         entityTitle={entity?.title ?? null}
         entityId={entity?.id ?? null}
         canManage={canManage}
+        editSeed={editSeed}
         onToggleBookmark={() => bookmarkButtonRef.current?.click()}
       />
     </ContextMenu>

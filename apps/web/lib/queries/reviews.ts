@@ -7,6 +7,7 @@ import type {
   ReviewCardEntity,
 } from "@/components/review-card";
 import {
+  runReviewListQuery,
   runReviewMaybeQuery,
 } from "@/lib/queries/review-likes";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
@@ -41,6 +42,19 @@ export type ViewerReview = {
 };
 
 const publicReviewLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
+const ownedSidebarReviewLoaders = new Map<string, () => Promise<OwnedSidebarReview[]>>();
+
+export type OwnedSidebarReview = {
+  id: string;
+  title: string | null;
+  body: string | null;
+  rating: number;
+  likes_count?: number | null;
+  comments_count?: number | null;
+  created_at: string;
+  is_pinned?: boolean;
+  entities: ReviewPageEntity | ReviewPageEntity[] | null;
+};
 
 export async function getPublicReviewById(reviewId: string) {
   return getOrCreateLoader(
@@ -119,6 +133,46 @@ export async function getReviewPageBundle(
     review,
     ...viewerState,
   };
+}
+
+export async function getOwnedSidebarReviews(
+  authorId: string,
+  limit = 4,
+): Promise<OwnedSidebarReview[]> {
+  return getOrCreateLoader(
+    ownedSidebarReviewLoaders,
+    ["owned-sidebar-reviews", authorId, limit],
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getOwnedSidebarReviews",
+            async () => {
+              const supabase = supabasePublic();
+
+              return runReviewListQuery<OwnedSidebarReview>(async (mode) =>
+                supabase
+                  .from("reviews")
+                  .select(
+                    buildReviewHydrationSelect(mode, {
+                      includeEntity: true,
+                      includePinned: true,
+                    }),
+                  )
+                  .eq("author_id", authorId)
+                  .order("created_at", { ascending: false })
+                  .limit(limit),
+              );
+            },
+            { authorId, limit },
+          ),
+        ["owned-sidebar-reviews", authorId, String(limit)],
+        {
+          revalidate: 60,
+          tags: ["reviews", `profile:${authorId}:reviews`, `owned-sidebar-reviews:${authorId}:${limit}`],
+        },
+      ),
+  )();
 }
 
 export async function getViewerReview(

@@ -261,10 +261,6 @@ export default function NewReviewForm({
 
       const payload = (await res.json()) as PublishReviewResponse;
 
-      if (payload.reviewId) {
-        router.prefetch(`/review/${payload.reviewId}`);
-      }
-
       router.prefetch("/");
 
       if (payload.entityId) {
@@ -300,11 +296,23 @@ export default function NewReviewForm({
 
       if (reviewError.code === "ALREADY_REVIEWED" && existingReviewId) {
         setErrorMsg(reviewError.message);
-        router.prefetch(`/review/${existingReviewId}?edit=1`);
+        const existingEntityId =
+          reviewError instanceof ApiError && typeof reviewError.payload?.entityId === "string"
+            ? reviewError.payload.entityId
+            : null;
+
+        if (existingEntityId) {
+          router.prefetch(`/track/${existingEntityId}?editReview=${existingReviewId}`);
+        }
+
         toast.error(reviewError.message, {
           action: {
-            label: "Edit review",
-            onClick: () => router.push(`/review/${existingReviewId}?edit=1`),
+            label: existingEntityId ? "Open track" : "Dismiss",
+            onClick: () => {
+              if (existingEntityId) {
+                router.push(`/track/${existingEntityId}?editReview=${existingReviewId}`);
+              }
+            },
           },
         });
       } else if (reviewError.code === "42501" || reviewError.code === "UNAUTHORIZED") {

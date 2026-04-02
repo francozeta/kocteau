@@ -80,7 +80,6 @@ function revalidateReviewSurfaces(review: ReviewDeleteRecord, reviewId: string) 
   }
 
   revalidatePath("/");
-  revalidatePath(`/review/${reviewId}`);
   revalidatePath("/track");
   revalidatePath(`/track/${review.entity_id}`);
   revalidatePath("/saved");

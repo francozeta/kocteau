@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Bookmark, Flag, MoreHorizontal, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
+import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ type ReviewCardActionsMenuProps = ReviewActionTarget & {
   canManage?: boolean;
   onToggleBookmark?: () => void;
   trigger?: ReactNode;
+  editSeed?: EditReviewDialogSeed | null;
 };
 
 export default function ReviewCardActionsMenu({
@@ -30,15 +32,16 @@ export default function ReviewCardActionsMenu({
   canManage = false,
   onToggleBookmark,
   trigger,
+  editSeed = null,
 }: ReviewCardActionsMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const {
     canOpenTrack,
     confirmOpen,
     setConfirmOpen,
     isDeleting,
     openTrack,
-    editReview,
     copyReviewLink,
     reportReview,
     requestDeleteReview,
@@ -106,14 +109,18 @@ export default function ReviewCardActionsMenu({
           {canManage ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => {
-                  editReview();
-                }}
-              >
-                <PencilLine className="size-4" />
-                Edit review
-              </DropdownMenuItem>
+              {editSeed ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    setMenuOpen(false);
+                    setEditOpen(true);
+                  }}
+                >
+                  <PencilLine className="size-4" />
+                  Edit review
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuItem
                 variant="destructive"
                 onSelect={(event) => {
@@ -148,6 +155,16 @@ export default function ReviewCardActionsMenu({
         isDeleting={isDeleting}
         onConfirm={deleteReview}
       />
+
+      {editSeed ? (
+        <EditReviewDialog
+          reviewId={reviewId}
+          {...editSeed}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          showTrigger={false}
+        />
+      ) : null}
     </>
   );
 }

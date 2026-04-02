@@ -24,7 +24,7 @@ import NewReviewForm from "@/components/new-review-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-type EditReviewSelection = {
+export type EditReviewSelection = {
   provider: "deezer";
   provider_id: string;
   type: "track";
@@ -35,10 +35,23 @@ type EditReviewSelection = {
   entity_id: string;
 };
 
+export type EditReviewDialogSeed = {
+  initialSelection: EditReviewSelection;
+  initialTitle?: string;
+  initialBody?: string;
+  initialRating?: number | null;
+  initialPinned?: boolean;
+};
+
 type EditReviewDialogProps = {
   reviewId: string;
   trigger?: React.ReactNode;
   triggerClassName?: string;
+  showTrigger?: boolean;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  dismissSearchParam?: string | null;
   initialSelection: EditReviewSelection;
   initialTitle?: string;
   initialBody?: string;
@@ -50,25 +63,34 @@ export default function EditReviewDialog({
   reviewId,
   trigger,
   triggerClassName,
+  showTrigger = true,
+  open: controlledOpen,
+  defaultOpen = false,
+  onOpenChange,
+  dismissSearchParam = null,
   initialSelection,
   initialTitle = "",
   initialBody = "",
   initialRating = null,
   initialPinned = false,
 }: EditReviewDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const shouldOpenFromUrl = searchParams.get("edit") === "1";
+  const resolvedOpen = controlledOpen ?? internalOpen;
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen);
+    if (controlledOpen === undefined) {
+      setInternalOpen(nextOpen);
+    }
 
-    if (!nextOpen && shouldOpenFromUrl) {
+    onOpenChange?.(nextOpen);
+
+    if (!nextOpen && dismissSearchParam && searchParams.has(dismissSearchParam)) {
       const next = new URLSearchParams(searchParams.toString());
-      next.delete("edit");
+      next.delete(dismissSearchParam);
 
       startTransition(() => {
         router.replace(next.toString() ? `${pathname}?${next.toString()}` : pathname, {
@@ -77,8 +99,6 @@ export default function EditReviewDialog({
       });
     }
   }
-
-  const resolvedOpen = shouldOpenFromUrl || open;
 
   const resolvedTrigger =
     trigger ?? (
@@ -94,7 +114,7 @@ export default function EditReviewDialog({
   if (isMobile) {
     return (
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
-        <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger>
+        {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
         <DrawerContent className="flex h-[94vh] max-h-[94vh] flex-col rounded-t-[1.5rem] border-border/24 bg-background/96 p-0">
           <DrawerHeader className="border-b border-border/20 px-4 py-3 text-left">
@@ -132,7 +152,7 @@ export default function EditReviewDialog({
 
   return (
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger>
+      {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
       <DialogContent
         showCloseButton={false}

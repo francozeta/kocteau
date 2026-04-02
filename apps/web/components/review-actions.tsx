@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import { createApiError } from "@/lib/validation/errors";
@@ -31,7 +31,6 @@ export function useReviewActions({
   entityId = null,
 }: ReviewActionTarget) {
   const router = useRouter();
-  const pathname = usePathname();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -54,8 +53,9 @@ export function useReviewActions({
       return "";
     }
 
-    return new URL(`/review/${reviewId}`, window.location.origin).toString();
-  }, [reviewId]);
+    const pathname = entityId ? `/track/${entityId}#review-${reviewId}` : `/#review-${reviewId}`;
+    return new URL(pathname, window.location.origin).toString();
+  }, [entityId, reviewId]);
 
   async function copyReviewLink() {
     try {
@@ -74,11 +74,6 @@ export function useReviewActions({
     }
   }
 
-  function openReview() {
-    router.prefetch(`/review/${reviewId}`);
-    router.push(`/review/${reviewId}`);
-  }
-
   function openTrack() {
     if (!entityId) {
       return;
@@ -86,11 +81,6 @@ export function useReviewActions({
 
     router.prefetch(`/track/${entityId}`);
     router.push(`/track/${entityId}`);
-  }
-
-  function editReview() {
-    router.prefetch(`/review/${reviewId}?edit=1`);
-    router.push(`/review/${reviewId}?edit=1`);
   }
 
   function requestDeleteReview() {
@@ -159,26 +149,10 @@ export function useReviewActions({
         );
       }
 
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            entityId?: string | null;
-            username?: string | null;
-          }
-        | null;
+      await response.json().catch(() => null);
 
       toastActionSuccess("Review deleted");
       setConfirmOpen(false);
-
-      if (pathname === `/review/${reviewId}`) {
-        if (payload?.entityId) {
-          router.replace(`/track/${payload.entityId}`);
-        } else if (payload?.username) {
-          router.replace(`/u/${payload.username}`);
-        } else {
-          router.replace("/");
-        }
-        return;
-      }
 
       router.refresh();
     } catch (error) {
@@ -193,9 +167,7 @@ export function useReviewActions({
     confirmOpen,
     setConfirmOpen,
     isDeleting,
-    openReview,
     openTrack,
-    editReview,
     requestDeleteReview,
     copyReviewLink,
     shareReview,

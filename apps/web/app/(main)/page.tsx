@@ -52,10 +52,6 @@ function getAuthor(review: FeedReview) {
   return review.author;
 }
 
-function formatReviewCount(count: number) {
-  return `${count} ${count === 1 ? "review" : "reviews"}`;
-}
-
 function sortFeed(feed: FeedReview[], view: FeedView) {
   if (view !== "top-rated") {
     return feed;
@@ -70,6 +66,10 @@ function sortFeed(feed: FeedReview[], view: FeedView) {
       new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
     );
   });
+}
+
+function formatReviewCount(count: number) {
+  return `${count} ${count === 1 ? "review" : "reviews"}`;
 }
 
 export const metadata = createPageMetadata({
@@ -140,79 +140,80 @@ export default async function HomePage({
       </EmptyHeader>
     </Empty>
   );
-
   const secondaryRail = activeUsersRail.length > 0 ? (
-    <div className="space-y-3.5">
-      <div className="space-y-1">
-        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Active Reviewers
-        </p>
-        <p className="text-xs text-muted-foreground">
-          People publishing lately across the feed.
-        </p>
-      </div>
+    <aside className="space-y-3.5 xl:sticky xl:top-24">
+      <div className="space-y-3.5">
+        <div className="space-y-1">
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            Active Reviewers
+          </p>
+          <p className="text-xs text-muted-foreground">
+            People publishing lately across the feed.
+          </p>
+        </div>
 
-      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-1">
-        {activeUsersRail.map((profile) => {
-          const primaryLabel = profile.display_name ?? `@${profile.username}`;
-          const latestTrackLabel = [
-            profile.latest_track_title,
-            profile.latest_track_artist_name,
-          ]
-            .filter(Boolean)
-            .join(" — ");
+        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-1">
+          {activeUsersRail.map((profile) => {
+            const primaryLabel = profile.display_name ?? `@${profile.username}`;
+            const latestTrackLabel = [
+              profile.latest_track_title,
+              profile.latest_track_artist_name,
+            ]
+              .filter(Boolean)
+              .join(" — ");
 
-          return (
-            <div
-              key={profile.id}
-              className="rounded-[1.35rem] border border-border/18 bg-card/16 p-3"
-            >
-              <PrefetchLink
-                href={`/u/${profile.username}`}
-                className="group block rounded-[1.15rem] transition-colors hover:text-foreground"
+            return (
+              <div
+                key={profile.id}
+                className="rounded-[1.35rem] border border-border/18 bg-card/16 p-3"
               >
-                <div className="flex items-start gap-3">
-                  <UserAvatar
-                    avatarUrl={profile.avatar_url}
-                    displayName={profile.display_name}
-                    username={profile.username}
-                    className="size-11 shrink-0"
-                    initialsLength={2}
-                  />
+                <PrefetchLink
+                  href={`/u/${profile.username}`}
+                  className="group block rounded-[1.15rem] transition-colors hover:text-foreground"
+                >
+                  <div className="flex items-start gap-3">
+                    <UserAvatar
+                      avatarUrl={profile.avatar_url}
+                      displayName={profile.display_name}
+                      username={profile.username}
+                      className="size-11 shrink-0"
+                      initialsLength={2}
+                    />
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-[14px] font-medium text-foreground">
-                          {primaryLabel}
-                        </p>
-                        <p className="truncate text-[12.5px] text-muted-foreground">
-                          @{profile.username}
-                        </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-[14px] font-medium text-foreground">
+                            {primaryLabel}
+                          </p>
+                          <p className="truncate text-[12.5px] text-muted-foreground">
+                            @{profile.username}
+                          </p>
+                        </div>
+
+                        <span className="shrink-0 rounded-full border border-border/18 bg-muted/18 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          {formatReviewCount(profile.review_count)}
+                        </span>
                       </div>
 
-                      <span className="shrink-0 rounded-full border border-border/18 bg-muted/18 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                        {formatReviewCount(profile.review_count)}
-                      </span>
+                      {latestTrackLabel ? (
+                        <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-foreground/78">
+                          Latest on {latestTrackLabel}
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-[13px] leading-5 text-muted-foreground">
+                          Open profile
+                        </p>
+                      )}
                     </div>
-
-                    {latestTrackLabel ? (
-                      <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-foreground/78">
-                        Latest on {latestTrackLabel}
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-[13px] leading-5 text-muted-foreground">
-                        Open profile
-                      </p>
-                    )}
                   </div>
-                </div>
-              </PrefetchLink>
-            </div>
-          );
-        })}
+                </PrefetchLink>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </aside>
   ) : null;
 
   return (
@@ -263,11 +264,7 @@ export default async function HomePage({
             {reviewsSection}
           </div>
 
-          {secondaryRail ? (
-            <aside className="space-y-3.5 xl:sticky xl:top-24">
-              {secondaryRail}
-            </aside>
-          ) : null}
+          {secondaryRail}
         </div>
       </section>
     </HydrationBoundary>

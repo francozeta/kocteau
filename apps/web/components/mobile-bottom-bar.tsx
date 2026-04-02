@@ -56,16 +56,12 @@ function NavTab({
 export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
 
-  if (/^\/review\/[^/]+$/.test(pathname)) {
-    return null;
-  }
-
   const leftItems: NavItem[] = [
     {
       href: "/",
       label: "Feed",
       icon: Home,
-      active: (current) => current === "/" || current.startsWith("/review/"),
+      active: (current) => current === "/",
     },
     {
       href: "/search",

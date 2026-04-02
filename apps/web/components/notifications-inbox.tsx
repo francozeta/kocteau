@@ -6,6 +6,7 @@ import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
 import { toastActionError } from "@/lib/feedback";
 
 type NotificationsInboxProps = {
@@ -63,8 +64,8 @@ export default function NotificationsInbox({
       </div>
 
       {isLoadingNotifications ? (
-        <div className="rounded-[1.75rem] border border-border/25 bg-card/20 px-5 py-8 text-sm text-muted-foreground">
-          Loading notifications...
+        <div className="flex justify-center rounded-[1.75rem] border border-border/25 bg-card/20 px-5 py-10">
+          <Spinner className="size-4 text-muted-foreground/70" />
         </div>
       ) : isNotificationsError ? (
         <Alert className="rounded-2xl border-border/50 bg-card/60 p-4">
