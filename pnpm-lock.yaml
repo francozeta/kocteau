@@ -231,8 +231,8 @@ importers:
         specifier: 16.2.1
         version: 16.2.1(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
       shadcn:
-        specifier: ^4.1.0
-        version: 4.1.0(@types/node@20.19.35)(typescript@5.9.3)
+        specifier: ^4.1.2
+        version: 4.1.2(@types/node@20.19.35)(typescript@5.9.3)
       supabase:
         specifier: ^2.76.15
         version: 2.76.15
@@ -6426,8 +6426,8 @@ packages:
     resolution: {integrity: sha512-TPbeg0b7ylrswdGCji8FRGFAKuqbpQlLbL8SOle3j1iHSs5Ob5mhvMAxWN2UItOjgALAB5Zp3fmMfj8mbWvXKw==}
     engines: {node: '>=10'}
 
-  shadcn@4.1.0:
-    resolution: {integrity: sha512-3zETJ+0Ezj69FS6RL0HOkLKKAR5yXisXx1iISJdfLQfrUqj/VIQlanQi1Ukk+9OE+XHZVj4FQNTBSfbr2CyCYg==}
+  shadcn@4.1.2:
+    resolution: {integrity: sha512-qNQcCavkbYsgBj+X09tF2bTcwRd8abR880bsFkDU2kMqceMCLAm5c+cLg7kWDhfh1H9g08knpQ5ZEf6y/co16g==}
     hasBin: true
 
   shallowequal@1.1.0:
@@ -14684,7 +14684,7 @@ snapshots:
 
   sf-symbols-typescript@2.2.0: {}
 
-  shadcn@4.1.0(@types/node@20.19.35)(typescript@5.9.3):
+  shadcn@4.1.2(@types/node@20.19.35)(typescript@5.9.3):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/parser': 7.29.0
