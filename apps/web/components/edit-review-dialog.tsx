@@ -20,10 +20,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import NewReviewForm from "@/components/new-review-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import type { VariantProps } from "class-variance-authority";
 
 export type EditReviewSelection = {
   provider: "deezer";
@@ -49,6 +50,8 @@ type EditReviewDialogProps = {
   trigger?: React.ReactNode;
   triggerClassName?: string;
   triggerLabel?: string;
+  triggerVariant?: VariantProps<typeof buttonVariants>["variant"];
+  triggerSize?: VariantProps<typeof buttonVariants>["size"];
   showDefaultTriggerIcon?: boolean;
   showTrigger?: boolean;
   open?: boolean;
@@ -67,6 +70,8 @@ export default function EditReviewDialog({
   trigger,
   triggerClassName,
   triggerLabel = "Edit review",
+  triggerVariant = "outline",
+  triggerSize = "sm",
   showDefaultTriggerIcon = false,
   showTrigger = true,
   open: controlledOpen,
@@ -108,8 +113,8 @@ export default function EditReviewDialog({
   const resolvedTrigger =
     trigger ?? (
       <Button
-        variant="outline"
-        size="sm"
+        variant={triggerVariant}
+        size={triggerSize}
         className={cn("rounded-full border-border/24 bg-card/12 px-4", triggerClassName)}
       >
         {showDefaultTriggerIcon ? <PencilLine className="size-4" /> : null}

@@ -104,32 +104,32 @@ export default async function UserProfilePage({
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
-      <section className="border-b border-border/30 pb-8">
-        <div className="grid gap-6 lg:grid-cols-[8.5rem,minmax(0,1fr),14rem] lg:items-end">
+    <div className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
+      <section className="border-b border-border/30 pb-7">
+        <div className="grid gap-5 lg:grid-cols-[7.5rem,minmax(0,1fr),13rem] lg:items-end">
           <UserAvatar
             avatarUrl={profile.avatar_url}
             displayName={profile.display_name}
             username={profile.username}
-            className="h-28 w-28 border-border/20 sm:h-32 sm:w-32"
-            fallbackClassName="text-3xl font-semibold sm:text-4xl"
+            className="h-24 w-24 border-border/20 sm:h-28 sm:w-28"
+            fallbackClassName="text-3xl font-semibold"
             initialsLength={2}
           />
 
-          <div className="min-w-0 space-y-4">
-            <div className="space-y-1.5">
-              <h1 className="font-serif text-4xl font-bold leading-tight text-balance sm:text-[3.35rem]">
+          <div className="min-w-0 space-y-3.5">
+            <div className="space-y-1">
+              <h1 className="font-serif text-[2.7rem] font-bold leading-none text-balance sm:text-[3.15rem]">
                 {name}
               </h1>
-              <p className="text-base text-muted-foreground">@{profile.username}</p>
+              <p className="text-[15px] text-muted-foreground">@{profile.username}</p>
             </div>
             {profile.bio ? (
-              <p className="max-w-2xl text-base leading-relaxed text-foreground/85">
+              <p className="max-w-2xl text-[15px] leading-relaxed text-foreground/85">
                 {profile.bio}
               </p>
             ) : null}
             {profile.spotify_url || profile.apple_music_url || profile.deezer_url ? (
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex flex-wrap gap-2">
                 {profile.spotify_url ? (
                   <a
                     href={profile.spotify_url}
@@ -167,7 +167,7 @@ export default async function UserProfilePage({
             ) : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 rounded-[1.65rem] border border-border/20 bg-card/18 p-4 text-sm lg:grid-cols-1">
+          <div className="grid grid-cols-2 gap-3 rounded-[1.5rem] border border-border/20 bg-card/16 p-3.5 text-sm lg:grid-cols-1">
             <div className="space-y-1">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 Reviews
@@ -206,10 +206,10 @@ export default async function UserProfilePage({
         </div>
       </section>
 
-      <div className="max-w-3xl space-y-8">
+      <div className="max-w-3xl space-y-7">
         {pinnedReview ? (
           <div className="space-y-3">
-            <div className="flex items-end justify-between border-b border-border/25 pb-4">
+            <div className="border-b border-border/25 pb-4">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 Pinned
               </h2>
@@ -230,14 +230,11 @@ export default async function UserProfilePage({
         ) : null}
 
         {reviews.length > 0 ? (
-          <section className="space-y-4">
-            <div className="flex items-end justify-between border-b border-border/25 pb-4">
+          <section className="space-y-3.5">
+            <div className="border-b border-border/25 pb-4">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 {pinnedReview ? "Recent" : "Reviews"}
               </h2>
-              <p className="text-sm text-muted-foreground">
-                {reviews.length} {reviews.length === 1 ? "entry" : "entries"}
-              </p>
             </div>
             <div className="space-y-4">
               {reviews.map((review) => (
@@ -260,9 +257,7 @@ export default async function UserProfilePage({
           <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-10">
             <EmptyHeader>
               <EmptyTitle>No reviews yet</EmptyTitle>
-              <EmptyDescription>
-                Nothing published here yet.
-              </EmptyDescription>
+              <EmptyDescription>Nothing here yet.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : null}
@@ -288,13 +283,10 @@ async function SavedReviewsSection({
 
   return (
     <section className="space-y-4 border-t border-border/30 pt-8">
-      <div className="flex items-end justify-between border-b border-border/25 pb-4">
+      <div className="border-b border-border/25 pb-4">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
           Saved
         </h2>
-        <p className="text-sm text-muted-foreground">
-          {savedReviews.length} {savedReviews.length === 1 ? "review" : "reviews"}
-        </p>
       </div>
 
       <SavedReviewsList

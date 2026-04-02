@@ -32,17 +32,10 @@ export default async function SavedReviewsPage() {
     <section className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              <Bookmark className="size-3.5" />
-              Saved
-            </div>
+          <div>
             <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Saved reviews
+              Saved
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {savedReviews.length} {savedReviews.length === 1 ? "review" : "reviews"}
-            </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
             <Suspense fallback={null}>
@@ -66,9 +59,7 @@ export default async function SavedReviewsPage() {
               <Bookmark className="size-4" />
             </EmptyMedia>
             <EmptyTitle>No saved reviews yet</EmptyTitle>
-            <EmptyDescription>
-              Save a review and it will appear here.
-            </EmptyDescription>
+            <EmptyDescription>Save a review to keep it here.</EmptyDescription>
           </EmptyHeader>
           <CardContent className="p-0 pt-2">
             <PrefetchLink

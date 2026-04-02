@@ -4,7 +4,6 @@ import Link from "next/link";
 import { MessageSquarePlus, Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import EditReviewDialog from "@/components/edit-review-dialog";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { TrackReviewCard } from "@/components/review-route-cards";
@@ -128,9 +127,9 @@ export default async function TrackPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <section className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
-        <div className="grid gap-5 border-b border-border/24 pb-7 lg:grid-cols-[9rem,minmax(0,1fr)] lg:items-start">
-        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[1.6rem] border border-border/14 bg-muted/20 sm:h-36 sm:w-36">
+      <section className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
+        <div className="grid gap-4 border-b border-border/24 pb-6 lg:grid-cols-[8.5rem,minmax(0,1fr)] lg:items-start">
+        <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[1.5rem] border border-border/14 bg-muted/20 sm:h-32 sm:w-32">
           {entity.cover_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -144,55 +143,45 @@ export default async function TrackPage({
           )}
         </div>
 
-        <div className="min-w-0 space-y-5">
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-border/18 bg-card/10 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                {entity.type}
-              </Badge>
-              <Badge variant="outline" className="border-border/18 bg-card/10 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                {entity.provider === "deezer" ? "Deezer" : entity.provider}
-              </Badge>
-            </div>
-
+        <div className="min-w-0 space-y-4">
+          <div className="space-y-2.5">
             <div className="space-y-2">
-              <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight text-balance sm:text-[3.15rem]">
+              <h1 className="font-serif text-3xl font-bold leading-none tracking-tight text-balance sm:text-[3.05rem]">
                 {entity.title}
               </h1>
-              <p className="text-base font-medium text-muted-foreground sm:text-[1.05rem]">
+              <p className="text-[15px] font-medium text-muted-foreground sm:text-base">
                 {entity.artist_name ?? "Unknown artist"}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 text-sm text-muted-foreground">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-2">
-              <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Reviews
-              </span>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-1.5">
               <span className="text-sm font-medium text-foreground">{trackReviews.length}</span>
+              <span className="text-xs text-muted-foreground">
+                {trackReviews.length === 1 ? "review" : "reviews"}
+              </span>
             </div>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-2 text-foreground">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-1.5 text-foreground">
               <Star className="size-3.5 fill-current text-amber-400" />
               <span className="text-sm font-medium">
                 {averageRating ? averageRating.toFixed(1) : "—"}
               </span>
-              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                Average
-              </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2.5 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1">
             {viewerReview ? (
               <EditReviewDialog
                 reviewId={viewerReview.id}
                 defaultOpen={shouldOpenViewerEditor}
                 dismissSearchParam="editReview"
                 triggerLabel="Edit review"
+                triggerVariant="default"
+                triggerSize="default"
                 showDefaultTriggerIcon
-                triggerClassName="gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90"
+                triggerClassName="gap-2 rounded-full border-transparent bg-foreground px-3.5 text-background shadow-none hover:bg-foreground/90"
                 initialSelection={{
                   provider: "deezer",
                   provider_id: entity.provider_id,
@@ -211,7 +200,7 @@ export default async function TrackPage({
             ) : (
               <Link
                 href={`/track/${entity.id}?${composeParams.toString()}`}
-                className={cn(buttonVariants({ size: "sm" }), "gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90")}
+                className={cn(buttonVariants({ size: "default" }), "gap-2 rounded-full px-3.5 bg-foreground text-background hover:bg-foreground/90")}
               >
                 <MessageSquarePlus className="size-4" />
                 Write review
@@ -223,7 +212,7 @@ export default async function TrackPage({
                 href={entity.deezer_url}
                 target="_blank"
                 rel="noreferrer"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}
+                className={cn(buttonVariants({ variant: "outline", size: "default" }), "rounded-full border-border/25 px-3.5")}
               >
                 Deezer
               </a>
@@ -232,12 +221,11 @@ export default async function TrackPage({
         </div>
         </div>
 
-        <div className="max-w-3xl space-y-4">
-          <div className="flex items-end justify-between border-b border-border/25 pb-4">
+        <div className="max-w-3xl space-y-3.5">
+          <div className="border-b border-border/25 pb-4">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               Reviews
             </h2>
-            <span className="text-xs text-muted-foreground">Newest first</span>
           </div>
 
           {trackReviews.length > 0 ? (
@@ -264,9 +252,7 @@ export default async function TrackPage({
                   <Music2 className="size-4" />
                 </EmptyMedia>
                 <EmptyTitle>No reviews yet</EmptyTitle>
-                <EmptyDescription>
-                  Be the first to leave a note on this track.
-                </EmptyDescription>
+                <EmptyDescription>Be the first to review it.</EmptyDescription>
               </EmptyHeader>
             </Empty>
           )}

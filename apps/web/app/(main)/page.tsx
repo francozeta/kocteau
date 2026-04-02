@@ -29,7 +29,7 @@ const feedViews: Array<{
   },
   {
     value: "top-rated",
-    label: "Top Rated",
+    label: "Top",
   },
 ];
 
@@ -113,10 +113,6 @@ export default async function HomePage({
 
   const orderedFeed = sortFeed(feedData.feed, activeView);
   const activeUsersRail = feedData.activeUsers.slice(0, 4);
-  const reviewsHeading =
-    activeView === "top-rated" ? "Top Rated Reviews" : "Latest Reviews";
-  const reviewsSubcopy =
-    activeView === "top-rated" ? "Sorted by rating first" : "Newest first";
 
   const reviewsSection = orderedFeed.length > 0 ? (
     <div className="space-y-4">
@@ -146,32 +142,27 @@ export default async function HomePage({
           <Music2 className="size-4" />
         </EmptyMedia>
         <EmptyTitle>No reviews yet</EmptyTitle>
-        <EmptyDescription>
-          Start a new review and the feed will pick it up here.
-        </EmptyDescription>
+        <EmptyDescription>Start with a review.</EmptyDescription>
       </EmptyHeader>
     </Empty>
   );
   const secondaryRail = activeUsersRail.length > 0 ? (
-    <aside className="space-y-3.5 xl:sticky xl:top-24">
-      <div className="space-y-3.5">
-        <div className="space-y-1">
+    <aside className="space-y-3 xl:sticky xl:top-24">
+      <div className="space-y-3">
+        <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-            Active Reviewers
-          </p>
-          <p className="text-xs text-muted-foreground">
-            People publishing lately across the feed.
+            People
           </p>
         </div>
 
-        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-1">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
           {activeUsersRail.map((profile) => {
             const primaryLabel = profile.display_name ?? `@${profile.username}`;
 
             return (
               <div
                 key={profile.id}
-                className="rounded-[1.35rem] border border-border/18 bg-card/16 p-3"
+                className="rounded-[1.25rem] border border-border/18 bg-card/14 p-2.5"
               >
                 <div className="flex items-start gap-3">
                   <PrefetchLink
@@ -183,7 +174,7 @@ export default async function HomePage({
                         avatarUrl={profile.avatar_url}
                         displayName={profile.display_name}
                         username={profile.username}
-                        className="size-11 shrink-0"
+                        className="size-10 shrink-0"
                         initialsLength={2}
                       />
 
@@ -201,9 +192,9 @@ export default async function HomePage({
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="xs"
                     disabled
-                    className="shrink-0 rounded-full border-border/18 bg-transparent px-2.5 text-[11px] text-muted-foreground/85 disabled:opacity-70"
+                    className="shrink-0 rounded-full border-border/18 bg-transparent px-2.5 text-[10px] text-muted-foreground/85 disabled:opacity-70"
                   >
                     Follow
                   </Button>
@@ -218,16 +209,13 @@ export default async function HomePage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <section className="mx-auto max-w-5xl space-y-6 sm:space-y-7">
-        <div className="border-b border-border/24 pb-4">
+      <section className="mx-auto max-w-5xl space-y-5 sm:space-y-6">
+        <div className="border-b border-border/24 pb-3">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-2">
+            <div>
               <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
                 Feed
               </h1>
-              <p className="text-sm text-muted-foreground">
-                {orderedFeed.length} {orderedFeed.length === 1 ? "review" : "reviews"}
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -253,14 +241,8 @@ export default async function HomePage({
           </div>
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_18.5rem] xl:items-start">
-          <div className="min-w-0 space-y-4">
-            <div className="flex items-end justify-between border-b border-border/24 pb-4">
-              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                {reviewsHeading}
-              </h2>
-              <span className="text-xs text-muted-foreground">{reviewsSubcopy}</span>
-            </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18.5rem] xl:items-start">
+          <div className="min-w-0">
             {reviewsSection}
           </div>
 
