@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, Bookmark, Compass, Disc3, Plus, Search } from "lucide-react";
+import { Bell, Bookmark, Compass, Plus, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
+import { NavActiveUsers } from "@/components/nav-active-users";
 import { NavMain } from "@/components/nav-main";
-import { NavRecentReviews } from "@/components/nav-recent-reviews";
 import { NavSecondary } from "@/components/nav-secondary";
 import { Kbd } from "@/components/ui/kbd";
 import { NavUser } from "@/components/nav-user";
@@ -32,22 +32,25 @@ type AppSidebarProfile = {
   deezer_url: string | null;
 };
 
-type SidebarRecentTrack = {
-  entityId: string;
-  title: string;
-  artistName: string | null;
-  coverUrl: string | null;
+type SidebarActiveUser = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  latest_track_title: string | null;
+  latest_track_artist_name: string | null;
+  review_count: number;
 };
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
-  recentTracks?: SidebarRecentTrack[];
+  activeUsers?: SidebarActiveUser[];
   unreadCount?: number;
 };
 
 export default function AppSidebar({
   profile,
-  recentTracks = [],
+  activeUsers = [],
   unreadCount = 0,
   ...props
 }: AppSidebarProps) {
@@ -84,16 +87,10 @@ export default function AppSidebar({
       isActive: pathname === "/",
     },
     {
-      title: "Discover",
+      title: "Explore",
       url: "/search",
       icon: Search,
-      isActive: pathname.startsWith("/search"),
-    },
-    {
-      title: "Tracks",
-      url: "/track",
-      icon: Disc3,
-      isActive: pathname.startsWith("/track"),
+      isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
     },
   ];
 
@@ -115,7 +112,7 @@ export default function AppSidebar({
       ]
     : [];
 
-  const canShowRecentReviews = Boolean(profile) && recentTracks.length > 0;
+  const canShowActiveUsers = activeUsers.length > 0;
 
   return (
     <TooltipProvider delayDuration={80}>
@@ -135,25 +132,25 @@ export default function AppSidebar({
             <BrandLogo priority iconClassName="h-5 w-5" />
           </PrefetchLink>
 
-        <div className="group-data-[collapsible=icon]:hidden">
-          <NewReviewDialog
-            isAuthenticated={Boolean(profile)}
-            trigger={
-              <button
-                type="button"
-                className="flex h-9 w-full items-center justify-between rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none transition-colors hover:bg-sidebar-primary/95"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Plus className="size-4" />
-                  <span>New review</span>
-                </span>
-                <Kbd className="border border-sidebar-primary-foreground/12 bg-sidebar-primary-foreground/10 px-1.5 text-[0.6rem] text-sidebar-primary-foreground/78">
-                  N
-                </Kbd>
-              </button>
-            }
-          />
-        </div>
+          <div className="group-data-[collapsible=icon]:hidden">
+            <NewReviewDialog
+              isAuthenticated={Boolean(profile)}
+              trigger={
+                <button
+                  type="button"
+                  className="flex h-9 w-full items-center justify-between rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none transition-colors hover:bg-sidebar-primary/95"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Plus className="size-4" />
+                    <span>New review</span>
+                  </span>
+                  <Kbd className="border border-sidebar-primary-foreground/12 bg-sidebar-primary-foreground/10 px-1.5 text-[0.6rem] text-sidebar-primary-foreground/78">
+                    N
+                  </Kbd>
+                </button>
+              }
+            />
+          </div>
 
           <div className="hidden group-data-[collapsible=icon]:block">
             <NewReviewDialog
@@ -174,7 +171,7 @@ export default function AppSidebar({
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
           <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
           {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} onNavigate={closeMobileSidebar} /> : null}
-          {canShowRecentReviews ? <NavRecentReviews items={recentTracks} onNavigate={closeMobileSidebar} /> : null}
+          {canShowActiveUsers ? <NavActiveUsers items={activeUsers} onNavigate={closeMobileSidebar} /> : null}
         </SidebarContent>
 
         <SidebarFooter className="px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">

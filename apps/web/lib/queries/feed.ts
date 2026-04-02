@@ -6,7 +6,7 @@ import type {
   ReviewCardData,
   ReviewCardEntity,
 } from "@/components/review-card";
-import { getRecentlyDiscussedTracks, type DiscoveryTrack } from "@/lib/queries/discovery";
+import { getRecentlyActiveProfiles, type ActiveProfile } from "@/lib/queries/profiles";
 import {
   runReviewListQuery,
 } from "@/lib/queries/review-likes";
@@ -29,7 +29,7 @@ export type FeedReview = {
 
 export type FeedPageBundle = {
   feed: FeedReview[];
-  recentTracks: DiscoveryTrack[];
+  activeUsers: ActiveProfile[];
   likedReviewIds: Set<string>;
   bookmarkedReviewIds: Set<string>;
 };
@@ -39,7 +39,7 @@ export const getFeedPublicBundle = unstable_cache(
     measureServerTask("getFeedPublicBundle", async () => {
       const supabase = supabasePublic();
 
-      const [feed, recentTracks] = await Promise.all([
+      const [feed, activeUsers] = await Promise.all([
         runReviewListQuery<FeedReview>(async (mode) =>
           supabase
             .from("reviews")
@@ -52,18 +52,18 @@ export const getFeedPublicBundle = unstable_cache(
             .order("created_at", { ascending: false })
             .limit(24),
         ),
-        getRecentlyDiscussedTracks(4),
+        getRecentlyActiveProfiles(4),
       ]);
 
       return {
         feed,
-        recentTracks,
+        activeUsers,
       };
     }),
   ["feed-page-public-bundle"],
   {
     revalidate: 60,
-    tags: ["feed", "reviews", "entities"],
+    tags: ["feed", "reviews", "entities", "profiles"],
   },
 );
 
@@ -86,12 +86,12 @@ export async function getFeedViewerState(
 }
 
 export async function getFeedPageBundle(viewerId?: string | null): Promise<FeedPageBundle> {
-  const { feed, recentTracks } = await getFeedPublicBundle();
+  const { feed, activeUsers } = await getFeedPublicBundle();
 
   if (!viewerId || feed.length === 0) {
     return {
       feed,
-      recentTracks,
+      activeUsers,
       likedReviewIds: new Set<string>(),
       bookmarkedReviewIds: new Set<string>(),
     };
@@ -104,7 +104,7 @@ export async function getFeedPageBundle(viewerId?: string | null): Promise<FeedP
 
   return {
     feed,
-    recentTracks,
+    activeUsers,
     likedReviewIds,
     bookmarkedReviewIds,
   };

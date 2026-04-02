@@ -49,7 +49,7 @@ export default async function SavedReviewsPage() {
               <SavedProfileAction userId={user.id} />
             </Suspense>
             <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}>
-              Search
+              Explore
             </Link>
           </div>
         </div>

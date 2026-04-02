@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Disc3, Home, Plus, Search, UserRound } from "lucide-react";
+import { Bell, Bookmark, Home, Plus, Search, UserRound } from "lucide-react";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { cn } from "@/lib/utils";
 
@@ -69,32 +69,43 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
     },
     {
       href: "/search",
-      label: "Search",
+      label: "Explore",
       icon: Search,
-      active: (current) => current.startsWith("/search"),
+      active: (current) => current.startsWith("/search") || current.startsWith("/track"),
     },
   ];
 
   const rightItems: NavItem[] = [
-    {
-      href: "/track",
-      label: "Tracks",
-      icon: Disc3,
-      active: (current) => current.startsWith("/track"),
-    },
-    profile
-      ? {
-          href: `/u/${profile.username}`,
-          label: "Profile",
-          icon: UserRound,
-          active: (current) => current.startsWith(`/u/${profile.username}`),
-        }
-      : {
-          href: "/login",
-          label: "Log in",
-          icon: UserRound,
-          active: (current) => current.startsWith("/login") || current.startsWith("/signup"),
-        },
+    ...(profile
+      ? [
+          {
+            href: "/notifications",
+            label: "Activity",
+            icon: Bell,
+            active: (current: string) => current.startsWith("/notifications"),
+          },
+          {
+            href: `/u/${profile.username}`,
+            label: "Profile",
+            icon: UserRound,
+            active: (current: string) => current.startsWith(`/u/${profile.username}`),
+          },
+        ]
+      : [
+          {
+            href: "/saved",
+            label: "Saved",
+            icon: Bookmark,
+            active: (current: string) => current.startsWith("/saved"),
+          },
+          {
+            href: "/login",
+            label: "Log in",
+            icon: UserRound,
+            active: (current: string) =>
+              current.startsWith("/login") || current.startsWith("/signup"),
+          },
+        ]),
   ];
 
   return (

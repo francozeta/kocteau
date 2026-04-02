@@ -7,24 +7,24 @@ import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import {
   getUnreadNotificationsCount,
 } from "@/lib/queries/notifications";
-import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
+import { getRecentlyActiveProfiles } from "@/lib/queries/profiles";
 import { supabaseServer } from "@/lib/supabase/server";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  const safeProfile = await getCurrentViewerProfile();
+  const [user, safeProfile, activeUsers] = await Promise.all([
+    getCurrentUser(),
+    getCurrentViewerProfile(),
+    getRecentlyActiveProfiles(5),
+  ]);
 
-  const [initialUnreadCount, recentTracks] = user
+  const initialUnreadCount = user
     ? await (async () => {
         const supabase = await supabaseServer();
 
-        return Promise.all([
-          getUnreadNotificationsCount(supabase, user.id),
-          getRecentlyDiscussedTracks(4),
-        ]);
+        return getUnreadNotificationsCount(supabase, user.id);
       })()
-    : [0, [] as Awaited<ReturnType<typeof getRecentlyDiscussedTracks>>];
+    : 0;
 
   return (
     <ReactQueryProvider>
@@ -39,7 +39,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       >
         <AppSidebar
           profile={safeProfile}
-          recentTracks={recentTracks}
+          activeUsers={activeUsers}
           unreadCount={initialUnreadCount}
         />
         <SidebarInset className="min-h-svh">

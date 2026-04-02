@@ -116,7 +116,7 @@ export default async function DeezerTrackResolverPage({
               href={`/search?q=${encodeURIComponent(track.title)}`}
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}
             >
-              Search
+              Explore
             </Link>
             {track.deezer_url ? (
               <a

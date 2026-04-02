@@ -3,13 +3,6 @@
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Drawer,
   DrawerContent,
   DrawerDescription,
@@ -17,6 +10,13 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewComments } from "@/hooks/use-review-comments";
 import { toastAuthRequired } from "@/lib/feedback";
@@ -51,15 +51,16 @@ export default function ReviewCommentsButton({
   }
 
   const trigger = (
-      <button
-        type="button"
-        onClick={handleTriggerClick}
-        aria-label="Open comments"
-        className={cn(
-          "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-all duration-200 hover:bg-muted/34 hover:text-foreground active:scale-[0.98]",
-          open && "text-foreground",
-        )}
-      >
+    <button
+      type="button"
+      onClick={handleTriggerClick}
+      aria-label="Open comments"
+      aria-expanded={open}
+      className={cn(
+        "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-all duration-200 hover:bg-muted/34 hover:text-foreground active:scale-[0.98]",
+        open && "text-foreground",
+      )}
+    >
       <MessageCircle className="size-4" />
       {commentsCount > 0 ? <span>{commentsCount}</span> : null}
     </button>
@@ -72,19 +73,19 @@ export default function ReviewCommentsButton({
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent className="flex h-[88vh] max-h-[88vh] flex-col border-border/30">
             <DrawerHeader className="border-b border-border/30 text-left">
-            <DrawerTitle>Comments</DrawerTitle>
-            <DrawerDescription>
-              {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
-            </DrawerDescription>
-          </DrawerHeader>
-          <ReviewCommentsPanel
-            reviewId={reviewId}
-            initialCount={initialCount}
-            isAuthenticated={isAuthenticated}
-            variant="dialog"
-          />
-        </DrawerContent>
-      </Drawer>
+              <DrawerTitle>Comments</DrawerTitle>
+              <DrawerDescription>
+                {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
+              </DrawerDescription>
+            </DrawerHeader>
+            <ReviewCommentsPanel
+              reviewId={reviewId}
+              initialCount={initialCount}
+              isAuthenticated={isAuthenticated}
+              variant="dialog"
+            />
+          </DrawerContent>
+        </Drawer>
       </>
     );
   }
@@ -92,22 +93,26 @@ export default function ReviewCommentsButton({
   return (
     <>
       {trigger}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="flex h-[min(82vh,42rem)] max-w-2xl flex-col overflow-hidden border-border/30 p-0">
-          <DialogHeader className="border-b border-border/30 px-6 py-4">
-            <DialogTitle>Comments</DialogTitle>
-          <DialogDescription>
-            {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
-          </DialogDescription>
-        </DialogHeader>
-        <ReviewCommentsPanel
-          reviewId={reviewId}
-          initialCount={initialCount}
-          isAuthenticated={isAuthenticated}
-          variant="dialog"
-        />
-      </DialogContent>
-    </Dialog>
+      <Sheet open={open} onOpenChange={setOpen} modal={false}>
+        <SheetContent
+          side="right"
+          showOverlay={false}
+          className="border-border/30 bg-background/95 p-0 supports-backdrop-filter:backdrop-blur-xl data-[side=right]:w-[min(30rem,calc(100vw-1rem))] data-[side=right]:rounded-l-[1.5rem] data-[side=right]:sm:max-w-[30rem]"
+        >
+          <SheetHeader className="border-b border-border/30 pr-14">
+            <SheetTitle>Comments</SheetTitle>
+            <SheetDescription>
+              {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
+            </SheetDescription>
+          </SheetHeader>
+          <ReviewCommentsPanel
+            reviewId={reviewId}
+            initialCount={initialCount}
+            isAuthenticated={isAuthenticated}
+            variant="dialog"
+          />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

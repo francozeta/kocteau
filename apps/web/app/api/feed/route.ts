@@ -15,6 +15,6 @@ export async function GET() {
       viewer_has_liked: bundle.likedReviewIds.has(review.id),
       viewer_has_bookmarked: bundle.bookmarkedReviewIds.has(review.id),
     })),
-    recentTracks: bundle.recentTracks,
+    activeUsers: bundle.activeUsers,
   });
 }

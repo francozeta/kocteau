@@ -42,8 +42,53 @@ export type ProfileReviewBundle = {
   reviews: ProfileReview[];
 };
 
+export type ActiveProfile = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  latest_review_at: string;
+  latest_track_title: string | null;
+  latest_track_artist_name: string | null;
+  review_count: number;
+};
+
+type ActiveProfileAuthor = Pick<
+  PublicProfile,
+  "id" | "username" | "display_name" | "avatar_url"
+>;
+
+type ActiveProfileEntity = {
+  title: string;
+  artist_name: string | null;
+};
+
+type ActiveProfileRow = {
+  created_at: string;
+  author_id: string;
+  author: ActiveProfileAuthor | ActiveProfileAuthor[] | null;
+  entities: ActiveProfileEntity | ActiveProfileEntity[] | null;
+};
+
 const publicProfileLoaders = new Map<string, () => Promise<PublicProfile | null>>();
 const profileReviewLoaders = new Map<string, () => Promise<ProfileReviewBundle>>();
+const activeProfileLoaders = new Map<string, () => Promise<ActiveProfile[]>>();
+
+function getActiveProfileAuthor(row: ActiveProfileRow) {
+  if (Array.isArray(row.author)) {
+    return row.author[0] ?? null;
+  }
+
+  return row.author;
+}
+
+function getActiveProfileEntity(row: ActiveProfileRow) {
+  if (Array.isArray(row.entities)) {
+    return row.entities[0] ?? null;
+  }
+
+  return row.entities;
+}
 
 export async function getPublicProfileByUsername(username: string) {
   return getOrCreateLoader(
@@ -124,6 +169,105 @@ export async function getReviewsForProfile(authorId: string): Promise<ProfileRev
         {
           revalidate: 60,
           tags: ["reviews", `profile:${authorId}:reviews`],
+        },
+      ),
+  )();
+}
+
+export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfile[]> {
+  return getOrCreateLoader(
+    activeProfileLoaders,
+    ["recently-active-profiles", limit],
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getRecentlyActiveProfiles",
+            async () => {
+              const supabase = supabasePublic();
+
+              const { data } = await supabase
+                .from("reviews")
+                .select(`
+                  created_at,
+                  author_id,
+                  author:profiles!reviews_author_id_fkey (
+                    id,
+                    username,
+                    display_name,
+                    avatar_url
+                  ),
+                  entities (
+                    title,
+                    artist_name
+                  )
+                `)
+                .order("created_at", { ascending: false })
+                .limit(Math.max(limit * 6, 36));
+
+              const seen = new Set<string>();
+              const activeProfiles: ActiveProfile[] = [];
+              const authorIds: string[] = [];
+
+              for (const row of (data ?? []) as ActiveProfileRow[]) {
+                if (seen.has(row.author_id)) {
+                  continue;
+                }
+
+                const author = getActiveProfileAuthor(row);
+
+                if (!author?.username) {
+                  continue;
+                }
+
+                seen.add(row.author_id);
+                authorIds.push(row.author_id);
+
+                const entity = getActiveProfileEntity(row);
+
+                activeProfiles.push({
+                  id: author.id,
+                  username: author.username,
+                  display_name: author.display_name,
+                  avatar_url: author.avatar_url,
+                  latest_review_at: row.created_at,
+                  latest_track_title: entity?.title ?? null,
+                  latest_track_artist_name: entity?.artist_name ?? null,
+                  review_count: 1,
+                });
+
+                if (activeProfiles.length >= limit) {
+                  break;
+                }
+              }
+
+              if (authorIds.length === 0) {
+                return activeProfiles;
+              }
+
+              const { data: reviewCounts } = await supabase
+                .from("reviews")
+                .select("author_id")
+                .in("author_id", authorIds);
+
+              const countMap = new Map<string, number>();
+
+              for (const row of reviewCounts ?? []) {
+                const nextCount = (countMap.get(row.author_id) ?? 0) + 1;
+                countMap.set(row.author_id, nextCount);
+              }
+
+              return activeProfiles.map((profile) => ({
+                ...profile,
+                review_count: Math.max(countMap.get(profile.id) ?? 1, 1),
+              }));
+            },
+            { limit },
+          ),
+        ["recently-active-profiles", String(limit)],
+        {
+          revalidate: 60,
+          tags: ["profiles", "reviews", `recently-active-profiles:${limit}`],
         },
       ),
   )();

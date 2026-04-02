@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { ArrowRight, Music2, Star } from "lucide-react";
+import { Music2 } from "lucide-react";
 import PrefetchLink from "@/components/prefetch-link";
-import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { FeedReviewCard } from "@/components/review-route-cards";
-import TrackContextMenu from "@/components/track-context-menu";
+import UserAvatar from "@/components/user-avatar";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getFeedPageBundle, type FeedReview } from "@/lib/queries/feed";
@@ -13,7 +12,7 @@ import { createServerQueryClient } from "@/lib/react-query/server";
 import { cn } from "@/lib/utils";
 import { feedKeys } from "@/queries/feed";
 
-type FeedView = "discovery" | "latest" | "top-rated";
+type FeedView = "latest" | "top-rated";
 
 const feedViews: Array<{
   value: FeedView;
@@ -21,11 +20,7 @@ const feedViews: Array<{
 }> = [
   {
     value: "latest",
-    label: "Latest Reviews",
-  },
-  {
-    value: "discovery",
-    label: "Discovery",
+    label: "Latest",
   },
   {
     value: "top-rated",
@@ -34,7 +29,7 @@ const feedViews: Array<{
 ];
 
 function isFeedView(value: string | undefined): value is FeedView {
-  return value === "discovery" || value === "latest" || value === "top-rated";
+  return value === "latest" || value === "top-rated";
 }
 
 function getFeedViewHref(view: FeedView) {
@@ -55,6 +50,10 @@ function getAuthor(review: FeedReview) {
   }
 
   return review.author;
+}
+
+function formatReviewCount(count: number) {
+  return `${count} ${count === 1 ? "review" : "reviews"}`;
 }
 
 function sortFeed(feed: FeedReview[], view: FeedView) {
@@ -95,15 +94,17 @@ export default async function HomePage({
       viewer_has_liked: bundle.likedReviewIds.has(review.id),
       viewer_has_bookmarked: bundle.bookmarkedReviewIds.has(review.id),
     })),
-    recentTracks: bundle.recentTracks,
+    activeUsers: bundle.activeUsers,
   };
 
   queryClient.setQueryData(feedKeys.bundle(), feedData);
 
   const orderedFeed = sortFeed(feedData.feed, activeView);
-
-  const discoveryRail = feedData.recentTracks.slice(0, activeView === "discovery" ? 6 : 4);
-  const shouldLeadWithReviews = activeView !== "discovery";
+  const activeUsersRail = feedData.activeUsers.slice(0, 4);
+  const reviewsHeading =
+    activeView === "top-rated" ? "Top Rated Reviews" : "Latest Reviews";
+  const reviewsSubcopy =
+    activeView === "top-rated" ? "Sorted by rating first" : "Newest first";
 
   const reviewsSection = orderedFeed.length > 0 ? (
     <div className="space-y-4">
@@ -118,7 +119,7 @@ export default async function HomePage({
               review={review}
               entity={entity}
               author={author}
-              featured={shouldLeadWithReviews && index === 0}
+              featured={index === 0}
               isAuthenticated={Boolean(user)}
               canManage={Boolean(user?.id && author?.id === user.id)}
             />
@@ -140,101 +141,74 @@ export default async function HomePage({
     </Empty>
   );
 
-  const discoverySection = discoveryRail.length > 0 ? (
+  const secondaryRail = activeUsersRail.length > 0 ? (
     <div className="space-y-3.5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="space-y-1">
         <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Now in rotation
+          Active Reviewers
         </p>
-        <Link
-          href="/track"
-          className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          View all
-        </Link>
+        <p className="text-xs text-muted-foreground">
+          People publishing lately across the feed.
+        </p>
       </div>
 
-      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-        {discoveryRail.map((track) => {
-          const composeParams = new URLSearchParams();
-
-          if (activeView !== "latest") {
-            composeParams.set("view", activeView);
-          }
-
-          composeParams.set("compose", "1");
-          composeParams.set(
-            "reviewQuery",
-            [track.title, track.artistName].filter(Boolean).join(" "),
-          );
-
-          const composeHref = `/?${composeParams.toString()}`;
+      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-1">
+        {activeUsersRail.map((profile) => {
+          const primaryLabel = profile.display_name ?? `@${profile.username}`;
+          const latestTrackLabel = [
+            profile.latest_track_title,
+            profile.latest_track_artist_name,
+          ]
+            .filter(Boolean)
+            .join(" — ");
 
           return (
-            <TrackContextMenu
-              key={track.entityId}
-              href={`/track/${track.entityId}`}
-              title={track.title}
-              artistName={track.artistName}
-              composeHref={composeHref}
+            <div
+              key={profile.id}
+              className="rounded-[1.35rem] border border-border/18 bg-card/16 p-3"
             >
-              <div className="rounded-[1.35rem] border border-border/18 bg-card/16 p-2.5">
-                <PrefetchLink
-                  href={`/track/${track.entityId}`}
-                  queryWarmup={{ kind: "track", id: track.entityId }}
-                  className="group flex items-center gap-3 rounded-[1.2rem] transition-colors hover:text-foreground"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] bg-muted">
-                    {track.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={track.coverUrl}
-                        alt={track.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Music2 className="size-5 text-muted-foreground" />
-                    )}
-                  </div>
+              <PrefetchLink
+                href={`/u/${profile.username}`}
+                className="group block rounded-[1.15rem] transition-colors hover:text-foreground"
+              >
+                <div className="flex items-start gap-3">
+                  <UserAvatar
+                    avatarUrl={profile.avatar_url}
+                    displayName={profile.display_name}
+                    username={profile.username}
+                    className="size-11 shrink-0"
+                    initialsLength={2}
+                  />
 
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 font-serif text-[15px] font-medium text-foreground">
-                      {track.title}
-                    </p>
-                    <p className="line-clamp-1 text-[13.5px] font-medium text-muted-foreground">
-                      {track.artistName ?? "Unknown artist"}
-                    </p>
-                  </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-[14px] font-medium text-foreground">
+                          {primaryLabel}
+                        </p>
+                        <p className="truncate text-[12.5px] text-muted-foreground">
+                          @{profile.username}
+                        </p>
+                      </div>
 
-                  <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                </PrefetchLink>
-
-                <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-border/12 pt-2.5">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    {track.averageRating ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-border/18 bg-muted/16 px-2 py-1 font-medium text-foreground">
-                        <Star className="size-3 fill-current text-amber-400" />
-                        {track.averageRating.toFixed(1)}
+                      <span className="shrink-0 rounded-full border border-border/18 bg-muted/18 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        {formatReviewCount(profile.review_count)}
                       </span>
-                    ) : null}
-                    <span>
-                      {track.reviewCount} {track.reviewCount === 1 ? "review" : "reviews"}
-                    </span>
-                  </div>
+                    </div>
 
-                  <Link
-                    href={composeHref}
-                    className={cn(
-                      buttonVariants({ size: "sm", variant: "ghost" }),
-                      "h-8 rounded-full px-3 text-xs text-foreground hover:bg-muted/28",
+                    {latestTrackLabel ? (
+                      <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-foreground/78">
+                        Latest on {latestTrackLabel}
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-[13px] leading-5 text-muted-foreground">
+                        Open profile
+                      </p>
                     )}
-                  >
-                    Write review
-                  </Link>
+                  </div>
                 </div>
-              </div>
-            </TrackContextMenu>
+              </PrefetchLink>
+            </div>
           );
         })}
       </div>
@@ -243,33 +217,58 @@ export default async function HomePage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <section className="mx-auto max-w-3xl space-y-6 sm:space-y-7">
+      <section className="mx-auto max-w-5xl space-y-6 sm:space-y-7">
         <div className="border-b border-border/24 pb-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {feedViews.map((view) => {
-              const isActive = activeView === view.value;
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2">
+              <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
+                Feed
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {orderedFeed.length} {orderedFeed.length === 1 ? "review" : "reviews"}
+              </p>
+            </div>
 
-              return (
-                <Link
-                  key={view.value}
-                  href={getFeedViewHref(view.value)}
-                  className={cn(
-                    "inline-flex items-center rounded-full border px-3 py-1.5 text-sm transition-colors",
-                    isActive
-                      ? "border-border/22 bg-card/14 font-medium text-foreground"
-                      : "border-transparent bg-transparent text-muted-foreground hover:bg-card/10 hover:text-foreground",
-                  )}
-                >
-                  {view.label}
-                </Link>
-              );
-            })}
+            <div className="flex flex-wrap items-center gap-2">
+              {feedViews.map((view) => {
+                const isActive = activeView === view.value;
+
+                return (
+                  <Link
+                    key={view.value}
+                    href={getFeedViewHref(view.value)}
+                    className={cn(
+                      "inline-flex items-center rounded-full border px-3 py-1.5 text-sm transition-colors",
+                      isActive
+                        ? "border-border/22 bg-card/14 font-medium text-foreground"
+                        : "border-transparent bg-transparent text-muted-foreground hover:bg-card/10 hover:text-foreground",
+                    )}
+                  >
+                    {view.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {shouldLeadWithReviews ? reviewsSection : null}
-        {discoverySection}
-        {shouldLeadWithReviews ? null : reviewsSection}
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_18.5rem] xl:items-start">
+          <div className="min-w-0 space-y-4">
+            <div className="flex items-end justify-between border-b border-border/24 pb-4">
+              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                {reviewsHeading}
+              </h2>
+              <span className="text-xs text-muted-foreground">{reviewsSubcopy}</span>
+            </div>
+            {reviewsSection}
+          </div>
+
+          {secondaryRail ? (
+            <aside className="space-y-3.5 xl:sticky xl:top-24">
+              {secondaryRail}
+            </aside>
+          ) : null}
+        </div>
       </section>
     </HydrationBoundary>
   );

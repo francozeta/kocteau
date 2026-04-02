@@ -14,16 +14,16 @@ export async function generateMetadata({
 
   if (!query) {
     return createPageMetadata({
-      title: "Search",
-      description: "Search tracks and move from discovery to reviews on Kocteau.",
+      title: "Explore",
+      description: "Search tracks and browse active songs on Kocteau.",
       path: "/search",
       noIndex: true,
     });
   }
 
   return createPageMetadata({
-    title: `Search: ${query}`,
-    description: `Search results for ${query} on Kocteau.`,
+    title: `Explore: ${query}`,
+    description: `Track results for ${query} on Kocteau.`,
     path: `/search?q=${encodeURIComponent(query)}`,
     noIndex: true,
   });
@@ -37,7 +37,7 @@ export default async function SearchPage({
   const params = await searchParams;
   const initialQuery = params.q?.trim() ?? "";
   const initialType = isSearchEntityType(params.type) ? params.type : "track";
-  const highlights = await getRecentlyDiscussedTracks(6);
+  const highlights = await getRecentlyDiscussedTracks(8);
 
   return (
     <SearchPageClient

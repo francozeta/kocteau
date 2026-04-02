@@ -93,7 +93,7 @@ export default function Header({
               className="h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground"
             >
               <Search className="size-4" />
-              <span>Search</span>
+              <span>Explore</span>
               <Kbd className="ml-1 border-border/60 bg-muted/32 text-[0.62rem] text-muted-foreground">
                 F
               </Kbd>

@@ -17,8 +17,8 @@ function formatDate(value: string) {
 }
 
 export const metadata = createPageMetadata({
-  title: "Tracks",
-  description: "Browse the tracks that already have reviews and history inside Kocteau.",
+  title: "Track Index",
+  description: "Browse tracks with recent review activity inside Kocteau.",
   path: "/track",
 });
 
@@ -30,8 +30,11 @@ export default async function TrackIndexPage() {
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Explore
+            </p>
             <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Tracks
+              Track Index
             </h1>
             <p className="text-sm text-muted-foreground">
               {tracks.length} {tracks.length === 1 ? "track" : "tracks"}
@@ -43,7 +46,7 @@ export default async function TrackIndexPage() {
               href="/search"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full border-border/30")}
             >
-              Search
+              Explore
             </Link>
             <PrefetchLink
               href="/"
@@ -117,7 +120,7 @@ export default async function TrackIndexPage() {
               href="/search"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }), "rounded-full border-border/30")}
             >
-              Search
+              Explore
             </Link>
           </CardContent>
         </Empty>

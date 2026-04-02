@@ -5,7 +5,7 @@ import type {
   ReviewCardData,
   ReviewCardEntity,
 } from "@/components/review-card";
-import type { DiscoveryTrack } from "@/lib/types/discovery";
+import type { ActiveProfile } from "@/lib/queries/profiles";
 import { fetchJson } from "@/queries/http";
 
 export type FeedBundleReview = ReviewCardData & {
@@ -15,7 +15,7 @@ export type FeedBundleReview = ReviewCardData & {
 
 export type FeedBundleQueryData = {
   feed: FeedBundleReview[];
-  recentTracks: DiscoveryTrack[];
+  activeUsers: ActiveProfile[];
 };
 
 export const feedKeys = {
