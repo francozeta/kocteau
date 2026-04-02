@@ -2,6 +2,7 @@
 
 import { useDeferredValue } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { SearchEntityType } from "@/lib/search-types";
 import { deezerTrackSearchQueryOptions } from "@/queries/tracks";
 
@@ -18,10 +19,12 @@ export function useDeezerSearch({
   type = "track",
   enabled = true,
 }: UseDeezerSearchOptions) {
-  const deferredQuery = useDeferredValue(query.trim());
+  const trimmedQuery = query.trim();
+  const deferredQuery = useDeferredValue(trimmedQuery);
+  const debouncedQuery = useDebouncedValue(deferredQuery, 250);
 
   return useQuery({
-    ...deezerTrackSearchQueryOptions(deferredQuery, type),
-    enabled: enabled && type === "track" && deferredQuery.length >= 2,
+    ...deezerTrackSearchQueryOptions(debouncedQuery, type),
+    enabled: enabled && type === "track" && debouncedQuery.length >= 2,
   });
 }

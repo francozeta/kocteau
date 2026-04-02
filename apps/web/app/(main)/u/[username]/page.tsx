@@ -14,7 +14,8 @@ import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
   getPublicProfileByUsername,
-  getProfilePageBundle,
+  getProfilePublicBundle,
+  getProfileViewerState,
   type ProfileReview,
 } from "@/lib/queries/profiles";
 import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
@@ -66,12 +67,25 @@ export default async function UserProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const user = await getCurrentUser();
-  const publicBundle = await getProfilePageBundle(username, user?.id);
+  const userPromise = getCurrentUser();
+  const publicBundlePromise = getProfilePublicBundle(username);
+  const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
 
   if (!publicBundle) {
     notFound();
   }
+
+  const reviewIds = [
+    ...(publicBundle.pinnedReview ? [publicBundle.pinnedReview.id] : []),
+    ...publicBundle.reviews.map((review) => review.id),
+  ];
+  const viewerState =
+    user?.id && reviewIds.length > 0
+      ? await getProfileViewerState(user.id, reviewIds)
+      : {
+          likedReviewIds: new Set<string>(),
+          bookmarkedReviewIds: new Set<string>(),
+        };
 
   const { profile, pinnedReview, reviews } = publicBundle;
   const isOwnProfile = user?.id === profile.id;
@@ -203,8 +217,8 @@ export default async function UserProfilePage({
             <ProfileReviewCard
               review={{
                 ...pinnedReview,
-                viewer_has_liked: publicBundle.likedReviewIds.has(pinnedReview.id),
-                viewer_has_bookmarked: publicBundle.bookmarkedReviewIds.has(pinnedReview.id),
+                viewer_has_liked: viewerState.likedReviewIds.has(pinnedReview.id),
+                viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(pinnedReview.id),
               }}
               entity={getEntity(pinnedReview)}
               author={profileAuthor}
@@ -231,8 +245,8 @@ export default async function UserProfilePage({
                   key={review.id}
                   review={{
                     ...review,
-                    viewer_has_liked: publicBundle.likedReviewIds.has(review.id),
-                    viewer_has_bookmarked: publicBundle.bookmarkedReviewIds.has(review.id),
+                    viewer_has_liked: viewerState.likedReviewIds.has(review.id),
+                    viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
                   }}
                   entity={getEntity(review)}
                   author={profileAuthor}

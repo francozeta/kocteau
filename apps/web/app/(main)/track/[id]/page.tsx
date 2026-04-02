@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import Link from "next/link";
-import { MessageSquarePlus, Music2, PencilLine, Star } from "lucide-react";
+import { MessageSquarePlus, Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,8 @@ import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {
   getEntityPageById,
-  getTrackPageBundle,
+  getTrackPublicBundle,
+  getTrackViewerState,
   type EntityReview,
 } from "@/lib/queries/entities";
 import { createServerQueryClient } from "@/lib/react-query/server";
@@ -62,19 +63,29 @@ export default async function TrackPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  const user = await getCurrentUser();
-  const bundle = await getTrackPageBundle(id, user?.id);
+  const userPromise = getCurrentUser();
+  const publicBundlePromise = getTrackPublicBundle(id);
+  const [user, bundle] = await Promise.all([userPromise, publicBundlePromise]);
 
   if (!bundle) notFound();
+
+  const viewerState =
+    user?.id && bundle.reviews.length > 0
+      ? await getTrackViewerState(user.id, id, bundle.reviews)
+      : {
+          likedReviewIds: new Set<string>(),
+          bookmarkedReviewIds: new Set<string>(),
+          viewerReviewId: null as string | null,
+        };
 
   const queryClient = createServerQueryClient();
   const trackData = {
     entity: bundle.entity,
-    viewerReviewId: bundle.viewerReviewId,
+    viewerReviewId: viewerState.viewerReviewId,
     reviews: bundle.reviews.map((review) => ({
       ...review,
-      viewer_has_liked: bundle.likedReviewIds.has(review.id),
-      viewer_has_bookmarked: bundle.bookmarkedReviewIds.has(review.id),
+      viewer_has_liked: viewerState.likedReviewIds.has(review.id),
+      viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
     })),
   };
 
@@ -179,6 +190,9 @@ export default async function TrackPage({
                 reviewId={viewerReview.id}
                 defaultOpen={shouldOpenViewerEditor}
                 dismissSearchParam="editReview"
+                triggerLabel="Edit review"
+                showDefaultTriggerIcon
+                triggerClassName="gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90"
                 initialSelection={{
                   provider: "deezer",
                   provider_id: entity.provider_id,
@@ -193,18 +207,6 @@ export default async function TrackPage({
                 initialBody={viewerReview.body ?? ""}
                 initialRating={viewerReview.rating}
                 initialPinned={Boolean(viewerReview.is_pinned)}
-                trigger={
-                  <button
-                    type="button"
-                    className={cn(
-                      buttonVariants({ size: "sm" }),
-                      "gap-2 rounded-full bg-foreground text-background hover:bg-foreground/90",
-                    )}
-                  >
-                    <PencilLine className="size-4" />
-                    Edit review
-                  </button>
-                }
               />
             ) : (
               <Link

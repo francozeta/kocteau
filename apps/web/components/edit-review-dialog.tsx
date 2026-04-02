@@ -2,6 +2,7 @@
 
 import { startTransition, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { PencilLine } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -47,6 +48,8 @@ type EditReviewDialogProps = {
   reviewId: string;
   trigger?: React.ReactNode;
   triggerClassName?: string;
+  triggerLabel?: string;
+  showDefaultTriggerIcon?: boolean;
   showTrigger?: boolean;
   open?: boolean;
   defaultOpen?: boolean;
@@ -63,6 +66,8 @@ export default function EditReviewDialog({
   reviewId,
   trigger,
   triggerClassName,
+  triggerLabel = "Edit review",
+  showDefaultTriggerIcon = false,
   showTrigger = true,
   open: controlledOpen,
   defaultOpen = false,
@@ -107,7 +112,8 @@ export default function EditReviewDialog({
         size="sm"
         className={cn("rounded-full border-border/24 bg-card/12 px-4", triggerClassName)}
       >
-        Edit review
+        {showDefaultTriggerIcon ? <PencilLine className="size-4" /> : null}
+        {triggerLabel}
       </Button>
     );
 

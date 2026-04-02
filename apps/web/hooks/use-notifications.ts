@@ -143,9 +143,10 @@ export function useNotifications({
     initialData: initialUnreadCount,
     staleTime: NOTIFICATIONS_STALE_MS,
     gcTime: 10 * 60_000,
-    refetchInterval: userId ? UNREAD_FALLBACK_POLL_MS : false,
+    refetchInterval:
+      userId && !subscribe ? UNREAD_FALLBACK_POLL_MS : false,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: Boolean(subscribe),
   });
 
   const notificationsQuery = useQuery({

@@ -5,9 +5,14 @@ import PrefetchLink from "@/components/prefetch-link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import UserAvatar from "@/components/user-avatar";
+import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
-import { getFeedPageBundle, type FeedReview } from "@/lib/queries/feed";
+import {
+  getFeedPublicBundle,
+  getFeedViewerState,
+  type FeedReview,
+} from "@/lib/queries/feed";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { cn } from "@/lib/utils";
 import { feedKeys } from "@/queries/feed";
@@ -68,10 +73,6 @@ function sortFeed(feed: FeedReview[], view: FeedView) {
   });
 }
 
-function formatReviewCount(count: number) {
-  return `${count} ${count === 1 ? "review" : "reviews"}`;
-}
-
 export const metadata = createPageMetadata({
   title: "Feed",
   description: "Latest music reviews, ratings, and notes from the Kocteau feed.",
@@ -85,16 +86,27 @@ export default async function HomePage({
 }) {
   const params = await searchParams;
   const activeView = isFeedView(params.view) ? params.view : "latest";
-  const user = await getCurrentUser();
-  const bundle = await getFeedPageBundle(user?.id);
+  const userPromise = getCurrentUser();
+  const publicBundlePromise = getFeedPublicBundle();
+  const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
+  const viewerState =
+    user?.id && publicBundle.feed.length > 0
+      ? await getFeedViewerState(
+          user.id,
+          publicBundle.feed.map((review) => review.id),
+        )
+      : {
+          likedReviewIds: new Set<string>(),
+          bookmarkedReviewIds: new Set<string>(),
+        };
   const queryClient = createServerQueryClient();
   const feedData = {
-    feed: bundle.feed.map((review) => ({
+    feed: publicBundle.feed.map((review) => ({
       ...review,
-      viewer_has_liked: bundle.likedReviewIds.has(review.id),
-      viewer_has_bookmarked: bundle.bookmarkedReviewIds.has(review.id),
+      viewer_has_liked: viewerState.likedReviewIds.has(review.id),
+      viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
     })),
-    activeUsers: bundle.activeUsers,
+    activeUsers: publicBundle.activeUsers,
   };
 
   queryClient.setQueryData(feedKeys.bundle(), feedData);
@@ -155,59 +167,47 @@ export default async function HomePage({
         <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-1">
           {activeUsersRail.map((profile) => {
             const primaryLabel = profile.display_name ?? `@${profile.username}`;
-            const latestTrackLabel = [
-              profile.latest_track_title,
-              profile.latest_track_artist_name,
-            ]
-              .filter(Boolean)
-              .join(" — ");
 
             return (
               <div
                 key={profile.id}
                 className="rounded-[1.35rem] border border-border/18 bg-card/16 p-3"
               >
-                <PrefetchLink
-                  href={`/u/${profile.username}`}
-                  className="group block rounded-[1.15rem] transition-colors hover:text-foreground"
-                >
-                  <div className="flex items-start gap-3">
-                    <UserAvatar
-                      avatarUrl={profile.avatar_url}
-                      displayName={profile.display_name}
-                      username={profile.username}
-                      className="size-11 shrink-0"
-                      initialsLength={2}
-                    />
+                <div className="flex items-start gap-3">
+                  <PrefetchLink
+                    href={`/u/${profile.username}`}
+                    className="group min-w-0 flex-1 rounded-[1.15rem] transition-colors hover:text-foreground"
+                  >
+                    <div className="flex items-start gap-3">
+                      <UserAvatar
+                        avatarUrl={profile.avatar_url}
+                        displayName={profile.display_name}
+                        username={profile.username}
+                        className="size-11 shrink-0"
+                        initialsLength={2}
+                      />
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-[14px] font-medium text-foreground">
-                            {primaryLabel}
-                          </p>
-                          <p className="truncate text-[12.5px] text-muted-foreground">
-                            @{profile.username}
-                          </p>
-                        </div>
-
-                        <span className="shrink-0 rounded-full border border-border/18 bg-muted/18 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                          {formatReviewCount(profile.review_count)}
-                        </span>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="truncate text-[14px] font-medium text-foreground">
+                          {primaryLabel}
+                        </p>
+                        <p className="truncate text-[12.5px] text-muted-foreground">
+                          @{profile.username}
+                        </p>
                       </div>
-
-                      {latestTrackLabel ? (
-                        <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-foreground/78">
-                          Latest on {latestTrackLabel}
-                        </p>
-                      ) : (
-                        <p className="mt-2 text-[13px] leading-5 text-muted-foreground">
-                          Open profile
-                        </p>
-                      )}
                     </div>
-                  </div>
-                </PrefetchLink>
+                  </PrefetchLink>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled
+                    className="shrink-0 rounded-full border-border/18 bg-transparent px-2.5 text-[11px] text-muted-foreground/85 disabled:opacity-70"
+                  >
+                    Follow
+                  </Button>
+                </div>
               </div>
             );
           })}

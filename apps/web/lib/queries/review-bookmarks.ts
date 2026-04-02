@@ -1,7 +1,7 @@
 import {
-  isMissingCommentsCountError,
-  isMissingLikesCountError,
+  runReviewListQuery,
 } from "@/lib/queries/review-likes";
+import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof supabaseServer>>;
@@ -37,6 +37,11 @@ export type SavedReview = {
     author: ReviewBookmarkAuthor | ReviewBookmarkAuthor[] | null;
     entities: ReviewBookmarkEntity | ReviewBookmarkEntity[] | null;
   } | null;
+};
+
+export type SavedReviewBookmark = {
+  review_id: string;
+  saved_at: string;
 };
 
 function isMissingReviewBookmarksError(error: QueryError) {
@@ -79,6 +84,15 @@ function normalizeSavedReview(record: SavedReview & { created_at?: string }) {
   };
 }
 
+function normalizeSavedReviewBookmark(
+  record: { review_id: string; created_at?: string | null },
+): SavedReviewBookmark {
+  return {
+    review_id: record.review_id,
+    saved_at: record.created_at ?? "",
+  };
+}
+
 export async function getViewerBookmarkedReviewIds(
   supabase: ServerSupabaseClient,
   userId: string | null | undefined,
@@ -101,71 +115,71 @@ export async function getViewerBookmarkedReviewIds(
   return new Set((data ?? []).map((row) => row.review_id));
 }
 
+export async function getSavedReviewBookmarksForUser(
+  supabase: ServerSupabaseClient,
+  userId: string,
+) {
+  const { data, error } = await supabase
+    .from("review_bookmarks")
+    .select("review_id, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error && isMissingReviewBookmarksError(error)) {
+    return [] satisfies SavedReviewBookmark[];
+  }
+
+  if (error) {
+    return [] satisfies SavedReviewBookmark[];
+  }
+
+  return ((data as Array<{ review_id: string; created_at?: string | null }> | null) ?? [])
+    .map(normalizeSavedReviewBookmark);
+}
+
+export async function getSavedReviewMapById(
+  supabase: ServerSupabaseClient,
+  reviewIds: string[],
+) {
+  if (reviewIds.length === 0) {
+    return new Map<string, SavedReview["review"]>();
+  }
+
+  const reviews = await runReviewListQuery<NonNullable<SavedReview["review"]>>(
+    async (mode) =>
+      supabase
+        .from("reviews")
+        .select(
+          buildReviewHydrationSelect(mode, {
+            includeAuthor: true,
+            includeEntity: true,
+          }),
+        )
+        .in("id", reviewIds),
+  );
+
+  return new Map(
+    reviews.map((review) => [review.id, normalizeSavedReview({ saved_at: "", review }).review]),
+  );
+}
+
 export async function getSavedReviewsForUser(
   supabase: ServerSupabaseClient,
   userId: string,
 ) {
-  async function run(mode: "all" | "likes-only" | "base") {
-    return supabase
-      .from("review_bookmarks")
-      .select([
-        "created_at",
-        `review:reviews!review_bookmarks_review_id_fkey (
-          id,
-          title,
-          body,
-          rating,
-          ${mode !== "base" ? "likes_count," : ""}
-          ${mode === "all" ? "comments_count," : ""}
-          created_at,
-          author:profiles!reviews_author_id_fkey (
-            id,
-            username,
-            display_name,
-            avatar_url
-          ),
-          entities (
-            id,
-            title,
-            artist_name,
-            cover_url
-          )
-        )`,
-      ].join(","))
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+  const bookmarks = await getSavedReviewBookmarksForUser(supabase, userId);
+
+  if (bookmarks.length === 0) {
+    return [] satisfies SavedReview[];
   }
 
-  const withLikes = await run("all");
+  const reviewMap = await getSavedReviewMapById(
+    supabase,
+    bookmarks.map((bookmark) => bookmark.review_id),
+  );
 
-  if (!withLikes.error) {
-    return ((withLikes.data as unknown as Array<SavedReview & { created_at?: string }> | null) ?? [])
-      .map(normalizeSavedReview);
-  }
-
-  if (!isMissingReviewBookmarksError(withLikes.error)) {
-    if (isMissingCommentsCountError(withLikes.error)) {
-      const likesOnly = await run("likes-only");
-
-      if (!likesOnly.error) {
-        return ((likesOnly.data as unknown as Array<SavedReview & { created_at?: string }> | null) ?? [])
-          .map(normalizeSavedReview);
-      }
-
-      if (!isMissingLikesCountError(likesOnly.error)) {
-        return [];
-      }
-    } else if (!isMissingLikesCountError(withLikes.error)) {
-      return [];
-    }
-  }
-
-  const fallback = await run("base");
-
-  if (fallback.error && isMissingReviewBookmarksError(fallback.error)) {
-    return [];
-  }
-
-  return ((fallback.data as unknown as Array<SavedReview & { created_at?: string }> | null) ?? [])
-    .map(normalizeSavedReview);
+  return bookmarks.map((bookmark) => ({
+    saved_at: bookmark.saved_at,
+    review: reviewMap.get(bookmark.review_id) ?? null,
+  }));
 }

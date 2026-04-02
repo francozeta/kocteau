@@ -47,10 +47,6 @@ export type ActiveProfile = {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
-  latest_review_at: string;
-  latest_track_title: string | null;
-  latest_track_artist_name: string | null;
-  review_count: number;
 };
 
 type ActiveProfileAuthor = Pick<
@@ -58,16 +54,9 @@ type ActiveProfileAuthor = Pick<
   "id" | "username" | "display_name" | "avatar_url"
 >;
 
-type ActiveProfileEntity = {
-  title: string;
-  artist_name: string | null;
-};
-
 type ActiveProfileRow = {
-  created_at: string;
   author_id: string;
   author: ActiveProfileAuthor | ActiveProfileAuthor[] | null;
-  entities: ActiveProfileEntity | ActiveProfileEntity[] | null;
 };
 
 const publicProfileLoaders = new Map<string, () => Promise<PublicProfile | null>>();
@@ -80,14 +69,6 @@ function getActiveProfileAuthor(row: ActiveProfileRow) {
   }
 
   return row.author;
-}
-
-function getActiveProfileEntity(row: ActiveProfileRow) {
-  if (Array.isArray(row.entities)) {
-    return row.entities[0] ?? null;
-  }
-
-  return row.entities;
 }
 
 export async function getPublicProfileByUsername(username: string) {
@@ -189,25 +170,19 @@ export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfil
               const { data } = await supabase
                 .from("reviews")
                 .select(`
-                  created_at,
                   author_id,
                   author:profiles!reviews_author_id_fkey (
                     id,
                     username,
                     display_name,
                     avatar_url
-                  ),
-                  entities (
-                    title,
-                    artist_name
                   )
                 `)
                 .order("created_at", { ascending: false })
-                .limit(Math.max(limit * 6, 36));
+                .limit(Math.max(limit * 3, 18));
 
               const seen = new Set<string>();
               const activeProfiles: ActiveProfile[] = [];
-              const authorIds: string[] = [];
 
               for (const row of (data ?? []) as ActiveProfileRow[]) {
                 if (seen.has(row.author_id)) {
@@ -221,19 +196,12 @@ export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfil
                 }
 
                 seen.add(row.author_id);
-                authorIds.push(row.author_id);
-
-                const entity = getActiveProfileEntity(row);
 
                 activeProfiles.push({
                   id: author.id,
                   username: author.username,
                   display_name: author.display_name,
                   avatar_url: author.avatar_url,
-                  latest_review_at: row.created_at,
-                  latest_track_title: entity?.title ?? null,
-                  latest_track_artist_name: entity?.artist_name ?? null,
-                  review_count: 1,
                 });
 
                 if (activeProfiles.length >= limit) {
@@ -241,26 +209,7 @@ export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfil
                 }
               }
 
-              if (authorIds.length === 0) {
-                return activeProfiles;
-              }
-
-              const { data: reviewCounts } = await supabase
-                .from("reviews")
-                .select("author_id")
-                .in("author_id", authorIds);
-
-              const countMap = new Map<string, number>();
-
-              for (const row of reviewCounts ?? []) {
-                const nextCount = (countMap.get(row.author_id) ?? 0) + 1;
-                countMap.set(row.author_id, nextCount);
-              }
-
-              return activeProfiles.map((profile) => ({
-                ...profile,
-                review_count: Math.max(countMap.get(profile.id) ?? 1, 1),
-              }));
+              return activeProfiles;
             },
             { limit },
           ),

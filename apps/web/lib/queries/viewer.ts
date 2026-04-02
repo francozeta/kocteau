@@ -3,7 +3,8 @@ import "server-only";
 import type { ReviewCardData } from "@/components/review-card";
 import { measureServerTask } from "@/lib/perf";
 import {
-  getSavedReviewsForUser,
+  getSavedReviewBookmarksForUser,
+  getSavedReviewMapById,
   getViewerBookmarkedReviewIds,
 } from "@/lib/queries/review-bookmarks";
 import { getViewerLikedReviewIds } from "@/lib/queries/review-likes";
@@ -95,26 +96,29 @@ export async function getViewerSavedReviewsBundle(
     "getViewerSavedReviewsBundle",
     async () => {
       const supabase = await supabaseServer();
-      const savedReviews = await getSavedReviewsForUser(supabase, userId);
-      const reviewIds = savedReviews
-        .map((savedReview) => savedReview.review?.id)
-        .filter((reviewId): reviewId is string => Boolean(reviewId));
-      const likedReviewIds = await getViewerLikedReviewIds(supabase, userId, reviewIds);
+      const bookmarks = await getSavedReviewBookmarksForUser(supabase, userId);
+      const reviewIds = bookmarks.map((bookmark) => bookmark.review_id);
+      const [reviewMap, likedReviewIds] = await Promise.all([
+        getSavedReviewMapById(supabase, reviewIds),
+        getViewerLikedReviewIds(supabase, userId, reviewIds),
+      ]);
 
       return {
-        reviews: savedReviews.map((savedReview) => {
-          if (!savedReview.review) {
+        reviews: bookmarks.map((bookmark) => {
+          const review = reviewMap.get(bookmark.review_id) ?? null;
+
+          if (!review) {
             return {
-              saved_at: savedReview.saved_at,
+              saved_at: bookmark.saved_at,
               review: null,
             } satisfies ViewerSavedReview;
           }
 
           return {
-            saved_at: savedReview.saved_at,
+            saved_at: bookmark.saved_at,
             review: {
-              ...savedReview.review,
-              viewer_has_liked: likedReviewIds.has(savedReview.review.id),
+              ...review,
+              viewer_has_liked: likedReviewIds.has(review.id),
               viewer_has_bookmarked: true,
             },
           } satisfies ViewerSavedReview;
