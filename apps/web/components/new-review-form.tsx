@@ -368,12 +368,12 @@ export default function NewReviewForm({
             placeholder="Track name or artist..."
             disabled={saving}
             autoFocus
-            className="mb-3 h-11 shrink-0 rounded-2xl border-border/25 bg-background/60"
+            className="mb-3 h-11 shrink-0 rounded-2xl border-border/34 bg-card/26 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-background/60"
             maxLength={80}
           />
           <FieldError>{fieldErrors.selected}</FieldError>
 
-          <ScrollArea className="min-h-0 flex-1 rounded-[1.35rem] border border-border/20 bg-card/12">
+          <ScrollArea className="min-h-0 flex-1 rounded-[1.35rem] border border-border/32 bg-card/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/12">
             <div className="space-y-0">
               {isFetching && results.length === 0 ? (
                 <div className="space-y-3 px-4 py-4">
@@ -488,7 +488,7 @@ export default function NewReviewForm({
               </Button>
             ) : null}
 
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[1.35rem] border border-border/20 bg-card/12 px-3 py-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[1.35rem] border border-border/32 bg-card/20 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/12">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
                 {selected?.cover_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -528,7 +528,7 @@ export default function NewReviewForm({
             </Alert>
           ) : null}
 
-          <ScrollArea className="mb-5 min-h-0 flex-1 rounded-[1.35rem] border border-border/20 bg-card/12">
+          <ScrollArea className="mb-5 min-h-0 flex-1 rounded-[1.35rem] border border-border/32 bg-card/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/12">
             <div className="p-5">
               <div className="space-y-6">
                 <section>
@@ -557,7 +557,7 @@ export default function NewReviewForm({
                     }}
                     placeholder="Give it a headline"
                     disabled={saving}
-                    className="h-11 rounded-2xl border-border/25 bg-background/60 text-sm"
+                    className="h-11 rounded-2xl border-border/34 bg-card/26 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-background/60"
                     maxLength={120}
                     aria-invalid={Boolean(fieldErrors.review_title)}
                   />
@@ -576,7 +576,7 @@ export default function NewReviewForm({
                       setFieldErrors((current) => ({ ...current, review_body: undefined }));
                     }}
                     placeholder="What did this track make you feel?"
-                    className="min-h-24 resize-none rounded-2xl border-border/25 bg-background/60 text-sm"
+                    className="min-h-24 resize-none rounded-2xl border-border/34 bg-card/26 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-background/60"
                     disabled={saving}
                     maxLength={2000}
                     aria-invalid={Boolean(fieldErrors.review_body)}

@@ -128,8 +128,8 @@ export default async function TrackPage({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <section className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
-        <div className="grid gap-4 border-b border-border/24 pb-6 lg:grid-cols-[8.5rem,minmax(0,1fr)] lg:items-start">
-        <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[1.5rem] border border-border/14 bg-muted/20 sm:h-32 sm:w-32">
+        <div className="grid gap-4 border-b border-border/32 pb-6 md:border-border/24 lg:grid-cols-[8.5rem,minmax(0,1fr)] lg:items-start">
+        <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[1.5rem] border border-border/28 bg-muted/26 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:h-32 sm:w-32 md:border-border/18 md:bg-muted/20">
           {entity.cover_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -156,14 +156,14 @@ export default async function TrackPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-1.5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-card/24 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/18 md:bg-card/12">
               <span className="text-sm font-medium text-foreground">{trackReviews.length}</span>
               <span className="text-xs text-muted-foreground">
                 {trackReviews.length === 1 ? "review" : "reviews"}
               </span>
             </div>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/18 bg-card/12 px-3 py-1.5 text-foreground">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-card/24 px-3 py-1.5 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/18 md:bg-card/12">
               <Star className="size-3.5 fill-current text-amber-400" />
               <span className="text-sm font-medium">
                 {averageRating ? averageRating.toFixed(1) : "—"}
@@ -212,7 +212,7 @@ export default async function TrackPage({
                 href={entity.deezer_url}
                 target="_blank"
                 rel="noreferrer"
-                className={cn(buttonVariants({ variant: "outline", size: "default" }), "rounded-full border-border/25 px-3.5")}
+                className={cn(buttonVariants({ variant: "outline", size: "default" }), "rounded-full border-border/34 bg-card/14 px-3.5 md:border-border/25 md:bg-transparent")}
               >
                 Deezer
               </a>
@@ -222,7 +222,7 @@ export default async function TrackPage({
         </div>
 
         <div className="max-w-3xl space-y-3.5">
-          <div className="border-b border-border/25 pb-4">
+          <div className="border-b border-border/32 pb-4 md:border-border/25">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               Reviews
             </h2>
@@ -246,7 +246,7 @@ export default async function TrackPage({
               })}
             </div>
           ) : (
-            <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-9">
+            <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Music2 className="size-4" />

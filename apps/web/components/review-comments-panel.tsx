@@ -126,7 +126,7 @@ export default function ReviewCommentsPanel({
           <Spinner className="size-4 text-muted-foreground/70" />
         </div>
       ) : isError ? (
-        <div className="rounded-xl border border-border/30 bg-card/40 p-4 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border/40 bg-card/46 p-4 text-sm text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/30 md:bg-card/40">
           Comments are temporarily unavailable.
         </div>
       ) : comments.length > 0 ? (
@@ -141,7 +141,7 @@ export default function ReviewCommentsPanel({
               key={comment.id}
               id={`comment-${comment.id}`}
               className={cn(
-                "rounded-xl border border-border/30 bg-card/40 p-4 transition-opacity",
+                "rounded-xl border border-border/40 bg-card/46 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-opacity md:border-border/30 md:bg-card/40",
                 comment.optimistic && "opacity-70",
               )}
             >
@@ -168,7 +168,7 @@ export default function ReviewCommentsPanel({
                     <button
                       type="button"
                       disabled={comment.optimistic}
-                      className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                    className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:pointer-events-none disabled:opacity-50 md:hover:bg-muted"
                       aria-label="Comment options"
                     >
                       <MoreHorizontal className="size-3.5" />
@@ -176,7 +176,7 @@ export default function ReviewCommentsPanel({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-40 min-w-40 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-xl"
+                    className="w-40 min-w-40 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-xl shadow-black/30 md:border-border/30 md:bg-popover/96"
                     sideOffset={8}
                   >
                     <DropdownMenuItem
@@ -215,7 +215,7 @@ export default function ReviewCommentsPanel({
           );
         })
       ) : (
-        <div className="rounded-xl border border-dashed border-border/40 bg-card/30 p-6 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border/48 bg-card/36 p-6 text-sm text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] md:border-border/40 md:bg-card/30">
           No comments yet. Start the conversation around this review.
         </div>
       )}
@@ -272,7 +272,7 @@ export default function ReviewCommentsPanel({
     return (
       <div className="space-y-5">
         {commentsList}
-        {!hideForm ? <div className="border-t border-border/20 pt-4">{form}</div> : null}
+        {!hideForm ? <div className="border-t border-border/28 pt-4 md:border-border/20">{form}</div> : null}
       </div>
     );
   }
@@ -283,7 +283,7 @@ export default function ReviewCommentsPanel({
         {commentsList}
       </ScrollArea>
 
-      <div className="border-t border-border/30 px-4 py-4">
+      <div className="border-t border-border/36 px-4 py-4 md:border-border/30">
         {!hideForm ? form : null}
       </div>
     </div>

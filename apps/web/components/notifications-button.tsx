@@ -89,7 +89,7 @@ export default function NotificationsButton({
           variant="ghost"
           size="icon"
           className={cn(
-            "relative h-9 w-9 rounded-full border border-border/40 bg-background/65 text-muted-foreground shadow-none transition-colors hover:bg-muted/40 hover:text-foreground",
+            "relative h-9 w-9 rounded-full border border-border/46 bg-card/18 text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-muted/40 hover:text-foreground md:border-border/40 md:bg-background/65",
             unreadCount > 0 && "text-foreground",
           )}
           aria-label={
@@ -109,10 +109,10 @@ export default function NotificationsButton({
 
       <PopoverContent
         align="end"
-        className="w-[23rem] gap-0 rounded-[1.8rem] border-border/35 bg-popover/96 p-0 shadow-2xl sm:w-[25rem]"
+        className="w-[23rem] gap-0 rounded-[1.8rem] border-border/44 bg-popover/98 p-0 shadow-2xl shadow-black/30 sm:w-[25rem] md:border-border/35 md:bg-popover/96"
         sideOffset={12}
       >
-        <PopoverHeader className="border-b border-border/25 px-4 py-3">
+        <PopoverHeader className="border-b border-border/32 px-4 py-3 md:border-border/25">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">
               <PopoverTitle className="text-sm font-medium">Activity</PopoverTitle>
@@ -142,7 +142,7 @@ export default function NotificationsButton({
                 <Spinner className="size-4 text-muted-foreground/70" />
               </div>
             ) : isNotificationsError ? (
-              <Alert className="rounded-2xl border-border/40 bg-card/50 p-3">
+              <Alert className="rounded-2xl border-border/46 bg-card/58 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/40 md:bg-card/50">
                 <AlertTitle>Notifications unavailable</AlertTitle>
                 <AlertDescription>
                   {notificationsError instanceof Error
@@ -158,7 +158,7 @@ export default function NotificationsButton({
                 onMarkAsRead={handleMarkAsRead}
               />
             ) : (
-              <Empty className="rounded-[1.5rem] border-border/25 bg-card/20 px-4 py-9">
+              <Empty className="rounded-[1.5rem] border-border/34 bg-card/26 px-4 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
                     <Bell className="size-4" />

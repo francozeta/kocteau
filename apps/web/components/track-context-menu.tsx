@@ -68,7 +68,7 @@ export default function TrackContextMenu({
         <div className="h-full">{children}</div>
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="w-48 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-xl">
+      <ContextMenuContent className="w-48 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-xl shadow-black/30 md:border-border/30 md:bg-popover/96">
         <ContextMenuLabel>Track</ContextMenuLabel>
         <ContextMenuItem
           onSelect={() => {

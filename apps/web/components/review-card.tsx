@@ -94,8 +94,8 @@ export function ReviewCardEntitySummary({
     return (
       <div
         className={cn(
-          "inline-flex max-w-full items-center gap-2 rounded-full border border-border/14 bg-transparent px-2.5 py-1.5 text-sm text-muted-foreground",
-          interactive && "transition-colors hover:bg-muted/18 hover:text-foreground active:bg-muted/24",
+          "inline-flex max-w-full items-center gap-2 rounded-full border border-border/28 bg-card/16 px-2.5 py-1.5 text-sm text-muted-foreground md:border-border/18 md:bg-transparent",
+          interactive && "transition-colors hover:bg-muted/26 hover:text-foreground active:bg-muted/32 md:hover:bg-muted/18 md:active:bg-muted/24",
           className,
         )}
       >
@@ -126,7 +126,7 @@ export function ReviewCardEntitySummary({
         className,
       )}
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/12 bg-muted/18">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/24 bg-muted/28 md:border-border/14 md:bg-muted/18">
         {entity.cover_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -177,8 +177,8 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "overflow-hidden rounded-[1.65rem] border border-border/14 bg-card/12 transition-colors",
-        featured && "border-border/22 bg-card/16",
+        "overflow-hidden rounded-[1.65rem] border border-border/28 bg-card/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors md:border-border/18 md:bg-card/14",
+        featured && "border-border/34 bg-card/28 md:border-border/24 md:bg-card/18",
         className,
       )}
     >
@@ -223,7 +223,7 @@ export default function ReviewCard({
           {showRatingBadge || headerActions ? (
             <div className="flex items-center gap-2 self-start sm:self-auto">
               {showRatingBadge ? (
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-border/20 bg-muted/14 px-2.5 py-1 text-sm font-medium whitespace-nowrap">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-border/30 bg-muted/24 px-2.5 py-1 text-sm font-medium whitespace-nowrap md:border-border/20 md:bg-muted/14">
                   <Star className="size-3.5 fill-current text-amber-400" />
                   {review.rating.toFixed(1)}
                 </div>
@@ -259,7 +259,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="flex items-center justify-between gap-3 border-t border-border/10 pt-2.5"
+            className="flex items-center justify-between gap-3 border-t border-border/18 pt-2.5 md:border-border/10"
           >
             {footer}
           </div>

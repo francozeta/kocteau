@@ -46,7 +46,7 @@ export default function NotificationsInbox({
 
   return (
     <section className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
-      <div className="border-b border-border/30 pb-4">
+      <div className="border-b border-border/34 pb-4 md:border-border/30">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
             <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
@@ -64,11 +64,11 @@ export default function NotificationsInbox({
       </div>
 
       {isLoadingNotifications ? (
-        <div className="flex justify-center rounded-[1.75rem] border border-border/25 bg-card/20 px-5 py-10">
+        <div className="flex justify-center rounded-[1.75rem] border border-border/34 bg-card/26 px-5 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20">
           <Spinner className="size-4 text-muted-foreground/70" />
         </div>
       ) : isNotificationsError ? (
-        <Alert className="rounded-2xl border-border/50 bg-card/60 p-4">
+        <Alert className="rounded-2xl border-border/52 bg-card/64 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/50 md:bg-card/60">
           <AlertTitle>Notifications unavailable</AlertTitle>
           <AlertDescription>
             {notificationsError instanceof Error
@@ -83,7 +83,7 @@ export default function NotificationsInbox({
           onMarkAsRead={handleMarkAsRead}
         />
       ) : (
-        <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10 sm:px-8 sm:py-12">
+        <Empty className="rounded-[1.75rem] border-border/34 bg-card/26 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:px-8 sm:py-12 md:border-border/25 md:bg-card/20">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <Bell className="size-4" />

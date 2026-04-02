@@ -72,7 +72,7 @@ export default function ReviewCardActionsMenu({
 
         <DropdownMenuContent
           align="end"
-          className="w-44 min-w-44 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-xl"
+          className="w-44 min-w-44 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-xl shadow-black/30 md:border-border/30 md:bg-popover/96"
           sideOffset={8}
         >
           <DropdownMenuItem

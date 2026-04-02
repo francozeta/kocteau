@@ -247,7 +247,7 @@ export default function SearchPageClient({
 
   return (
     <div className="mx-auto max-w-4xl space-y-5 sm:space-y-6">
-      <div className="border-b border-border/30 pb-4">
+      <div className="border-b border-border/34 pb-4 md:border-border/30">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
             <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
@@ -290,7 +290,7 @@ export default function SearchPageClient({
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
             placeholder="Search tracks or artists…"
-            className="h-12 rounded-[1.35rem] border-border/25 bg-card/20 pl-12 text-base"
+            className="h-12 rounded-[1.35rem] border-border/34 bg-card/26 pl-12 text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20"
             autoFocus={!isMobile}
             maxLength={80}
           />
@@ -321,7 +321,7 @@ export default function SearchPageClient({
                         variant="outline"
                         size="sm"
                         onClick={() => handleSearchSuggestionSelect(item.query)}
-                        className="rounded-full border-border/25 bg-card/18 hover:border-border/50"
+                        className="rounded-full border-border/34 bg-card/24 hover:border-border/50 md:border-border/25 md:bg-card/18"
                       >
                         {item.label}
                       </Button>
@@ -344,7 +344,7 @@ export default function SearchPageClient({
                       variant="outline"
                       size="sm"
                       onClick={() => handleSearchSuggestionSelect(suggestion)}
-                      className="rounded-full border-border/25 bg-card/18 hover:border-border/50"
+                      className="rounded-full border-border/34 bg-card/24 hover:border-border/50 md:border-border/25 md:bg-card/18"
                     >
                       {suggestion}
                     </Button>
@@ -353,7 +353,7 @@ export default function SearchPageClient({
               </div>
             </div>
 
-            <div className="rounded-[1.45rem] border border-border/20 bg-card/18 p-4">
+            <div className="rounded-[1.45rem] border border-border/32 bg-card/24 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <div className="flex flex-col gap-2">
                 <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   Browse
@@ -385,7 +385,7 @@ export default function SearchPageClient({
               {Array.from({ length: 5 }).map((_, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5"
+                  className="flex items-center gap-4 rounded-[1.5rem] border border-border/32 bg-card/24 px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/20 md:bg-card/18"
                 >
                   <Skeleton className="h-16 w-16 rounded-[1.1rem]" />
                   <div className="min-w-0 flex-1 space-y-2">
@@ -399,7 +399,7 @@ export default function SearchPageClient({
           ) : null}
 
           {!showSkeletonResults && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
-            <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
+            <Empty className="rounded-[1.6rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Search className="size-4" />
@@ -413,7 +413,7 @@ export default function SearchPageClient({
           ) : null}
 
           {!showSkeletonResults && normalizedQuery.length >= 2 && results.length === 0 ? (
-            <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
+            <Empty className="rounded-[1.6rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Search className="size-4" />
@@ -458,8 +458,8 @@ export default function SearchPageClient({
                   >
                     <div
                       className={cn(
-                        "flex items-center gap-4 rounded-[1.5rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30",
-                        activeIndex === index && "border-foreground/20 bg-card/28",
+                        "flex items-center gap-4 rounded-[1.5rem] border border-border/32 bg-card/24 px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-colors hover:bg-card/32 md:border-border/20 md:bg-card/18 md:hover:bg-card/30",
+                        activeIndex === index && "border-foreground/28 bg-card/32 md:border-foreground/20 md:bg-card/28",
                       )}
                     >
                       <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-muted">
@@ -490,7 +490,7 @@ export default function SearchPageClient({
 
                       <div className="hidden sm:block">
                         {activeIndex === index ? (
-                          <span className="inline-flex rounded-full border border-border/30 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                          <span className="inline-flex rounded-full border border-border/36 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground md:border-border/30">
                             Enter
                           </span>
                         ) : (
@@ -506,7 +506,7 @@ export default function SearchPageClient({
         </div>
       ) : (
         <section className="space-y-6">
-          <div className="flex items-end justify-between border-b border-border/25 pb-4">
+          <div className="flex items-end justify-between border-b border-border/32 pb-4 md:border-border/25">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               Active tracks
             </h2>
@@ -530,7 +530,7 @@ export default function SearchPageClient({
                   <PrefetchLink
                     href={`/track/${track.entityId}`}
                     queryWarmup={{ kind: "track", id: track.entityId }}
-                    className="group flex items-center gap-3 rounded-[1.45rem] border border-border/20 bg-card/18 px-3.5 py-3.5 transition-colors hover:bg-card/30"
+                    className="group flex items-center gap-3 rounded-[1.45rem] border border-border/32 bg-card/24 px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-colors hover:bg-card/32 md:border-border/20 md:bg-card/18 md:hover:bg-card/30"
                   >
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
                       {track.coverUrl ? (
@@ -560,7 +560,7 @@ export default function SearchPageClient({
               ))}
             </div>
           ) : (
-            <Empty className="rounded-[1.6rem] border-border/20 bg-card/18 px-6 py-9">
+            <Empty className="rounded-[1.6rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Music2 className="size-4" />

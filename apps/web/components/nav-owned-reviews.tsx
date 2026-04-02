@@ -50,7 +50,7 @@ function OwnedReviewRailItem({
 
   return (
     <SidebarMenuItem>
-      <div className="flex items-start gap-1 rounded-[1.05rem] border border-sidebar-border/30 bg-sidebar-accent/10 px-2 py-2">
+      <div className="flex items-start gap-1 rounded-[1.05rem] border border-sidebar-border/46 bg-sidebar-accent/22 px-2 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-sidebar-border/30 md:bg-sidebar-accent/10">
         <PrefetchLink
           href={`/track/${item.entity.entity_id}#review-${item.id}`}
           queryWarmup={{ kind: "track", id: item.entity.entity_id }}
@@ -58,7 +58,7 @@ function OwnedReviewRailItem({
           className="group min-w-0 flex-1 rounded-lg"
         >
           <div className="flex items-start gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[0.9rem] bg-sidebar-accent/30">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[0.9rem] bg-sidebar-accent/38 md:bg-sidebar-accent/30">
               {item.entity.cover_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -119,7 +119,7 @@ function OwnedReviewRailItem({
           trigger={
             <button
               type="button"
-              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-sidebar-accent/35 hover:text-sidebar-foreground"
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-sidebar-accent/42 hover:text-sidebar-foreground md:hover:bg-sidebar-accent/35"
               aria-label="Review options"
             >
               <MoreHorizontal className="size-3.5" />

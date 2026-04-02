@@ -105,13 +105,13 @@ export default async function UserProfilePage({
 
   return (
     <div className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
-      <section className="border-b border-border/30 pb-7">
+      <section className="border-b border-border/34 pb-7 md:border-border/30">
         <div className="grid gap-5 lg:grid-cols-[7.5rem,minmax(0,1fr)] lg:items-end">
           <UserAvatar
             avatarUrl={profile.avatar_url}
             displayName={profile.display_name}
             username={profile.username}
-            className="h-24 w-24 border-border/20 sm:h-28 sm:w-28"
+            className="h-24 w-24 border-border/28 sm:h-28 sm:w-28 md:border-border/20"
             fallbackClassName="text-3xl font-semibold"
             initialsLength={2}
           />
@@ -141,7 +141,7 @@ export default async function UserProfilePage({
                     href={profile.spotify_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}
                   >
                     Spotify
                     <ExternalLink className="size-3" />
@@ -152,7 +152,7 @@ export default async function UserProfilePage({
                     href={profile.apple_music_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}
                   >
                     Apple Music
                     <ExternalLink className="size-3" />
@@ -163,7 +163,7 @@ export default async function UserProfilePage({
                     href={profile.deezer_url}
                     target="_blank"
                     rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}
                   >
                     Deezer
                     <ExternalLink className="size-3" />
@@ -183,7 +183,7 @@ export default async function UserProfilePage({
                     deezer_url: profile.deezer_url,
                   }}
                   trigger={
-                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}>
+                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}>
                       Edit profile
                     </button>
                   }
@@ -197,7 +197,7 @@ export default async function UserProfilePage({
       <div className="max-w-3xl space-y-7">
         {pinnedReview ? (
           <div className="space-y-3">
-            <div className="border-b border-border/25 pb-4">
+            <div className="border-b border-border/32 pb-4 md:border-border/25">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 Pinned
               </h2>
@@ -219,7 +219,7 @@ export default async function UserProfilePage({
 
         {reviews.length > 0 ? (
           <section className="space-y-3.5">
-            <div className="border-b border-border/25 pb-4">
+            <div className="border-b border-border/32 pb-4 md:border-border/25">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 {pinnedReview ? "Recent" : "Reviews"}
               </h2>
@@ -242,7 +242,7 @@ export default async function UserProfilePage({
             </div>
           </section>
         ) : !pinnedReview ? (
-          <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-10">
+          <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
             <EmptyHeader>
               <EmptyTitle>No reviews yet</EmptyTitle>
               <EmptyDescription>Nothing here yet.</EmptyDescription>
@@ -270,8 +270,8 @@ async function SavedReviewsSection({
   const { reviews: savedReviews } = await getViewerSavedReviewsBundle(userId);
 
   return (
-    <section className="space-y-4 border-t border-border/30 pt-8">
-      <div className="border-b border-border/25 pb-4">
+    <section className="space-y-4 border-t border-border/34 pt-8 md:border-border/30">
+      <div className="border-b border-border/32 pb-4 md:border-border/25">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
           Saved
         </h2>
@@ -282,7 +282,7 @@ async function SavedReviewsSection({
         userId={userId}
         isAuthenticated={isAuthenticated}
         emptyState={
-        <Empty className="rounded-[1.65rem] border-border/20 bg-card/18 px-6 py-9">
+        <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
           <EmptyHeader>
             <EmptyTitle>No saved reviews</EmptyTitle>
           </EmptyHeader>
@@ -295,14 +295,14 @@ async function SavedReviewsSection({
 
 function SavedReviewsSectionFallback() {
   return (
-    <section className="space-y-4 border-t border-border/30 pt-8">
-      <div className="flex items-end justify-between border-b border-border/25 pb-4">
+    <section className="space-y-4 border-t border-border/34 pt-8 md:border-border/30">
+      <div className="flex items-end justify-between border-b border-border/32 pb-4 md:border-border/25">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
           Saved
         </h2>
       </div>
 
-      <div className="flex justify-center rounded-[1.65rem] border border-border/20 bg-card/18 px-6 py-10">
+      <div className="flex justify-center rounded-[1.65rem] border border-border/32 bg-card/24 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
         <Spinner className="size-4 text-muted-foreground/70" />
       </div>
     </section>

@@ -99,15 +99,15 @@ export default function ProfileSettingsDialog({
       <Drawer open={open} onOpenChange={handleOpenChange}>
         {trigger ? <DrawerTrigger asChild>{trigger}</DrawerTrigger> : null}
         <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/60 bg-background p-0">
-          <DrawerHeader className="border-b border-border/25 px-5 py-4 text-left">
+          <DrawerHeader className="border-b border-border/34 px-5 py-4 text-left md:border-border/25">
             <DrawerTitle>{activeItem.label}</DrawerTitle>
             <DrawerDescription>
               {activeItem.description}
             </DrawerDescription>
           </DrawerHeader>
 
-          <div className="border-b border-border/20 px-5 py-4">
-            <div className="rounded-[1.35rem] border border-border/20 bg-card/18 p-3">
+          <div className="border-b border-border/28 px-5 py-4 md:border-border/20">
+            <div className="rounded-[1.35rem] border border-border/34 bg-card/24 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <div className="flex items-center gap-3">
                 <UserAvatar
                   avatarUrl={profile.avatar_url}
@@ -141,8 +141,8 @@ export default function ProfileSettingsDialog({
                       className={cn(
                         "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors",
                         active
-                          ? "border-border/30 bg-card/26 text-foreground"
-                          : "border-border/15 bg-card/10 text-muted-foreground hover:text-foreground",
+                          ? "border-border/36 bg-card/30 text-foreground md:border-border/30 md:bg-card/26"
+                          : "border-border/26 bg-card/18 text-muted-foreground hover:text-foreground md:border-border/15 md:bg-card/10",
                       )}
                     >
                       <Icon className="size-4" />
@@ -171,10 +171,10 @@ export default function ProfileSettingsDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-      <DialogContent className="h-[min(86vh,48rem)] max-w-[min(72rem,calc(100vw-2.5rem))] overflow-hidden border-border/40 bg-background p-0">
+      <DialogContent className="h-[min(86vh,48rem)] max-w-[min(72rem,calc(100vw-2.5rem))] overflow-hidden border-border/44 bg-background p-0 md:border-border/40">
         <div className="grid h-full min-h-0 grid-cols-[15.5rem_minmax(0,1fr)]">
-          <aside className="flex min-h-0 flex-col border-r border-border/25 bg-card/14 p-3">
-            <div className="rounded-[1.35rem] border border-border/20 bg-card/18 p-3">
+          <aside className="flex min-h-0 flex-col border-r border-border/32 bg-card/22 p-3 md:border-border/25 md:bg-card/14">
+            <div className="rounded-[1.35rem] border border-border/34 bg-card/26 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <div className="flex items-center gap-3">
                 <UserAvatar
                   avatarUrl={profile.avatar_url}
@@ -207,8 +207,8 @@ export default function ProfileSettingsDialog({
                     className={cn(
                       "flex w-full items-center gap-3 rounded-[1rem] px-3 py-2.5 text-left transition-colors",
                       active
-                        ? "bg-background/88 text-foreground"
-                        : "text-muted-foreground hover:bg-card/20 hover:text-foreground",
+                        ? "bg-background/92 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]"
+                        : "text-muted-foreground hover:bg-card/28 hover:text-foreground md:hover:bg-card/20",
                     )}
                   >
                     <Icon className="size-4 shrink-0" />
@@ -225,7 +225,7 @@ export default function ProfileSettingsDialog({
           </aside>
 
           <div className="flex min-h-0 flex-col">
-            <DialogHeader className="border-b border-border/25 px-6 py-5 text-left">
+            <DialogHeader className="border-b border-border/32 px-6 py-5 text-left md:border-border/25">
               <DialogTitle>{activeItem.label}</DialogTitle>
               <DialogDescription>
                 {activeItem.description}

@@ -136,7 +136,7 @@ export default async function HomePage({
       </div>
     </div>
   ) : (
-    <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10">
+    <Empty className="rounded-[1.75rem] border-border/34 bg-card/26 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] md:border-border/26 md:bg-card/20">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Music2 className="size-4" />
@@ -162,7 +162,7 @@ export default async function HomePage({
             return (
               <div
                 key={profile.id}
-                className="rounded-[1.25rem] border border-border/18 bg-card/14 p-2.5"
+                className="rounded-[1.25rem] border border-border/32 bg-card/24 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/24 md:bg-card/16"
               >
                 <div className="flex items-start gap-3">
                   <PrefetchLink
@@ -194,7 +194,7 @@ export default async function HomePage({
                     variant="outline"
                     size="xs"
                     disabled
-                    className="shrink-0 rounded-full border-border/18 bg-transparent px-2.5 text-[10px] text-muted-foreground/85 disabled:opacity-70"
+                    className="shrink-0 rounded-full border-border/30 bg-card/10 px-2.5 text-[10px] text-muted-foreground/85 disabled:opacity-70 md:border-border/22 md:bg-transparent"
                   >
                     Follow
                   </Button>
@@ -210,7 +210,7 @@ export default async function HomePage({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <section className="mx-auto max-w-5xl space-y-5 sm:space-y-6">
-        <div className="border-b border-border/24 pb-3">
+        <div className="border-b border-border/32 pb-3 md:border-border/24">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
@@ -229,8 +229,8 @@ export default async function HomePage({
                     className={cn(
                       "inline-flex items-center rounded-full border px-3 py-1.5 text-sm transition-colors",
                       isActive
-                        ? "border-border/22 bg-card/14 font-medium text-foreground"
-                        : "border-transparent bg-transparent text-muted-foreground hover:bg-card/10 hover:text-foreground",
+                        ? "border-border/34 bg-card/24 font-medium text-foreground md:border-border/24 md:bg-card/16"
+                        : "border-transparent bg-transparent text-muted-foreground hover:bg-card/18 hover:text-foreground md:hover:bg-card/10",
                     )}
                   >
                     {view.label}
