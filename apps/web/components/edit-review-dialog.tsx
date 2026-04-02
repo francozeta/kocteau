@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/drawer";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -127,20 +126,9 @@ export default function EditReviewDialog({
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[94vh] max-h-[94vh] flex-col rounded-t-[1.5rem] border-border/24 bg-background/96 p-0">
-          <DrawerHeader className="border-b border-border/20 px-4 py-3 text-left">
-            <div className="flex items-center justify-between gap-3">
-              <DrawerTitle className="text-base font-medium text-foreground">Edit review</DrawerTitle>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="rounded-full px-3 text-muted-foreground hover:text-foreground"
-                onClick={() => handleOpenChange(false)}
-              >
-                Close
-              </Button>
-            </div>
+        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/30 p-0">
+          <DrawerHeader className="border-b border-border/30 pb-3 text-left">
+            <DrawerTitle className="font-serif text-2xl">Edit review</DrawerTitle>
             <DrawerDescription className="sr-only">Edit your review.</DrawerDescription>
           </DrawerHeader>
 
@@ -165,29 +153,9 @@ export default function EditReviewDialog({
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
-      <DialogContent
-        showCloseButton={false}
-        className="flex h-[min(88vh,54rem)] w-[min(100vw-1.5rem,48rem)] flex-col overflow-hidden rounded-[1.55rem] border border-border/24 bg-background/98 p-0"
-      >
-        <DialogHeader className="border-b border-border/20 px-4 py-3">
-          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
-            <DialogClose asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="justify-self-start rounded-full px-3 text-muted-foreground hover:text-foreground"
-              >
-                Cancel
-              </Button>
-            </DialogClose>
-
-            <DialogTitle className="text-center text-base font-medium text-foreground">
-              Edit review
-            </DialogTitle>
-
-            <div className="justify-self-end" />
-          </div>
+      <DialogContent className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/30 p-0">
+        <DialogHeader className="border-b border-border/30 px-6 py-4">
+          <DialogTitle className="font-serif text-2xl">Edit review</DialogTitle>
           <DialogDescription className="sr-only">Edit your review.</DialogDescription>
         </DialogHeader>
 

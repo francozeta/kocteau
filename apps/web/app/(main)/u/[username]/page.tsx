@@ -93,7 +93,7 @@ export default async function UserProfilePage({
   const totalReviews = reviews.length + (pinnedReview ? 1 : 0);
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
     year: "numeric",
-    month: "long",
+    month: "short",
   });
   const name = profile.display_name ?? `@${profile.username}`;
   const profileAuthor: ReviewCardAuthor = {
@@ -106,7 +106,7 @@ export default async function UserProfilePage({
   return (
     <div className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
       <section className="border-b border-border/30 pb-7">
-        <div className="grid gap-5 lg:grid-cols-[7.5rem,minmax(0,1fr),13rem] lg:items-end">
+        <div className="grid gap-5 lg:grid-cols-[7.5rem,minmax(0,1fr)] lg:items-end">
           <UserAvatar
             avatarUrl={profile.avatar_url}
             displayName={profile.display_name}
@@ -128,8 +128,14 @@ export default async function UserProfilePage({
                 {profile.bio}
               </p>
             ) : null}
-            {profile.spotify_url || profile.apple_music_url || profile.deezer_url ? (
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+              <span>{totalReviews} {totalReviews === 1 ? "review" : "reviews"}</span>
+              <span className="text-muted-foreground/50">•</span>
+              <span>Since {memberSince}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {profile.spotify_url || profile.apple_music_url || profile.deezer_url ? (
+                <>
                 {profile.spotify_url ? (
                   <a
                     href={profile.spotify_url}
@@ -163,27 +169,9 @@ export default async function UserProfilePage({
                     <ExternalLink className="size-3" />
                   </a>
                 ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 rounded-[1.5rem] border border-border/20 bg-card/16 p-3.5 text-sm lg:grid-cols-1">
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Reviews
-              </p>
-              <p className="text-2xl font-semibold text-foreground">{totalReviews}</p>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Joined
-              </p>
-              <p className="text-sm text-muted-foreground">{memberSince}</p>
-            </div>
-
-            {isOwnProfile ? (
-              <div className="col-span-2 pt-1 lg:col-span-1">
+                </>
+              ) : null}
+              {isOwnProfile ? (
                 <ProfileSettingsDialog
                   profile={{
                     username: profile.username,
@@ -195,13 +183,13 @@ export default async function UserProfilePage({
                     deezer_url: profile.deezer_url,
                   }}
                   trigger={
-                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full rounded-full border-border/25")}>
+                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/25")}>
                       Edit profile
                     </button>
                   }
                 />
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
         </div>
       </section>
