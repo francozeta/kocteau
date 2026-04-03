@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import FollowProfileButton from "@/components/follow-profile-button";
+import ProfileReviewViewerStateHydrator from "@/components/profile-review-viewer-state-hydrator";
 import SavedReviewsList from "@/components/saved-reviews-list";
 import UserAvatar from "@/components/user-avatar";
 import type { ReviewCardAuthor } from "@/components/review-card";
@@ -15,7 +16,6 @@ import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
   getPublicProfileByUsername,
-  getProfileViewerState,
   getReviewsForProfile,
   type ProfileReview,
 } from "@/lib/queries/profiles";
@@ -87,17 +87,7 @@ export default async function UserProfilePage({
     ...(pinnedReview ? [pinnedReview.id] : []),
     ...reviews.map((review) => review.id),
   ];
-  const viewerStatePromise =
-    user?.id && reviewIds.length > 0
-      ? getProfileViewerState(user.id, reviewIds)
-      : Promise.resolve({
-          likedReviewIds: new Set<string>(),
-          bookmarkedReviewIds: new Set<string>(),
-        });
-  const [viewerState, isFollowing] = await Promise.all([
-    viewerStatePromise,
-    followingPromise,
-  ]);
+  const isFollowing = await followingPromise;
 
   const totalReviews = reviews.length + (pinnedReview ? 1 : 0);
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
@@ -213,6 +203,20 @@ export default async function UserProfilePage({
       </section>
 
       <div className="max-w-3xl space-y-7">
+        {user?.id && reviewIds.length > 0 ? (
+          <ProfileReviewViewerStateHydrator
+            reviews={[
+              ...(pinnedReview
+                ? [{ id: pinnedReview.id, likes_count: pinnedReview.likes_count }]
+                : []),
+              ...reviews.map((review) => ({
+                id: review.id,
+                likes_count: review.likes_count,
+              })),
+            ]}
+          />
+        ) : null}
+
         {pinnedReview ? (
           <div className="space-y-3">
             <div className="border-b border-border/32 pb-4 md:border-border/25">
@@ -223,8 +227,6 @@ export default async function UserProfilePage({
             <ProfileReviewCard
               review={{
                 ...pinnedReview,
-                viewer_has_liked: viewerState.likedReviewIds.has(pinnedReview.id),
-                viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(pinnedReview.id),
               }}
               entity={getEntity(pinnedReview)}
               author={profileAuthor}
@@ -248,8 +250,6 @@ export default async function UserProfilePage({
                   key={review.id}
                   review={{
                     ...review,
-                    viewer_has_liked: viewerState.likedReviewIds.has(review.id),
-                    viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
                   }}
                   entity={getEntity(review)}
                   author={profileAuthor}

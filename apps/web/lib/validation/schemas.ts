@@ -164,9 +164,17 @@ export const createCommentSchema = z
     }
   });
 
+export const reviewCollectionStateSchema = z.object({
+  reviewIds: z
+    .array(z.string().uuid("Invalid review id."))
+    .max(50, "Too many reviews requested.")
+    .default([]),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type ProfileEditorInput = z.infer<typeof profileEditorSchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
+export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;

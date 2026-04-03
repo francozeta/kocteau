@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { Bell, Bookmark, Compass, Plus, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
@@ -11,6 +12,9 @@ import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { Kbd } from "@/components/ui/kbd";
 import { NavUser } from "@/components/nav-user";
+import { useNotifications } from "@/hooks/use-notifications";
+import type { SidebarOwnedReview } from "@/lib/types/sidebar";
+import { fetchJson } from "@/queries/http";
 import {
   Sidebar,
   SidebarContent,
@@ -32,24 +36,6 @@ type AppSidebarProfile = {
   deezer_url: string | null;
 };
 
-export type SidebarOwnedReview = {
-  id: string;
-  title: string | null;
-  body: string | null;
-  rating: number;
-  is_pinned?: boolean;
-  entity: {
-    provider: "deezer";
-    provider_id: string;
-    type: "track";
-    title: string;
-    artist_name: string | null;
-    cover_url: string | null;
-    deezer_url: string | null;
-    entity_id: string;
-  };
-};
-
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
   ownedReviews?: SidebarOwnedReview[];
@@ -59,12 +45,34 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 export default function AppSidebar({
   profile,
   ownedReviews = [],
-  unreadCount = 0,
+  unreadCount: initialUnreadCount = 0,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname();
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const previousPathnameRef = useRef(pathname);
+  const { unreadCount } = useNotifications({
+    userId: profile?.id ?? null,
+    initialUnreadCount,
+    initialNotifications: [],
+    hasInitialNotificationsData: false,
+    enableList: false,
+    subscribe: false,
+  });
+  const { data: sidebarReviews = ownedReviews } = useQuery({
+    queryKey: ["viewer", "sidebar-reviews"],
+    queryFn: async () => {
+      const payload = await fetchJson<{ reviews?: SidebarOwnedReview[] }>(
+        "/api/viewer/sidebar-reviews",
+      );
+
+      return Array.isArray(payload.reviews) ? payload.reviews : [];
+    },
+    initialData: ownedReviews,
+    enabled: Boolean(profile),
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+  });
 
   const closeMobileSidebar = useCallback(() => {
     if (isMobile) {
@@ -120,7 +128,7 @@ export default function AppSidebar({
       ]
     : [];
 
-  const canShowOwnedReviews = Boolean(profile) && ownedReviews.length > 0;
+  const canShowOwnedReviews = Boolean(profile) && sidebarReviews.length > 0;
 
   return (
     <TooltipProvider delayDuration={80}>
@@ -179,7 +187,7 @@ export default function AppSidebar({
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
           <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
           {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} onNavigate={closeMobileSidebar} /> : null}
-          {canShowOwnedReviews ? <NavOwnedReviews items={ownedReviews} onNavigate={closeMobileSidebar} /> : null}
+          {canShowOwnedReviews ? <NavOwnedReviews items={sidebarReviews} onNavigate={closeMobileSidebar} /> : null}
         </SidebarContent>
 
         <SidebarFooter className="px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">

@@ -4,6 +4,7 @@ import { ChevronRight, MoreHorizontal, Pin, Star } from "lucide-react";
 import type { EditReviewSelection } from "@/components/edit-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewActionsMenu from "@/components/review-card-actions-menu";
+import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,12 +19,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-type OwnedReviewItem = {
-  id: string;
-  title: string | null;
-  body: string | null;
-  rating: number;
-  is_pinned?: boolean;
+type OwnedReviewItem = Omit<SidebarOwnedReview, "entity"> & {
   entity: EditReviewSelection;
 };
 

@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { cache } from "react";
 import { ImageResponse } from "next/og";
+import { getMetadataBase } from "@/lib/metadata";
 
 export const ogSize = {
   width: 1200,
@@ -45,6 +46,52 @@ const getLogoDataUrl = cache(async () => {
   const logo = await readFile(logoPath, "utf8");
 
   return `data:image/svg+xml;base64,${Buffer.from(logo).toString("base64")}`;
+});
+
+function isDataUrl(value: string) {
+  return value.startsWith("data:");
+}
+
+function resolveOgAssetUrl(value: string) {
+  if (value.startsWith("http://") || value.startsWith("https://") || isDataUrl(value)) {
+    return value;
+  }
+
+  return new URL(value, getMetadataBase()).toString();
+}
+
+const getImageDataUrl = cache(async (source: string) => {
+  if (!source) {
+    return null;
+  }
+
+  const resolvedSource = resolveOgAssetUrl(source);
+
+  if (isDataUrl(resolvedSource)) {
+    return resolvedSource;
+  }
+
+  try {
+    const response = await fetch(resolvedSource, {
+      next: { revalidate: 60 * 60 },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const contentType =
+      response.headers.get("content-type")?.split(";")[0]?.trim() || "image/png";
+    const bytes = await response.arrayBuffer();
+
+    if (bytes.byteLength === 0) {
+      return null;
+    }
+
+    return `data:${contentType};base64,${Buffer.from(bytes).toString("base64")}`;
+  } catch {
+    return null;
+  }
 });
 
 function createImageResponse(content: React.ReactElement) {
@@ -265,17 +312,23 @@ function Surface({
   );
 }
 
-function CoverArt({
+async function CoverArt({
   src,
   alt,
   size,
   fallbackLabel,
+  fit = "cover",
+  padding = 0,
 }: {
   src?: string | null;
   alt: string;
   size: number;
   fallbackLabel: string;
+  fit?: "cover" | "contain";
+  padding?: number;
 }) {
+  const imageSrc = src ? await getImageDataUrl(src) : null;
+
   return (
     <div
       style={{
@@ -289,20 +342,20 @@ function CoverArt({
         borderRadius: 32,
         border: `1px solid ${palette.border}`,
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025))",
+          "radial-gradient(circle at top, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 58%), linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018))",
       }}
     >
-      {src ? (
+      {imageSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={src}
+          src={imageSrc}
           alt={alt}
-          width={String(size)}
-          height={String(size)}
+          width={String(Math.max(size - padding * 2, 0))}
+          height={String(Math.max(size - padding * 2, 0))}
           style={{
-            width: `${size}px`,
-            height: `${size}px`,
-            objectFit: "cover",
+            width: `${Math.max(size - padding * 2, 0)}px`,
+            height: `${Math.max(size - padding * 2, 0)}px`,
+            objectFit: fit,
           }}
         />
       ) : (
@@ -422,6 +475,13 @@ export async function createTrackOgImage({
   reviewCount?: number;
   averageRating?: number | null;
 }) {
+  const coverArt = await CoverArt({
+    src: coverUrl,
+    alt: title,
+    size: 354,
+    fallbackLabel: (artistName ?? title).slice(0, 1),
+  });
+
   return createFrame(
     <div
       style={{
@@ -431,12 +491,7 @@ export async function createTrackOgImage({
         gap: 28,
       }}
     >
-      <CoverArt
-        src={coverUrl}
-        alt={title}
-        size={354}
-        fallbackLabel={(artistName ?? title).slice(0, 1)}
-      />
+      {coverArt}
 
       <div
         style={{
@@ -552,6 +607,14 @@ export async function createProfileOgImage({
 }) {
   const title = displayName?.trim() || `@${username}`;
   const initial = (displayName || username).slice(0, 1).toUpperCase();
+  const avatarArt = await CoverArt({
+    src: avatarUrl,
+    alt: title,
+    size: 280,
+    fallbackLabel: initial,
+    fit: "contain",
+    padding: 18,
+  });
 
   return createFrame(
     <div
@@ -562,12 +625,7 @@ export async function createProfileOgImage({
         gap: 28,
       }}
     >
-      <CoverArt
-        src={avatarUrl}
-        alt={title}
-        size={280}
-        fallbackLabel={initial}
-      />
+      {avatarArt}
 
       <div
         style={{
