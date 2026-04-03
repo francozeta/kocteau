@@ -19,12 +19,18 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   const [initialUnreadCount, ownedReviews] = user
     ? await (async () => {
-        const supabase = await supabaseServer();
-
-        const sidebarReviews = await getOwnedSidebarReviews(user.id, 4);
+        const supabasePromise = supabaseServer();
+        const sidebarReviewsPromise = getOwnedSidebarReviews(user.id, 4);
+        const unreadCountPromise = supabasePromise.then((supabase) =>
+          getUnreadNotificationsCount(supabase, user.id),
+        );
+        const [sidebarReviews, unreadCount] = await Promise.all([
+          sidebarReviewsPromise,
+          unreadCountPromise,
+        ]);
 
         return [
-          await getUnreadNotificationsCount(supabase, user.id),
+          unreadCount,
           sidebarReviews
             .flatMap((review) => {
               const entity = Array.isArray(review.entities)

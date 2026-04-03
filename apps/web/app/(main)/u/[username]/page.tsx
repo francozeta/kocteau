@@ -15,11 +15,11 @@ import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
   getPublicProfileByUsername,
-  getProfilePublicBundle,
   getProfileViewerState,
+  getReviewsForProfile,
   type ProfileReview,
 } from "@/lib/queries/profiles";
-import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
+import { getViewerFollowsProfile } from "@/lib/queries/profile-follows";
 import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
 import { cn } from "@/lib/utils";
 
@@ -70,29 +70,34 @@ export default async function UserProfilePage({
 }) {
   const { username } = await params;
   const userPromise = getCurrentUser();
-  const publicBundlePromise = getProfilePublicBundle(username);
-  const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
+  const profilePromise = getPublicProfileByUsername(username);
+  const [user, profile] = await Promise.all([userPromise, profilePromise]);
 
-  if (!publicBundle) {
+  if (!profile) {
     notFound();
   }
 
-  const reviewIds = [
-    ...(publicBundle.pinnedReview ? [publicBundle.pinnedReview.id] : []),
-    ...publicBundle.reviews.map((review) => review.id),
-  ];
-  const { profile, pinnedReview, reviews } = publicBundle;
   const isOwnProfile = user?.id === profile.id;
-  const [viewerState, followedProfileIds] = await Promise.all([
+  const reviewsPromise = getReviewsForProfile(profile.id);
+  const followingPromise =
+    user?.id && !isOwnProfile
+      ? getViewerFollowsProfile(user.id, profile.id)
+      : Promise.resolve(false);
+  const { pinnedReview, reviews } = await reviewsPromise;
+  const reviewIds = [
+    ...(pinnedReview ? [pinnedReview.id] : []),
+    ...reviews.map((review) => review.id),
+  ];
+  const viewerStatePromise =
     user?.id && reviewIds.length > 0
       ? getProfileViewerState(user.id, reviewIds)
       : Promise.resolve({
           likedReviewIds: new Set<string>(),
           bookmarkedReviewIds: new Set<string>(),
-        }),
-    user?.id && !isOwnProfile
-      ? getViewerFollowingProfileIds(user.id, [profile.id])
-      : Promise.resolve(new Set<string>()),
+        });
+  const [viewerState, isFollowing] = await Promise.all([
+    viewerStatePromise,
+    followingPromise,
   ]);
 
   const totalReviews = reviews.length + (pinnedReview ? 1 : 0);
@@ -142,7 +147,7 @@ export default async function UserProfilePage({
               {!isOwnProfile ? (
                 <FollowProfileButton
                   profileId={profile.id}
-                  initialFollowing={followedProfileIds.has(profile.id)}
+                  initialFollowing={isFollowing}
                   isAuthenticated={Boolean(user)}
                   size="sm"
                   className="px-3.5"

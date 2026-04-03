@@ -7,7 +7,6 @@ import type {
   ReviewCardEntity,
 } from "@/components/review-card";
 import {
-  runReviewListQuery,
   runReviewMaybeQuery,
 } from "@/lib/queries/review-likes";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
@@ -149,20 +148,38 @@ export async function getOwnedSidebarReviews(
             "getOwnedSidebarReviews",
             async () => {
               const supabase = supabasePublic();
-
-              return runReviewListQuery<OwnedSidebarReview>(async (mode) =>
-                supabase
-                  .from("reviews")
-                  .select(
-                    buildReviewHydrationSelect(mode, {
-                      includeEntity: true,
-                      includePinned: true,
-                    }),
+              const { data, error } = await supabase
+                .from("reviews")
+                .select(`
+                  id,
+                  title,
+                  body,
+                  rating,
+                  is_pinned,
+                  created_at,
+                  entities (
+                    id,
+                    provider,
+                    provider_id,
+                    type,
+                    title,
+                    artist_name,
+                    cover_url,
+                    deezer_url
                   )
-                  .eq("author_id", authorId)
-                  .order("created_at", { ascending: false })
-                  .limit(limit),
-              );
+                `)
+                .eq("author_id", authorId)
+                .order("created_at", { ascending: false })
+                .limit(limit);
+
+              if (error) {
+                return [] satisfies OwnedSidebarReview[];
+              }
+
+              return ((data as OwnedSidebarReview[] | null) ?? []).map((review) => ({
+                ...review,
+                is_pinned: Boolean(review.is_pinned),
+              }));
             },
             { authorId, limit },
           ),

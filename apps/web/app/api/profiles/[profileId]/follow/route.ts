@@ -27,14 +27,6 @@ export async function POST(
 
   const { profileId } = paramsResult.data;
   const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
   const { data, error } = await supabase.rpc("toggle_profile_follow", {
     p_target_profile_id: profileId,
   });
@@ -58,8 +50,8 @@ export async function POST(
 
   return NextResponse.json({
     ok: true,
-    followerId: result?.follower_id ?? user.id,
+    followerId: result?.follower_id ?? null,
     followingId: result?.following_id ?? profileId,
-    following: result?.following ?? false,
+    following: Boolean(result?.following),
   });
 }
