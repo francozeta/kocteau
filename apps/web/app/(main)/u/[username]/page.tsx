@@ -59,7 +59,6 @@ export async function generateMetadata({
       profile.bio,
     ),
     path: `/u/${profile.username}`,
-    image: profile.avatar_url,
   });
 }
 

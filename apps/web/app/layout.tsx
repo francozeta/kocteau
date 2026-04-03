@@ -28,6 +28,13 @@ export const metadata: Metadata = {
     template: "%s | Kocteau",
   },
   description: "Social platform for music review and curation",
+  openGraph: {
+    siteName: "Kocteau",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
   icons: {
     icon: "/logo.svg",
     shortcut: "/logo.svg",

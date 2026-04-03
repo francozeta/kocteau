@@ -81,7 +81,7 @@ export function createPageMetadata({
       images: metadataImage ? [metadataImage] : undefined,
     },
     twitter: {
-      card: metadataImage ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: fullTitle,
       description,
       images: metadataImage ? [metadataImage] : undefined,

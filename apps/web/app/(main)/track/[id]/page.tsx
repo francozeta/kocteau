@@ -49,7 +49,6 @@ export async function generateMetadata({
     title,
     description: createTrackDescription(entity.title, entity.artist_name),
     path: `/track/${id}`,
-    image: entity.cover_url,
   });
 }
 
