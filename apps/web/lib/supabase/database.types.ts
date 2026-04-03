@@ -153,6 +153,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -450,6 +483,16 @@ export type Database = {
           review_id: string
           bookmarked: boolean
           saved_at: string | null
+        }[]
+      }
+      toggle_profile_follow: {
+        Args: {
+          p_target_profile_id: string
+        }
+        Returns: {
+          follower_id: string
+          following_id: string
+          following: boolean
         }[]
       }
     }

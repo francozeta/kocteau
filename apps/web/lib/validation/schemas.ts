@@ -50,6 +50,10 @@ export const entityIdParamsSchema = z.object({
   id: z.string().uuid("Invalid entity id."),
 });
 
+export const profileIdParamsSchema = z.object({
+  profileId: z.string().uuid("Invalid profile id."),
+});
+
 export const notificationParamsSchema = z.object({
   notificationId: z.string().uuid("Invalid notification id."),
 });

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFeedPublicBundle, getFeedViewerState } from "@/lib/queries/feed";
+import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -12,6 +13,7 @@ export async function GET() {
     return user;
   })();
   const [bundle, user] = await Promise.all([publicBundlePromise, userPromise]);
+  const activeUsers = bundle.activeUsers.filter((profile) => profile.id !== user?.id);
   const viewerState =
     user?.id && bundle.feed.length > 0
       ? await getFeedViewerState(
@@ -22,6 +24,13 @@ export async function GET() {
           likedReviewIds: new Set<string>(),
           bookmarkedReviewIds: new Set<string>(),
         };
+  const followedProfileIds =
+    user?.id && activeUsers.length > 0
+      ? await getViewerFollowingProfileIds(
+          user.id,
+          activeUsers.map((profile) => profile.id),
+        )
+      : new Set<string>();
 
   return NextResponse.json({
     feed: bundle.feed.map((review) => ({
@@ -29,6 +38,9 @@ export async function GET() {
       viewer_has_liked: viewerState.likedReviewIds.has(review.id),
       viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
     })),
-    activeUsers: bundle.activeUsers,
+    activeUsers: activeUsers.map((profile) => ({
+      ...profile,
+      viewer_is_following: followedProfileIds.has(profile.id),
+    })),
   });
 }

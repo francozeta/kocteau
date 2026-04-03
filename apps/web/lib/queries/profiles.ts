@@ -47,6 +47,7 @@ export type ActiveProfile = {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  viewer_is_following?: boolean;
 };
 
 type ActiveProfileAuthor = Pick<

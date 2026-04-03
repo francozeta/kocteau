@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import FollowProfileButton from "@/components/follow-profile-button";
 import SavedReviewsList from "@/components/saved-reviews-list";
 import UserAvatar from "@/components/user-avatar";
 import type { ReviewCardAuthor } from "@/components/review-card";
@@ -18,6 +19,7 @@ import {
   getProfileViewerState,
   type ProfileReview,
 } from "@/lib/queries/profiles";
+import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
 import { cn } from "@/lib/utils";
 
@@ -79,16 +81,19 @@ export default async function UserProfilePage({
     ...(publicBundle.pinnedReview ? [publicBundle.pinnedReview.id] : []),
     ...publicBundle.reviews.map((review) => review.id),
   ];
-  const viewerState =
-    user?.id && reviewIds.length > 0
-      ? await getProfileViewerState(user.id, reviewIds)
-      : {
-          likedReviewIds: new Set<string>(),
-          bookmarkedReviewIds: new Set<string>(),
-        };
-
   const { profile, pinnedReview, reviews } = publicBundle;
   const isOwnProfile = user?.id === profile.id;
+  const [viewerState, followedProfileIds] = await Promise.all([
+    user?.id && reviewIds.length > 0
+      ? getProfileViewerState(user.id, reviewIds)
+      : Promise.resolve({
+          likedReviewIds: new Set<string>(),
+          bookmarkedReviewIds: new Set<string>(),
+        }),
+    user?.id && !isOwnProfile
+      ? getViewerFollowingProfileIds(user.id, [profile.id])
+      : Promise.resolve(new Set<string>()),
+  ]);
 
   const totalReviews = reviews.length + (pinnedReview ? 1 : 0);
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
@@ -134,6 +139,15 @@ export default async function UserProfilePage({
               <span>Since {memberSince}</span>
             </div>
             <div className="flex flex-wrap gap-2">
+              {!isOwnProfile ? (
+                <FollowProfileButton
+                  profileId={profile.id}
+                  initialFollowing={followedProfileIds.has(profile.id)}
+                  isAuthenticated={Boolean(user)}
+                  size="sm"
+                  className="px-3.5"
+                />
+              ) : null}
               {profile.spotify_url || profile.apple_music_url || profile.deezer_url ? (
                 <>
                 {profile.spotify_url ? (

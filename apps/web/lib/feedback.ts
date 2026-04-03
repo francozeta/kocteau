@@ -3,7 +3,7 @@
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/validation/errors";
 
-type AuthPromptAction = "comment" | "like" | "bookmark" | "create-review";
+type AuthPromptAction = "comment" | "like" | "bookmark" | "follow" | "create-review";
 
 const authPromptCopy: Record<
   AuthPromptAction,
@@ -20,6 +20,10 @@ const authPromptCopy: Record<
   bookmark: {
     title: "Log in to save reviews",
     description: "Keep great takes close and build your own library.",
+  },
+  follow: {
+    title: "Log in to follow people",
+    description: "Keep up with the listeners you want to hear from again.",
   },
   "create-review": {
     title: "Log in to create a review",

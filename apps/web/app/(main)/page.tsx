@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { Music2 } from "lucide-react";
+import FollowProfileButton from "@/components/follow-profile-button";
 import PrefetchLink from "@/components/prefetch-link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import UserAvatar from "@/components/user-avatar";
-import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import {
@@ -13,6 +13,7 @@ import {
   getFeedViewerState,
   type FeedReview,
 } from "@/lib/queries/feed";
+import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { cn } from "@/lib/utils";
 import { feedKeys } from "@/queries/feed";
@@ -89,6 +90,7 @@ export default async function HomePage({
   const userPromise = getCurrentUser();
   const publicBundlePromise = getFeedPublicBundle();
   const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
+  const activeUsers = publicBundle.activeUsers.filter((profile) => profile.id !== user?.id);
   const viewerState =
     user?.id && publicBundle.feed.length > 0
       ? await getFeedViewerState(
@@ -99,6 +101,13 @@ export default async function HomePage({
           likedReviewIds: new Set<string>(),
           bookmarkedReviewIds: new Set<string>(),
         };
+  const followingProfileIds =
+    user?.id && activeUsers.length > 0
+      ? await getViewerFollowingProfileIds(
+          user.id,
+          activeUsers.map((profile) => profile.id),
+        )
+      : new Set<string>();
   const queryClient = createServerQueryClient();
   const feedData = {
     feed: publicBundle.feed.map((review) => ({
@@ -106,7 +115,10 @@ export default async function HomePage({
       viewer_has_liked: viewerState.likedReviewIds.has(review.id),
       viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
     })),
-    activeUsers: publicBundle.activeUsers,
+    activeUsers: activeUsers.map((profile) => ({
+      ...profile,
+      viewer_is_following: followingProfileIds.has(profile.id),
+    })),
   };
 
   queryClient.setQueryData(feedKeys.bundle(), feedData);
@@ -189,15 +201,13 @@ export default async function HomePage({
                     </div>
                   </PrefetchLink>
 
-                  <Button
-                    type="button"
-                    variant="outline"
+                  <FollowProfileButton
+                    profileId={profile.id}
+                    initialFollowing={Boolean(profile.viewer_is_following)}
+                    isAuthenticated={Boolean(user)}
                     size="xs"
-                    disabled
-                    className="shrink-0 rounded-full border-border/30 bg-card/10 px-2.5 text-[10px] text-muted-foreground/85 disabled:opacity-70 md:border-border/22 md:bg-transparent"
-                  >
-                    Follow
-                  </Button>
+                    className="shrink-0 px-2.5 text-[10px]"
+                  />
                 </div>
               </div>
             );
