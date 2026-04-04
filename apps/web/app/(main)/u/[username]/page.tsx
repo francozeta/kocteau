@@ -3,9 +3,8 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import FollowProfileButton from "@/components/follow-profile-button";
-import ProfileReviewViewerStateHydrator from "@/components/profile-review-viewer-state-hydrator";
+import ProfileHeroAvatar from "@/components/profile-hero-avatar";
 import SavedReviewsList from "@/components/saved-reviews-list";
-import UserAvatar from "@/components/user-avatar";
 import type { ReviewCardAuthor } from "@/components/review-card";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -15,8 +14,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
+  getProfilePublicBundle,
+  getProfileViewerState,
   getPublicProfileByUsername,
-  getReviewsForProfile,
   type ProfileReview,
 } from "@/lib/queries/profiles";
 import { getViewerFollowsProfile } from "@/lib/queries/profile-follows";
@@ -29,6 +29,18 @@ function getEntity(review: ProfileReview) {
   }
 
   return review.entities;
+}
+
+function applyViewerStateToReview(
+  review: ProfileReview,
+  likedReviewIds: Set<string>,
+  bookmarkedReviewIds: Set<string>,
+) {
+  return {
+    ...review,
+    viewer_has_liked: likedReviewIds.has(review.id),
+    viewer_has_bookmarked: bookmarkedReviewIds.has(review.id),
+  };
 }
 
 export async function generateMetadata({
@@ -69,27 +81,36 @@ export default async function UserProfilePage({
 }) {
   const { username } = await params;
   const userPromise = getCurrentUser();
-  const profilePromise = getPublicProfileByUsername(username);
-  const [user, profile] = await Promise.all([userPromise, profilePromise]);
+  const publicBundlePromise = getProfilePublicBundle(username);
+  const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
 
-  if (!profile) {
+  if (!publicBundle) {
     notFound();
   }
 
+  const { profile, pinnedReview, reviews } = publicBundle;
   const isOwnProfile = user?.id === profile.id;
-  const reviewsPromise = getReviewsForProfile(profile.id);
-  const followingPromise =
-    user?.id && !isOwnProfile
-      ? getViewerFollowsProfile(user.id, profile.id)
-      : Promise.resolve(false);
-  const { pinnedReview, reviews } = await reviewsPromise;
   const reviewIds = [
     ...(pinnedReview ? [pinnedReview.id] : []),
     ...reviews.map((review) => review.id),
   ];
-  const isFollowing = await followingPromise;
+  const viewerStatePromise = getProfileViewerState(user?.id, reviewIds);
+  const followingPromise =
+    user?.id && !isOwnProfile
+      ? getViewerFollowsProfile(user.id, profile.id)
+      : Promise.resolve(false);
+  const [{ likedReviewIds, bookmarkedReviewIds }, isFollowing] = await Promise.all([
+    viewerStatePromise,
+    followingPromise,
+  ]);
+  const hydratedPinnedReview = pinnedReview
+    ? applyViewerStateToReview(pinnedReview, likedReviewIds, bookmarkedReviewIds)
+    : null;
+  const hydratedReviews = reviews.map((review) =>
+    applyViewerStateToReview(review, likedReviewIds, bookmarkedReviewIds),
+  );
 
-  const totalReviews = reviews.length + (pinnedReview ? 1 : 0);
+  const totalReviews = hydratedReviews.length + (hydratedPinnedReview ? 1 : 0);
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -106,13 +127,13 @@ export default async function UserProfilePage({
     <div className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
       <section className="border-b border-border/34 pb-7 md:border-border/30">
         <div className="grid gap-5 lg:grid-cols-[7.5rem,minmax(0,1fr)] lg:items-end">
-          <UserAvatar
+          <ProfileHeroAvatar
             avatarUrl={profile.avatar_url}
             displayName={profile.display_name}
             username={profile.username}
             className="h-24 w-24 border-border/28 sm:h-28 sm:w-28 md:border-border/20"
             fallbackClassName="text-3xl font-semibold"
-            initialsLength={2}
+            priority
           />
 
           <div className="min-w-0 space-y-3.5">
@@ -203,21 +224,7 @@ export default async function UserProfilePage({
       </section>
 
       <div className="max-w-3xl space-y-7">
-        {user?.id && reviewIds.length > 0 ? (
-          <ProfileReviewViewerStateHydrator
-            reviews={[
-              ...(pinnedReview
-                ? [{ id: pinnedReview.id, likes_count: pinnedReview.likes_count }]
-                : []),
-              ...reviews.map((review) => ({
-                id: review.id,
-                likes_count: review.likes_count,
-              })),
-            ]}
-          />
-        ) : null}
-
-        {pinnedReview ? (
+        {hydratedPinnedReview ? (
           <div className="space-y-3">
             <div className="border-b border-border/32 pb-4 md:border-border/25">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
@@ -226,9 +233,9 @@ export default async function UserProfilePage({
             </div>
             <ProfileReviewCard
               review={{
-                ...pinnedReview,
+                ...hydratedPinnedReview,
               }}
-              entity={getEntity(pinnedReview)}
+              entity={getEntity(hydratedPinnedReview)}
               author={profileAuthor}
               featured
               isAuthenticated={Boolean(user)}
@@ -237,15 +244,15 @@ export default async function UserProfilePage({
           </div>
         ) : null}
 
-        {reviews.length > 0 ? (
+        {hydratedReviews.length > 0 ? (
           <section className="space-y-3.5">
             <div className="border-b border-border/32 pb-4 md:border-border/25">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                {pinnedReview ? "Recent" : "Reviews"}
+                {hydratedPinnedReview ? "Recent" : "Reviews"}
               </h2>
             </div>
             <div className="space-y-4">
-              {reviews.map((review) => (
+              {hydratedReviews.map((review) => (
                 <ProfileReviewCard
                   key={review.id}
                   review={{
@@ -259,7 +266,7 @@ export default async function UserProfilePage({
               ))}
             </div>
           </section>
-        ) : !pinnedReview ? (
+        ) : !hydratedPinnedReview ? (
           <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
             <EmptyHeader>
               <EmptyTitle>No reviews yet</EmptyTitle>
@@ -288,7 +295,7 @@ async function SavedReviewsSection({
   const { reviews: savedReviews } = await getViewerSavedReviewsBundle(userId);
 
   return (
-    <section className="space-y-4 border-t border-border/34 pt-8 md:border-border/30">
+    <section className="space-y-4 border-t border-border/34 pt-8 [contain-intrinsic-size:720px] [content-visibility:auto] md:border-border/30">
       <div className="border-b border-border/32 pb-4 md:border-border/25">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
           Saved
@@ -313,7 +320,7 @@ async function SavedReviewsSection({
 
 function SavedReviewsSectionFallback() {
   return (
-    <section className="space-y-4 border-t border-border/34 pt-8 md:border-border/30">
+    <section className="space-y-4 border-t border-border/34 pt-8 [contain-intrinsic-size:720px] [content-visibility:auto] md:border-border/30">
       <div className="flex items-end justify-between border-b border-border/32 pb-4 md:border-border/25">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
           Saved
