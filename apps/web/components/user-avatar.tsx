@@ -1,7 +1,7 @@
+import Image from "next/image";
 import {
   Avatar,
   AvatarFallback,
-  AvatarImage,
 } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { CSSProperties } from "react";
@@ -16,6 +16,7 @@ type UserAvatarProps = {
   size?: "default" | "sm" | "lg";
   shape?: "circle" | "soft";
   initialsLength?: 1 | 2;
+  sizes?: string;
   loading?: "eager" | "lazy";
   fetchPriority?: "high" | "low" | "auto";
 };
@@ -107,6 +108,26 @@ function getAvatarLabel(displayName?: string | null, username?: string | null) {
   return "Kocteau user";
 }
 
+function isSvgAsset(value: string) {
+  try {
+    const pathname = value.startsWith("http")
+      ? new URL(value).pathname
+      : new URL(value, "https://kocteau.local").pathname;
+
+    return pathname.toLowerCase().endsWith(".svg");
+  } catch {
+    return value.toLowerCase().includes(".svg");
+  }
+}
+
+function shouldBypassOptimization(value: string) {
+  return (
+    value.startsWith("data:") ||
+    value.startsWith("blob:") ||
+    isSvgAsset(value)
+  );
+}
+
 export default function UserAvatar({
   avatarUrl,
   displayName,
@@ -117,6 +138,7 @@ export default function UserAvatar({
   size = "default",
   shape = "circle",
   initialsLength = 1,
+  sizes,
   loading = "lazy",
   fetchPriority = "auto",
 }: UserAvatarProps) {
@@ -143,17 +165,12 @@ export default function UserAvatar({
     ].join(", "),
     boxShadow: `inset 0 0 0 1px rgba(255,255,255,${pattern.ringOpacity}), inset 0 1px 0 rgba(255,255,255,0.06)`,
   };
+  const resolvedSizes = sizes ?? (
+    size === "sm" ? "24px" : size === "lg" ? "40px" : "32px"
+  );
 
   return (
     <Avatar size={size} className={cn(shapeClasses.root, className)}>
-      <AvatarImage
-        src={avatarUrl ?? undefined}
-        alt={label}
-        loading={loading}
-        decoding="async"
-        fetchPriority={fetchPriority}
-        className={cn(shapeClasses.image, imageClassName)}
-      />
       <AvatarFallback
         style={fallbackStyle}
         className={cn(
@@ -164,6 +181,22 @@ export default function UserAvatar({
       >
         {initials}
       </AvatarFallback>
+      {avatarUrl ? (
+        <Image
+          src={avatarUrl}
+          alt={label}
+          fill
+          sizes={resolvedSizes}
+          loading={loading}
+          fetchPriority={fetchPriority}
+          unoptimized={shouldBypassOptimization(avatarUrl)}
+          className={cn(
+            "relative z-[1] object-cover",
+            shapeClasses.image,
+            imageClassName,
+          )}
+        />
+      ) : null}
     </Avatar>
   );
 }

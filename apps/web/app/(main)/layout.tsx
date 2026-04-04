@@ -1,6 +1,7 @@
 import ReactQueryProvider from "../providers/react-query-provider";
 import Header from "@/components/header";
 import AppSidebar from "@/components/app-sidebar";
+import GuestHeader from "@/components/guest-header";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { getCurrentViewerProfile } from "@/lib/auth/server";
@@ -11,6 +12,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const safeProfile = await getCurrentViewerProfile();
   const initialUnreadCount = 0;
   const ownedReviews: SidebarOwnedReview[] = [];
+
+  if (!safeProfile) {
+    return (
+      <ReactQueryProvider>
+        <GuestHeader />
+        <main className="mx-auto w-full max-w-5xl px-3.5 pt-20 pb-14 sm:px-6 sm:pt-24 sm:pb-16 lg:px-10 lg:pt-24">
+          {children}
+        </main>
+      </ReactQueryProvider>
+    );
+  }
 
   return (
     <ReactQueryProvider>

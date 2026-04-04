@@ -146,12 +146,13 @@ function RoutedReviewCardServer({
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
   const entityPriority = Boolean(display?.featured);
-  const {
-    showHeaderActions = true,
-    showInteractionBar = true,
-    showContextMenu = true,
-  } = behavior ?? {};
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
+  const canUseReviewMenus = isAuthenticated || canManage;
+  const {
+    showHeaderActions = canUseReviewMenus,
+    showInteractionBar = true,
+    showContextMenu = canUseReviewMenus,
+  } = behavior ?? {};
   const editSeed = createEditSeed(review, entity, canManage);
   const rootProps: ComponentPropsWithoutRef<"article"> = {
     id: `review-${review.id}`,

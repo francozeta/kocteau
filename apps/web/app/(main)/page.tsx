@@ -191,6 +191,7 @@ export default async function HomePage({
                         displayName={profile.display_name}
                         username={profile.username}
                         className="size-10 shrink-0"
+                        sizes="40px"
                         initialsLength={2}
                       />
 
@@ -205,13 +206,15 @@ export default async function HomePage({
                     </div>
                   </PrefetchLink>
 
-                  <FollowProfileButton
-                    profileId={profile.id}
-                    initialFollowing={Boolean(profile.viewer_is_following)}
-                    isAuthenticated={Boolean(user)}
-                    size="xs"
-                    className="shrink-0 px-2.5 text-[10px]"
-                  />
+                  {user ? (
+                    <FollowProfileButton
+                      profileId={profile.id}
+                      initialFollowing={Boolean(profile.viewer_is_following)}
+                      isAuthenticated
+                      size="xs"
+                      className="shrink-0 px-2.5 text-[10px]"
+                    />
+                  ) : null}
                 </div>
               </div>
             );

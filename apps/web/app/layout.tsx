@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn( merriweather.variable, "font-sans", geist.variable, merriweatherHeading.variable)}>
+    <html lang="en" className={cn( merriweather.variable, "font-sans", geist.className, merriweatherHeading.variable)}>
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
         <link rel="dns-prefetch" href="https://cdn-images.dzcdn.net" />

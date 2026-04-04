@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { reactQueryDefaultOptions } from "@/lib/react-query/default-options";
+
+const ReactQueryDevtools = dynamic(
+  () =>
+    import("@tanstack/react-query-devtools").then(
+      (mod) => mod.ReactQueryDevtools,
+    ),
+  { ssr: false },
+);
 
 function makeQueryClient() {
   return new QueryClient({
@@ -26,11 +34,12 @@ function getQueryClient() {
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
+  const shouldRenderDevtools = process.env.NODE_ENV === "development";
 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {shouldRenderDevtools ? <ReactQueryDevtools initialIsOpen={false} /> : null}
     </QueryClientProvider>
   );
 }

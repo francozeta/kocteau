@@ -193,6 +193,7 @@ export default function ReviewCard({
                     displayName={author?.display_name ?? null}
                     username={author?.username ?? null}
                     size="sm"
+                    sizes="24px"
                     className="size-6"
                     fallbackClassName="text-[10px]"
                   />
