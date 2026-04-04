@@ -5,6 +5,9 @@
       "dependsOn": [
         "^build"
       ],
+      "passThroughEnv": [
+        "SENTRY_AUTH_TOKEN"
+      ],
       "outputs": [
         ".next/**",
         "!.next/cache/**",
