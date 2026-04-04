@@ -47,6 +47,18 @@ function normalizeImage(image?: string | null) {
   return normalizePath(image);
 }
 
+function buildImageDescriptor(image: string, title: string) {
+  const alt = `${withSiteName(title)} preview`;
+
+  return {
+    url: image,
+    alt,
+    width: 1200,
+    height: 630,
+    type: "image/png",
+  };
+}
+
 type CreatePageMetadataOptions = {
   title: string;
   description?: string;
@@ -67,6 +79,8 @@ export function createPageMetadata({
   const normalizedImage = normalizeImage(image);
   const openGraphImage = normalizedImage ?? DEFAULT_OPEN_GRAPH_IMAGE;
   const twitterImage = normalizedImage ?? DEFAULT_TWITTER_IMAGE;
+  const openGraphImageDescriptor = buildImageDescriptor(openGraphImage, title);
+  const twitterImageDescriptor = buildImageDescriptor(twitterImage, title);
 
   return {
     title,
@@ -81,14 +95,15 @@ export function createPageMetadata({
       description,
       type: "website",
       siteName: SITE_NAME,
+      locale: "en_US",
       url: canonical,
-      images: openGraphImage ? [openGraphImage] : undefined,
+      images: [openGraphImageDescriptor],
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
-      images: twitterImage ? [twitterImage] : undefined,
+      images: [twitterImageDescriptor],
     },
     robots: noIndex
       ? {
