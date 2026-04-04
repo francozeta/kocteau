@@ -42,10 +42,18 @@ function trimText(value: string | null | undefined, maxLength: number) {
 }
 
 const getLogoDataUrl = cache(async () => {
-  const logoPath = join(process.cwd(), "public", "logo.svg");
-  const logo = await readFile(logoPath, "utf8");
+  try {
+    const logoPath = join(process.cwd(), "public", "logo-k.png");
+    const logo = await readFile(logoPath);
 
-  return `data:image/svg+xml;base64,${Buffer.from(logo).toString("base64")}`;
+    if (logo.byteLength === 0) {
+      return null;
+    }
+
+    return `data:image/png;base64,${logo.toString("base64")}`;
+  } catch {
+    return null;
+  }
 });
 
 function isDataUrl(value: string) {
@@ -63,6 +71,10 @@ function resolveOgAssetUrl(value: string) {
 const getImageDataUrl = cache(async (source: string) => {
   if (!source) {
     return null;
+  }
+
+  if (isDataUrl(source)) {
+    return source;
   }
 
   const resolvedSource = resolveOgAssetUrl(source);
@@ -174,14 +186,27 @@ async function createFrame(children: React.ReactNode) {
                 background: palette.panelSoft,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoSrc}
-                alt=""
-                width="22"
-                height="22"
-                style={{ display: "flex" }}
-              />
+              {logoSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoSrc}
+                  alt=""
+                  width={22}
+                  height={22}
+                  style={{ display: "flex" }}
+                />
+              ) : (
+                <span
+                  style={{
+                    display: "flex",
+                    fontSize: 20,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                  }}
+                >
+                  K
+                </span>
+              )}
             </div>
             <div
               style={{
@@ -328,6 +353,7 @@ async function CoverArt({
   padding?: number;
 }) {
   const imageSrc = src ? await getImageDataUrl(src) : null;
+  const imageSize = Math.max(size - padding * 2, 0);
 
   return (
     <div
@@ -350,11 +376,12 @@ async function CoverArt({
         <img
           src={imageSrc}
           alt={alt}
-          width={String(Math.max(size - padding * 2, 0))}
-          height={String(Math.max(size - padding * 2, 0))}
+          width={imageSize}
+          height={imageSize}
           style={{
-            width: `${Math.max(size - padding * 2, 0)}px`,
-            height: `${Math.max(size - padding * 2, 0)}px`,
+            width: imageSize,
+            height: imageSize,
+            display: "flex",
             objectFit: fit,
           }}
         />

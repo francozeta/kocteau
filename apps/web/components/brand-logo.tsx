@@ -21,7 +21,7 @@ export default function BrandLogo({
         )}
       >
         <Image
-          src="/logo.svg"
+          src="/logo-k.png"
           alt="Kocteau logo"
           fill
           priority={priority}
