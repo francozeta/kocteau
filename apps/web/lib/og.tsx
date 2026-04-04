@@ -176,14 +176,14 @@ async function createFrame(children: React.ReactNode) {
           >
             <div
               style={{
-                width: 42,
-                height: 42,
+                width: 48,
+                height: 48,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: 999,
                 border: `1px solid ${palette.border}`,
-                background: palette.panelSoft,
+                background: "rgba(255,255,255,0.04)",
               }}
             >
               {logoSrc ? (
@@ -191,9 +191,12 @@ async function createFrame(children: React.ReactNode) {
                 <img
                   src={logoSrc}
                   alt=""
-                  width={22}
-                  height={22}
-                  style={{ display: "flex" }}
+                  width={28}
+                  height={28}
+                  style={{
+                    display: "flex",
+                    objectFit: "contain",
+                  }}
                 />
               ) : (
                 <span

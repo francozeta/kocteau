@@ -42,6 +42,7 @@ type ReviewCardRouteProps = {
 
 type FeedReviewCardProps = ReviewCardRouteProps & {
   featured?: boolean;
+  showInteractionBar?: boolean;
 };
 
 type ProfileReviewCardProps = ReviewCardRouteProps & {
@@ -224,6 +225,7 @@ export function FeedReviewCard({
   isAuthenticated = false,
   canManage = false,
   featured = false,
+  showInteractionBar = true,
 }: FeedReviewCardProps) {
   return (
     <RoutedReviewCardServer
@@ -231,6 +233,7 @@ export function FeedReviewCard({
       entity={entity}
       author={author}
       display={buildFeedReviewCardDisplay(featured)}
+      behavior={{ showInteractionBar }}
       permissions={{ isAuthenticated, canManage }}
     />
   );

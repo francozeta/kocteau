@@ -144,6 +144,7 @@ export default async function HomePage({
               entity={entity}
               author={author}
               featured={index === 0}
+              showInteractionBar={Boolean(user)}
               isAuthenticated={Boolean(user)}
               canManage={Boolean(user?.id && author?.id === user.id)}
             />
