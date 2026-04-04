@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { TrackReviewCard } from "@/components/review-route-cards";
+import { TrackReviewCard } from "@/components/review-route-cards-server";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {

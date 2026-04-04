@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Bookmark, Flag, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
 import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
+import { useReviewBookmark } from "@/hooks/use-review-bookmark";
+import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -17,8 +19,9 @@ import {
 
 type ReviewCardContextMenuProps = ReviewActionTarget & {
   canManage?: boolean;
-  onToggleBookmark?: () => void;
   editSeed?: EditReviewDialogSeed | null;
+  initialBookmarked?: boolean;
+  isAuthenticated?: boolean;
 };
 
 export default function ReviewCardContextMenu({
@@ -27,10 +30,18 @@ export default function ReviewCardContextMenu({
   entityTitle,
   entityId = null,
   canManage = false,
-  onToggleBookmark,
   editSeed = null,
+  initialBookmarked = false,
+  isAuthenticated = false,
 }: ReviewCardContextMenuProps) {
   const [editOpen, setEditOpen] = useState(false);
+  const { state: bookmarkState, toggleBookmark, isPending: isBookmarkPending } =
+    useReviewBookmark({
+      reviewId,
+      initialState: {
+        bookmarked: initialBookmarked,
+      },
+    });
   const {
     canOpenTrack,
     confirmOpen,
@@ -47,6 +58,19 @@ export default function ReviewCardContextMenu({
     entityTitle,
     entityId,
   });
+
+  async function handleBookmarkToggle() {
+    if (!isAuthenticated) {
+      toastAuthRequired("bookmark");
+      return;
+    }
+
+    try {
+      await toggleBookmark();
+    } catch (error) {
+      toastActionError(error, "We couldn't update your saved reviews right now.");
+    }
+  }
 
   return (
     <>
@@ -67,12 +91,14 @@ export default function ReviewCardContextMenu({
           Copy review link
         </ContextMenuItem>
         <ContextMenuItem
-          onSelect={() => {
-            onToggleBookmark?.();
+          disabled={isBookmarkPending}
+          onSelect={(event) => {
+            event.preventDefault();
+            void handleBookmarkToggle();
           }}
         >
           <Bookmark className="size-4" />
-          Bookmark
+          {bookmarkState.bookmarked ? "Saved" : "Save"}
         </ContextMenuItem>
 
         {canManage ? (

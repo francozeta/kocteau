@@ -1,6 +1,5 @@
-"use client";
-
 import type { ComponentPropsWithoutRef } from "react";
+import Link from "next/link";
 import type { EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import ReviewCard, {
   ReviewCardEntitySummary,
@@ -10,10 +9,8 @@ import ReviewCard, {
   type ReviewCardEntity,
 } from "@/components/review-card";
 import ReviewActionsMenu from "@/components/review-actions-menu";
-import ReviewCardContextMenu from "@/components/review-card-context-menu";
+import ReviewCardContextMenuFrame from "@/components/review-card-context-menu-frame";
 import ReviewCardInteractionBar from "@/components/review-card-interaction-bar";
-import PrefetchLink from "@/components/prefetch-link";
-import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 
 export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
@@ -64,19 +61,51 @@ function getAuthorLabel(author: ReviewCardAuthor | null | undefined) {
   return author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
 }
 
+function createEditSeed(
+  review: ReviewCardData,
+  entity: ReviewCardEntity | null,
+  canManage: boolean,
+): EditReviewDialogSeed | null {
+  if (
+    !canManage ||
+    entity?.provider !== "deezer" ||
+    !entity.provider_id ||
+    entity.type !== "track"
+  ) {
+    return null;
+  }
+
+  return {
+    initialSelection: {
+      provider: "deezer",
+      provider_id: entity.provider_id,
+      type: "track",
+      title: entity.title,
+      artist_name: entity.artist_name,
+      cover_url: entity.cover_url,
+      deezer_url: entity.deezer_url ?? null,
+      entity_id: entity.id,
+    },
+    initialTitle: review.title ?? "",
+    initialBody: review.body ?? "",
+    initialRating: review.rating,
+    initialPinned: Boolean(review.is_pinned),
+  };
+}
+
 function LinkedAuthorName({ author }: { author: ReviewCardAuthor | null | undefined }) {
   if (!author) {
     return null;
   }
 
   return (
-    <PrefetchLink
+    <Link
       href={`/u/${author.username}`}
       data-prevent-review-link="true"
       className="text-xs font-medium text-foreground transition-colors hover:underline sm:text-sm"
     >
       {getAuthorLabel(author)}
-    </PrefetchLink>
+    </Link>
   );
 }
 
@@ -95,23 +124,19 @@ function LinkedEntitySummary({
 
   return (
     <div data-prevent-review-link="true">
-      <PrefetchLink
-        href={`/track/${entity.id}`}
-        queryWarmup={{ kind: "track", id: entity.id }}
-        className="block"
-      >
+      <Link href={`/track/${entity.id}`} className="block">
         <ReviewCardEntitySummary
           entity={entity}
           mode={mode}
           interactive
           priority={priority}
         />
-      </PrefetchLink>
+      </Link>
     </div>
   );
 }
 
-function RoutedReviewCard({
+function RoutedReviewCardServer({
   review,
   entity,
   author = null,
@@ -127,33 +152,11 @@ function RoutedReviewCard({
     showContextMenu = true,
   } = behavior ?? {};
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
-  const initialBookmarked = Boolean(review.viewer_has_bookmarked);
-  const editSeed: EditReviewDialogSeed | null =
-    canManage &&
-    entity?.provider === "deezer" &&
-    entity.provider_id &&
-    entity.type === "track"
-      ? {
-          initialSelection: {
-            provider: "deezer",
-            provider_id: entity.provider_id,
-            type: "track",
-            title: entity.title,
-            artist_name: entity.artist_name,
-            cover_url: entity.cover_url,
-            deezer_url: entity.deezer_url ?? null,
-            entity_id: entity.id,
-          },
-          initialTitle: review.title ?? "",
-          initialBody: review.body ?? "",
-          initialRating: review.rating,
-          initialPinned: Boolean(review.is_pinned),
-        }
-      : null;
-
+  const editSeed = createEditSeed(review, entity, canManage);
   const rootProps: ComponentPropsWithoutRef<"article"> = {
     id: `review-${review.id}`,
   };
+  const initialBookmarked = Boolean(review.viewer_has_bookmarked);
 
   const card = (
     <ReviewCard
@@ -198,21 +201,18 @@ function RoutedReviewCard({
   }
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <div className="h-full">{card}</div>
-      </ContextMenuTrigger>
-      <ReviewCardContextMenu
-        reviewId={review.id}
-        reviewTitle={review.title}
-        entityTitle={entity?.title ?? null}
-        entityId={entity?.id ?? null}
-        canManage={canManage}
-        editSeed={editSeed}
-        initialBookmarked={initialBookmarked}
-        isAuthenticated={isAuthenticated}
-      />
-    </ContextMenu>
+    <ReviewCardContextMenuFrame
+      reviewId={review.id}
+      reviewTitle={review.title}
+      entityTitle={entity?.title ?? null}
+      entityId={entity?.id ?? null}
+      canManage={canManage}
+      editSeed={editSeed}
+      initialBookmarked={initialBookmarked}
+      isAuthenticated={isAuthenticated}
+    >
+      {card}
+    </ReviewCardContextMenuFrame>
   );
 }
 
@@ -225,7 +225,7 @@ export function FeedReviewCard({
   featured = false,
 }: FeedReviewCardProps) {
   return (
-    <RoutedReviewCard
+    <RoutedReviewCardServer
       review={review}
       entity={entity}
       author={author}
@@ -243,7 +243,7 @@ export function TrackReviewCard({
   canManage = false,
 }: ReviewCardRouteProps) {
   return (
-    <RoutedReviewCard
+    <RoutedReviewCardServer
       review={review}
       entity={entity}
       author={author}
@@ -262,47 +262,11 @@ export function ProfileReviewCard({
   featured = false,
 }: ProfileReviewCardProps) {
   return (
-    <RoutedReviewCard
+    <RoutedReviewCardServer
       review={review}
       entity={entity}
       author={author}
       display={buildFeedReviewCardDisplay(featured)}
-      permissions={{ isAuthenticated, canManage }}
-    />
-  );
-}
-
-export function SavedReviewCard({
-  review,
-  entity,
-  author = null,
-  isAuthenticated = false,
-  canManage = false,
-}: ReviewCardRouteProps) {
-  return (
-    <RoutedReviewCard
-      review={review}
-      entity={entity}
-      author={author}
-      display={buildFeedReviewCardDisplay()}
-      permissions={{ isAuthenticated, canManage }}
-    />
-  );
-}
-
-export function ReviewPageCard({
-  review,
-  entity,
-  author = null,
-  isAuthenticated = false,
-  canManage = false,
-}: ReviewCardRouteProps) {
-  return (
-    <RoutedReviewCard
-      review={review}
-      entity={entity}
-      author={author}
-      display={buildFeedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
     />
   );

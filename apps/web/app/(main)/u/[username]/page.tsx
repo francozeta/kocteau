@@ -9,7 +9,7 @@ import type { ReviewCardAuthor } from "@/components/review-card";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
-import { ProfileReviewCard } from "@/components/review-route-cards";
+import { ProfileReviewCard } from "@/components/review-route-cards-server";
 import { Spinner } from "@/components/ui/spinner";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";

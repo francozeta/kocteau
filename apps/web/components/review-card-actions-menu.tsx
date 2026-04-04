@@ -3,6 +3,8 @@
 import { useState, type ReactNode } from "react";
 import { Bookmark, Flag, MoreHorizontal, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
 import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
+import { useReviewBookmark } from "@/hooks/use-review-bookmark";
+import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,9 +21,10 @@ import {
 
 type ReviewCardActionsMenuProps = ReviewActionTarget & {
   canManage?: boolean;
-  onToggleBookmark?: () => void;
   trigger?: ReactNode;
   editSeed?: EditReviewDialogSeed | null;
+  initialBookmarked?: boolean;
+  isAuthenticated?: boolean;
 };
 
 export default function ReviewCardActionsMenu({
@@ -30,12 +33,20 @@ export default function ReviewCardActionsMenu({
   entityTitle,
   entityId = null,
   canManage = false,
-  onToggleBookmark,
   trigger,
   editSeed = null,
+  initialBookmarked = false,
+  isAuthenticated = false,
 }: ReviewCardActionsMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const { state: bookmarkState, toggleBookmark, isPending: isBookmarkPending } =
+    useReviewBookmark({
+      reviewId,
+      initialState: {
+        bookmarked: initialBookmarked,
+      },
+    });
   const {
     canOpenTrack,
     confirmOpen,
@@ -52,6 +63,20 @@ export default function ReviewCardActionsMenu({
     entityTitle,
     entityId,
   });
+
+  async function handleBookmarkToggle() {
+    if (!isAuthenticated) {
+      toastAuthRequired("bookmark");
+      return;
+    }
+
+    try {
+      await toggleBookmark();
+      setMenuOpen(false);
+    } catch (error) {
+      toastActionError(error, "We couldn't update your saved reviews right now.");
+    }
+  }
 
   return (
     <>
@@ -95,16 +120,16 @@ export default function ReviewCardActionsMenu({
             </DropdownMenuItem>
           ) : null}
 
-          {onToggleBookmark ? (
-            <DropdownMenuItem
-              onSelect={() => {
-                onToggleBookmark();
-              }}
-            >
-              <Bookmark className="size-4" />
-              Bookmark
-            </DropdownMenuItem>
-          ) : null}
+          <DropdownMenuItem
+            disabled={isBookmarkPending}
+            onSelect={(event) => {
+              event.preventDefault();
+              void handleBookmarkToggle();
+            }}
+          >
+            <Bookmark className="size-4" />
+            {bookmarkState.bookmarked ? "Saved" : "Save"}
+          </DropdownMenuItem>
 
           {canManage ? (
             <>

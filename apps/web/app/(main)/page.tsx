@@ -4,7 +4,7 @@ import { Music2 } from "lucide-react";
 import FollowProfileButton from "@/components/follow-profile-button";
 import PrefetchLink from "@/components/prefetch-link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { FeedReviewCard } from "@/components/review-route-cards";
+import { FeedReviewCard } from "@/components/review-route-cards-server";
 import UserAvatar from "@/components/user-avatar";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
