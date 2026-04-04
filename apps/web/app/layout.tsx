@@ -49,6 +49,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn( merriweather.variable, "font-sans", geist.variable, merriweatherHeading.variable)}>
+      <head>
+        <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://cdn-images.dzcdn.net" />
+        <link
+          rel="preconnect"
+          href="https://ytxilnlmvioccfaomizi.supabase.co"
+          crossOrigin=""
+        />
+        <link rel="dns-prefetch" href="https://ytxilnlmvioccfaomizi.supabase.co" />
+      </head>
       <body
         className={`${geistSans.className} antialiased dark`}
       >

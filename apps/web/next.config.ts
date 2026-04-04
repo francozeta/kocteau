@@ -3,11 +3,25 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    formats: ["image/avif", "image/webp"],
+    imageSizes: [24, 32, 40, 44, 48, 56, 64, 80, 96, 112, 128, 160, 192, 256],
+    minimumCacheTTL: 60 * 60 * 24 * 7,
+    qualities: [56, 64, 75],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "ytxilnlmvioccfaomizi.supabase.co",
         pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn-images.dzcdn.net",
+        pathname: "/images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.deezer.com",
+        pathname: "/album/**",
       },
     ],
   },

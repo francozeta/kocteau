@@ -91,23 +91,27 @@ export default async function HomePage({
   const publicBundlePromise = getFeedPublicBundle();
   const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
   const activeUsers = publicBundle.activeUsers.filter((profile) => profile.id !== user?.id);
-  const viewerState =
+  const viewerStatePromise =
     user?.id && publicBundle.feed.length > 0
-      ? await getFeedViewerState(
+      ? getFeedViewerState(
           user.id,
           publicBundle.feed.map((review) => review.id),
         )
-      : {
+      : Promise.resolve({
           likedReviewIds: new Set<string>(),
           bookmarkedReviewIds: new Set<string>(),
-        };
-  const followingProfileIds =
+        });
+  const followingProfileIdsPromise =
     user?.id && activeUsers.length > 0
-      ? await getViewerFollowingProfileIds(
+      ? getViewerFollowingProfileIds(
           user.id,
           activeUsers.map((profile) => profile.id),
         )
-      : new Set<string>();
+      : Promise.resolve(new Set<string>());
+  const [viewerState, followingProfileIds] = await Promise.all([
+    viewerStatePromise,
+    followingProfileIdsPromise,
+  ]);
   const queryClient = createServerQueryClient();
   const feedData = {
     feed: publicBundle.feed.map((review) => ({

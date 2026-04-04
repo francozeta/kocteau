@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { Music2, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import EntityCoverImage from "@/components/entity-cover-image";
 import UserAvatar from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,7 @@ export type ReviewCardEntitySummaryProps = {
   mode: "full" | "inline";
   interactive?: boolean;
   className?: string;
+  priority?: boolean;
 };
 
 type ReviewCardProps = {
@@ -85,6 +87,7 @@ export function ReviewCardEntitySummary({
   mode,
   interactive = false,
   className,
+  priority = false,
 }: ReviewCardEntitySummaryProps) {
   if (!entity) {
     return null;
@@ -99,19 +102,15 @@ export function ReviewCardEntitySummary({
           className,
         )}
       >
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
-          {entity.cover_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={entity.cover_url}
-              alt={entity.title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <Music2 className="size-3 text-muted-foreground" />
-          )}
-        </div>
+        <EntityCoverImage
+          src={entity.cover_url}
+          alt={entity.title}
+          sizes="24px"
+          priority={priority}
+          quality={56}
+          className="h-6 w-6 shrink-0 rounded-full bg-muted"
+          iconClassName="size-3"
+        />
         <span className="truncate font-serif text-[15px] font-medium text-foreground">{entity.title}</span>
         <span className="truncate text-muted-foreground/70">{entity.artist_name ?? "Unknown artist"}</span>
       </div>
@@ -126,19 +125,14 @@ export function ReviewCardEntitySummary({
         className,
       )}
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/24 bg-muted/28 md:border-border/14 md:bg-muted/18">
-        {entity.cover_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={entity.cover_url}
-            alt={entity.title}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <Music2 className="size-4 text-muted-foreground" />
-        )}
-      </div>
+      <EntityCoverImage
+        src={entity.cover_url}
+        alt={entity.title}
+        sizes="44px"
+        priority={priority}
+        className="h-11 w-11 shrink-0 rounded-[0.95rem] border border-border/24 bg-muted/28 md:border-border/14 md:bg-muted/18"
+        iconClassName="size-4"
+      />
 
       <div className="min-w-0 space-y-0.5">
         <p className="line-clamp-1 font-serif text-[1rem] font-medium text-foreground">{entity.title}</p>

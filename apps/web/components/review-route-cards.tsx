@@ -83,9 +83,11 @@ function LinkedAuthorName({ author }: { author: ReviewCardAuthor | null | undefi
 function LinkedEntitySummary({
   entity,
   mode,
+  priority = false,
 }: {
   entity: ReviewCardEntity | null;
   mode: "full" | "inline";
+  priority?: boolean;
 }) {
   if (!entity) {
     return null;
@@ -98,7 +100,12 @@ function LinkedEntitySummary({
         queryWarmup={{ kind: "track", id: entity.id }}
         className="block"
       >
-        <ReviewCardEntitySummary entity={entity} mode={mode} interactive />
+        <ReviewCardEntitySummary
+          entity={entity}
+          mode={mode}
+          interactive
+          priority={priority}
+        />
       </PrefetchLink>
     </div>
   );
@@ -114,6 +121,7 @@ function RoutedReviewCard({
 }: RoutedReviewCardProps) {
   const bookmarkButtonRef = useRef<HTMLButtonElement | null>(null);
   const { entityMode = "full" } = display ?? {};
+  const entityPriority = Boolean(display?.featured);
   const {
     showHeaderActions = true,
     showInteractionBar = true,
@@ -156,7 +164,13 @@ function RoutedReviewCard({
       rootProps={rootProps}
       slots={{
         authorName: author ? <LinkedAuthorName author={author} /> : undefined,
-        entity: entity ? <LinkedEntitySummary entity={entity} mode={entityMode} /> : undefined,
+        entity: entity ? (
+          <LinkedEntitySummary
+            entity={entity}
+            mode={entityMode}
+            priority={entityPriority}
+          />
+        ) : undefined,
         headerActions: showHeaderActions ? (
           <ReviewActionsMenu
             reviewId={review.id}

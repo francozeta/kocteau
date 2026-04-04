@@ -16,6 +16,8 @@ type UserAvatarProps = {
   size?: "default" | "sm" | "lg";
   shape?: "circle" | "soft";
   initialsLength?: 1 | 2;
+  loading?: "eager" | "lazy";
+  fetchPriority?: "high" | "low" | "auto";
 };
 
 const fallbackPatterns = [
@@ -115,6 +117,8 @@ export default function UserAvatar({
   size = "default",
   shape = "circle",
   initialsLength = 1,
+  loading = "lazy",
+  fetchPriority = "auto",
 }: UserAvatarProps) {
   const label = getAvatarLabel(displayName, username);
   const seed = username?.trim() || displayName?.trim() || "kocteau-user";
@@ -145,6 +149,9 @@ export default function UserAvatar({
       <AvatarImage
         src={avatarUrl ?? undefined}
         alt={label}
+        loading={loading}
+        decoding="async"
+        fetchPriority={fetchPriority}
         className={cn(shapeClasses.image, imageClassName)}
       />
       <AvatarFallback
