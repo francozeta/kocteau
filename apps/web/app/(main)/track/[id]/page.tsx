@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MessageSquarePlus, Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import EditReviewDialog from "@/components/edit-review-dialog";
+import EntityCoverImage from "@/components/entity-cover-image";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { TrackReviewCard } from "@/components/review-route-cards-server";
@@ -128,96 +129,92 @@ export default async function TrackPage({
     <HydrationBoundary state={dehydrate(queryClient)}>
       <section className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
         <div className="grid gap-4 border-b border-border/32 pb-6 md:border-border/24 lg:grid-cols-[8.5rem,minmax(0,1fr)] lg:items-start">
-        <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[1.5rem] border border-border/28 bg-muted/26 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:h-32 sm:w-32 md:border-border/18 md:bg-muted/20">
-          {entity.cover_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={entity.cover_url}
-              alt={entity.title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <Music2 className="size-10 text-muted-foreground" />
-          )}
-        </div>
+          <EntityCoverImage
+            src={entity.cover_url}
+            alt={entity.title}
+            sizes="(max-width: 640px) 112px, 128px"
+            priority
+            quality={75}
+            className="h-28 w-28 rounded-[1.5rem] border border-border/28 bg-muted/26 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:h-32 sm:w-32 md:border-border/18 md:bg-muted/20"
+            iconClassName="size-10"
+          />
 
-        <div className="min-w-0 space-y-4">
-          <div className="space-y-2.5">
-            <div className="space-y-2">
-              <h1 className="font-serif text-3xl font-bold leading-none tracking-tight text-balance sm:text-[3.05rem]">
-                {entity.title}
-              </h1>
-              <p className="text-[15px] font-medium text-muted-foreground sm:text-base">
-                {entity.artist_name ?? "Unknown artist"}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-card/24 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/18 md:bg-card/12">
-              <span className="text-sm font-medium text-foreground">{trackReviews.length}</span>
-              <span className="text-xs text-muted-foreground">
-                {trackReviews.length === 1 ? "review" : "reviews"}
-              </span>
+          <div className="min-w-0 space-y-4">
+            <div className="space-y-2.5">
+              <div className="space-y-2">
+                <h1 className="font-serif text-3xl font-bold leading-none tracking-tight text-balance sm:text-[3.05rem]">
+                  {entity.title}
+                </h1>
+                <p className="text-[15px] font-medium text-muted-foreground sm:text-base">
+                  {entity.artist_name ?? "Unknown artist"}
+                </p>
+              </div>
             </div>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-card/24 px-3 py-1.5 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/18 md:bg-card/12">
-              <Star className="size-3.5 fill-current text-amber-400" />
-              <span className="text-sm font-medium">
-                {averageRating ? averageRating.toFixed(1) : "—"}
-              </span>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-card/24 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/18 md:bg-card/12">
+                <span className="text-sm font-medium text-foreground">{trackReviews.length}</span>
+                <span className="text-xs text-muted-foreground">
+                  {trackReviews.length === 1 ? "review" : "reviews"}
+                </span>
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-card/24 px-3 py-1.5 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/18 md:bg-card/12">
+                <Star className="size-3.5 fill-current text-amber-400" />
+                <span className="text-sm font-medium">
+                  {averageRating ? averageRating.toFixed(1) : "—"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {viewerReview ? (
+                <EditReviewDialog
+                  reviewId={viewerReview.id}
+                  defaultOpen={shouldOpenViewerEditor}
+                  dismissSearchParam="editReview"
+                  triggerLabel="Edit review"
+                  triggerVariant="default"
+                  triggerSize="default"
+                  showDefaultTriggerIcon
+                  triggerClassName="gap-2 rounded-full border-transparent bg-foreground px-3.5 text-background shadow-none hover:bg-foreground/90"
+                  initialSelection={{
+                    provider: "deezer",
+                    provider_id: entity.provider_id,
+                    type: "track",
+                    title: entity.title,
+                    artist_name: entity.artist_name,
+                    cover_url: entity.cover_url,
+                    deezer_url: entity.deezer_url,
+                    entity_id: entity.id,
+                  }}
+                  initialTitle={viewerReview.title ?? ""}
+                  initialBody={viewerReview.body ?? ""}
+                  initialRating={viewerReview.rating}
+                  initialPinned={Boolean(viewerReview.is_pinned)}
+                />
+              ) : (
+                <Link
+                  href={`/track/${entity.id}?${composeParams.toString()}`}
+                  className={cn(buttonVariants({ size: "default" }), "gap-2 rounded-full bg-foreground px-3.5 text-background hover:bg-foreground/90")}
+                >
+                  <MessageSquarePlus className="size-4" />
+                  Write review
+                </Link>
+              )}
+
+              {entity.deezer_url ? (
+                <a
+                  href={entity.deezer_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(buttonVariants({ variant: "outline", size: "default" }), "rounded-full border-border/34 bg-card/14 px-3.5 md:border-border/25 md:bg-transparent")}
+                >
+                  Deezer
+                </a>
+              ) : null}
             </div>
           </div>
-
-          <div className="flex flex-wrap gap-2 pt-1">
-            {viewerReview ? (
-              <EditReviewDialog
-                reviewId={viewerReview.id}
-                defaultOpen={shouldOpenViewerEditor}
-                dismissSearchParam="editReview"
-                triggerLabel="Edit review"
-                triggerVariant="default"
-                triggerSize="default"
-                showDefaultTriggerIcon
-                triggerClassName="gap-2 rounded-full border-transparent bg-foreground px-3.5 text-background shadow-none hover:bg-foreground/90"
-                initialSelection={{
-                  provider: "deezer",
-                  provider_id: entity.provider_id,
-                  type: "track",
-                  title: entity.title,
-                  artist_name: entity.artist_name,
-                  cover_url: entity.cover_url,
-                  deezer_url: entity.deezer_url,
-                  entity_id: entity.id,
-                }}
-                initialTitle={viewerReview.title ?? ""}
-                initialBody={viewerReview.body ?? ""}
-                initialRating={viewerReview.rating}
-                initialPinned={Boolean(viewerReview.is_pinned)}
-              />
-            ) : (
-              <Link
-                href={`/track/${entity.id}?${composeParams.toString()}`}
-                className={cn(buttonVariants({ size: "default" }), "gap-2 rounded-full px-3.5 bg-foreground text-background hover:bg-foreground/90")}
-              >
-                <MessageSquarePlus className="size-4" />
-                Write review
-              </Link>
-            )}
-
-            {entity.deezer_url ? (
-              <a
-                href={entity.deezer_url}
-                target="_blank"
-                rel="noreferrer"
-                className={cn(buttonVariants({ variant: "outline", size: "default" }), "rounded-full border-border/34 bg-card/14 px-3.5 md:border-border/25 md:bg-transparent")}
-              >
-                Deezer
-              </a>
-            ) : null}
-          </div>
-        </div>
         </div>
 
         <div className="max-w-3xl space-y-3.5">

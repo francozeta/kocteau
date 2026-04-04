@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, MessageSquarePlus, Music2 } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
+import EntityCoverImage from "@/components/entity-cover-image";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,19 +78,15 @@ export default async function DeezerTrackResolverPage({
   return (
     <section className="mx-auto max-w-4xl space-y-6">
       <div className="grid gap-5 border-b border-border/30 pb-8 lg:grid-cols-[8.5rem,minmax(0,1fr)] lg:items-start">
-        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[1.75rem] bg-muted sm:h-36 sm:w-36">
-          {track.cover_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={track.cover_url}
-              alt={track.title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <Music2 className="size-10 text-muted-foreground" />
-          )}
-        </div>
+        <EntityCoverImage
+          src={track.cover_url}
+          alt={track.title}
+          sizes="(max-width: 640px) 128px, 144px"
+          priority
+          quality={75}
+          className="h-32 w-32 rounded-[1.75rem] bg-muted sm:h-36 sm:w-36"
+          iconClassName="size-10"
+        />
 
         <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center gap-2">

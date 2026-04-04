@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
+import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
 import TrackContextMenu from "@/components/track-context-menu";
 import { Button } from "@/components/ui/button";
@@ -462,19 +463,15 @@ export default function SearchPageClient({
                         activeIndex === index && "border-foreground/28 bg-card/32 md:border-foreground/20 md:bg-card/28",
                       )}
                     >
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-muted">
-                        {result.cover_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={result.cover_url}
-                            alt={result.title}
-                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <Music2 className="size-6 text-muted-foreground" />
-                        )}
-                      </div>
+                      <EntityCoverImage
+                        src={result.cover_url}
+                        alt={result.title}
+                        sizes="64px"
+                        quality={56}
+                        className="h-16 w-16 shrink-0 rounded-[1.1rem] bg-muted"
+                        imageClassName="transition-transform group-hover:scale-105"
+                        iconClassName="size-6"
+                      />
 
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -532,19 +529,15 @@ export default function SearchPageClient({
                     queryWarmup={{ kind: "track", id: track.entityId }}
                     className="group flex items-center gap-3 rounded-[1.45rem] border border-border/32 bg-card/24 px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-colors hover:bg-card/32 md:border-border/20 md:bg-card/18 md:hover:bg-card/30"
                   >
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
-                      {track.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={track.coverUrl}
-                          alt={track.title}
-                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Music2 className="size-5 text-muted-foreground" />
-                      )}
-                    </div>
+                    <EntityCoverImage
+                      src={track.coverUrl}
+                      alt={track.title}
+                      sizes="56px"
+                      quality={56}
+                      className="h-14 w-14 shrink-0 rounded-[1rem] bg-muted"
+                      imageClassName="transition-transform group-hover:scale-105"
+                      iconClassName="size-5"
+                    />
 
                     <div className="min-w-0 flex-1">
                       <h3 className="line-clamp-1 font-medium group-hover:underline">{track.title}</h3>

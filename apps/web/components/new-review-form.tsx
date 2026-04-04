@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import EntityCoverImage from "@/components/entity-cover-image";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -445,19 +446,14 @@ export default function NewReviewForm({
                       className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/35 data-[active=true]:bg-muted/40"
                       data-active={activeResultIndex === index}
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
-                        {result.cover_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={result.cover_url}
-                            alt={result.title}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <Music2 className="size-4 text-muted-foreground" />
-                        )}
-                      </div>
+                      <EntityCoverImage
+                        src={result.cover_url}
+                        alt={result.title}
+                        sizes="40px"
+                        quality={56}
+                        className="h-10 w-10 shrink-0 rounded-xl bg-muted"
+                        iconClassName="size-4"
+                      />
 
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{result.title}</p>
@@ -489,19 +485,14 @@ export default function NewReviewForm({
             ) : null}
 
             <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[1.35rem] border border-border/32 bg-card/20 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/12">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-muted">
-                {selected?.cover_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={selected.cover_url}
-                    alt={selected.title}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <Music2 className="size-5 text-muted-foreground" />
-                )}
-              </div>
+              <EntityCoverImage
+                src={selected?.cover_url}
+                alt={selected?.title ?? "Selected track"}
+                sizes="48px"
+                quality={56}
+                className="h-12 w-12 shrink-0 rounded-[1rem] bg-muted"
+                iconClassName="size-5"
+              />
 
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-sm">{selected?.title}</p>

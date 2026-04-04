@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Music2 } from "lucide-react";
+import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
 import TrackContextMenu from "@/components/track-context-menu";
 import { buttonVariants } from "@/components/ui/button";
@@ -73,19 +74,14 @@ export default async function TrackIndexPage() {
                 queryWarmup={{ kind: "track", id: track.entityId }}
                 className="group flex items-center gap-4 rounded-[1.65rem] border border-border/20 bg-card/20 px-3.5 py-3.5 transition-colors hover:bg-card/35"
               >
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.2rem] bg-muted">
-                  {track.coverUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={track.coverUrl}
-                      alt={track.title}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <Music2 className="size-5 text-muted-foreground" />
-                  )}
-                </div>
+                <EntityCoverImage
+                  src={track.coverUrl}
+                  alt={track.title}
+                  sizes="64px"
+                  quality={56}
+                  className="h-16 w-16 shrink-0 rounded-[1.2rem] bg-muted"
+                  iconClassName="size-5"
+                />
 
                 <div className="min-w-0 flex-1 space-y-1">
                   <h2 className="line-clamp-1 text-base font-medium text-foreground">

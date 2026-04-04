@@ -2,6 +2,7 @@
 
 import { ChevronRight, MoreHorizontal, Pin, Star } from "lucide-react";
 import type { EditReviewSelection } from "@/components/edit-review-dialog";
+import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewActionsMenu from "@/components/review-card-actions-menu";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
@@ -54,17 +55,14 @@ function OwnedReviewRailItem({
           className="group min-w-0 flex-1 rounded-lg"
         >
           <div className="flex items-start gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[0.9rem] bg-sidebar-accent/38 md:bg-sidebar-accent/30">
-              {item.entity.cover_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.entity.cover_url}
-                  alt={item.entity.title}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              ) : null}
-            </div>
+            <EntityCoverImage
+              src={item.entity.cover_url}
+              alt={item.entity.title}
+              sizes="36px"
+              quality={56}
+              className="h-9 w-9 shrink-0 rounded-[0.9rem] bg-sidebar-accent/38 md:bg-sidebar-accent/30"
+              iconClassName="size-3.5"
+            />
 
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
