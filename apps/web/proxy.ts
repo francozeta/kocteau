@@ -1,8 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+function isMetadataRequest(pathname: string) {
+  return (
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname.includes("/opengraph-image") ||
+    pathname.includes("/twitter-image")
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+
+  if (isMetadataRequest(pathname)) {
+    return response;
+  }
 
   const hasSbCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
   if (!hasSbCookie) return response;
@@ -30,7 +45,7 @@ export const config = {
   matcher: [
     {
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*opengraph-image|.*twitter-image).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 const SITE_NAME = "Kocteau";
 const DEFAULT_DESCRIPTION =
   "A modern music social app for reviews, notes, and curated discovery.";
+const DEFAULT_OPEN_GRAPH_IMAGE = "/api/og/site";
+const DEFAULT_TWITTER_IMAGE = "/api/og/site";
 
 function resolveSiteUrl() {
   const envUrl =
@@ -45,17 +47,6 @@ function normalizeImage(image?: string | null) {
   return normalizePath(image);
 }
 
-function buildGeneratedImagePath(path: string | undefined, kind: "openGraph" | "twitter") {
-  const normalizedPath = normalizePath(path);
-  const suffix = kind === "openGraph" ? "opengraph-image" : "twitter-image";
-
-  if (!normalizedPath || normalizedPath === "/") {
-    return `/${suffix}`;
-  }
-
-  return `${normalizedPath}/${suffix}`;
-}
-
 type CreatePageMetadataOptions = {
   title: string;
   description?: string;
@@ -73,10 +64,9 @@ export function createPageMetadata({
 }: CreatePageMetadataOptions): Metadata {
   const fullTitle = withSiteName(title);
   const canonical = normalizePath(path);
-  const openGraphImage =
-    normalizeImage(image) ?? buildGeneratedImagePath(canonical, "openGraph");
-  const twitterImage =
-    normalizeImage(image) ?? buildGeneratedImagePath(canonical, "twitter");
+  const normalizedImage = normalizeImage(image);
+  const openGraphImage = normalizedImage ?? DEFAULT_OPEN_GRAPH_IMAGE;
+  const twitterImage = normalizedImage ?? DEFAULT_TWITTER_IMAGE;
 
   return {
     title,

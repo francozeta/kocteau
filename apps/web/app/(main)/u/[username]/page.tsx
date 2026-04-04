@@ -71,6 +71,7 @@ export async function generateMetadata({
       profile.bio,
     ),
     path: `/u/${profile.username}`,
+    image: `/api/og/profile/${profile.username}`,
   });
 }
 
