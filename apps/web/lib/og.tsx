@@ -508,117 +508,73 @@ export async function createTrackOgImage({
   const coverArt = await CoverArt({
     src: coverUrl,
     alt: title,
-    size: 354,
+    size: 470,
     fallbackLabel: (artistName ?? title).slice(0, 1),
   });
 
-  return createFrame(
+  return createImageResponse(
     <div
       style={{
         display: "flex",
-        flex: 1,
-        alignItems: "stretch",
-        gap: 28,
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        background: palette.background,
       }}
     >
-      {coverArt}
-
       <div
         style={{
+          position: "absolute",
+          inset: 0,
           display: "flex",
-          flex: 1,
-          flexDirection: "column",
-          justifyContent: "space-between",
+          background:
+            "radial-gradient(circle at top left, rgba(255,255,255,0.08), transparent 34%), radial-gradient(circle at bottom right, rgba(255,255,255,0.06), transparent 28%)",
+        }}
+      />
+      {coverUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={await getImageDataUrl(coverUrl) ?? undefined}
+          alt={title}
+          width={1200}
+          height={630}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            objectFit: "cover",
+            filter: "blur(28px)",
+            opacity: 0.24,
+            transform: "scale(1.08)",
+          }}
+        />
+      ) : null}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          background:
+            "linear-gradient(180deg, rgba(5,5,5,0.14), rgba(5,5,5,0.26)), radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 62%)",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          padding: 18,
+          borderRadius: 42,
+          border: `1px solid ${palette.border}`,
+          background: "rgba(10,10,10,0.36)",
+          boxShadow: "0 28px 80px rgba(0,0,0,0.45)",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 18,
-          }}
-        >
-          <Surface padding="12px 16px">
-            <div
-              style={{
-                display: "flex",
-                fontFamily:
-                  'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                fontSize: 13,
-                color: palette.muted,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-              }}
-            >
-              Track
-            </div>
-          </Surface>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 74,
-                lineHeight: 0.95,
-                fontWeight: 700,
-                letterSpacing: "-0.05em",
-              }}
-            >
-              {trimText(title, 56)}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontFamily:
-                  'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                fontSize: 28,
-                color: palette.muted,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {trimText(artistName || "Unknown artist", 64)}
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 18,
-          }}
-        >
-          <div style={{ display: "flex", gap: 12 }}>
-            <MetricPill
-              label="Reviews"
-              value={String(Math.max(reviewCount ?? 0, 0))}
-            />
-            <MetricPill
-              label="Rating"
-              value={typeof averageRating === "number" ? averageRating.toFixed(1) : "—"}
-              highlighted
-            />
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              fontFamily:
-                'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-              fontSize: 18,
-              lineHeight: 1.4,
-              color: palette.muted,
-            }}
-          >
-            Reviews, notes, and shared listening around this track.
-          </div>
-        </div>
+        {coverArt}
       </div>
     </div>,
   );
@@ -640,132 +596,83 @@ export async function createProfileOgImage({
   const avatarArt = await CoverArt({
     src: avatarUrl,
     alt: title,
-    size: 280,
+    size: 360,
     fallbackLabel: initial,
-    fit: "contain",
-    padding: 18,
+    fit: "cover",
   });
 
-  return createFrame(
+  return createImageResponse(
     <div
       style={{
         display: "flex",
-        flex: 1,
-        alignItems: "stretch",
-        gap: 28,
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        background: palette.background,
       }}
     >
-      {avatarArt}
-
       <div
         style={{
+          position: "absolute",
+          inset: 0,
           display: "flex",
-          flex: 1,
-          flexDirection: "column",
-          justifyContent: "space-between",
+          background:
+            "radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 36%), radial-gradient(circle at bottom right, rgba(255,255,255,0.05), transparent 28%)",
+        }}
+      />
+      {avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={await getImageDataUrl(avatarUrl) ?? undefined}
+          alt={title}
+          width={1200}
+          height={630}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            objectFit: "cover",
+            filter: "blur(34px)",
+            opacity: 0.18,
+            transform: "scale(1.1)",
+          }}
+        />
+      ) : null}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          background:
+            "linear-gradient(180deg, rgba(5,5,5,0.16), rgba(5,5,5,0.28)), radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 58%)",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          padding: 20,
+          borderRadius: 999,
+          border: `1px solid ${palette.border}`,
+          background: "rgba(10,10,10,0.36)",
+          boxShadow: "0 28px 80px rgba(0,0,0,0.45)",
         }}
       >
         <div
           style={{
+            width: 360,
+            height: 360,
             display: "flex",
-            flexDirection: "column",
-            gap: 16,
+            overflow: "hidden",
+            borderRadius: 999,
           }}
         >
-          <Surface padding="12px 16px">
-            <div
-              style={{
-                display: "flex",
-                fontFamily:
-                  'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                fontSize: 13,
-                color: palette.muted,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-              }}
-            >
-              Profile
-            </div>
-          </Surface>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 74,
-                lineHeight: 0.95,
-                fontWeight: 700,
-                letterSpacing: "-0.05em",
-              }}
-            >
-              {trimText(title, 40)}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontFamily:
-                  'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                fontSize: 28,
-                color: palette.muted,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              @{username}
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 18,
-          }}
-        >
-          <Surface>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  fontFamily:
-                    'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                  fontSize: 13,
-                  color: palette.soft,
-                  letterSpacing: "0.15em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Taste profile
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  fontFamily:
-                    'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                  fontSize: 24,
-                  lineHeight: 1.4,
-                  color: palette.muted,
-                }}
-              >
-                {trimText(
-                  bio?.trim() || "Open profile, recent reviews, and listening identity on Kocteau.",
-                  140,
-                )}
-              </div>
-            </div>
-          </Surface>
+          {avatarArt}
         </div>
       </div>
     </div>,

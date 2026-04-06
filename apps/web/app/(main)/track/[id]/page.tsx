@@ -5,6 +5,7 @@ import { MessageSquarePlus, Music2, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
+import JsonLd from "@/components/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { TrackReviewCard } from "@/components/review-route-cards-server";
@@ -17,6 +18,7 @@ import {
   type EntityReview,
 } from "@/lib/queries/entities";
 import { createServerQueryClient } from "@/lib/react-query/server";
+import { buildTrackPageJsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 import { trackKeys } from "@/queries/tracks";
 
@@ -128,6 +130,14 @@ export default async function TrackPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <JsonLd
+        data={buildTrackPageJsonLd({
+          entity,
+          reviewCount: trackReviews.length,
+          averageRating,
+        })}
+        id="track-structured-data"
+      />
       <section className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
         <div className="grid gap-4 border-b border-border/32 pb-6 md:border-border/24 lg:grid-cols-[8.5rem,minmax(0,1fr)] lg:items-start">
           <EntityCoverImage

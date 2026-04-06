@@ -18,8 +18,9 @@ function formatDate(value: string) {
 }
 
 export const metadata = createPageMetadata({
-  title: "Track Index",
-  description: "Browse tracks with recent review activity inside Kocteau.",
+  title: "Tracks with Recent Reviews",
+  description:
+    "Browse tracks with recent music reviews, ratings, and discussion on Kocteau.",
   path: "/track",
 });
 
@@ -35,7 +36,7 @@ export default async function TrackIndexPage() {
               Explore
             </p>
             <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Track Index
+              Tracks with recent reviews
             </h1>
             <p className="text-sm text-muted-foreground">
               {tracks.length} {tracks.length === 1 ? "track" : "tracks"}

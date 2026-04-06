@@ -8,9 +8,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/login", "/signup", "/onboarding", "/notifications", "/saved", "/api/"],
+      disallow: [
+        "/login",
+        "/signup",
+        "/onboarding",
+        "/notifications",
+        "/saved",
+        "/api/",
+        "/track/deezer/",
+      ],
     },
     sitemap: new URL("/sitemap.xml", metadataBase).toString(),
-    host: metadataBase.toString(),
+    host: metadataBase.origin,
   };
 }

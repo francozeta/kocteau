@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Merriweather } from "next/font/google";
 import "./globals.css";
+import JsonLd from "@/components/json-ld";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { getMetadataBase } from "@/lib/metadata";
+import { buildSiteGraphJsonLd } from "@/lib/structured-data";
 
 const merriweatherHeading = Merriweather({subsets:['latin'],variable:'--font-heading'});
 
@@ -27,7 +29,8 @@ export const metadata: Metadata = {
     default: "Kocteau",
     template: "%s | Kocteau",
   },
-  description: "Social platform for music review and curation",
+  description:
+    "Music reviews, ratings, discovery, and public taste profiles on Kocteau.",
   openGraph: {
     siteName: "Kocteau",
     type: "website",
@@ -62,6 +65,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.className} antialiased dark`}
       >
+        <JsonLd data={buildSiteGraphJsonLd()} id="site-structured-data" />
         {children}
         <Toaster position="bottom-right" richColors />
       </body>

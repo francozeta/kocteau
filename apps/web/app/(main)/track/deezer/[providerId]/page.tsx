@@ -34,6 +34,7 @@ export async function generateMetadata({
     description: createTrackDescription(track.title, track.artist_name),
     path: `/track/deezer/${providerId}`,
     image: track.cover_url,
+    noIndex: true,
   });
 }
 

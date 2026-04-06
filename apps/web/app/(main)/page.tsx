@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { Music2 } from "lucide-react";
 import FollowProfileButton from "@/components/follow-profile-button";
+import JsonLd from "@/components/json-ld";
 import PrefetchLink from "@/components/prefetch-link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { FeedReviewCard } from "@/components/review-route-cards-server";
@@ -15,6 +16,7 @@ import {
 } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { createServerQueryClient } from "@/lib/react-query/server";
+import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 import { feedKeys } from "@/queries/feed";
 
@@ -75,8 +77,9 @@ function sortFeed(feed: FeedReview[], view: FeedView) {
 }
 
 export const metadata = createPageMetadata({
-  title: "Feed",
-  description: "Latest music reviews, ratings, and notes from the Kocteau feed.",
+  title: "Music Reviews, Ratings, and Discovery",
+  description:
+    "Read recent music reviews, ratings, and listening notes, discover active tracks, and explore public profiles on Kocteau.",
   path: "/",
 });
 
@@ -129,6 +132,35 @@ export default async function HomePage({
 
   const orderedFeed = sortFeed(feedData.feed, activeView);
   const activeUsersRail = feedData.activeUsers.slice(0, 4);
+  const feedStructuredData = buildFeedPageJsonLd(
+    orderedFeed.flatMap((review) => {
+      const entity = getEntity(review);
+      const author = getAuthor(review);
+
+      if (!entity?.id || !author?.username) {
+        return [];
+      }
+
+      return [
+        {
+          reviewId: review.id,
+          reviewTitle: review.title,
+          reviewBody: review.body,
+          rating: review.rating,
+          entity: {
+            id: entity.id,
+            title: entity.title,
+            artistName: entity.artist_name,
+            coverUrl: entity.cover_url,
+          },
+          author: {
+            username: author.username,
+            displayName: author.display_name,
+          },
+        },
+      ];
+    }).slice(0, 10),
+  );
 
   const reviewsSection = orderedFeed.length > 0 ? (
     <div className="space-y-4">
@@ -227,13 +259,20 @@ export default async function HomePage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <JsonLd data={feedStructuredData} id="home-structured-data" />
       <section className="mx-auto max-w-5xl space-y-5 sm:space-y-6">
         <div className="border-b border-border/32 pb-3 md:border-border/24">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 Feed
+              </p>
+              <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
+                Recent music reviews and listening notes
               </h1>
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                Discover what people are hearing, rating, and writing about right now.
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">

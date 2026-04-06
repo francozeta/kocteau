@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import FollowProfileButton from "@/components/follow-profile-button";
+import JsonLd from "@/components/json-ld";
 import ProfileHeroAvatar from "@/components/profile-hero-avatar";
 import SavedReviewsList from "@/components/saved-reviews-list";
 import type { ReviewCardAuthor } from "@/components/review-card";
@@ -21,6 +22,7 @@ import {
 } from "@/lib/queries/profiles";
 import { getViewerFollowsProfile } from "@/lib/queries/profile-follows";
 import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
+import { buildProfilePageJsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 
 function getEntity(review: ProfileReview) {
@@ -126,6 +128,13 @@ export default async function UserProfilePage({
 
   return (
     <div className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
+      <JsonLd
+        data={buildProfilePageJsonLd({
+          profile,
+          reviewCount: totalReviews,
+        })}
+        id="profile-structured-data"
+      />
       <section className="border-b border-border/34 pb-7 md:border-border/30">
         <div className="grid gap-5 lg:grid-cols-[7.5rem,minmax(0,1fr)] lg:items-end">
           <ProfileHeroAvatar
