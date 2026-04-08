@@ -3,6 +3,7 @@ import {
   Avatar,
   AvatarFallback,
 } from "@/components/ui/avatar";
+import { getAvatarThumbnailUrl } from "@/lib/avatar-image-url";
 import { cn } from "@/lib/utils";
 import type { CSSProperties } from "react";
 
@@ -168,6 +169,7 @@ export default function UserAvatar({
   const resolvedSizes = sizes ?? (
     size === "sm" ? "24px" : size === "lg" ? "40px" : "32px"
   );
+  const resolvedAvatarUrl = avatarUrl ? getAvatarThumbnailUrl(avatarUrl) : avatarUrl;
 
   return (
     <Avatar size={size} className={cn(shapeClasses.root, className)}>
@@ -181,15 +183,15 @@ export default function UserAvatar({
       >
         {initials}
       </AvatarFallback>
-      {avatarUrl ? (
+      {resolvedAvatarUrl ? (
         <Image
-          src={avatarUrl}
+          src={resolvedAvatarUrl}
           alt={label}
           fill
           sizes={resolvedSizes}
           loading={loading}
           fetchPriority={fetchPriority}
-          unoptimized={shouldBypassOptimization(avatarUrl)}
+          unoptimized={shouldBypassOptimization(resolvedAvatarUrl)}
           className={cn(
             "relative z-[1] object-cover",
             shapeClasses.image,

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import {
-  cropAndOptimizeAvatar,
-  type OptimizedAvatarResult,
+  prepareAvatarUpload,
+  type PreparedAvatarUpload,
   type PixelCropArea,
 } from "@/lib/avatar-image";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import {
 type AvatarCropDialogProps = {
   open: boolean;
   initialFile: File | null;
-  onConfirm: (result: OptimizedAvatarResult) => void;
+  onConfirm: (result: PreparedAvatarUpload) => void;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -80,7 +80,7 @@ export default function AvatarCropDialog({
     setError(null);
 
     try {
-      const result = await cropAndOptimizeAvatar(sourceFile, cropArea);
+      const result = await prepareAvatarUpload(sourceFile, cropArea);
       onConfirm(result);
     } catch {
       setError("We could not prepare this image. Please try another photo.");

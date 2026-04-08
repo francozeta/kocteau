@@ -7,22 +7,31 @@ export type PixelCropArea = {
   height: number;
 };
 
-export type OptimizedAvatarResult = {
+export type AvatarUploadVariant = {
+  bytes: number;
   file: File;
-  width: number;
   height: number;
+  mimeType: "image/webp";
+  width: number;
+};
+
+export type PreparedAvatarUpload = {
+  master: AvatarUploadVariant;
   originalBytes: number;
-  optimizedBytes: number;
-  mimeType: string;
+  thumbnail: AvatarUploadVariant;
 };
 
-type OptimizeAvatarOptions = {
-  maxBytes?: number;
-  outputSize?: number;
+type AvatarVariantOptions = {
+  maxBytes: number;
+  outputSize: number;
+  suffix: "master" | "thumb";
 };
 
-const DEFAULT_OUTPUT_SIZE = 640;
-const DEFAULT_MAX_BYTES = 900 * 1024;
+const MASTER_OUTPUT_SIZE = 1024;
+const THUMB_OUTPUT_SIZE = 256;
+const MASTER_MAX_BYTES = 550 * 1024;
+const THUMB_MAX_BYTES = 90 * 1024;
+const WEBP_QUALITIES = [0.92, 0.88, 0.84, 0.8, 0.76] as const;
 
 async function loadImageFromFile(file: File) {
   const objectUrl = URL.createObjectURL(file);
@@ -45,13 +54,9 @@ async function loadImageFromFile(file: File) {
   }
 }
 
-async function canvasToBlob(
-  canvas: HTMLCanvasElement,
-  type: string,
-  quality?: number,
-) {
+async function canvasToBlob(canvas: HTMLCanvasElement, quality: number) {
   const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, type, quality);
+    canvas.toBlob(resolve, "image/webp", quality);
   });
 
   if (!blob) {
@@ -70,33 +75,21 @@ function clampCropArea(cropArea: PixelCropArea, naturalWidth: number, naturalHei
   return { x, y, width, height };
 }
 
-function getAvatarFileName(fileName: string, mimeType: string) {
+function getVariantFileName(fileName: string, suffix: AvatarVariantOptions["suffix"]) {
   const baseName = fileName.replace(/\.[^.]+$/, "").trim() || "avatar";
-
-  if (mimeType === "image/png") {
-    return `${baseName}.png`;
-  }
-
-  if (mimeType === "image/jpeg") {
-    return `${baseName}.jpg`;
-  }
-
-  return `${baseName}.webp`;
+  return `${baseName}-${suffix}.webp`;
 }
 
-export async function cropAndOptimizeAvatar(
-  file: File,
+async function createAvatarVariant(
+  image: HTMLImageElement,
   cropArea: PixelCropArea,
-  options: OptimizeAvatarOptions = {},
-): Promise<OptimizedAvatarResult> {
-  const image = await loadImageFromFile(file);
-  const safeCropArea = clampCropArea(cropArea, image.naturalWidth, image.naturalHeight);
-  const outputSize = options.outputSize ?? DEFAULT_OUTPUT_SIZE;
-  const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
+  sourceFileName: string,
+  options: AvatarVariantOptions,
+): Promise<AvatarUploadVariant> {
   const canvas = document.createElement("canvas");
 
-  canvas.width = outputSize;
-  canvas.height = outputSize;
+  canvas.width = options.outputSize;
+  canvas.height = options.outputSize;
 
   const context = canvas.getContext("2d");
 
@@ -104,42 +97,32 @@ export async function cropAndOptimizeAvatar(
     throw new Error("Canvas context is not available.");
   }
 
-  context.clearRect(0, 0, outputSize, outputSize);
+  context.clearRect(0, 0, options.outputSize, options.outputSize);
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
   context.drawImage(
     image,
-    safeCropArea.x,
-    safeCropArea.y,
-    safeCropArea.width,
-    safeCropArea.height,
+    cropArea.x,
+    cropArea.y,
+    cropArea.width,
+    cropArea.height,
     0,
     0,
-    outputSize,
-    outputSize,
+    options.outputSize,
+    options.outputSize,
   );
 
-  const candidates: Array<{ type: string; quality?: number }> = [
-    { type: "image/webp", quality: 0.9 },
-    { type: "image/webp", quality: 0.84 },
-    { type: "image/webp", quality: 0.78 },
-    { type: "image/jpeg", quality: 0.88 },
-  ];
-
   let bestBlob: Blob | null = null;
-  let bestMimeType = "image/webp";
 
-  for (const candidate of candidates) {
-    const blob = await canvasToBlob(canvas, candidate.type, candidate.quality);
+  for (const quality of WEBP_QUALITIES) {
+    const blob = await canvasToBlob(canvas, quality);
 
     if (!bestBlob || blob.size < bestBlob.size) {
       bestBlob = blob;
-      bestMimeType = candidate.type;
     }
 
-    if (blob.size <= maxBytes) {
+    if (blob.size <= options.maxBytes) {
       bestBlob = blob;
-      bestMimeType = candidate.type;
       break;
     }
   }
@@ -148,21 +131,46 @@ export async function cropAndOptimizeAvatar(
     throw new Error("Could not optimize image.");
   }
 
-  const optimizedFile = new File(
+  const file = new File(
     [bestBlob],
-    getAvatarFileName(file.name, bestMimeType),
+    getVariantFileName(sourceFileName, options.suffix),
     {
-      type: bestMimeType,
+      type: "image/webp",
       lastModified: Date.now(),
     },
   );
 
   return {
-    file: optimizedFile,
-    width: outputSize,
-    height: outputSize,
+    bytes: bestBlob.size,
+    file,
+    height: options.outputSize,
+    mimeType: "image/webp",
+    width: options.outputSize,
+  };
+}
+
+export async function prepareAvatarUpload(
+  file: File,
+  cropArea: PixelCropArea,
+): Promise<PreparedAvatarUpload> {
+  const image = await loadImageFromFile(file);
+  const safeCropArea = clampCropArea(cropArea, image.naturalWidth, image.naturalHeight);
+  const [master, thumbnail] = await Promise.all([
+    createAvatarVariant(image, safeCropArea, file.name, {
+      maxBytes: MASTER_MAX_BYTES,
+      outputSize: MASTER_OUTPUT_SIZE,
+      suffix: "master",
+    }),
+    createAvatarVariant(image, safeCropArea, file.name, {
+      maxBytes: THUMB_MAX_BYTES,
+      outputSize: THUMB_OUTPUT_SIZE,
+      suffix: "thumb",
+    }),
+  ]);
+
+  return {
+    master,
     originalBytes: file.size,
-    optimizedBytes: bestBlob.size,
-    mimeType: bestMimeType,
+    thumbnail,
   };
 }

@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Check, LoaderCircle } from "lucide-react";
 import AvatarUploadTrigger from "@/components/avatar-upload-trigger";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";
+import type { PreparedAvatarUpload } from "@/lib/avatar-image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
@@ -60,7 +61,7 @@ export default function ProfileEditorForm({
   const [spotifyUrl, setSpotifyUrl] = useState(initialProfile?.spotify_url ?? "");
   const [appleMusicUrl, setAppleMusicUrl] = useState(initialProfile?.apple_music_url ?? "");
   const [deezerUrl, setDeezerUrl] = useState(initialProfile?.deezer_url ?? "");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarUpload, setAvatarUpload] = useState<PreparedAvatarUpload | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<AvatarPresetId | null>(
     mode === "onboarding" && !initialProfile?.avatar_url
       ? avatarPresets[0].id
@@ -116,8 +117,8 @@ export default function ProfileEditorForm({
   }, [selectedPresetId]);
 
   const avatarPreview = useMemo(() => {
-    if (avatarFile) {
-      return URL.createObjectURL(avatarFile);
+    if (avatarUpload) {
+      return URL.createObjectURL(avatarUpload.master.file);
     }
 
     if (presetPreview) {
@@ -125,31 +126,43 @@ export default function ProfileEditorForm({
     }
 
     return initialProfile?.avatar_url ?? null;
-  }, [avatarFile, initialProfile?.avatar_url, presetPreview]);
+  }, [avatarUpload, initialProfile?.avatar_url, presetPreview]);
 
   useEffect(() => {
-    if (!avatarFile || !avatarPreview) {
+    if (!avatarUpload || !avatarPreview) {
       return;
     }
 
     return () => {
       URL.revokeObjectURL(avatarPreview);
     };
-  }, [avatarFile, avatarPreview]);
+  }, [avatarUpload, avatarPreview]);
 
   async function uploadAvatar(userId: string) {
-    if (!avatarFile) return initialProfile?.avatar_url ?? null;
+    if (!avatarUpload) return initialProfile?.avatar_url ?? null;
 
-    const ext = avatarFile.name.split(".").pop()?.toLowerCase() || "png";
-    const path = `${userId}/avatar.${ext}`;
+    const masterPath = `${userId}/avatar-master.webp`;
+    const thumbPath = `${userId}/avatar-thumb.webp`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
+    const [{ error: masterUploadError }, { error: thumbUploadError }] = await Promise.all([
+      supabase.storage
+        .from("avatars")
+        .upload(masterPath, avatarUpload.master.file, {
+          upsert: true,
+          contentType: avatarUpload.master.mimeType,
+        }),
+      supabase.storage
+        .from("avatars")
+        .upload(thumbPath, avatarUpload.thumbnail.file, {
+          upsert: true,
+          contentType: avatarUpload.thumbnail.mimeType,
+        }),
+    ]);
 
-    if (uploadError) throw uploadError;
+    if (masterUploadError) throw masterUploadError;
+    if (thumbUploadError) throw thumbUploadError;
 
-    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    const { data } = supabase.storage.from("avatars").getPublicUrl(masterPath);
     return `${data.publicUrl}?v=${Date.now()}`;
   }
 
@@ -176,7 +189,7 @@ export default function ProfileEditorForm({
 
   function handlePresetSelect(presetId: AvatarPresetId) {
     setSelectedPresetId(presetId);
-    setAvatarFile(null);
+    setAvatarUpload(null);
     setPendingAvatarFile(null);
     clearAvatarUploadErrors();
   }
@@ -193,8 +206,8 @@ export default function ProfileEditorForm({
     }
   }
 
-  function handleAvatarCropConfirm(file: File) {
-    setAvatarFile(file);
+  function handleAvatarCropConfirm(upload: PreparedAvatarUpload) {
+    setAvatarUpload(upload);
     setSelectedPresetId(null);
     setPendingAvatarFile(null);
     setIsAvatarCropDialogOpen(false);
@@ -261,7 +274,7 @@ export default function ProfileEditorForm({
     try {
       const normalizedProfile = parsed.data;
       const previousUsername = initialProfile?.username?.trim().toLowerCase() ?? null;
-      const avatarUrl = avatarFile
+      const avatarUrl = avatarUpload
         ? await uploadAvatar(user.id)
         : selectedPresetId
           ? await uploadPresetAvatar(user.id)
@@ -334,7 +347,7 @@ export default function ProfileEditorForm({
   }
 
   const isOnboarding = mode === "onboarding";
-  const canAdvanceOnboarding = Boolean(selectedPresetId || avatarFile);
+  const canAdvanceOnboarding = Boolean(selectedPresetId || avatarUpload);
   const showAvatarSettingsSection = !isOnboarding && (settingsSection === "all" || settingsSection === "avatar");
   const showProfileSettingsSection = isOnboarding || settingsSection === "all" || settingsSection === "profile";
   const showLinksSettingsSection = mode === "settings" && (settingsSection === "all" || settingsSection === "links");
@@ -371,7 +384,7 @@ export default function ProfileEditorForm({
                 {(displayName || username || "your username").trim() || "your username"}
               </div>
               <div className="text-xs text-muted-foreground">
-                {avatarFile
+                {avatarUpload
                   ? "Uploaded photo ready"
                   : selectedPresetId
                     ? "Default disc selected"
@@ -490,7 +503,7 @@ export default function ProfileEditorForm({
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {avatarFile
+                  {avatarUpload
                     ? "Uploaded photo ready"
                     : selectedPresetId
                       ? "Default disc selected"
@@ -703,7 +716,7 @@ export default function ProfileEditorForm({
         open={isAvatarCropDialogOpen}
         initialFile={pendingAvatarFile}
         onOpenChange={handleAvatarCropDialogOpenChange}
-        onConfirm={(result) => handleAvatarCropConfirm(result.file)}
+        onConfirm={handleAvatarCropConfirm}
       />
 
       {message ? (
