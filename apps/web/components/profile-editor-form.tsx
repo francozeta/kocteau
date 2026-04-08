@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Camera, Check, Disc3, LoaderCircle, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, LoaderCircle } from "lucide-react";
+import AvatarUploadTrigger from "@/components/avatar-upload-trigger";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import AvatarCropDialog from "@/components/avatar-crop-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import UserAvatar from "@/components/user-avatar";
+import { useFileUpload } from "@/hooks/use-file-upload";
 import {
   avatarPresets,
   createAvatarPresetDataUrl,
@@ -36,7 +38,7 @@ type ProfileDraft = {
 type ProfileEditorFormProps = {
   mode: "onboarding" | "settings";
   initialProfile?: Partial<ProfileDraft>;
-  onSaved?: () => void;
+  onSaved?: (profile: ProfileDraft) => void;
   settingsLayout?: "default" | "panel";
   settingsSection?: "profile" | "avatar" | "links" | "all";
 };
@@ -75,7 +77,35 @@ export default function ProfileEditorForm({
     deezer_url?: string;
   }>({});
   const [saving, setSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+  const [isAvatarCropDialogOpen, setIsAvatarCropDialogOpen] = useState(false);
+
+  const [
+    { errors: avatarUploadErrors, isDragging: isAvatarDragging },
+    {
+      clearErrors: clearAvatarUploadErrors,
+      getInputProps: getAvatarInputProps,
+      handleDragEnter: handleAvatarDragEnter,
+      handleDragLeave: handleAvatarDragLeave,
+      handleDragOver: handleAvatarDragOver,
+      handleDrop: handleAvatarDrop,
+      openFileDialog: openAvatarFileDialog,
+    },
+  ] = useFileUpload({
+    accept: "image/*",
+    maxFiles: 1,
+    maxSize: 10 * 1024 * 1024,
+    onFilesAdded: (files) => {
+      const nextFile = files[0]?.file;
+
+      if (!(nextFile instanceof File)) {
+        return;
+      }
+
+      setPendingAvatarFile(nextFile);
+      setIsAvatarCropDialogOpen(true);
+    },
+  });
 
   const presetPreview = useMemo(() => {
     if (!selectedPresetId) {
@@ -120,7 +150,7 @@ export default function ProfileEditorForm({
     if (uploadError) throw uploadError;
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    return data.publicUrl;
+    return `${data.publicUrl}?v=${Date.now()}`;
   }
 
   async function uploadPresetAvatar(userId: string) {
@@ -141,29 +171,51 @@ export default function ProfileEditorForm({
     if (uploadError) throw uploadError;
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    return data.publicUrl;
+    return `${data.publicUrl}?v=${Date.now()}`;
   }
 
   function handlePresetSelect(presetId: AvatarPresetId) {
     setSelectedPresetId(presetId);
     setAvatarFile(null);
-  }
-
-  function handleAvatarUploadChange(file: File | null) {
-    setAvatarFile(file);
-
-    if (file) {
-      setSelectedPresetId(null);
-    }
+    setPendingAvatarFile(null);
+    clearAvatarUploadErrors();
   }
 
   function openAvatarPicker() {
-    if (!fileInputRef.current) {
-      return;
-    }
+    openAvatarFileDialog();
+  }
 
-    fileInputRef.current.value = "";
-    fileInputRef.current.click();
+  function handleAvatarCropDialogOpenChange(open: boolean) {
+    setIsAvatarCropDialogOpen(open);
+
+    if (!open) {
+      setPendingAvatarFile(null);
+    }
+  }
+
+  function handleAvatarCropConfirm(file: File) {
+    setAvatarFile(file);
+    setSelectedPresetId(null);
+    setPendingAvatarFile(null);
+    setIsAvatarCropDialogOpen(false);
+    clearAvatarUploadErrors();
+  }
+
+  async function revalidateProfileViews(previousUsername?: string | null, nextUsername?: string | null) {
+    try {
+      await fetch("/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          previousUsername,
+          nextUsername,
+        }),
+      });
+    } catch {
+      // Best-effort cache invalidation.
+    }
   }
 
   async function onSubmit() {
@@ -208,6 +260,7 @@ export default function ProfileEditorForm({
 
     try {
       const normalizedProfile = parsed.data;
+      const previousUsername = initialProfile?.username?.trim().toLowerCase() ?? null;
       const avatarUrl = avatarFile
         ? await uploadAvatar(user.id)
         : selectedPresetId
@@ -232,14 +285,18 @@ export default function ProfileEditorForm({
 
       if (error) throw error;
 
+      await revalidateProfileViews(previousUsername, normalizedProfile.username);
+      onSaved?.(profilePayload);
+
       if (mode === "onboarding") {
-        router.refresh();
-        router.replace("/");
+        startTransition(() => {
+          router.refresh();
+          router.replace("/");
+        });
         setSaving(false);
         return;
       }
 
-      const previousUsername = initialProfile?.username?.trim().toLowerCase();
       const currentProfilePath = previousUsername ? `/u/${previousUsername}` : null;
 
       if (
@@ -249,14 +306,17 @@ export default function ProfileEditorForm({
         pathname.startsWith(currentProfilePath)
       ) {
         const nextProfilePath = `/u/${normalizedProfile.username}`;
-        router.prefetch(nextProfilePath);
-        router.replace(nextProfilePath);
+        startTransition(() => {
+          router.prefetch(nextProfilePath);
+          router.replace(nextProfilePath);
+        });
       } else {
-        router.refresh();
+        startTransition(() => {
+          router.refresh();
+        });
       }
 
       toastActionSuccess("Profile updated.");
-      onSaved?.();
     } catch (error) {
       const profileError = error as Error & { code?: string };
 
@@ -290,40 +350,32 @@ export default function ProfileEditorForm({
               Choose an avatar
             </h2>
             <p className="text-sm text-muted-foreground">
-              Pick a default disc or upload a photo. You can change it later.
+              Pick a default disc or drop in a photo. We&apos;ll let you crop it before saving.
             </p>
           </div>
 
-          <div className="mx-auto flex max-w-sm justify-center lg:justify-start">
-            <div className="rounded-[2rem] border border-border/25 bg-card/18 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-              <div className="flex h-[18rem] w-[14rem] flex-col items-center rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))] px-5 pt-6">
-                <button
-                  type="button"
-                  onClick={openAvatarPicker}
-                  className="group relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={previewUrl}
-                    alt="Selected avatar"
-                    className="h-32 w-32 rounded-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                  />
-                  <span className="absolute right-1 bottom-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/35 bg-background/88 text-muted-foreground backdrop-blur-sm transition-colors group-hover:text-foreground">
-                    <Camera className="size-4" />
-                  </span>
-                </button>
-                <div className="mt-auto space-y-1 pb-6 text-center">
-                  <div className="text-sm text-foreground/85">
-                    {(displayName || username || "your username").trim() || "your username"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {avatarFile
-                      ? "Using uploaded photo"
-                      : selectedPresetId
-                        ? "Using default disc"
-                        : "Choose your avatar"}
-                  </div>
-                </div>
+          <div className="mx-auto flex max-w-sm flex-col items-center gap-3 lg:mx-0 lg:items-start">
+            <AvatarUploadTrigger
+              alt="Selected avatar"
+              previewUrl={previewUrl}
+              size="lg"
+              isDragging={isAvatarDragging}
+              onClick={openAvatarPicker}
+              onDragEnter={handleAvatarDragEnter}
+              onDragLeave={handleAvatarDragLeave}
+              onDragOver={handleAvatarDragOver}
+              onDrop={handleAvatarDrop}
+            />
+            <div className="space-y-1 text-center lg:text-left">
+              <div className="text-sm text-foreground/85">
+                {(displayName || username || "your username").trim() || "your username"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {avatarFile
+                  ? "Uploaded photo ready"
+                  : selectedPresetId
+                    ? "Default disc selected"
+                    : "Tap or drag a photo here"}
               </div>
             </div>
           </div>
@@ -370,20 +422,9 @@ export default function ProfileEditorForm({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={openAvatarPicker}
-              className="rounded-full border-border/25"
-            >
-              <Upload className="size-4" />
-              Upload photo
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              A photo overrides the selected disc.
-            </p>
-          </div>
+          {avatarUploadErrors[0] ? (
+            <p className="text-xs text-destructive">{avatarUploadErrors[0]}</p>
+          ) : null}
 
           <div className="flex justify-end">
             <Button
@@ -424,57 +465,40 @@ export default function ProfileEditorForm({
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">Avatar</p>
               <p className="text-xs text-muted-foreground">
-                Upload a photo or choose one of Kocteau&apos;s default discs.
+                Choose a disc or drop in a photo.
               </p>
             </div>
 
             <div className="flex items-center gap-4">
-              <button
-                type="button"
+              <AvatarUploadTrigger
+                alt="Profile image"
+                previewUrl={avatarPreview}
+                size="md"
+                isDragging={isAvatarDragging}
                 onClick={openAvatarPicker}
-                className="group relative shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-              >
-                <UserAvatar
-                  avatarUrl={avatarPreview}
-                  displayName={displayName || null}
-                  username={username || null}
-                  className="h-20 w-20 border-border/50 transition-transform duration-200 group-hover:scale-[1.02]"
-                  fallbackClassName="text-lg font-semibold"
-                  initialsLength={2}
-                />
-                <span className="absolute right-0 bottom-0 inline-flex h-7 w-7 items-center justify-center rounded-full border border-border/40 bg-background/90 text-muted-foreground backdrop-blur-sm transition-colors group-hover:text-foreground">
-                  {selectedPresetId && !avatarFile ? (
-                    <Disc3 className="size-3.5" />
-                  ) : (
-                    <Camera className="size-3.5" />
-                  )}
-                </span>
-              </button>
+                onDragEnter={handleAvatarDragEnter}
+                onDragLeave={handleAvatarDragLeave}
+                onDragOver={handleAvatarDragOver}
+                onDrop={handleAvatarDrop}
+              />
 
               <div className="min-w-0 space-y-3">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">Profile image</p>
                   <p className="text-xs text-muted-foreground">
-                    Tap the avatar or upload a photo. Selecting a disc will replace the photo choice.
+                    Tap the avatar or drop a photo. It opens the cropper right away.
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={openAvatarPicker}
-                    className="rounded-full border-border/25"
-                    disabled={saving}
-                  >
-                    <Upload className="size-4" />
-                    Upload photo
-                  </Button>
-                  {avatarFile ? (
-                    <span className="text-xs text-muted-foreground">
-                      {avatarFile.name}
-                    </span>
-                  ) : null}
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  {avatarFile
+                    ? "Uploaded photo ready"
+                    : selectedPresetId
+                      ? "Default disc selected"
+                      : "Square crop applied before save"}
+                </p>
+                {avatarUploadErrors[0] ? (
+                  <p className="text-xs text-destructive">{avatarUploadErrors[0]}</p>
+                ) : null}
               </div>
             </div>
 
@@ -668,11 +692,18 @@ export default function ProfileEditorForm({
   return (
     <div className="space-y-6">
       <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="sr-only"
-        onChange={(event) => handleAvatarUploadChange(event.target.files?.[0] ?? null)}
+        {...getAvatarInputProps({
+          "aria-label": "Upload avatar image",
+          className: "sr-only",
+          tabIndex: -1,
+        })}
+      />
+
+      <AvatarCropDialog
+        open={isAvatarCropDialogOpen}
+        initialFile={pendingAvatarFile}
+        onOpenChange={handleAvatarCropDialogOpenChange}
+        onConfirm={(result) => handleAvatarCropConfirm(result.file)}
       />
 
       {message ? (

@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { ExternalLink } from "lucide-react";
-import FollowProfileButton from "@/components/follow-profile-button";
 import JsonLd from "@/components/json-ld";
-import ProfileHeroAvatar from "@/components/profile-hero-avatar";
+import ProfilePageHeader from "@/components/profile-page-header";
 import SavedReviewsList from "@/components/saved-reviews-list";
 import type { ReviewCardAuthor } from "@/components/review-card";
-import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { ProfileReviewCard } from "@/components/review-route-cards-server";
 import { Spinner } from "@/components/ui/spinner";
 import { getCurrentUser } from "@/lib/auth/server";
@@ -23,7 +19,6 @@ import {
 import { getViewerFollowsProfile } from "@/lib/queries/profile-follows";
 import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
 import { buildProfilePageJsonLd } from "@/lib/structured-data";
-import { cn } from "@/lib/utils";
 
 function getEntity(review: ProfileReview) {
   if (Array.isArray(review.entities)) {
@@ -118,7 +113,6 @@ export default async function UserProfilePage({
     year: "numeric",
     month: "short",
   });
-  const name = profile.display_name ?? `@${profile.username}`;
   const profileAuthor: ReviewCardAuthor = {
     id: profile.id,
     username: profile.username,
@@ -135,103 +129,23 @@ export default async function UserProfilePage({
         })}
         id="profile-structured-data"
       />
-      <section className="border-b border-border/34 pb-7 md:border-border/30">
-        <div className="grid gap-5 lg:grid-cols-[7.5rem,minmax(0,1fr)] lg:items-end">
-          <ProfileHeroAvatar
-            avatarUrl={profile.avatar_url}
-            displayName={profile.display_name}
-            username={profile.username}
-            className="h-24 w-24 border-border/28 sm:h-28 sm:w-28 md:border-border/20"
-            fallbackClassName="text-3xl font-semibold"
-            priority
-          />
-
-          <div className="min-w-0 space-y-3.5">
-            <div className="space-y-1">
-              <h1 className="font-serif text-[2.7rem] font-bold leading-none text-balance sm:text-[3.15rem]">
-                {name}
-              </h1>
-              <p className="text-[15px] text-muted-foreground">@{profile.username}</p>
-            </div>
-            {profile.bio ? (
-              <p className="max-w-2xl text-[15px] leading-relaxed text-foreground/85">
-                {profile.bio}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-              <span>{totalReviews} {totalReviews === 1 ? "review" : "reviews"}</span>
-              <span className="text-muted-foreground/50">•</span>
-              <span>Since {memberSince}</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {!isOwnProfile ? (
-                <FollowProfileButton
-                  profileId={profile.id}
-                  initialFollowing={isFollowing}
-                  isAuthenticated={Boolean(user)}
-                  size="sm"
-                  className="px-3.5"
-                />
-              ) : null}
-              {profile.spotify_url || profile.apple_music_url || profile.deezer_url ? (
-                <>
-                {profile.spotify_url ? (
-                  <a
-                    href={profile.spotify_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}
-                  >
-                    Spotify
-                    <ExternalLink className="size-3" />
-                  </a>
-                ) : null}
-                {profile.apple_music_url ? (
-                  <a
-                    href={profile.apple_music_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}
-                  >
-                    Apple Music
-                    <ExternalLink className="size-3" />
-                  </a>
-                ) : null}
-                {profile.deezer_url ? (
-                  <a
-                    href={profile.deezer_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}
-                  >
-                    Deezer
-                    <ExternalLink className="size-3" />
-                  </a>
-                ) : null}
-                </>
-              ) : null}
-              {isOwnProfile ? (
-                <ProfileSettingsDialog
-                  profile={{
-                    username: profile.username,
-                    display_name: profile.display_name,
-                    avatar_url: profile.avatar_url,
-                    bio: profile.bio,
-                    spotify_url: profile.spotify_url,
-                    apple_music_url: profile.apple_music_url,
-                    deezer_url: profile.deezer_url,
-                  }}
-                  trigger={
-                    <button className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/34 bg-card/14 md:border-border/25 md:bg-transparent")}>
-                      Edit profile
-                    </button>
-                  }
-                />
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </section>
+      <ProfilePageHeader
+        profile={{
+          id: profile.id,
+          username: profile.username,
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url,
+          bio: profile.bio,
+          spotify_url: profile.spotify_url,
+          apple_music_url: profile.apple_music_url,
+          deezer_url: profile.deezer_url,
+        }}
+        totalReviews={totalReviews}
+        memberSince={memberSince}
+        isOwnProfile={isOwnProfile}
+        isFollowing={isFollowing}
+        isAuthenticated={Boolean(user)}
+      />
 
       <div className="max-w-3xl space-y-7">
         {hydratedPinnedReview ? (

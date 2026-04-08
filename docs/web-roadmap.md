@@ -93,6 +93,10 @@ Make Kocteau understandable and emotionally legible within the first session.
 
 - Redesign auth shell copy so it explains what Kocteau is.
 - Improve signup and login pages so they feel like entry into a product, not generic auth.
+- Upgrade avatar upload in onboarding and profile settings:
+  - add square crop flow before save
+  - optimize uploaded images client-side to reduce payload without harsh quality loss
+  - keep the implementation reusable for future user-image fields
 - Expand onboarding from identity setup into taste setup:
   - favorite artists
   - first review prompt
@@ -106,7 +110,9 @@ Make Kocteau understandable and emotionally legible within the first session.
 - `apps/web/components/auth/login-page-client.tsx`
 - `apps/web/components/auth/signup-page-client.tsx`
 - `apps/web/app/(auth)/onboarding/page.tsx`
+- `apps/web/components/avatar-crop-dialog.tsx`
 - `apps/web/components/profile-editor-form.tsx`
+- `apps/web/lib/avatar-image.ts`
 - `apps/web/components/ui/empty.tsx`
 - `apps/web/app/api/reviews/route.ts`
 - `apps/web/components/new-review-form.tsx`

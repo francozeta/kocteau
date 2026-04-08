@@ -45,7 +45,7 @@ export default async function OnboardingPage() {
   return (
     <AuthFormShell
       title="Set up your profile"
-      description="Choose a default disc or upload a photo, then set the identity people will see across Kocteau."
+      description="Choose a default disc or upload, crop, and save a profile photo, then set the identity people will see across Kocteau."
       widthClassName="max-w-4xl"
     >
       <ProfileEditorForm mode="onboarding" initialProfile={profile ?? undefined} />

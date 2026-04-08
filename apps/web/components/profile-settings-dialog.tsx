@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Disc3, Link2, UserRound } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -30,15 +31,21 @@ type SettingsProfile = {
 type ProfileSettingsDialogProps = {
   profile: SettingsProfile;
   trigger?: React.ReactNode;
+  triggerClassName?: string;
+  triggerLabel?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onProfileUpdate?: (profile: SettingsProfile) => void;
 };
 
 export default function ProfileSettingsDialog({
   profile,
   trigger,
+  triggerClassName,
+  triggerLabel,
   open: controlledOpen,
   onOpenChange,
+  onProfileUpdate,
 }: ProfileSettingsDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -88,16 +95,37 @@ export default function ProfileSettingsDialog({
       initialProfile={profile}
       settingsLayout="panel"
       settingsSection={isMobile ? "all" : activeSection}
-      onSaved={() => handleOpenChange(false)}
+      onSaved={(updatedProfile) => {
+        onProfileUpdate?.({
+          username: updatedProfile.username,
+          display_name: updatedProfile.display_name,
+          avatar_url: updatedProfile.avatar_url,
+          bio: updatedProfile.bio,
+          spotify_url: updatedProfile.spotify_url,
+          apple_music_url: updatedProfile.apple_music_url,
+          deezer_url: updatedProfile.deezer_url,
+        });
+        handleOpenChange(false);
+      }}
     />
   );
 
   const activeItem = settingsNavItems.find((item) => item.id === activeSection) ?? settingsNavItems[0];
+  const triggerNode = trigger ?? (
+    triggerLabel ? (
+      <button
+        type="button"
+        className={triggerClassName ?? buttonVariants({ variant: "outline", size: "sm" })}
+      >
+        {triggerLabel}
+      </button>
+    ) : null
+  );
 
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={handleOpenChange}>
-        {trigger ? <DrawerTrigger asChild>{trigger}</DrawerTrigger> : null}
+        {triggerNode ? <DrawerTrigger asChild>{triggerNode}</DrawerTrigger> : null}
         <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/60 bg-background p-0">
           <DrawerHeader className="border-b border-border/34 px-5 py-4 text-left md:border-border/25">
             <DrawerTitle>{activeItem.label}</DrawerTitle>
@@ -160,7 +188,18 @@ export default function ProfileSettingsDialog({
               initialProfile={profile}
               settingsLayout="panel"
               settingsSection={activeSection}
-              onSaved={() => handleOpenChange(false)}
+              onSaved={(updatedProfile) => {
+                onProfileUpdate?.({
+                  username: updatedProfile.username,
+                  display_name: updatedProfile.display_name,
+                  avatar_url: updatedProfile.avatar_url,
+                  bio: updatedProfile.bio,
+                  spotify_url: updatedProfile.spotify_url,
+                  apple_music_url: updatedProfile.apple_music_url,
+                  deezer_url: updatedProfile.deezer_url,
+                });
+                handleOpenChange(false);
+              }}
             />
           </div>
         </DrawerContent>
@@ -170,7 +209,7 @@ export default function ProfileSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+      {triggerNode ? <DialogTrigger asChild>{triggerNode}</DialogTrigger> : null}
       <DialogContent className="h-[min(86vh,48rem)] max-w-[min(72rem,calc(100vw-2.5rem))] overflow-hidden border-border/44 bg-background p-0 md:border-border/40">
         <div className="grid h-full min-h-0 grid-cols-[15.5rem_minmax(0,1fr)]">
           <aside className="flex min-h-0 flex-col border-r border-border/32 bg-card/22 p-3 md:border-border/25 md:bg-card/14">
