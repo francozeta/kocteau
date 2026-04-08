@@ -47,6 +47,9 @@ export default function SavedReviewsList({
   const { data: savedReviews = initialReviews } = useQuery({
     ...viewerSavedReviewsQueryOptions(),
     initialData: initialReviews,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
   });
 
   if (savedReviews.length === 0) {

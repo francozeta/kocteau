@@ -70,6 +70,9 @@ export default function AppSidebar({
     },
     initialData: ownedReviews,
     enabled: Boolean(profile),
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
     staleTime: 60_000,
     gcTime: 10 * 60_000,
   });
