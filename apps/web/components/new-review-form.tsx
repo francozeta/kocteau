@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, LoaderCircle, Music2, Search } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -272,10 +272,17 @@ export default function NewReviewForm({
         router.prefetch(`/u/${payload.authorUsername}`);
       }
 
+      const shouldRedirectToCreatedTrack =
+        !isEditMode &&
+        Boolean(payload.entityId) &&
+        selected?.entity_id !== payload.entityId;
+
       toastActionSuccess(isEditMode ? "Review updated." : "Review published.");
       router.refresh();
       if (redirectToOnSuccess) {
         router.push(redirectToOnSuccess);
+      } else if (shouldRedirectToCreatedTrack && payload.entityId) {
+        router.push(`/track/${payload.entityId}`);
       }
       onSuccess?.();
       resetAll();

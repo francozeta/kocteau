@@ -3,6 +3,7 @@ import Header from "@/components/header";
 import AppSidebar from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
+import { RouteHeaderProvider } from "@/components/route-header-context";
 import { getCurrentViewerProfile } from "@/lib/auth/server";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -29,16 +30,18 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           unreadCount={initialUnreadCount}
         />
         <SidebarInset className="min-h-svh">
-          {safeProfile ? <GlobalShortcuts /> : null}
-          <Header
-            profile={safeProfile}
-            initialUnreadCount={initialUnreadCount}
-            initialNotifications={[]}
-          />
-          <main className="mx-auto w-full max-w-5xl px-3.5 pt-20 pb-32 sm:px-6 sm:pt-24 sm:pb-28 lg:px-10 lg:pt-24 lg:pb-10">
-            {children}
-          </main>
-          <MobileBottomBar profile={safeProfile} />
+          <RouteHeaderProvider>
+            {safeProfile ? <GlobalShortcuts /> : null}
+            <Header
+              profile={safeProfile}
+              initialUnreadCount={initialUnreadCount}
+              initialNotifications={[]}
+            />
+            <main className="mx-auto w-full max-w-5xl px-3.5 pt-20 pb-32 sm:px-6 sm:pt-24 sm:pb-28 lg:px-10 lg:pt-24 lg:pb-10">
+              {children}
+            </main>
+            <MobileBottomBar profile={safeProfile} />
+          </RouteHeaderProvider>
         </SidebarInset>
       </SidebarProvider>
     </ReactQueryProvider>

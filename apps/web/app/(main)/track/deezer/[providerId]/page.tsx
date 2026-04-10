@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ExternalLink, MessageSquarePlus, Music2 } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import EntityCoverImage from "@/components/entity-cover-image";
+import NewReviewDialog from "@/components/new-review-dialog";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCurrentUser } from "@/lib/auth/server";
 import { getDeezerTrack } from "@/lib/deezer";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import { findEntityByProvider } from "@/lib/queries/entities";
@@ -44,7 +46,10 @@ export default async function DeezerTrackResolverPage({
   params: Promise<{ providerId: string }>;
 }) {
   const { providerId } = await params;
-  const existingEntity = await findEntityByProvider("deezer", "track", providerId);
+  const [user, existingEntity] = await Promise.all([
+    getCurrentUser(),
+    findEntityByProvider("deezer", "track", providerId),
+  ]);
 
   if (existingEntity) {
     redirect(`/track/${existingEntity.id}`);
@@ -54,26 +59,6 @@ export default async function DeezerTrackResolverPage({
 
   if (!track) {
     notFound();
-  }
-
-  const composeParams = new URLSearchParams({
-    compose: "1",
-    reviewQuery: [track.title, track.artist_name].filter(Boolean).join(" "),
-    composeProvider: track.provider,
-    composeProviderId: track.provider_id,
-    composeTitle: track.title,
-  });
-
-  if (track.artist_name) {
-    composeParams.set("composeArtist", track.artist_name);
-  }
-
-  if (track.cover_url) {
-    composeParams.set("composeCover", track.cover_url);
-  }
-
-  if (track.deezer_url) {
-    composeParams.set("composeDeezer", track.deezer_url);
   }
 
   return (
@@ -103,13 +88,30 @@ export default async function DeezerTrackResolverPage({
           </div>
 
           <div className="flex flex-wrap gap-2.5">
-            <Link
-              href={`/track/deezer/${providerId}?${composeParams.toString()}`}
-              className={cn(buttonVariants({ size: "sm" }), "rounded-full bg-foreground text-background hover:bg-foreground/90")}
-            >
-              <MessageSquarePlus className="size-4" />
-              New review
-            </Link>
+            <NewReviewDialog
+              isAuthenticated={Boolean(user)}
+              initialQuery={[track.title, track.artist_name].filter(Boolean).join(" ")}
+              initialSelection={{
+                provider: "deezer",
+                provider_id: track.provider_id,
+                type: "track",
+                title: track.title,
+                artist_name: track.artist_name,
+                cover_url: track.cover_url,
+                deezer_url: track.deezer_url,
+              }}
+              trigger={
+                <button
+                  type="button"
+                  className={cn(
+                    buttonVariants({ size: "sm" }),
+                    "rounded-full bg-foreground text-background hover:bg-foreground/90",
+                  )}
+                >
+                  New review
+                </button>
+              }
+            />
             <Link
               href={`/search?q=${encodeURIComponent(track.title)}`}
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}

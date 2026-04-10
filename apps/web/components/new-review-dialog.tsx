@@ -37,6 +37,7 @@ type InitialSelection = {
   artist_name: string | null;
   cover_url: string | null;
   deezer_url: string | null;
+  entity_id?: string | null;
 };
 
 export default function NewReviewDialog({
@@ -44,20 +45,33 @@ export default function NewReviewDialog({
   triggerClassName,
   triggerLabelClassName,
   trigger,
+  open: controlledOpen,
+  defaultOpen = false,
+  onOpenChange,
+  initialQuery,
+  initialSelection,
+  redirectToOnSuccess = null,
 }: {
   isAuthenticated?: boolean;
   triggerClassName?: string;
   triggerLabelClassName?: string;
   trigger?: React.ReactNode;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialQuery?: string;
+  initialSelection?: InitialSelection | null;
+  redirectToOnSuccess?: string | null;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const shouldOpenFromUrl = searchParams.get("compose") === "1";
-  const initialQuery = useMemo(() => searchParams.get("reviewQuery")?.trim() ?? "", [searchParams]);
-  const initialSelection = useMemo(() => {
+  const usesUrlComposeState = initialQuery === undefined && initialSelection === undefined;
+  const shouldOpenFromUrl = usesUrlComposeState && searchParams.get("compose") === "1";
+  const initialQueryFromUrl = useMemo(() => searchParams.get("reviewQuery")?.trim() ?? "", [searchParams]);
+  const initialSelectionFromUrl = useMemo(() => {
     const provider = searchParams.get("composeProvider");
     const providerId = searchParams.get("composeProviderId");
     const title = searchParams.get("composeTitle");
@@ -74,10 +88,17 @@ export default function NewReviewDialog({
       artist_name: searchParams.get("composeArtist"),
       cover_url: searchParams.get("composeCover"),
       deezer_url: searchParams.get("composeDeezer"),
+      entity_id: null,
     } satisfies InitialSelection;
   }, [searchParams]);
+  const resolvedInitialQuery = initialQuery ?? initialQueryFromUrl;
+  const resolvedInitialSelection = initialSelection ?? initialSelectionFromUrl;
 
   const clearComposeParams = useCallback(() => {
+    if (!usesUrlComposeState) {
+      return;
+    }
+
     const next = new URLSearchParams(searchParams.toString());
     next.delete("compose");
     next.delete("reviewQuery");
@@ -93,10 +114,14 @@ export default function NewReviewDialog({
         scroll: false,
       });
     });
-  }, [pathname, router, searchParams]);
+  }, [pathname, router, searchParams, usesUrlComposeState]);
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen);
+    if (controlledOpen === undefined) {
+      setInternalOpen(nextOpen);
+    }
+
+    onOpenChange?.(nextOpen);
 
     if (!nextOpen && shouldOpenFromUrl) {
       clearComposeParams();
@@ -112,7 +137,7 @@ export default function NewReviewDialog({
     clearComposeParams();
   }, [clearComposeParams, isAuthenticated, shouldOpenFromUrl]);
 
-  const resolvedOpen = isAuthenticated && (shouldOpenFromUrl || open);
+  const resolvedOpen = isAuthenticated && (controlledOpen ?? (shouldOpenFromUrl || internalOpen));
 
   const baseTrigger = trigger ?? (
     <Button
@@ -166,8 +191,9 @@ export default function NewReviewDialog({
 
           <div className="min-h-0 flex-1 overflow-hidden">
             <NewReviewForm
-              initialQuery={initialQuery}
-              initialSelection={initialSelection}
+              initialQuery={resolvedInitialQuery}
+              initialSelection={resolvedInitialSelection}
+              redirectToOnSuccess={redirectToOnSuccess}
               onSuccess={() => handleOpenChange(false)}
             />
           </div>
@@ -190,8 +216,9 @@ export default function NewReviewDialog({
 
         <div className="min-h-0 flex-1 overflow-hidden">
           <NewReviewForm
-            initialQuery={initialQuery}
-            initialSelection={initialSelection}
+            initialQuery={resolvedInitialQuery}
+            initialSelection={resolvedInitialSelection}
+            redirectToOnSuccess={redirectToOnSuccess}
             onSuccess={() => handleOpenChange(false)}
           />
         </div>
