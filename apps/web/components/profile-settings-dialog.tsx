@@ -1,16 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { isValidElement, useMemo, useState } from "react";
 import { Disc3, Link2, UserRound } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  DrawerBase,
+  DrawerBaseBackdrop,
+  DrawerBaseContent,
+  DrawerBaseDescription,
+  DrawerBaseHandle,
+  DrawerBaseHeader,
+  DrawerBasePortal,
+  DrawerBaseTitle,
+  DrawerBaseTrigger,
+  DrawerBaseViewport,
+} from "@/components/ui/drawer-base";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import UserAvatar from "@/components/user-avatar";
@@ -121,95 +125,102 @@ export default function ProfileSettingsDialog({
       </button>
     ) : null
   );
+  const triggerElement = isValidElement(triggerNode) ? triggerNode : null;
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={handleOpenChange}>
-        {triggerNode ? <DrawerTrigger asChild>{triggerNode}</DrawerTrigger> : null}
-        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/60 bg-background p-0">
-          <DrawerHeader className="border-b border-border/34 px-5 py-4 text-left md:border-border/25">
-            <DrawerTitle>{activeItem.label}</DrawerTitle>
-            <DrawerDescription>
-              {activeItem.description}
-            </DrawerDescription>
-          </DrawerHeader>
+      <DrawerBase open={open} onOpenChange={handleOpenChange} swipeDirection="down">
+        {triggerElement ? <DrawerBaseTrigger render={triggerElement} /> : null}
+        <DrawerBasePortal>
+          <DrawerBaseBackdrop />
+          <DrawerBaseViewport>
+            <DrawerBaseContent className="max-h-[92dvh]">
+              <DrawerBaseHandle />
+              <DrawerBaseHeader className="border-b border-border/34 px-5 py-4 text-left md:border-border/25">
+                <DrawerBaseTitle className="text-left">{activeItem.label}</DrawerBaseTitle>
+                <DrawerBaseDescription className="text-left">
+                  {activeItem.description}
+                </DrawerBaseDescription>
+              </DrawerBaseHeader>
 
-          <div className="border-b border-border/28 px-5 py-4 md:border-border/20">
-            <div className="rounded-[1.35rem] border border-border/34 bg-card/24 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
-              <div className="flex items-center gap-3">
-                <UserAvatar
-                  avatarUrl={profile.avatar_url}
-                  displayName={profile.display_name}
-                  username={profile.username}
-                  className="size-11"
-                  initialsLength={2}
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {profile.display_name ?? `@${profile.username}`}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    @{profile.username}
-                  </p>
+              <div className="border-b border-border/28 px-5 py-4 md:border-border/20">
+                <div className="rounded-[1.35rem] border border-border/34 bg-card/24 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      avatarUrl={profile.avatar_url}
+                      displayName={profile.display_name}
+                      username={profile.username}
+                      className="size-11"
+                      initialsLength={2}
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {profile.display_name ?? `@${profile.username}`}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        @{profile.username}
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
+                <ScrollArea className="mt-3 w-full whitespace-nowrap">
+                  <div className="flex gap-2 pb-1">
+                    {settingsNavItems.map((item) => {
+                      const Icon = item.icon;
+                      const active = activeSection === item.id;
+
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setSection(item.id)}
+                          className={cn(
+                            "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors",
+                            active
+                              ? "border-border/36 bg-card/30 text-foreground md:border-border/30 md:bg-card/26"
+                              : "border-border/26 bg-card/18 text-muted-foreground hover:text-foreground md:border-border/15 md:bg-card/10",
+                          )}
+                        >
+                          <Icon className="size-4" />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               </div>
-            </div>
 
-            <ScrollArea className="mt-3 w-full whitespace-nowrap">
-              <div className="flex gap-2 pb-1">
-                {settingsNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = activeSection === item.id;
-
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSection(item.id)}
-                      className={cn(
-                        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors",
-                        active
-                          ? "border-border/36 bg-card/30 text-foreground md:border-border/30 md:bg-card/26"
-                          : "border-border/26 bg-card/18 text-muted-foreground hover:text-foreground md:border-border/15 md:bg-card/10",
-                      )}
-                    >
-                      <Icon className="size-4" />
-                      {item.label}
-                    </button>
-                  );
-                })}
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                <ProfileEditorForm
+                  mode="settings"
+                  initialProfile={profile}
+                  settingsLayout="panel"
+                  settingsSection={activeSection}
+                  onSaved={(updatedProfile) => {
+                    onProfileUpdate?.({
+                      username: updatedProfile.username,
+                      display_name: updatedProfile.display_name,
+                      avatar_url: updatedProfile.avatar_url,
+                      bio: updatedProfile.bio,
+                      spotify_url: updatedProfile.spotify_url,
+                      apple_music_url: updatedProfile.apple_music_url,
+                      deezer_url: updatedProfile.deezer_url,
+                    });
+                    handleOpenChange(false);
+                  }}
+                />
               </div>
-            </ScrollArea>
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-            <ProfileEditorForm
-              mode="settings"
-              initialProfile={profile}
-              settingsLayout="panel"
-              settingsSection={activeSection}
-              onSaved={(updatedProfile) => {
-                onProfileUpdate?.({
-                  username: updatedProfile.username,
-                  display_name: updatedProfile.display_name,
-                  avatar_url: updatedProfile.avatar_url,
-                  bio: updatedProfile.bio,
-                  spotify_url: updatedProfile.spotify_url,
-                  apple_music_url: updatedProfile.apple_music_url,
-                  deezer_url: updatedProfile.deezer_url,
-                });
-                handleOpenChange(false);
-              }}
-            />
-          </div>
-        </DrawerContent>
-      </Drawer>
+            </DrawerBaseContent>
+          </DrawerBaseViewport>
+        </DrawerBasePortal>
+      </DrawerBase>
     );
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {triggerNode ? <DialogTrigger asChild>{triggerNode}</DialogTrigger> : null}
+      {triggerElement ? <DialogTrigger asChild>{triggerElement}</DialogTrigger> : null}
       <DialogContent className="h-[min(86vh,48rem)] max-w-[min(72rem,calc(100vw-2.5rem))] overflow-hidden border-border/44 bg-background p-0 md:border-border/40">
         <div className="grid h-full min-h-0 grid-cols-[15.5rem_minmax(0,1fr)]">
           <aside className="flex min-h-0 flex-col border-r border-border/32 bg-card/22 p-3 md:border-border/25 md:bg-card/14">

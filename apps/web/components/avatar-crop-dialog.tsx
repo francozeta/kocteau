@@ -16,12 +16,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  DrawerBase,
+  DrawerBaseBackdrop,
+  DrawerBaseContent,
+  DrawerBaseDescription,
+  DrawerBaseHandle,
+  DrawerBaseHeader,
+  DrawerBasePortal,
+  DrawerBaseTitle,
+  DrawerBaseViewport,
+} from "@/components/ui/drawer-base";
 import {
   Cropper,
   CropperCropArea,
@@ -197,18 +201,24 @@ export default function AvatarCropDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="gap-0 rounded-t-[1.65rem] border-0 p-1.5 text-white before:inset-1.5 before:rounded-[1.5rem] before:border-white/10 before:bg-[#060606] before:shadow-2xl data-[vaul-drawer-direction=bottom]:max-h-[calc(100dvh-0.25rem)]">
-          <DrawerHeader className="sr-only">
-            <DrawerTitle>Crop profile photo</DrawerTitle>
-            <DrawerDescription>
-              Adjust the framing and save.
-            </DrawerDescription>
-          </DrawerHeader>
+      <DrawerBase open={open} onOpenChange={onOpenChange} swipeDirection="down">
+        <DrawerBasePortal>
+          <DrawerBaseBackdrop className="bg-black/78" />
+          <DrawerBaseViewport>
+            <DrawerBaseContent className="max-h-[calc(100dvh-0.25rem)] border-white/10 bg-[#060606] text-white">
+              <DrawerBaseHandle className="bg-white/18" />
+              <DrawerBaseHeader className="sr-only">
+                <DrawerBaseTitle>Crop profile photo</DrawerBaseTitle>
+                <DrawerBaseDescription>
+                  Adjust the framing and save.
+                </DrawerBaseDescription>
+              </DrawerBaseHeader>
 
-          {cropperContent}
-        </DrawerContent>
-      </Drawer>
+              {cropperContent}
+            </DrawerBaseContent>
+          </DrawerBaseViewport>
+        </DrawerBasePortal>
+      </DrawerBase>
     );
   }
 
