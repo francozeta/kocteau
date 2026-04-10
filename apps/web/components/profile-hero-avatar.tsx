@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getAvatarThumbnailUrl } from "@/lib/avatar-image-url";
 import { cn } from "@/lib/utils";
 
 type ProfileHeroAvatarProps = {
@@ -93,6 +94,7 @@ export default function ProfileHeroAvatar({
   const seed = username?.trim() || displayName?.trim() || "kocteau-user";
   const pattern = fallbackPatterns[getSeedValue(seed) % fallbackPatterns.length];
   const initials = getInitials(label);
+  const resolvedAvatarUrl = avatarUrl ? getAvatarThumbnailUrl(avatarUrl) : avatarUrl;
 
   return (
     <div
@@ -115,13 +117,13 @@ export default function ProfileHeroAvatar({
         }}
       />
 
-      {avatarUrl ? (
+      {resolvedAvatarUrl ? (
         <Image
-          src={avatarUrl}
+          src={resolvedAvatarUrl}
           alt={label}
           fill
           priority={priority}
-          unoptimized={isSvgAsset(avatarUrl)}
+          unoptimized={isSvgAsset(resolvedAvatarUrl)}
           sizes="(max-width: 640px) 96px, 112px"
           className={cn("relative z-[1] object-cover", imageClassName)}
         />
@@ -132,7 +134,7 @@ export default function ProfileHeroAvatar({
         className={cn(
           "absolute inset-0 flex items-center justify-center text-3xl font-semibold text-foreground/92",
           fallbackClassName,
-          avatarUrl && "sr-only",
+          resolvedAvatarUrl && "sr-only",
         )}
       >
         {initials}

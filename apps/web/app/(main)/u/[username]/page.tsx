@@ -121,7 +121,7 @@ export default async function UserProfilePage({
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
+    <div className="mx-auto max-w-5xl space-y-4 sm:space-y-5">
       <JsonLd
         data={buildProfilePageJsonLd({
           profile,
@@ -147,10 +147,10 @@ export default async function UserProfilePage({
         isAuthenticated={Boolean(user)}
       />
 
-      <div className="max-w-3xl space-y-7">
+      <div className="space-y-5">
         {hydratedPinnedReview ? (
-          <div className="space-y-3">
-            <div className="border-b border-border/32 pb-4 md:border-border/25">
+          <section className="space-y-3">
+            <div className="border-b border-border/32 pb-3 md:border-border/25">
               <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 Pinned
               </h2>
@@ -165,16 +165,11 @@ export default async function UserProfilePage({
               isAuthenticated={Boolean(user)}
               canManage={isOwnProfile}
             />
-          </div>
+          </section>
         ) : null}
 
         {hydratedReviews.length > 0 ? (
-          <section className="space-y-3.5">
-            <div className="border-b border-border/32 pb-4 md:border-border/25">
-              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                {hydratedPinnedReview ? "Recent" : "Reviews"}
-              </h2>
-            </div>
+          <section className="space-y-4">
             <div className="space-y-4">
               {hydratedReviews.map((review) => (
                 <ProfileReviewCard
@@ -191,12 +186,12 @@ export default async function UserProfilePage({
             </div>
           </section>
         ) : !hydratedPinnedReview ? (
-          <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
-            <EmptyHeader>
-              <EmptyTitle>No reviews yet</EmptyTitle>
-              <EmptyDescription>Nothing here yet.</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+            <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
+              <EmptyHeader>
+                <EmptyTitle>No reviews yet</EmptyTitle>
+                <EmptyDescription>Nothing here yet.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
         ) : null}
 
         {isOwnProfile && user?.id ? (

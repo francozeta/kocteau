@@ -4,29 +4,40 @@ import { useEffect } from "react";
 import { useRouteHeader } from "@/components/route-header-context";
 
 type TrackPageHeaderBridgeProps = {
+  entityId: string;
   title: string;
   artistName: string | null;
   deezerUrl: string | null;
 };
 
 export default function TrackPageHeaderBridge({
+  entityId,
   title,
   artistName,
   deezerUrl,
 }: TrackPageHeaderBridgeProps) {
-  const { setTrackHeader } = useRouteHeader();
+  const { setDetailHeader } = useRouteHeader();
 
   useEffect(() => {
-    setTrackHeader({
+    setDetailHeader({
+      kind: "track",
       title,
-      artistName,
-      deezerUrl,
+      shareLabel: artistName?.trim() ? `${title} — ${artistName}` : title,
+      sharePath: `/track/${entityId}`,
+      externalLinks: deezerUrl
+        ? [
+            {
+              label: "Open in Deezer",
+              url: deezerUrl,
+            },
+          ]
+        : [],
     });
 
     return () => {
-      setTrackHeader(null);
+      setDetailHeader(null);
     };
-  }, [artistName, deezerUrl, setTrackHeader, title]);
+  }, [artistName, deezerUrl, entityId, setDetailHeader, title]);
 
   return null;
 }

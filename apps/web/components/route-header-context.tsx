@@ -10,28 +10,33 @@ import {
   type SetStateAction,
 } from "react";
 
-export type TrackHeaderState = {
+export type DetailHeaderState = {
+  kind: "track" | "profile";
   title: string;
-  artistName: string | null;
-  deezerUrl: string | null;
+  shareLabel: string;
+  sharePath: string;
+  externalLinks: Array<{
+    label: string;
+    url: string;
+  }>;
 } | null;
 
 type RouteHeaderContextValue = {
-  trackHeader: TrackHeaderState;
-  setTrackHeader: Dispatch<SetStateAction<TrackHeaderState>>;
+  detailHeader: DetailHeaderState;
+  setDetailHeader: Dispatch<SetStateAction<DetailHeaderState>>;
 };
 
 const RouteHeaderContext = createContext<RouteHeaderContextValue | null>(null);
 
 export function RouteHeaderProvider({ children }: { children: ReactNode }) {
-  const [trackHeader, setTrackHeader] = useState<TrackHeaderState>(null);
+  const [detailHeader, setDetailHeader] = useState<DetailHeaderState>(null);
 
   const value = useMemo(
     () => ({
-      trackHeader,
-      setTrackHeader,
+      detailHeader,
+      setDetailHeader,
     }),
-    [trackHeader],
+    [detailHeader],
   );
 
   return (
