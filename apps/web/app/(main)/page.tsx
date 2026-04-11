@@ -264,15 +264,6 @@ export default async function HomePage({
         <div className="border-b border-border/32 pb-3 md:border-border/24">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-1.5">
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                Feed
-              </p>
-              <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-                Recent music reviews and listening notes
-              </h1>
-              <p className="max-w-2xl text-sm text-muted-foreground">
-                Discover what people are hearing, rating, and writing about right now.
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
