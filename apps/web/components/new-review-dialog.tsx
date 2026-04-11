@@ -181,8 +181,8 @@ export default function NewReviewDialog({
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger>
 
-        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-2xl border-border/30">
-          <DrawerHeader className="border-b border-border/30 pb-3 text-left">
+        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-[1.1rem] border-border/34 before:rounded-t-[1rem] before:border-border/34 before:bg-background">
+          <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
             <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
             <DrawerDescription className="sr-only">
               Create or publish a review.
@@ -194,6 +194,7 @@ export default function NewReviewDialog({
               initialQuery={resolvedInitialQuery}
               initialSelection={resolvedInitialSelection}
               redirectToOnSuccess={redirectToOnSuccess}
+              onCancel={() => handleOpenChange(false)}
               onSuccess={() => handleOpenChange(false)}
             />
           </div>
@@ -206,8 +207,8 @@ export default function NewReviewDialog({
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger>
 
-      <DialogContent className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/30 p-0">
-        <DialogHeader className="border-b border-border/30 px-6 py-4">
+      <DialogContent showCloseButton={false} className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-background p-0">
+        <DialogHeader className="border-b border-border/30 bg-background px-6 py-4">
           <DialogTitle className="font-serif text-2xl">New review</DialogTitle>
           <DialogDescription className="sr-only">
             Create or publish a review.
@@ -219,6 +220,7 @@ export default function NewReviewDialog({
             initialQuery={resolvedInitialQuery}
             initialSelection={resolvedInitialSelection}
             redirectToOnSuccess={redirectToOnSuccess}
+            onCancel={() => handleOpenChange(false)}
             onSuccess={() => handleOpenChange(false)}
           />
         </div>
