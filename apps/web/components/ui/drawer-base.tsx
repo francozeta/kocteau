@@ -74,29 +74,29 @@ function getDrawerBaseContentClassName(state: DrawerPrimitive.Popup.State) {
   const isHorizontal = state.swipeDirection === "left" || state.swipeDirection === "right";
 
   return cn(
-    "group/drawer-base-popup pointer-events-auto relative flex flex-col overflow-hidden bg-background text-foreground shadow-2xl outline-none transition-[transform,opacity,border-radius] duration-200 ease-out data-swiping:duration-0 data-starting-style:opacity-0 data-ending-style:opacity-0",
+    "group/drawer-base-popup pointer-events-auto relative flex flex-col overflow-hidden border border-border bg-popover text-foreground shadow-2xl ring-1 ring-border/70 outline-none transition-[transform,opacity,border-radius] duration-200 ease-out data-swiping:duration-0 data-starting-style:opacity-0 data-ending-style:opacity-0",
     isVertical && "w-full",
     isHorizontal && "h-full max-w-[min(24rem,calc(100vw-0.75rem))]",
     state.swipeDirection === "down" &&
-      "mt-auto max-h-[calc(100dvh-0.25rem)] rounded-t-[1.65rem] border border-border/34 border-b-0 data-starting-style:translate-y-8 data-ending-style:translate-y-8",
+      "mt-auto max-h-[calc(100dvh-0.25rem)] rounded-t-[1.65rem] border-b-0 data-starting-style:translate-y-8 data-ending-style:translate-y-8",
     state.swipeDirection === "up" &&
-      "mb-auto max-h-[calc(100dvh-0.25rem)] rounded-b-[1.65rem] border border-border/34 border-t-0 data-starting-style:-translate-y-8 data-ending-style:-translate-y-8",
+      "mb-auto max-h-[calc(100dvh-0.25rem)] rounded-b-[1.65rem] border-t-0 data-starting-style:-translate-y-8 data-ending-style:-translate-y-8",
     state.swipeDirection === "right" &&
-      "ml-auto w-[min(24rem,calc(100vw-0.75rem))] rounded-l-[1.65rem] border border-border/34 border-r-0 data-starting-style:translate-x-8 data-ending-style:translate-x-8",
+      "ml-auto w-[min(24rem,calc(100vw-0.75rem))] rounded-l-[1.65rem] border-r-0 data-starting-style:translate-x-8 data-ending-style:translate-x-8",
     state.swipeDirection === "left" &&
-      "mr-auto w-[min(24rem,calc(100vw-0.75rem))] rounded-r-[1.65rem] border border-border/34 border-l-0 data-starting-style:-translate-x-8 data-ending-style:-translate-x-8",
+      "mr-auto w-[min(24rem,calc(100vw-0.75rem))] rounded-r-[1.65rem] border-l-0 data-starting-style:-translate-x-8 data-ending-style:-translate-x-8",
     state.nested &&
       state.swipeDirection === "down" &&
-      "mx-1.5 mb-1.5 max-h-[calc(100dvh-0.5rem)] rounded-[1.45rem] border-b border-border/44",
+      "mx-1.5 mb-1.5 max-h-[calc(100dvh-0.5rem)] rounded-[1.45rem] border-b border-border",
     state.nested &&
       state.swipeDirection === "up" &&
-      "mx-1.5 mt-1.5 max-h-[calc(100dvh-0.5rem)] rounded-[1.45rem] border-t border-border/44",
+      "mx-1.5 mt-1.5 max-h-[calc(100dvh-0.5rem)] rounded-[1.45rem] border-t border-border",
     state.nested &&
       state.swipeDirection === "right" &&
-      "my-1.5 mr-1.5 rounded-[1.45rem] border-r border-border/44",
+      "my-1.5 mr-1.5 rounded-[1.45rem] border-r border-border",
     state.nested &&
       state.swipeDirection === "left" &&
-      "my-1.5 ml-1.5 rounded-[1.45rem] border-l border-border/44",
+      "my-1.5 ml-1.5 rounded-[1.45rem] border-l border-border",
     state.nestedDrawerOpen &&
       state.swipeDirection === "down" &&
       "scale-[0.985] -translate-y-3 rounded-[1.45rem]",
@@ -138,7 +138,7 @@ function DrawerBaseBackdrop({
       data-slot="drawer-base-backdrop"
       className={(state) =>
         cn(
-          "absolute inset-0 bg-black/80 transition-opacity duration-150 ease-out data-starting-style:opacity-0 data-ending-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs",
+          "absolute inset-0 bg-black/92 transition-opacity duration-150 ease-out data-starting-style:opacity-0 data-ending-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs",
           resolveClassName(className, state),
         )}
       {...props}
@@ -183,7 +183,7 @@ function DrawerBaseHandle({
     <div
       data-slot="drawer-base-handle"
       className={cn(
-        "mx-auto mt-2 h-1.5 w-12 rounded-full bg-muted-foreground/30",
+        "mx-auto mt-2 h-1.5 w-12 rounded-full bg-white/14",
         className,
       )}
       {...props}

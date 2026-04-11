@@ -74,7 +74,10 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
           </button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-60 rounded-2xl border-border/40 bg-popover/96 p-1.5">
+        <DropdownMenuContent
+          align="end"
+          className="w-60 rounded-2xl border-border bg-popover p-1.5 ring-border/70"
+        >
           <DropdownMenuLabel className="px-2 py-2">
             <div className="space-y-0.5">
               <p className="truncate text-sm font-medium">{displayName}</p>

@@ -233,7 +233,7 @@ function Sidebar({
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
+            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
           className
         )}
         {...props}
@@ -241,7 +241,14 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+          className={cn(
+            "flex size-full flex-col bg-sidebar",
+            variant === "sidebar" && side === "left" && "border-r border-sidebar-border",
+            variant === "sidebar" && side === "right" && "border-l border-sidebar-border",
+            variant === "floating" && "rounded-lg border border-sidebar-border shadow-sm",
+            variant === "inset" && side === "left" && "border-r border-sidebar-border",
+            variant === "inset" && side === "right" && "border-l border-sidebar-border",
+          )}
         >
           {children}
         </div>
@@ -324,7 +331,7 @@ function SidebarInput({
       data-slot="sidebar-input"
       data-sidebar="input"
       className={cn(
-        "h-8 w-full border-input bg-muted/20 dark:bg-muted/30",
+        "h-8 w-full border-sidebar-border bg-sidebar",
         className
       )}
       {...props}
@@ -479,7 +486,7 @@ const sidebarMenuButtonVariants = cva(
       variant: {
         default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         outline:
-          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
+          "border border-sidebar-border bg-sidebar hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       },
       size: {
         default: "h-8 text-xs",

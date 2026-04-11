@@ -185,7 +185,7 @@ export default async function HomePage({
       </div>
     </div>
   ) : (
-    <Empty className="rounded-[1.75rem] border-border/34 bg-card/26 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] md:border-border/26 md:bg-card/20">
+    <Empty className="rounded-[1.2rem] border-border/42 bg-card/40 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] md:border-border/34 md:bg-card/32">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Music2 className="size-4" />
@@ -211,12 +211,12 @@ export default async function HomePage({
             return (
               <div
                 key={profile.id}
-                className="rounded-[1.25rem] border border-border/32 bg-card/24 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/24 md:bg-card/16"
+                className="rounded-[1rem] border border-border/40 bg-card/40 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/32 md:bg-card/30"
               >
                 <div className="flex items-start gap-3">
                   <PrefetchLink
                     href={`/u/${profile.username}`}
-                    className="group min-w-0 flex-1 rounded-[1.15rem] transition-colors hover:text-foreground"
+                    className="group min-w-0 flex-1 rounded-[0.95rem] transition-colors hover:text-foreground"
                   >
                     <div className="flex items-start gap-3">
                       <UserAvatar

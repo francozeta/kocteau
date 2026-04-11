@@ -97,7 +97,7 @@ export function ReviewCardEntitySummary({
     return (
       <div
         className={cn(
-          "inline-flex max-w-full items-center gap-2 rounded-full border border-border/28 bg-card/16 px-2.5 py-1.5 text-sm text-muted-foreground md:border-border/18 md:bg-transparent",
+          "inline-flex max-w-full items-center gap-2 rounded-full border border-border/42 bg-card/42 px-2.5 py-1.5 text-sm text-muted-foreground md:border-border/34 md:bg-card/28",
           interactive && "transition-colors hover:bg-muted/26 hover:text-foreground active:bg-muted/32 md:hover:bg-muted/18 md:active:bg-muted/24",
           className,
         )}
@@ -120,7 +120,7 @@ export function ReviewCardEntitySummary({
   return (
     <div
       className={cn(
-        "-mx-1 flex items-center gap-3 rounded-[1.15rem] px-1 py-1.5",
+        "-mx-1 flex items-center gap-3 rounded-[0.95rem] px-1 py-1.5",
         interactive && "transition-colors hover:bg-muted/16 active:bg-muted/22",
         className,
       )}
@@ -130,7 +130,7 @@ export function ReviewCardEntitySummary({
         alt={entity.title}
         sizes="44px"
         priority={priority}
-        className="h-11 w-11 shrink-0 rounded-[0.95rem] border border-border/24 bg-muted/28 md:border-border/14 md:bg-muted/18"
+        className="h-11 w-11 shrink-0 rounded-[0.78rem] border border-border/34 bg-muted/42 md:border-border/28 md:bg-muted/34"
         iconClassName="size-4"
       />
 
@@ -171,8 +171,8 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "overflow-hidden rounded-[1.65rem] border border-border/28 bg-card/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors md:border-border/18 md:bg-card/14",
-        featured && "border-border/34 bg-card/28 md:border-border/24 md:bg-card/18",
+        "overflow-hidden rounded-[1.18rem] border border-border/40 bg-card/44 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors md:border-border/32 md:bg-card/34",
+        featured && "border-border/48 bg-card/54 md:border-border/36 md:bg-card/42",
         className,
       )}
     >
@@ -218,7 +218,7 @@ export default function ReviewCard({
           {showRatingBadge || headerActions ? (
             <div className="flex items-center gap-2 self-start sm:self-auto">
               {showRatingBadge ? (
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-border/30 bg-muted/24 px-2.5 py-1 text-sm font-medium whitespace-nowrap md:border-border/20 md:bg-muted/14">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-border/38 bg-muted/38 px-2.5 py-1 text-sm font-medium whitespace-nowrap md:border-border/28 md:bg-muted/28">
                   <Star className="size-3.5 fill-current text-amber-400" />
                   {review.rating.toFixed(1)}
                 </div>
@@ -254,7 +254,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="flex items-center justify-between gap-3 border-t border-border/18 pt-2.5 md:border-border/10"
+            className="flex items-center justify-between gap-3 border-t border-border/24 pt-2.5 md:border-border/18"
           >
             {footer}
           </div>

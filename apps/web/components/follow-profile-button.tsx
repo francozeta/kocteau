@@ -61,7 +61,7 @@ export default function FollowProfileButton({
   return (
     <Button
       type="button"
-      variant={state.following ? "secondary" : "outline"}
+      variant={state.following ? "secondary" : "default"}
       size={size}
       onClick={handleClick}
       disabled={isPending}
@@ -69,10 +69,10 @@ export default function FollowProfileButton({
       aria-busy={isPending}
       aria-label={state.following ? "Unfollow profile" : "Follow profile"}
       className={cn(
-        "rounded-full px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]",
+        "rounded-full px-3 shadow-none",
         state.following
-          ? "border-border/38 bg-card/28 text-foreground hover:bg-card/34 md:border-border/28 md:bg-card/18"
-          : "border-border/34 bg-card/16 text-foreground hover:bg-card/24 md:border-border/25 md:bg-transparent",
+          ? "!border-border !bg-black !text-white hover:!bg-accent hover:!text-white"
+          : "!border-white !bg-white !text-black hover:!bg-white/94 hover:!text-black",
         isPending && "opacity-80",
         className,
       )}

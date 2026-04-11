@@ -136,9 +136,9 @@ export default function AppSidebar({
   return (
     <TooltipProvider delayDuration={80}>
       <Sidebar
-        variant="inset"
+        variant="sidebar"
         collapsible="icon"
-        className="border-sidebar-border/70 !p-1.5 group-data-[collapsible=icon]:!p-1"
+        className="group-data-[collapsible=icon]:border-none"
         {...props}
       >
         <SidebarHeader className="gap-2.5 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">

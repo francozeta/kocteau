@@ -60,7 +60,7 @@ export default function Header({
   initialUnreadCount?: number;
   initialNotifications?: NotificationItem[];
 }) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, state: sidebarState } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { detailHeader } = useRouteHeader();
@@ -99,7 +99,8 @@ export default function Header({
 
   const standardHeader = (
     <header className={cn(
-      "fixed inset-x-0 top-0 z-30 border-b border-border/25 bg-background/72 backdrop-blur-xl md:left-[var(--sidebar-width)] md:right-0 md:border md:border-border/20 md:bg-background/78 md:peer-data-[state=collapsed]:left-[var(--sidebar-width-icon)]",
+      "fixed inset-x-0 top-0 z-30 border-b border-sidebar-border bg-background/72 backdrop-blur-xl md:right-0 md:border-b md:border-sidebar-border md:bg-background/78",
+      sidebarState === "collapsed" ? "md:left-[var(--sidebar-width-icon)]" : "md:left-[var(--sidebar-width)]",
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
     )}>
@@ -167,7 +168,7 @@ export default function Header({
   if (shouldUseContextualHeader) {
     return (
       <>
-        <header className="fixed inset-x-0 top-0 z-30 border-b border-border/25 bg-background/72 backdrop-blur-xl md:hidden">
+        <header className="fixed inset-x-0 top-0 z-30 border-b border-sidebar-border bg-background/72 backdrop-blur-xl md:hidden">
           <div className="flex h-15 items-center justify-between gap-3 px-4">
             <Button
               type="button"

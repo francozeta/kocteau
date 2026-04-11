@@ -94,7 +94,7 @@ export function NavUser({
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                className="h-12 rounded-xl data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
+                className="h-12 rounded-xl data-[state=open]:bg-black data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
                 <UserAvatar
                   avatarUrl={profile.avatar_url}
@@ -110,7 +110,7 @@ export function NavUser({
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-(--radix-dropdown-menu-trigger-width) min-w-60 rounded-xl border-border/40 bg-popover/96"
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-60 rounded-xl border-border bg-popover ring-border/70"
               side="bottom"
               align="end"
               sideOffset={8}
