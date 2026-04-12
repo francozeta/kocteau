@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { Clock3, Music2, Search, Trophy } from "lucide-react";
+import { Clock3, Music2, Trophy } from "lucide-react";
 import FollowProfileButton from "@/components/follow-profile-button";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
@@ -274,15 +274,8 @@ export default async function HomePage({
     return (
       <NewReviewDialog
         isAuthenticated={Boolean(user)}
-        trigger={
-          <button
-            type="button"
-            className="flex h-11 w-full items-center gap-3 rounded-lg border border-border/42 bg-card/42 px-3.5 text-left text-muted-foreground transition-colors hover:border-border/58 hover:bg-card/58 hover:text-foreground"
-          >
-            <Search className="size-4 shrink-0" />
-            <span className="truncate text-sm">Search tracks, albums, or artists to review...</span>
-          </button>
-        }
+        triggerVariant="search"
+        triggerLabel="Search tracks, albums, or artists to review..."
       />
     );
   }

@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import NewReviewForm from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
@@ -40,10 +40,14 @@ type InitialSelection = {
   entity_id?: string | null;
 };
 
+type NewReviewDialogTriggerVariant = "default" | "search";
+
 export default function NewReviewDialog({
   isAuthenticated = true,
   triggerClassName,
   triggerLabelClassName,
+  triggerLabel,
+  triggerVariant = "default",
   trigger,
   open: controlledOpen,
   defaultOpen = false,
@@ -55,6 +59,8 @@ export default function NewReviewDialog({
   isAuthenticated?: boolean;
   triggerClassName?: string;
   triggerLabelClassName?: string;
+  triggerLabel?: string;
+  triggerVariant?: NewReviewDialogTriggerVariant;
   trigger?: React.ReactNode;
   open?: boolean;
   defaultOpen?: boolean;
@@ -140,16 +146,33 @@ export default function NewReviewDialog({
   const resolvedOpen = isAuthenticated && (controlledOpen ?? (shouldOpenFromUrl || internalOpen));
 
   const baseTrigger = trigger ?? (
-    <Button
-      size="sm"
-      className={cn(
-        "shrink-0 gap-2 bg-foreground text-background hover:bg-foreground/90",
-        triggerClassName,
-      )}
-    >
-      <Plus className="w-4 h-4" />
-      <span className={cn("hidden sm:inline", triggerLabelClassName)}>New review</span>
-    </Button>
+    triggerVariant === "search" ? (
+      <button
+        type="button"
+        className={cn(
+          "flex h-11 w-full items-center gap-3 rounded-lg border border-border/42 bg-card/42 px-3.5 text-left text-muted-foreground transition-colors hover:border-border/58 hover:bg-card/58 hover:text-foreground",
+          triggerClassName,
+        )}
+      >
+        <Search className="size-4 shrink-0" />
+        <span className={cn("truncate text-sm", triggerLabelClassName)}>
+          {triggerLabel ?? "Search tracks, albums, or artists to review..."}
+        </span>
+      </button>
+    ) : (
+      <Button
+        size="sm"
+        className={cn(
+          "shrink-0 gap-2 bg-foreground text-background hover:bg-foreground/90",
+          triggerClassName,
+        )}
+      >
+        <Plus className="w-4 h-4" />
+        <span className={cn("hidden sm:inline", triggerLabelClassName)}>
+          {triggerLabel ?? "New review"}
+        </span>
+      </Button>
+    )
   );
 
   const resolvedTrigger = !isAuthenticated && isValidElement(baseTrigger)

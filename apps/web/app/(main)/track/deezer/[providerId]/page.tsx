@@ -100,17 +100,8 @@ export default async function DeezerTrackResolverPage({
                 cover_url: track.cover_url,
                 deezer_url: track.deezer_url,
               }}
-              trigger={
-                <button
-                  type="button"
-                  className={cn(
-                    buttonVariants({ size: "sm" }),
-                    "rounded-full bg-foreground text-background hover:bg-foreground/90",
-                  )}
-                >
-                  New review
-                </button>
-              }
+              triggerClassName="rounded-full"
+              triggerLabelClassName="inline"
             />
             <Link
               href={`/search?q=${encodeURIComponent(track.title)}`}
