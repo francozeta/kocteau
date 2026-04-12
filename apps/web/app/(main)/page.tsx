@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { Music2 } from "lucide-react";
+import { Clock3, Music2, Search, Trophy } from "lucide-react";
 import FollowProfileButton from "@/components/follow-profile-button";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { FeedReviewCard } from "@/components/review-route-cards-server";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import UserAvatar from "@/components/user-avatar";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
@@ -184,7 +183,7 @@ export default async function HomePage({
       );
     })
   ) : (
-    <Empty className="rounded-[1.2rem] border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
+    <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Music2 className="size-4" />
@@ -200,12 +199,12 @@ export default async function HomePage({
     return (
       <div
         key={profile.id}
-        className="rounded-[1rem] bg-card/44 p-3 ring-1 ring-white/[0.06]"
+        className="rounded-lg bg-card/44 p-3 ring-1 ring-white/[0.06]"
       >
         <div className="flex items-start gap-3">
           <PrefetchLink
             href={`/u/${profile.username}`}
-            className="group min-w-0 flex-1 rounded-[0.95rem] transition-colors hover:text-foreground"
+            className="group min-w-0 flex-1 rounded-lg transition-colors hover:text-foreground"
           >
             <div className="flex items-start gap-3">
               <UserAvatar
@@ -242,24 +241,28 @@ export default async function HomePage({
     );
   });
 
-  function renderFeedControls() {
+  function renderFeedControls({ compact = false }: { compact?: boolean } = {}) {
     return (
-      <div className="inline-flex items-center rounded-full bg-black/20 p-1 ring-1 ring-white/[0.08]">
+      <div className="inline-flex items-center rounded-lg border border-border/42 bg-card/38 p-1">
         {feedViews.map((view) => {
           const isActive = activeView === view.value;
+          const Icon = view.value === "latest" ? Clock3 : Trophy;
 
           return (
             <Link
               key={view.value}
               href={getFeedViewHref(view.value)}
+              aria-label={view.label}
+              title={view.label}
               className={cn(
-                "inline-flex items-center rounded-full px-3.5 py-1.5 text-sm transition-colors",
+                "inline-flex h-9 items-center rounded-md text-sm transition-colors",
+                compact ? "w-9 justify-center px-0" : "px-3.5",
                 isActive
-                  ? "bg-card/90 text-foreground ring-1 ring-white/[0.08]"
+                  ? "border border-border/48 bg-background text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {view.label}
+              {compact ? <Icon className="size-4" /> : view.label}
             </Link>
           );
         })}
@@ -267,12 +270,19 @@ export default async function HomePage({
     );
   }
 
-  function renderFeedCta() {
+  function renderFeedSearchTrigger() {
     return (
       <NewReviewDialog
         isAuthenticated={Boolean(user)}
-        triggerClassName="h-10 rounded-lg bg-white px-4 text-black hover:bg-white/92"
-        triggerLabelClassName="inline"
+        trigger={
+          <button
+            type="button"
+            className="flex h-11 w-full items-center gap-3 rounded-lg border border-border/42 bg-card/42 px-3.5 text-left text-muted-foreground transition-colors hover:border-border/58 hover:bg-card/58 hover:text-foreground"
+          >
+            <Search className="size-4 shrink-0" />
+            <span className="truncate text-sm">Search tracks, albums, or artists to review...</span>
+          </button>
+        }
       />
     );
   }
@@ -282,9 +292,13 @@ export default async function HomePage({
       <JsonLd data={feedStructuredData} id="home-structured-data" />
       <div className="flex h-full min-h-0 flex-col">
         <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:hidden">
-          <div className="flex items-center justify-between gap-3">
-            {renderFeedControls()}
-            {renderFeedCta()}
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              {renderFeedSearchTrigger()}
+            </div>
+            <div className="shrink-0">
+              {renderFeedControls({ compact: true })}
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -306,47 +320,20 @@ export default async function HomePage({
           ) : null}
         </section>
 
-        <section className="hidden min-h-0 flex-1 lg:flex">
-          <div className="mx-auto flex min-h-0 w-full max-w-[75rem] items-start justify-center gap-5 xl:gap-6">
-            <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-[1rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.012))] ring-1 ring-white/[0.045]">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.024),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.012),transparent_18%)]" />
-
-              <div className="relative flex min-h-0 flex-1 flex-col bg-background/40">
-                <div className="shrink-0 bg-background/72 px-5 py-5 shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)] backdrop-blur-xl xl:px-6">
-                  <div className="mx-auto flex w-full max-w-[42rem] items-start justify-between gap-4">
-                    <div className="min-w-0 space-y-3">
-                      {renderFeedControls()}
-                    </div>
-
-                    <div className="shrink-0">
-                      {renderFeedCta()}
-                    </div>
-                  </div>
+        <section className="hidden lg:block">
+          <div className="mx-auto w-full max-w-[75rem]">
+            <div className="mx-auto w-full max-w-[42rem] space-y-4">
+              <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+                <div className="min-w-0">
+                  {renderFeedSearchTrigger()}
                 </div>
+                <div className="justify-self-start xl:justify-self-end">
+                  {renderFeedControls()}
+                </div>
+              </div>
 
-                <ScrollArea className="min-h-0 flex-1">
-                  <div className="mx-auto flex w-full max-w-[42rem] flex-col gap-4 px-5 py-5 xl:px-6">
-                    {Boolean(user) ? (
-                      <div className="rounded-[0.95rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.024),rgba(255,255,255,0.012))] px-4 py-4 ring-1 ring-white/[0.06]">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium text-foreground">Share what you are hearing</p>
-                            <p className="text-xs text-muted-foreground">
-                              Search a track, rate it, and drop a quick note without leaving the feed.
-                            </p>
-                          </div>
-                          <div className="shrink-0">
-                            {renderFeedCta()}
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    <div className="space-y-3.5">
-                      {feedCards}
-                    </div>
-                  </div>
-                </ScrollArea>
+              <div className="space-y-3.5">
+                {feedCards}
               </div>
             </div>
           </div>

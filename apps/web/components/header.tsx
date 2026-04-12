@@ -62,7 +62,7 @@ export default function Header({
   initialUnreadCount?: number;
   initialNotifications?: NotificationItem[];
 }) {
-  const { toggleSidebar, state: sidebarState } = useSidebar();
+  const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { detailHeader } = useRouteHeader();
@@ -151,8 +151,7 @@ export default function Header({
 
   const standardHeader = (
     <header className={cn(
-      "fixed inset-x-0 top-0 z-30 bg-background/72 backdrop-blur-xl md:right-0 md:bg-background/78",
-      sidebarState === "collapsed" ? "md:left-[var(--sidebar-width-icon)]" : "md:left-[var(--sidebar-width)]",
+      "fixed inset-x-0 top-0 z-30 bg-background/72 backdrop-blur-xl md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
     )}>
