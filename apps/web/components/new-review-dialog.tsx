@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import NewReviewForm from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -49,6 +50,7 @@ export default function NewReviewDialog({
   triggerLabel,
   triggerVariant = "default",
   trigger,
+  showTrigger = true,
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
@@ -62,6 +64,7 @@ export default function NewReviewDialog({
   triggerLabel?: string;
   triggerVariant?: NewReviewDialogTriggerVariant;
   trigger?: React.ReactNode;
+  showTrigger?: boolean;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -99,6 +102,9 @@ export default function NewReviewDialog({
   }, [searchParams]);
   const resolvedInitialQuery = initialQuery ?? initialQueryFromUrl;
   const resolvedInitialSelection = initialSelection ?? initialSelectionFromUrl;
+  const [formStep, setFormStep] = useState<"search" | "compose">(
+    resolvedInitialSelection ? "compose" : "search",
+  );
 
   const clearComposeParams = useCallback(() => {
     if (!usesUrlComposeState) {
@@ -127,6 +133,10 @@ export default function NewReviewDialog({
       setInternalOpen(nextOpen);
     }
 
+    if (nextOpen) {
+      setFormStep(resolvedInitialSelection ? "compose" : "search");
+    }
+
     onOpenChange?.(nextOpen);
 
     if (!nextOpen && shouldOpenFromUrl) {
@@ -144,6 +154,27 @@ export default function NewReviewDialog({
   }, [clearComposeParams, isAuthenticated, shouldOpenFromUrl]);
 
   const resolvedOpen = isAuthenticated && (controlledOpen ?? (shouldOpenFromUrl || internalOpen));
+
+  function renderStepDots() {
+    return (
+      <div className="flex items-center gap-1.5" aria-label={`Step ${formStep === "search" ? 1 : 2} of 2`}>
+        {[0, 1].map((index) => {
+          const activeIndex = formStep === "search" ? 0 : 1;
+          const isActive = index === activeIndex;
+
+          return (
+            <span
+              key={index}
+              className={cn(
+                "block size-2 rounded-full bg-white/18 transition-colors",
+                isActive && "bg-white",
+              )}
+            />
+          );
+        })}
+      </div>
+    );
+  }
 
   const baseTrigger = trigger ?? (
     triggerVariant === "search" ? (
@@ -196,24 +227,28 @@ export default function NewReviewDialog({
     : baseTrigger;
 
   if (!isAuthenticated) {
-    return <>{resolvedTrigger}</>;
+    return showTrigger ? <>{resolvedTrigger}</> : null;
   }
 
   if (isMobile) {
     return (
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
-        <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger>
+        {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-[1.1rem] border-border/34 before:rounded-t-[1rem] before:border-border/34 before:bg-background">
+        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-[1.1rem] border-border/34 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar">
           <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
-            <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
-            <DrawerDescription className="sr-only">
-              Create or publish a review.
-            </DrawerDescription>
+            <div className="flex items-center justify-between gap-3">
+              <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
+              {renderStepDots()}
+            </div>
+            <DrawerDescription className="sr-only">Create or publish a review.</DrawerDescription>
           </DrawerHeader>
 
           <div className="min-h-0 flex-1 overflow-hidden">
             <NewReviewForm
+              onStepChange={setFormStep}
+              showCancelAction={false}
+              primaryActionFullWidth
               initialQuery={resolvedInitialQuery}
               initialSelection={resolvedInitialSelection}
               redirectToOnSuccess={redirectToOnSuccess}
@@ -228,18 +263,23 @@ export default function NewReviewDialog({
 
   return (
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger>
+      {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
-      <DialogContent showCloseButton={false} className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-background p-0">
-        <DialogHeader className="border-b border-border/30 bg-background px-6 py-4">
-          <DialogTitle className="font-serif text-2xl">New review</DialogTitle>
-          <DialogDescription className="sr-only">
-            Create or publish a review.
-          </DialogDescription>
+      <DialogContent showCloseButton={false} className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-sidebar p-0">
+        <DialogHeader className="border-b border-border/30 bg-sidebar px-6 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <DialogTitle className="font-serif text-2xl">New review</DialogTitle>
+            <Kbd className="rounded-md border border-border/42 bg-card/42 px-2 text-[0.625rem] text-muted-foreground">
+              Esc
+            </Kbd>
+          </div>
+          <DialogDescription className="sr-only">Create or publish a review.</DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-hidden">
           <NewReviewForm
+            onStepChange={setFormStep}
+            showCancelAction={false}
             initialQuery={resolvedInitialQuery}
             initialSelection={resolvedInitialSelection}
             redirectToOnSuccess={redirectToOnSuccess}

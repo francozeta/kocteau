@@ -121,7 +121,7 @@ export default async function UserProfilePage({
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 sm:space-y-5">
+    <div className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
       <JsonLd
         data={buildProfilePageJsonLd({
           profile,

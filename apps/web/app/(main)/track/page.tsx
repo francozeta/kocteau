@@ -28,7 +28,7 @@ export default async function TrackIndexPage() {
   const tracks = await getRecentlyDiscussedTracks(12);
 
   return (
-    <section className="mx-auto max-w-4xl space-y-5 sm:space-y-6">
+    <section className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">

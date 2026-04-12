@@ -1,7 +1,9 @@
 "use client";
 
-import { startTransition, useEffect } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
+export const OPEN_NEW_REVIEW_SHORTCUT_EVENT = "kocteau:new-review-open";
 
 function shouldIgnoreGlobalShortcut(event: KeyboardEvent) {
   if (event.defaultPrevented || event.repeat) {
@@ -28,18 +30,10 @@ function shouldIgnoreGlobalShortcut(event: KeyboardEvent) {
 export function useGlobalShortcuts() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     function handleOpenCompose() {
-      const next = new URLSearchParams(searchParams.toString());
-      next.set("compose", "1");
-
-      startTransition(() => {
-        router.replace(next.toString() ? `${pathname}?${next.toString()}` : pathname, {
-          scroll: false,
-        });
-      });
+      window.dispatchEvent(new CustomEvent(OPEN_NEW_REVIEW_SHORTCUT_EVENT));
     }
 
     function handleFocusSearch() {
@@ -79,5 +73,5 @@ export function useGlobalShortcuts() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [pathname, router, searchParams]);
+  }, [pathname, router]);
 }

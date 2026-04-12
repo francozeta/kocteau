@@ -6,7 +6,6 @@ import { ArrowLeft, LoaderCircle, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { FieldError } from "@/components/ui/field";
@@ -16,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import { toastActionSuccess } from "@/lib/feedback";
+import { cn } from "@/lib/utils";
 import { ApiError, createApiError, getFirstFieldError } from "@/lib/validation/errors";
 import { createReviewSchema, updateReviewSchema } from "@/lib/validation/schemas";
 import RatingStars from "./rating-stars";
@@ -47,6 +47,9 @@ type NewReviewFormProps = {
   reviewId?: string | null;
   onSuccess?: () => void;
   onCancel?: () => void;
+  onStepChange?: (step: Step) => void;
+  showCancelAction?: boolean;
+  primaryActionFullWidth?: boolean;
   initialQuery?: string;
   initialSelection?: DeezerResult | null;
   initialRating?: number | null;
@@ -63,6 +66,9 @@ export default function NewReviewForm({
   reviewId = null,
   onSuccess,
   onCancel,
+  onStepChange,
+  showCancelAction = true,
+  primaryActionFullWidth = false,
   initialQuery = "",
   initialSelection = null,
   initialRating = null,
@@ -143,6 +149,10 @@ export default function NewReviewForm({
       block: "nearest",
     });
   }, [activeResultIndex]);
+
+  useEffect(() => {
+    onStepChange?.(step);
+  }, [onStepChange, step]);
 
   function resetAll() {
     setStep(initialSelection ? "compose" : "search");
@@ -356,7 +366,13 @@ export default function NewReviewForm({
     step === "search"
       ? Boolean(highlightedResult)
       : Boolean(selected) && rating !== null && !saving;
-  const continueLabel = saving ? (isEditMode ? "Saving..." : "Publishing...") : "Continue";
+  const continueLabel = saving
+    ? (isEditMode ? "Saving..." : "Publishing...")
+    : step === "search"
+      ? "Next"
+      : isEditMode
+        ? "Save"
+        : "Publish";
 
   function handleContinue() {
     if (step === "search") {
@@ -371,17 +387,24 @@ export default function NewReviewForm({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className="flex h-full min-h-0 flex-col bg-sidebar">
       {step === "search" ? (
         <div className="flex min-h-0 flex-1 flex-col px-6 py-4">
-          <div className="mb-4 flex items-center justify-between">
-            <p className="flex items-center gap-2 text-sm font-semibold">
-              <Search className="size-4" />
-              Search
-            </p>
-            <Badge variant="secondary" className="shrink-0 text-xs">
-              Tracks only
-            </Badge>
+          <div className="relative mb-3 shrink-0">
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setFieldErrors((current) => ({ ...current, selected: undefined }));
+              }}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search tracks or artists..."
+              disabled={saving}
+              autoFocus
+              className="h-11 shrink-0 rounded-lg border-border/42 bg-card/44 pl-10 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
+              maxLength={80}
+            />
           </div>
 
           {errorMsg ? (
@@ -397,29 +420,15 @@ export default function NewReviewForm({
               <AlertDescription>{searchError.message}</AlertDescription>
             </Alert>
           ) : null}
-
-          <Input
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setFieldErrors((current) => ({ ...current, selected: undefined }));
-            }}
-            onKeyDown={handleSearchKeyDown}
-            placeholder="Track name or artist..."
-            disabled={saving}
-            autoFocus
-            className="mb-3 h-11 shrink-0 rounded-xl border-border/42 bg-card/44 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
-            maxLength={80}
-          />
           <FieldError>{fieldErrors.selected}</FieldError>
 
-          <ScrollArea className="min-h-0 flex-1 rounded-[1rem] border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
+          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
             <div className="space-y-0">
               {isFetching && results.length === 0 ? (
                 <div className="space-y-3 px-4 py-4">
                   {Array.from({ length: 4 }).map((_, index) => (
                     <div key={index} className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-xl" />
+                      <Skeleton className="h-10 w-10 rounded-lg" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-3.5 w-1/2" />
                         <Skeleton className="h-3 w-1/3" />
@@ -490,7 +499,7 @@ export default function NewReviewForm({
                         alt={result.title}
                         sizes="40px"
                         quality={56}
-                        className="h-10 w-10 shrink-0 rounded-xl bg-muted"
+                        className="h-10 w-10 shrink-0 rounded-lg bg-muted"
                         iconClassName="size-4"
                       />
 
@@ -516,20 +525,20 @@ export default function NewReviewForm({
                 variant="ghost"
                 size="icon"
                 onClick={goBackToSearch}
-                className="shrink-0 rounded-full"
+                className="shrink-0 rounded-lg"
               >
                 <ArrowLeft className="size-4" />
                 <span className="sr-only">Back to search</span>
               </Button>
             ) : null}
 
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[1rem] border border-border/40 bg-card/34 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/28">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-border/40 bg-card/34 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/28">
               <EntityCoverImage
                 src={selected?.cover_url}
                 alt={selected?.title ?? "Selected track"}
                 sizes="48px"
                 quality={56}
-                className="h-12 w-12 shrink-0 rounded-[0.85rem] bg-muted"
+                className="h-12 w-12 shrink-0 rounded-lg bg-muted"
                 iconClassName="size-5"
               />
 
@@ -541,7 +550,7 @@ export default function NewReviewForm({
               </div>
 
               {selected?.deezer_url ? (
-                <Button asChild type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-full">
+                <Button asChild type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-lg">
                   <a href={selected.deezer_url} target="_blank" rel="noreferrer" title="Open on Deezer">
                     <FaDeezer className="size-4" />
                     <span className="sr-only">Open on Deezer</span>
@@ -558,7 +567,7 @@ export default function NewReviewForm({
             </Alert>
           ) : null}
 
-          <ScrollArea className="min-h-0 flex-1 rounded-[1rem] border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
+          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
             <div className="p-5">
               <div className="space-y-6">
                 <section>
@@ -587,7 +596,7 @@ export default function NewReviewForm({
                     }}
                     placeholder="Give it a headline"
                     disabled={saving}
-                    className="h-11 rounded-xl border-border/42 bg-card/44 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
+                    className="h-11 rounded-lg border-border/42 bg-card/44 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
                     maxLength={120}
                     aria-invalid={Boolean(fieldErrors.review_title)}
                   />
@@ -606,7 +615,7 @@ export default function NewReviewForm({
                       setFieldErrors((current) => ({ ...current, review_body: undefined }));
                     }}
                     placeholder="What did this track make you feel?"
-                    className="min-h-24 resize-none rounded-xl border-border/42 bg-card/44 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
+                    className="min-h-24 resize-none rounded-lg border-border/42 bg-card/44 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
                     disabled={saving}
                     maxLength={2000}
                     aria-invalid={Boolean(fieldErrors.review_body)}
@@ -619,23 +628,28 @@ export default function NewReviewForm({
         </div>
       )}
 
-      <div className="shrink-0 border-t border-border/30 bg-background px-6 py-4">
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            disabled={saving}
-            className="min-w-22 rounded-[0.8rem] border-border/42 bg-transparent px-4 text-foreground hover:bg-accent"
-          >
-            Cancel
-          </Button>
+      <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 py-4">
+        <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
+          {showCancelAction ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={saving}
+              className="min-w-22 rounded-lg border-border/42 bg-transparent px-4 text-foreground hover:bg-accent"
+            >
+              Cancel
+            </Button>
+          ) : null}
 
           <Button
             type="button"
             onClick={handleContinue}
             disabled={!canContinue}
-            className="min-w-24 rounded-[0.8rem] bg-white px-4 text-black hover:bg-white/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground"
+            className={cn(
+              "min-w-24 rounded-lg bg-white px-4 text-black hover:bg-white/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
+              primaryActionFullWidth && "w-full",
+            )}
           >
             {continueLabel}
           </Button>

@@ -9,7 +9,7 @@ import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 
 type TrackPageHeroProps = {
   entity: {
-    id: string;
+    id?: string | null;
     provider_id: string;
     title: string;
     artist_name: string | null;
@@ -17,6 +17,7 @@ type TrackPageHeroProps = {
     deezer_url: string | null;
   };
   isAuthenticated: boolean;
+  sharePath?: string;
   viewerReview: {
     id: string;
     title: string | null;
@@ -36,6 +37,7 @@ const sideActionClassName =
 export default function TrackPageHero({
   entity,
   isAuthenticated,
+  sharePath,
   viewerReview,
   shouldOpenViewerEditor = false,
 }: TrackPageHeroProps) {
@@ -47,7 +49,7 @@ export default function TrackPageHero({
     artist_name: entity.artist_name,
     cover_url: entity.cover_url,
     deezer_url: entity.deezer_url,
-    entity_id: entity.id,
+    entity_id: entity.id ?? null,
   };
 
   async function handleShareTrack() {
@@ -56,7 +58,8 @@ export default function TrackPageHero({
         return;
       }
 
-      const shareUrl = new URL(`/track/${entity.id}`, window.location.origin).toString();
+      const path = sharePath ?? (entity.id ? `/track/${entity.id}` : `/track/deezer/${entity.provider_id}`);
+      const shareUrl = new URL(path, window.location.origin).toString();
       const shareLabel = entity.artist_name?.trim()
         ? `${entity.title} — ${entity.artist_name}`
         : entity.title;

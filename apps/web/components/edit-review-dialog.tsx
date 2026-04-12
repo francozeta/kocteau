@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import NewReviewForm from "@/components/new-review-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -114,7 +115,7 @@ export default function EditReviewDialog({
       <Button
         variant={triggerVariant}
         size={triggerSize}
-        className={cn("rounded-full border-border/24 bg-card/12 px-4", triggerClassName)}
+        className={cn("rounded-lg border-border/24 bg-card/12 px-4", triggerClassName)}
       >
         {showDefaultTriggerIcon ? <PencilLine className="size-4" /> : null}
         {triggerLabel}
@@ -126,7 +127,7 @@ export default function EditReviewDialog({
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-[1.1rem] border-border/34 p-0 before:rounded-t-[1rem] before:border-border/34 before:bg-background">
+        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-[1.1rem] border-border/34 p-0 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar">
           <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
             <DrawerTitle className="font-serif text-2xl">Edit review</DrawerTitle>
             <DrawerDescription className="sr-only">Edit your review.</DrawerDescription>
@@ -141,6 +142,8 @@ export default function EditReviewDialog({
               initialBody={initialBody}
               initialRating={initialRating}
               initialPinned={initialPinned}
+              showCancelAction={false}
+              primaryActionFullWidth
               onCancel={() => handleOpenChange(false)}
               onSuccess={() => handleOpenChange(false)}
             />
@@ -154,9 +157,14 @@ export default function EditReviewDialog({
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
-      <DialogContent showCloseButton={false} className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-background p-0">
-        <DialogHeader className="border-b border-border/30 bg-background px-6 py-4">
-          <DialogTitle className="font-serif text-2xl">Edit review</DialogTitle>
+      <DialogContent showCloseButton={false} className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-sidebar p-0">
+        <DialogHeader className="border-b border-border/30 bg-sidebar px-6 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <DialogTitle className="font-serif text-2xl">Edit review</DialogTitle>
+            <Kbd className="rounded-md border border-border/42 bg-card/42 px-2 text-[0.625rem] text-muted-foreground">
+              Esc
+            </Kbd>
+          </div>
           <DialogDescription className="sr-only">Edit your review.</DialogDescription>
         </DialogHeader>
 
@@ -169,6 +177,7 @@ export default function EditReviewDialog({
             initialBody={initialBody}
             initialRating={initialRating}
             initialPinned={initialPinned}
+            showCancelAction={false}
             onCancel={() => handleOpenChange(false)}
             onSuccess={() => handleOpenChange(false)}
           />
