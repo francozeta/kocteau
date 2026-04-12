@@ -37,7 +37,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
               initialUnreadCount={initialUnreadCount}
               initialNotifications={[]}
             />
-            <main className="mx-auto w-full max-w-5xl px-3.5 pt-20 pb-32 sm:px-6 sm:pt-24 sm:pb-28 lg:px-10 lg:pt-24 lg:pb-10">
+            <main className="mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-20 pb-32 sm:px-6 sm:pt-24 sm:pb-28 lg:px-7 lg:pt-24 lg:pb-10 xl:px-8">
               {children}
             </main>
             <MobileBottomBar profile={safeProfile} />

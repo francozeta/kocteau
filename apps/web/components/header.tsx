@@ -32,6 +32,8 @@ type HeaderProfile = {
   deezer_url: string | null;
 };
 
+const FEEDBACK_URL = "https://github.com/francozeta/kocteau/issues/new";
+
 function HamburgerIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -68,6 +70,48 @@ export default function Header({
   const isTrackDetailRoute = /^\/track\/[^/]+$/.test(pathname);
   const isProfileDetailRoute = /^\/u\/[^/]+$/.test(pathname);
   const shouldUseContextualHeader = isTrackDetailRoute || isProfileDetailRoute;
+  const isSearchRoute = pathname.startsWith("/search");
+
+  const standardHeaderTitle = (() => {
+    if (isTrackDetailRoute) {
+      return detailHeader?.shareLabel ?? "Track";
+    }
+
+    if (isProfileDetailRoute) {
+      return detailHeader?.shareLabel ?? "Profile";
+    }
+
+    if (pathname === "/") {
+      return "Feed";
+    }
+
+    if (isSearchRoute) {
+      return "Explore";
+    }
+
+    if (pathname.startsWith("/saved")) {
+      return "Saved";
+    }
+
+    if (pathname.startsWith("/notifications")) {
+      return "Activity";
+    }
+
+    if (pathname.startsWith("/review/")) {
+      return "Review";
+    }
+
+    const [firstSegment] = pathname.split("/").filter(Boolean);
+
+    if (!firstSegment) {
+      return "Feed";
+    }
+
+    return firstSegment
+      .split("-")
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(" ");
+  })();
 
   const handleDetailBack = useCallback(() => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -97,9 +141,17 @@ export default function Header({
     });
   }, [detailHeader, isProfileDetailRoute, pathname]);
 
+  const handleGiveFeedback = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.open(FEEDBACK_URL, "_blank", "noopener,noreferrer");
+  }, []);
+
   const standardHeader = (
     <header className={cn(
-      "fixed inset-x-0 top-0 z-30 border-b border-sidebar-border bg-background/72 backdrop-blur-xl md:right-0 md:border-b md:border-sidebar-border md:bg-background/78",
+      "fixed inset-x-0 top-0 z-30 bg-background/72 backdrop-blur-xl md:right-0 md:bg-background/78",
       sidebarState === "collapsed" ? "md:left-[var(--sidebar-width-icon)]" : "md:left-[var(--sidebar-width)]",
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
@@ -129,20 +181,30 @@ export default function Header({
           </PrefetchLink>
         </div>
 
+        <div className="pointer-events-none absolute inset-x-0 hidden justify-center md:flex">
+          <div className="pointer-events-none inline-flex max-w-[22rem] items-center justify-center px-4">
+            <span className="truncate text-sm font-medium text-foreground">
+              {standardHeaderTitle}
+            </span>
+          </div>
+        </div>
+
         <div className="flex items-center gap-2">
-          <Link href="/search" className="hidden md:block">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground"
-            >
-              <Search className="size-4" />
-              <span>Explore</span>
-              <Kbd className="ml-1 border-border/60 bg-muted/32 text-[0.62rem] text-muted-foreground">
-                F
-              </Kbd>
-            </Button>
-          </Link>
+          {!isSearchRoute ? (
+            <Link href="/search" className="hidden md:block">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground"
+              >
+                <Search className="size-4" />
+                <span>Search</span>
+                <Kbd className="ml-1 border-border/60 bg-muted/32 text-[0.62rem] text-muted-foreground">
+                  F
+                </Kbd>
+              </Button>
+            </Link>
+          ) : null}
           {profile ? (
             <NotificationsButton
               userId={profile.id}
@@ -160,6 +222,29 @@ export default function Header({
               </Button>
             </Link>
           )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="hidden rounded-full border border-border/30 bg-background/55 text-muted-foreground hover:bg-muted/26 hover:text-foreground md:inline-flex"
+                aria-label="More actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="end"
+              className="w-48 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-none"
+            >
+              <DropdownMenuItem onSelect={() => handleGiveFeedback()}>
+                <ExternalLink className="size-4" />
+                Give feedback
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
@@ -168,7 +253,7 @@ export default function Header({
   if (shouldUseContextualHeader) {
     return (
       <>
-        <header className="fixed inset-x-0 top-0 z-30 border-b border-sidebar-border bg-background/72 backdrop-blur-xl md:hidden">
+        <header className="fixed inset-x-0 top-0 z-30 bg-background/72 backdrop-blur-xl md:hidden">
           <div className="flex h-15 items-center justify-between gap-3 px-4">
             <Button
               type="button"

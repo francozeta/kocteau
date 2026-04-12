@@ -171,7 +171,7 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "overflow-hidden rounded-[1.18rem] border border-border/40 bg-card/44 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors md:border-border/32 md:bg-card/34",
+        "overflow-hidden rounded-[1.18rem] border border-border/40 bg-card/44 transition-colors md:border-border/32 md:bg-card/34",
         featured && "border-border/48 bg-card/54 md:border-border/36 md:bg-card/42",
         className,
       )}

@@ -243,8 +243,6 @@ function Sidebar({
           data-slot="sidebar-inner"
           className={cn(
             "flex size-full flex-col bg-sidebar",
-            variant === "sidebar" && side === "left" && "border-r border-sidebar-border",
-            variant === "sidebar" && side === "right" && "border-l border-sidebar-border",
             variant === "floating" && "rounded-lg border border-sidebar-border shadow-sm",
             variant === "inset" && side === "left" && "border-r border-sidebar-border",
             variant === "inset" && side === "right" && "border-l border-sidebar-border",
