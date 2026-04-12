@@ -41,7 +41,7 @@ export default function TrackPageHero({
   viewerReview,
   shouldOpenViewerEditor = false,
 }: TrackPageHeroProps) {
-  const selection = {
+  const createSelection = {
     provider: "deezer" as const,
     provider_id: entity.provider_id,
     type: "track" as const,
@@ -51,6 +51,12 @@ export default function TrackPageHero({
     deezer_url: entity.deezer_url,
     entity_id: entity.id ?? null,
   };
+  const editSelection = entity.id
+    ? {
+        ...createSelection,
+        entity_id: entity.id,
+      }
+    : null;
 
   async function handleShareTrack() {
     try {
@@ -127,7 +133,7 @@ export default function TrackPageHero({
               <Share2 className="size-4" />
             </Button>
 
-            {viewerReview ? (
+            {viewerReview && editSelection ? (
               <EditReviewDialog
                 reviewId={viewerReview.id}
                 defaultOpen={shouldOpenViewerEditor}
@@ -137,7 +143,7 @@ export default function TrackPageHero({
                     Edit review
                   </button>
                 }
-                initialSelection={selection}
+                initialSelection={editSelection}
                 initialTitle={viewerReview.title ?? ""}
                 initialBody={viewerReview.body ?? ""}
                 initialRating={viewerReview.rating}
@@ -147,7 +153,7 @@ export default function TrackPageHero({
               <NewReviewDialog
                 isAuthenticated={isAuthenticated}
                 initialQuery={[entity.title, entity.artist_name].filter(Boolean).join(" ")}
-                initialSelection={selection}
+                initialSelection={createSelection}
                 trigger={
                   <button type="button" className={primaryActionClassName}>
                     Create review
