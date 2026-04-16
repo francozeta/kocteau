@@ -124,13 +124,11 @@ export default function EditReviewDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} fixed>
+      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent
-          className="flex h-[95svh] max-h-[calc(100svh-0.5rem)] flex-col overflow-hidden rounded-t-[1.1rem] border-border/34 p-0 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-[calc(100svh-0.5rem)]"
-        >
-          <DrawerHeader className="shrink-0 border-b border-border/30 px-6 py-4 text-left">
+        <DrawerContent className="flex h-[95svh] max-h-[95svh] flex-col rounded-t-[1.1rem] border-border/34 p-0 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar">
+          <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
             <DrawerTitle className="font-serif text-2xl">Edit review</DrawerTitle>
             <DrawerDescription className="sr-only">Edit your review.</DrawerDescription>
           </DrawerHeader>

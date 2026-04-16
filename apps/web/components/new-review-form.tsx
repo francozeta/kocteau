@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  startTransition,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FocusEvent as ReactFocusEvent,
-} from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, LoaderCircle, Search } from "lucide-react";
@@ -54,36 +47,6 @@ type PublishReviewResponse = {
   entityId?: string | null;
   authorUsername?: string | null;
 };
-
-function scrollFieldIntoInternalViewport(target: HTMLElement) {
-  const viewport = target.closest<HTMLElement>("[data-slot='scroll-area-viewport']");
-
-  if (!viewport) {
-    return;
-  }
-
-  const targetRect = target.getBoundingClientRect();
-  const viewportRect = viewport.getBoundingClientRect();
-  const topPadding = 24;
-  const bottomPadding = 112;
-  const targetIsCovered =
-    targetRect.top < viewportRect.top + topPadding ||
-    targetRect.bottom > viewportRect.bottom - bottomPadding;
-
-  if (!targetIsCovered) {
-    return;
-  }
-
-  const centeredOffset =
-    targetRect.top -
-    viewportRect.top -
-    (viewportRect.height - targetRect.height) / 2;
-
-  viewport.scrollBy({
-    top: centeredOffset,
-    behavior: "smooth",
-  });
-}
 
 export type NewReviewFormProps = {
   mode?: "create" | "edit";
@@ -452,27 +415,8 @@ export default function NewReviewForm({
     void onSubmit();
   }
 
-  function handleFocusCapture(event: ReactFocusEvent<HTMLDivElement>) {
-    const target = event.target;
-
-    if (!(target instanceof HTMLElement) || !target.matches("input, textarea, select")) {
-      return;
-    }
-
-    window.setTimeout(() => {
-      if (!target.isConnected) {
-        return;
-      }
-
-      scrollFieldIntoInternalViewport(target);
-    }, 120);
-  }
-
   return (
-    <div
-      className="flex h-full min-h-0 flex-col overflow-hidden bg-sidebar"
-      onFocusCapture={handleFocusCapture}
-    >
+    <div className="flex h-full min-h-0 flex-col bg-sidebar">
       {step === "search" ? (
         <div className="flex min-h-0 flex-1 flex-col px-6 py-4">
           <div className="relative mb-3 shrink-0">
@@ -507,7 +451,7 @@ export default function NewReviewForm({
           ) : null}
           <FieldError>{fieldErrors.selected}</FieldError>
 
-          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24 [&>[data-slot=scroll-area-viewport]]:overscroll-contain [&>[data-slot=scroll-area-viewport]]:scroll-pb-28">
+          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
             <div className="space-y-0">
               {isFetching && results.length === 0 ? (
                 <div className="space-y-3 px-4 py-4">
@@ -652,7 +596,7 @@ export default function NewReviewForm({
             </Alert>
           ) : null}
 
-          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24 [&>[data-slot=scroll-area-viewport]]:overscroll-contain [&>[data-slot=scroll-area-viewport]]:scroll-pb-28">
+          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
             <div className="p-5">
               <div className="space-y-6">
                 <section>
@@ -713,7 +657,7 @@ export default function NewReviewForm({
         </div>
       )}
 
-      <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4">
+      <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 py-4">
         <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
           {showCancelAction ? (
             <Button
