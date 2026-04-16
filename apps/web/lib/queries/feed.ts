@@ -206,7 +206,7 @@ export async function getFeedPage({
   viewerId = null,
   cursor = null,
   limit = FEED_PAGE_SIZE,
-  includeActiveUsers = true,
+  includeActiveUsers = false,
 }: FeedPageOptions = {}) {
   if (view === "following") {
     const followingIds = await getViewerFollowingIds(viewerId);

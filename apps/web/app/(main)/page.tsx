@@ -2,11 +2,9 @@ import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { Clock3, Trophy, UsersRound } from "lucide-react";
 import FeedReviewList from "@/components/feed-review-list";
-import FollowProfileButton from "@/components/follow-profile-button";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
-import PrefetchLink from "@/components/prefetch-link";
-import UserAvatar from "@/components/user-avatar";
+import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { isFeedView, type FeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
@@ -14,7 +12,6 @@ import {
   getFeedPage,
   getFeedViewerState,
 } from "@/lib/queries/feed";
-import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
@@ -62,8 +59,8 @@ export default async function HomePage({
   const publicBundle = await getFeedPage({
     view: activeView,
     viewerId: user?.id,
+    includeActiveUsers: false,
   });
-  const activeUsers = publicBundle.activeUsers.filter((profile) => profile.id !== user?.id);
   const viewerStatePromise =
     user?.id && publicBundle.feed.length > 0
       ? getFeedViewerState(
@@ -74,17 +71,7 @@ export default async function HomePage({
           likedReviewIds: new Set<string>(),
           bookmarkedReviewIds: new Set<string>(),
         });
-  const followingProfileIdsPromise =
-    user?.id && activeUsers.length > 0
-      ? getViewerFollowingProfileIds(
-          user.id,
-          activeUsers.map((profile) => profile.id),
-        )
-      : Promise.resolve(new Set<string>());
-  const [viewerState, followingProfileIds] = await Promise.all([
-    viewerStatePromise,
-    followingProfileIdsPromise,
-  ]);
+  const viewerState = await viewerStatePromise;
   const queryClient = createServerQueryClient();
   const feedData = {
     feed: publicBundle.feed.map((review) => ({
@@ -92,10 +79,7 @@ export default async function HomePage({
       viewer_has_liked: viewerState.likedReviewIds.has(review.id),
       viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
     })),
-    activeUsers: activeUsers.map((profile) => ({
-      ...profile,
-      viewer_is_following: followingProfileIds.has(profile.id),
-    })),
+    activeUsers: [],
     nextCursor: publicBundle.nextCursor,
     view: publicBundle.view,
     requiresAuth: activeView === "following" && !user,
@@ -108,10 +92,6 @@ export default async function HomePage({
   });
 
   const orderedFeed = feedData.feed;
-  const activeUsersRail = feedData.activeUsers
-    .filter((profile) => !profile.viewer_is_following)
-    .slice(0, 4);
-  const hasSecondaryRail = activeUsersRail.length > 0;
   const feedStructuredData = buildFeedPageJsonLd(
     orderedFeed.flatMap((review) => {
       const entity = review.entities;
@@ -141,54 +121,6 @@ export default async function HomePage({
       ];
     }).slice(0, 10),
   );
-
-  const peopleCards = activeUsersRail.map((profile) => {
-    const primaryLabel = profile.display_name ?? `@${profile.username}`;
-
-    return (
-      <div
-        key={profile.id}
-        className="rounded-lg bg-card/44 p-3 ring-1 ring-white/[0.06]"
-      >
-        <div className="flex items-start gap-3">
-          <PrefetchLink
-            href={`/u/${profile.username}`}
-            className="group min-w-0 flex-1 rounded-lg transition-colors hover:text-foreground"
-          >
-            <div className="flex items-start gap-3">
-              <UserAvatar
-                avatarUrl={profile.avatar_url}
-                displayName={profile.display_name}
-                username={profile.username}
-                className="size-10 shrink-0"
-                sizes="40px"
-                initialsLength={2}
-              />
-
-              <div className="min-w-0 flex-1 space-y-1">
-                <p className="truncate text-[14px] font-medium text-foreground">
-                  {primaryLabel}
-                </p>
-                <p className="truncate text-[12.5px] text-muted-foreground">
-                  @{profile.username}
-                </p>
-              </div>
-            </div>
-          </PrefetchLink>
-
-          {user ? (
-            <FollowProfileButton
-              profileId={profile.id}
-              initialFollowing={Boolean(profile.viewer_is_following)}
-              isAuthenticated
-              size="xs"
-              className="shrink-0 px-2.5 text-[10px]"
-            />
-          ) : null}
-        </div>
-      </div>
-    );
-  });
 
   function renderFeedControls({ compact = false }: { compact?: boolean } = {}) {
     return (
@@ -261,12 +193,7 @@ export default async function HomePage({
         <section className="hidden lg:block">
           <div className="mx-auto w-full max-w-[75rem]">
             <div
-              className={cn(
-                "mx-auto grid w-full gap-5",
-                hasSecondaryRail
-                  ? "lg:grid-cols-[minmax(0,42rem)_17rem] lg:justify-center"
-                  : "max-w-[42rem]",
-              )}
+              className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,42rem)_17rem] lg:justify-center"
             >
               <div className="min-w-0 space-y-4">
                 <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
@@ -286,16 +213,7 @@ export default async function HomePage({
                 />
               </div>
 
-              {hasSecondaryRail ? (
-                <aside className="hidden space-y-3 lg:block">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                    Who to follow
-                  </p>
-                  <div className="space-y-2">
-                    {peopleCards}
-                  </div>
-                </aside>
-              ) : null}
+              <WhoToFollowRail isAuthenticated={Boolean(user)} />
             </div>
           </div>
         </section>

@@ -428,6 +428,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_viewer_review_collection_state: {
+        Args: {
+          p_review_ids: string[]
+        }
+        Returns: {
+          review_id: string
+          liked: boolean
+          bookmarked: boolean
+        }[]
+      }
       create_review_with_entity: {
         Args: {
           p_artist_name?: string | null

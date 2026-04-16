@@ -34,6 +34,12 @@ type ViewerSavedReviewEntity = {
   cover_url: string | null;
 } | null;
 
+type ViewerReviewStateRow = {
+  review_id: string;
+  liked: boolean | null;
+  bookmarked: boolean | null;
+};
+
 export type ViewerSavedReview = {
   saved_at: string;
   review: (ReviewCardData & {
@@ -50,6 +56,58 @@ function normalizeReviewIds(reviewIds: string[]) {
   return [...new Set(reviewIds.filter(Boolean))].sort();
 }
 
+function isMissingViewerStateFunctionError(error: {
+  code?: string | null;
+  message?: string | null;
+} | null) {
+  if (!error?.message) {
+    return false;
+  }
+
+  return (
+    error.code === "42883" ||
+    error.message.toLowerCase().includes("get_viewer_review_collection_state")
+  );
+}
+
+async function loadViewerReviewStateFromRpc(
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+  reviewIds: string[],
+) {
+  const { data, error } = await supabase.rpc(
+    "get_viewer_review_collection_state",
+    {
+      p_review_ids: reviewIds,
+    },
+  );
+
+  if (error) {
+    if (!isMissingViewerStateFunctionError(error)) {
+      console.error("[viewer.getViewerReviewCollectionState] rpc failed", {
+        code: error.code ?? null,
+        message: error.message ?? null,
+      });
+    }
+
+    return null;
+  }
+
+  const rows = (data ?? []) as ViewerReviewStateRow[];
+
+  return {
+    likedReviewIds: new Set(
+      rows
+        .filter((row) => row.liked)
+        .map((row) => row.review_id),
+    ),
+    bookmarkedReviewIds: new Set(
+      rows
+        .filter((row) => row.bookmarked)
+        .map((row) => row.review_id),
+    ),
+  } satisfies ReviewCollectionViewerState;
+}
+
 async function loadViewerReviewState(
   viewerId: string | null | undefined,
   reviewIds: string[],
@@ -62,6 +120,12 @@ async function loadViewerReviewState(
   }
 
   const supabase = await supabaseServer();
+  const rpcState = await loadViewerReviewStateFromRpc(supabase, reviewIds);
+
+  if (rpcState) {
+    return rpcState;
+  }
+
   const [likedReviewIds, bookmarkedReviewIds] = await Promise.all([
     getViewerLikedReviewIds(supabase, viewerId, reviewIds),
     getViewerBookmarkedReviewIds(supabase, viewerId, reviewIds),

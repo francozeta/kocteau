@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     view: activeView,
     viewerId: user?.id,
     cursor,
-    includeActiveUsers: !cursor,
+    includeActiveUsers: false,
   });
   const activeUsers = bundle.activeUsers.filter((profile) => profile.id !== user?.id);
   const viewerState =
