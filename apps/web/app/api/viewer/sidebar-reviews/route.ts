@@ -7,9 +7,7 @@ function mapSidebarReviews(
   reviews: Awaited<ReturnType<typeof getOwnedSidebarReviews>>,
 ) {
   return reviews.flatMap((review) => {
-    const entity = Array.isArray(review.entities)
-      ? review.entities[0] ?? null
-      : review.entities;
+    const entity = review.entities;
 
     if (
       !entity ||

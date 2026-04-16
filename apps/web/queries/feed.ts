@@ -8,9 +8,11 @@ import type {
 import type { ActiveProfile } from "@/lib/queries/profiles";
 import { fetchJson } from "@/queries/http";
 
+export type FeedView = "latest" | "top-rated";
+
 export type FeedBundleReview = ReviewCardData & {
-  entities: ReviewCardEntity | ReviewCardEntity[] | null;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
+  entities: ReviewCardEntity | null;
+  author: ReviewCardAuthor | null;
 };
 
 export type FeedBundleQueryData = {
@@ -20,18 +22,19 @@ export type FeedBundleQueryData = {
 
 export const feedKeys = {
   all: ["feed"] as const,
-  bundle: () => ["feed", "bundle"] as const,
+  bundlePrefix: () => ["feed", "bundle"] as const,
+  bundle: (view: FeedView = "latest") => ["feed", "bundle", view] as const,
 };
 
-export function feedBundleQueryOptions() {
+export function feedBundleQueryOptions(view: FeedView = "latest") {
   return queryOptions({
-    queryKey: feedKeys.bundle(),
-    queryFn: () => fetchJson<FeedBundleQueryData>("/api/feed"),
+    queryKey: feedKeys.bundle(view),
+    queryFn: () => fetchJson<FeedBundleQueryData>(`/api/feed?view=${view}`),
     staleTime: 60_000,
     gcTime: 10 * 60_000,
   });
 }
 
-export function prefetchFeedBundle(queryClient: QueryClient) {
-  return queryClient.prefetchQuery(feedBundleQueryOptions());
+export function prefetchFeedBundle(queryClient: QueryClient, view: FeedView = "latest") {
+  return queryClient.prefetchQuery(feedBundleQueryOptions(view));
 }

@@ -3,6 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
 import type { DiscoveryTrack } from "@/lib/types/discovery";
@@ -30,11 +31,7 @@ type DiscoveryRow = {
 };
 
 function getEntity(row: DiscoveryRow) {
-  if (Array.isArray(row.entities)) {
-    return row.entities[0] ?? null;
-  }
-
-  return row.entities;
+  return normalizeRelation(row.entities);
 }
 
 const recentTrackLoaders = new Map<string, () => Promise<DiscoveryTrack[]>>();

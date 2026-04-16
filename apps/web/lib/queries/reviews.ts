@@ -10,6 +10,7 @@ import {
   runReviewMaybeQuery,
 } from "@/lib/queries/review-likes";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
@@ -25,8 +26,8 @@ export type ReviewPageReview = {
   comments_count: ReviewCardData["comments_count"];
   created_at: ReviewCardData["created_at"];
   is_pinned?: boolean;
-  entities: ReviewPageEntity | ReviewPageEntity[] | null;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
+  entities: ReviewPageEntity | null;
+  author: ReviewCardAuthor | null;
 };
 
 export type ReviewPageEntity = ReviewCardEntity & {
@@ -52,8 +53,35 @@ export type OwnedSidebarReview = {
   comments_count?: number | null;
   created_at: string;
   is_pinned?: boolean;
-  entities: ReviewPageEntity | ReviewPageEntity[] | null;
+  entities: ReviewPageEntity | null;
 };
+
+function normalizeReviewPageReview(review: ReviewPageReview): ReviewPageReview {
+  return {
+    ...review,
+    entities: normalizeRelation(review.entities),
+    author: normalizeRelation(review.author),
+  };
+}
+
+function logQueryFallbackError(
+  scope: "getOwnedSidebarReviews" | "getViewerReview",
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: Record<string, unknown>,
+) {
+  console.error(`[reviews.${scope}] failed`, {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
 
 export async function getPublicReviewById(reviewId: string) {
   return getOrCreateLoader(
@@ -67,7 +95,7 @@ export async function getPublicReviewById(reviewId: string) {
             async () => {
               const supabase = supabasePublic();
 
-              return runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
+              const review = await runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
                 supabase
                   .from("reviews")
                   .select(
@@ -80,6 +108,8 @@ export async function getPublicReviewById(reviewId: string) {
                   .eq("id", reviewId)
                   .maybeSingle(),
               );
+
+              return review ? normalizeReviewPageReview(review) : null;
             },
             { reviewId },
           ),
@@ -173,12 +203,17 @@ export async function getOwnedSidebarReviews(
                 .limit(limit);
 
               if (error) {
+                logQueryFallbackError("getOwnedSidebarReviews", error, {
+                  authorId,
+                  limit,
+                });
                 return [] satisfies OwnedSidebarReview[];
               }
 
               return ((data as OwnedSidebarReview[] | null) ?? []).map((review) => ({
                 ...review,
                 is_pinned: Boolean(review.is_pinned),
+                entities: normalizeRelation(review.entities),
               }));
             },
             { authorId, limit },
@@ -212,6 +247,10 @@ export async function getViewerReview(
         .maybeSingle<ViewerReview>();
 
       if (error) {
+        logQueryFallbackError("getViewerReview", error, {
+          entityId,
+          viewerId,
+        });
         return null;
       }
 

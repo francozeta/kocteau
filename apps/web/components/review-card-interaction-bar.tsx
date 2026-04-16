@@ -10,12 +10,19 @@ type ReviewCardInteractionBarProps = {
   review: ReviewCardData;
   isAuthenticated?: boolean;
   bookmarkButtonRef?: Ref<HTMLButtonElement>;
+  viewer?: {
+    id: string;
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
 };
 
 export default function ReviewCardInteractionBar({
   review,
   isAuthenticated = false,
   bookmarkButtonRef,
+  viewer = null,
 }: ReviewCardInteractionBarProps) {
   return (
     <div className="flex items-center gap-0.5">
@@ -29,6 +36,7 @@ export default function ReviewCardInteractionBar({
         reviewId={review.id}
         initialCount={review.comments_count}
         isAuthenticated={isAuthenticated}
+        viewer={viewer}
       />
       <ReviewBookmarkButton
         reviewId={review.id}

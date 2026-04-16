@@ -9,19 +9,17 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { FeedReviewCard } from "@/components/review-route-cards-server";
 import UserAvatar from "@/components/user-avatar";
 import { getCurrentUser } from "@/lib/auth/server";
+import { isFeedView, type FeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
 import {
   getFeedPublicBundle,
   getFeedViewerState,
-  type FeedReview,
 } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 import { feedKeys } from "@/queries/feed";
-
-type FeedView = "latest" | "top-rated";
 
 const feedViews: Array<{
   value: FeedView;
@@ -37,44 +35,8 @@ const feedViews: Array<{
   },
 ];
 
-function isFeedView(value: string | undefined): value is FeedView {
-  return value === "latest" || value === "top-rated";
-}
-
 function getFeedViewHref(view: FeedView) {
   return view === "latest" ? "/" : `/?view=${view}`;
-}
-
-function getEntity(review: FeedReview) {
-  if (Array.isArray(review.entities)) {
-    return review.entities[0] ?? null;
-  }
-
-  return review.entities;
-}
-
-function getAuthor(review: FeedReview) {
-  if (Array.isArray(review.author)) {
-    return review.author[0] ?? null;
-  }
-
-  return review.author;
-}
-
-function sortFeed(feed: FeedReview[], view: FeedView) {
-  if (view !== "top-rated") {
-    return feed;
-  }
-
-  return [...feed].sort((left, right) => {
-    if (right.rating !== left.rating) {
-      return right.rating - left.rating;
-    }
-
-    return (
-      new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
-    );
-  });
 }
 
 export const metadata = createPageMetadata({
@@ -92,7 +54,7 @@ export default async function HomePage({
   const params = await searchParams;
   const activeView = isFeedView(params.view) ? params.view : "latest";
   const userPromise = getCurrentUser();
-  const publicBundlePromise = getFeedPublicBundle();
+  const publicBundlePromise = getFeedPublicBundle(activeView);
   const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
   const activeUsers = publicBundle.activeUsers.filter((profile) => profile.id !== user?.id);
   const viewerStatePromise =
@@ -129,15 +91,15 @@ export default async function HomePage({
     })),
   };
 
-  queryClient.setQueryData(feedKeys.bundle(), feedData);
+  queryClient.setQueryData(feedKeys.bundle(activeView), feedData);
 
-  const orderedFeed = sortFeed(feedData.feed, activeView);
+  const orderedFeed = feedData.feed;
   const activeUsersRail = feedData.activeUsers.slice(0, 4);
   const hasSecondaryRail = activeUsersRail.length > 0;
   const feedStructuredData = buildFeedPageJsonLd(
     orderedFeed.flatMap((review) => {
-      const entity = getEntity(review);
-      const author = getAuthor(review);
+      const entity = review.entities;
+      const author = review.author;
 
       if (!entity?.id || !author?.username) {
         return [];
@@ -166,8 +128,8 @@ export default async function HomePage({
 
   const feedCards = orderedFeed.length > 0 ? (
     orderedFeed.map((review, index) => {
-      const entity = getEntity(review);
-      const author = getAuthor(review);
+      const entity = review.entities;
+      const author = review.author;
 
       return (
         <FeedReviewCard

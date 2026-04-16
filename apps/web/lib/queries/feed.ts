@@ -6,6 +6,9 @@ import type {
   ReviewCardData,
   ReviewCardEntity,
 } from "@/components/review-card";
+import type { FeedView } from "@/lib/feed-view";
+import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { getRecentlyActiveProfiles, type ActiveProfile } from "@/lib/queries/profiles";
 import {
   runReviewListQuery,
@@ -23,8 +26,8 @@ export type FeedReview = {
   likes_count: ReviewCardData["likes_count"];
   comments_count: ReviewCardData["comments_count"];
   created_at: ReviewCardData["created_at"];
-  entities: ReviewCardEntity | ReviewCardEntity[] | null;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
+  entities: ReviewCardEntity | null;
+  author: ReviewCardAuthor | null;
 };
 
 export type FeedPageBundle = {
@@ -34,38 +37,65 @@ export type FeedPageBundle = {
   bookmarkedReviewIds: Set<string>;
 };
 
-export const getFeedPublicBundle = unstable_cache(
-  async () =>
-    measureServerTask("getFeedPublicBundle", async () => {
-      const supabase = supabasePublic();
+const feedBundleLoaders = new Map<string, () => Promise<{
+  feed: FeedReview[];
+  activeUsers: ActiveProfile[];
+}>>();
 
-      const [feed, activeUsers] = await Promise.all([
-        runReviewListQuery<FeedReview>(async (mode) =>
-          supabase
-            .from("reviews")
-            .select(
-              buildReviewHydrationSelect(mode, {
-                includeAuthor: true,
-                includeEntity: true,
+function normalizeFeedReview(review: FeedReview): FeedReview {
+  return {
+    ...review,
+    entities: normalizeRelation(review.entities),
+    author: normalizeRelation(review.author),
+  };
+}
+
+export async function getFeedPublicBundle(view: FeedView = "latest") {
+  return getOrCreateLoader(
+    feedBundleLoaders,
+    ["feed-page-public-bundle", view],
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask("getFeedPublicBundle", async () => {
+            const supabase = supabasePublic();
+
+            const [feed, activeUsers] = await Promise.all([
+              runReviewListQuery<FeedReview>(async (mode) => {
+                const query = supabase
+                  .from("reviews")
+                  .select(
+                    buildReviewHydrationSelect(mode, {
+                      includeAuthor: true,
+                      includeEntity: true,
+                    }),
+                  )
+                  .limit(24);
+
+                if (view === "top-rated") {
+                  return query
+                    .order("rating", { ascending: false })
+                    .order("created_at", { ascending: false });
+                }
+
+                return query.order("created_at", { ascending: false });
               }),
-            )
-            .order("created_at", { ascending: false })
-            .limit(24),
-        ),
-        getRecentlyActiveProfiles(4),
-      ]);
+              getRecentlyActiveProfiles(4),
+            ]);
 
-      return {
-        feed,
-        activeUsers,
-      };
-    }),
-  ["feed-page-public-bundle"],
-  {
-    revalidate: 60,
-    tags: ["feed", "reviews", "entities", "profiles"],
-  },
-);
+            return {
+              feed: feed.map(normalizeFeedReview),
+              activeUsers,
+            };
+          }, { view }),
+        ["feed-page-public-bundle", view],
+        {
+          revalidate: 60,
+          tags: ["feed", `feed:${view}`, "reviews", "entities", "profiles"],
+        },
+      ),
+  )();
+}
 
 export async function getFeedViewerState(
   viewerId: string | null | undefined,

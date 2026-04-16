@@ -16,8 +16,8 @@ export type ReviewBundleEntity = ReviewCardEntity & {
 
 export type ReviewBundleReview = ReviewCardData & {
   is_pinned?: boolean;
-  entities: ReviewBundleEntity | ReviewBundleEntity[] | null;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
+  entities: ReviewBundleEntity | null;
+  author: ReviewCardAuthor | null;
 };
 
 export type ReviewBundleQueryData = {
@@ -38,7 +38,7 @@ export type ReviewComment = {
   body: string;
   created_at: string;
   updated_at: string;
-  author: ReviewCommentAuthor | ReviewCommentAuthor[] | null;
+  author: ReviewCommentAuthor | null;
   is_owner: boolean;
   optimistic?: boolean;
 };

@@ -11,6 +11,7 @@ import ReviewCard, {
 import ReviewActionsMenu from "@/components/review-actions-menu";
 import ReviewCardContextMenuFrame from "@/components/review-card-context-menu-frame";
 import ReviewCardInteractionBar from "@/components/review-card-interaction-bar";
+import { getCurrentViewerProfile } from "@/lib/auth/server";
 
 export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
@@ -137,7 +138,7 @@ function LinkedEntitySummary({
   );
 }
 
-function RoutedReviewCardServer({
+async function RoutedReviewCardServer({
   review,
   entity,
   author = null,
@@ -154,6 +155,10 @@ function RoutedReviewCardServer({
     showInteractionBar = true,
     showContextMenu = canUseReviewMenus,
   } = behavior ?? {};
+  const viewerProfile =
+    isAuthenticated && showInteractionBar
+      ? await getCurrentViewerProfile()
+      : null;
   const editSeed = createEditSeed(review, entity, canManage);
   const rootProps: ComponentPropsWithoutRef<"article"> = {
     id: `review-${review.id}`,
@@ -192,6 +197,16 @@ function RoutedReviewCardServer({
           <ReviewCardInteractionBar
             review={review}
             isAuthenticated={isAuthenticated}
+            viewer={
+              viewerProfile
+                ? {
+                    id: viewerProfile.id,
+                    username: viewerProfile.username,
+                    display_name: viewerProfile.display_name,
+                    avatar_url: viewerProfile.avatar_url,
+                  }
+                : null
+            }
           />
         ) : null,
       }}
@@ -218,7 +233,7 @@ function RoutedReviewCardServer({
   );
 }
 
-export function FeedReviewCard({
+export async function FeedReviewCard({
   review,
   entity,
   author = null,
@@ -239,7 +254,7 @@ export function FeedReviewCard({
   );
 }
 
-export function TrackReviewCard({
+export async function TrackReviewCard({
   review,
   entity,
   author = null,
@@ -257,7 +272,7 @@ export function TrackReviewCard({
   );
 }
 
-export function ProfileReviewCard({
+export async function ProfileReviewCard({
   review,
   entity,
   author = null,

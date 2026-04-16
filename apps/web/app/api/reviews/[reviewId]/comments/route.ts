@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { createCommentSchema, reviewIdParamsSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -70,6 +71,7 @@ export async function GET(
   return NextResponse.json({
     comments: (data ?? []).map((comment) => ({
       ...comment,
+      author: normalizeRelation(comment.author),
       is_owner: Boolean(user?.id && comment.author_id === user.id),
     })),
   });
@@ -179,6 +181,7 @@ export async function POST(
     commentsCount,
     comment: {
       ...data,
+      author: normalizeRelation(data.author),
       is_owner: true,
     },
   });

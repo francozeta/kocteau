@@ -1,6 +1,7 @@
 import {
   runReviewListQuery,
 } from "@/lib/queries/review-likes";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -34,8 +35,8 @@ export type SavedReview = {
     likes_count: number;
     comments_count: number;
     created_at: string;
-    author: ReviewBookmarkAuthor | ReviewBookmarkAuthor[] | null;
-    entities: ReviewBookmarkEntity | ReviewBookmarkEntity[] | null;
+    author: ReviewBookmarkAuthor;
+    entities: ReviewBookmarkEntity;
   } | null;
 };
 
@@ -59,6 +60,28 @@ function isMissingReviewBookmarksError(error: QueryError) {
   );
 }
 
+function logReviewBookmarksError(
+  scope:
+    | "getViewerBookmarkedReviewIds"
+    | "getSavedReviewBookmarksForUser"
+    | "getSavedReviewMapById",
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: Record<string, unknown>,
+) {
+  console.error(`[review-bookmarks.${scope}] failed`, {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
+
 function normalizeSavedReview(record: SavedReview & { created_at?: string }) {
   if (!record.review) {
     return {
@@ -72,6 +95,8 @@ function normalizeSavedReview(record: SavedReview & { created_at?: string }) {
     saved_at: record.saved_at ?? record.created_at ?? "",
     review: {
       ...record.review,
+      author: normalizeRelation(record.review.author),
+      entities: normalizeRelation(record.review.entities),
       likes_count:
         typeof record.review.likes_count === "number"
           ? record.review.likes_count
@@ -112,6 +137,14 @@ export async function getViewerBookmarkedReviewIds(
     return new Set<string>();
   }
 
+  if (error) {
+    logReviewBookmarksError("getViewerBookmarkedReviewIds", error, {
+      userId,
+      reviewIds,
+    });
+    return new Set<string>();
+  }
+
   return new Set((data ?? []).map((row) => row.review_id));
 }
 
@@ -130,6 +163,9 @@ export async function getSavedReviewBookmarksForUser(
   }
 
   if (error) {
+    logReviewBookmarksError("getSavedReviewBookmarksForUser", error, {
+      userId,
+    });
     return [] satisfies SavedReviewBookmark[];
   }
 
@@ -156,10 +192,10 @@ export async function getSavedReviewMapById(
           }),
         )
         .in("id", reviewIds),
-  );
+  ).then((items) => items.map((review) => normalizeSavedReview({ saved_at: "", review }).review).filter(Boolean) as NonNullable<SavedReview["review"]>[]);
 
   return new Map(
-    reviews.map((review) => [review.id, normalizeSavedReview({ saved_at: "", review }).review]),
+    reviews.map((review) => [review.id, review]),
   );
 }
 

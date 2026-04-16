@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { runReviewListQuery } from "@/lib/queries/review-likes";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
@@ -34,7 +35,7 @@ export type ProfileReview = {
   comments_count: number;
   is_pinned?: boolean;
   created_at: string;
-  entities: ProfileReviewEntity | ProfileReviewEntity[] | null;
+  entities: ProfileReviewEntity | null;
 };
 
 export type ProfileReviewBundle = {
@@ -57,18 +58,33 @@ type ActiveProfileAuthor = Pick<
 
 type ActiveProfileRow = {
   author_id: string;
-  author: ActiveProfileAuthor | ActiveProfileAuthor[] | null;
+  author: ActiveProfileAuthor | null;
 };
 
 const publicProfileLoaders = new Map<string, () => Promise<PublicProfile | null>>();
 const profileReviewLoaders = new Map<string, () => Promise<ProfileReviewBundle>>();
 const activeProfileLoaders = new Map<string, () => Promise<ActiveProfile[]>>();
 
-function getActiveProfileAuthor(row: ActiveProfileRow) {
-  if (Array.isArray(row.author)) {
-    return row.author[0] ?? null;
-  }
+function logProfilesQueryError(
+  scope: "getPublicProfileByUsername" | "getRecentlyActiveProfiles",
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: Record<string, unknown>,
+) {
+  console.error(`[profiles.${scope}] failed`, {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
 
+function getActiveProfileAuthor(row: ActiveProfileRow) {
   return row.author;
 }
 
@@ -91,6 +107,9 @@ export async function getPublicProfileByUsername(username: string) {
                 .maybeSingle<PublicProfile>();
 
               if (error) {
+                logProfilesQueryError("getPublicProfileByUsername", error, {
+                  username,
+                });
                 return null;
               }
 
@@ -135,6 +154,7 @@ export async function getReviewsForProfile(authorId: string): Promise<ProfileRev
 
               const reviews = rawReviews.map((review) => ({
                 ...review,
+                entities: normalizeRelation(review.entities),
                 is_pinned: Boolean(review.is_pinned),
               }));
 
@@ -168,7 +188,7 @@ export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfil
             async () => {
               const supabase = supabasePublic();
 
-              const { data } = await supabase
+              const { data, error } = await supabase
                 .from("reviews")
                 .select(`
                   author_id,
@@ -182,10 +202,23 @@ export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfil
                 .order("created_at", { ascending: false })
                 .limit(Math.max(limit * 3, 18));
 
+              if (error) {
+                logProfilesQueryError("getRecentlyActiveProfiles", error, {
+                  limit,
+                });
+                return [] satisfies ActiveProfile[];
+              }
+
               const seen = new Set<string>();
               const activeProfiles: ActiveProfile[] = [];
+              const normalizedRows = ((data ?? []) as Array<ActiveProfileRow & {
+                author: ActiveProfileAuthor | ActiveProfileAuthor[] | null;
+              }>).map((entry) => ({
+                ...entry,
+                author: normalizeRelation(entry.author),
+              }));
 
-              for (const row of (data ?? []) as ActiveProfileRow[]) {
+              for (const row of normalizedRows) {
                 if (seen.has(row.author_id)) {
                   continue;
                 }

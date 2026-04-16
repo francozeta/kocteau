@@ -13,6 +13,12 @@ type UseReviewCommentsOptions = {
   reviewId: string;
   initialCount: number;
   enabled?: boolean;
+  viewer?: {
+    id?: string | null;
+    username?: string | null;
+    displayName?: string | null;
+    avatarUrl?: string | null;
+  };
 };
 
 type CommentMutationResponse = {
@@ -32,6 +38,7 @@ export function useReviewComments({
   reviewId,
   initialCount,
   enabled = false,
+  viewer,
 }: UseReviewCommentsOptions) {
   const queryClient = useQueryClient();
   const previousInitialCount = useRef(initialCount);
@@ -103,19 +110,23 @@ export function useReviewComments({
       const previousCount =
         queryClient.getQueryData<number>(countKey) ?? initialCount;
       const tempId = `optimistic-${Date.now()}`;
+      const optimisticAuthor =
+        viewer?.username || viewer?.displayName || viewer?.avatarUrl
+          ? {
+              username: viewer?.username ?? "you",
+              display_name: viewer?.displayName ?? null,
+              avatar_url: viewer?.avatarUrl ?? null,
+            }
+          : null;
       const optimisticComment: ReviewComment = {
         id: tempId,
         review_id: reviewId,
-        author_id: "me",
+        author_id: viewer?.id ?? "me",
         parent_id: null,
         body,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        author: {
-          username: "you",
-          display_name: "You",
-          avatar_url: null,
-        },
+        author: optimisticAuthor,
         is_owner: true,
         optimistic: true,
       };
@@ -137,7 +148,7 @@ export function useReviewComments({
         syncCommentsCount(context.previousCount);
       }
     },
-    onSuccess: async (result, _body, context) => {
+    onSuccess: (result, _body, context) => {
       queryClient.setQueryData<ReviewComment[]>(commentsKey, (current = []) => {
         const hasOptimistic = current.some((item) => item.id === context?.tempId);
 
@@ -151,11 +162,6 @@ export function useReviewComments({
         return alreadyPresent ? current : [...current, result.comment];
       });
       syncCommentsCount(result.commentsCount);
-      await queryClient.invalidateQueries({
-        queryKey: commentsKey,
-        exact: true,
-        refetchType: "active",
-      });
     },
   });
 
@@ -207,18 +213,13 @@ export function useReviewComments({
         syncCommentsCount(context.previousCount);
       }
     },
-    onSuccess: async (result, _commentId, context) => {
+    onSuccess: (result, _commentId, context) => {
       queryClient.setQueryData<ReviewComment[]>(
         commentsKey,
         (current = []) =>
           current.filter((comment) => comment.id !== (context?.commentId ?? result.commentId)),
       );
       syncCommentsCount(result.commentsCount);
-      await queryClient.invalidateQueries({
-        queryKey: commentsKey,
-        exact: true,
-        refetchType: "active",
-      });
     },
   });
 

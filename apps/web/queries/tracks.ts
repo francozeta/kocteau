@@ -18,7 +18,7 @@ export type TrackEntity = {
 
 export type TrackBundleReview = ReviewCardData & {
   is_pinned?: boolean;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
+  author: ReviewCardAuthor | null;
 };
 
 export type TrackBundleQueryData = {

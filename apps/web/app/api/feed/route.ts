@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { isFeedView } from "@/lib/feed-view";
 import { getFeedPublicBundle, getFeedViewerState } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export async function GET() {
-  const publicBundlePromise = getFeedPublicBundle();
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const viewParam = url.searchParams.get("view") ?? undefined;
+  const activeView = isFeedView(viewParam) ? viewParam : "latest";
+  const publicBundlePromise = getFeedPublicBundle(activeView);
   const userPromise = (async () => {
     const supabase = await supabaseServer();
     const {

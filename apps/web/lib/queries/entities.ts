@@ -2,6 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { runReviewListQuery } from "@/lib/queries/review-likes";
 import { supabasePublic } from "@/lib/supabase/public";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
@@ -36,7 +37,7 @@ export type EntityReview = {
   comments_count: ReviewCardData["comments_count"];
   created_at: ReviewCardData["created_at"];
   is_pinned: boolean;
-  author: ReviewCardAuthor | ReviewCardAuthor[] | null;
+  author: ReviewCardAuthor | null;
 };
 
 export type TrackPagePublicBundle = {
@@ -45,20 +46,31 @@ export type TrackPagePublicBundle = {
 };
 
 function getHydratedAuthorId(author: EntityReview["author"]) {
-  if (!author) {
-    return null;
-  }
-
-  if (Array.isArray(author)) {
-    return author[0]?.id ?? null;
-  }
-
-  return author.id ?? null;
+  return author?.id ?? null;
 }
 
 const entityPageLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | null>>();
 const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
+
+function logEntitiesQueryError(
+  scope: "getEntityPageById" | "findEntityByProvider",
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: Record<string, unknown>,
+) {
+  console.error(`[entities.${scope}] failed`, {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
 
 export async function getEntityPageById(entityId: string) {
   return getOrCreateLoader(
@@ -79,6 +91,9 @@ export async function getEntityPageById(entityId: string) {
                 .maybeSingle<EntityPage>();
 
               if (error) {
+                logEntitiesQueryError("getEntityPageById", error, {
+                  entityId,
+                });
                 return null;
               }
 
@@ -120,6 +135,11 @@ export async function findEntityByProvider(
                 .maybeSingle<ExistingEntity>();
 
               if (error) {
+                logEntitiesQueryError("findEntityByProvider", error, {
+                  provider,
+                  type,
+                  providerId,
+                });
                 return null;
               }
 
@@ -163,6 +183,7 @@ export async function getReviewsForEntity(entityId: string) {
 
               return reviews.map((review) => ({
                 ...review,
+                author: normalizeRelation(review.author),
                 is_pinned: Boolean(review.is_pinned),
               }));
             },

@@ -23,6 +23,12 @@ type ReviewCommentsPanelProps = {
   reviewId: string;
   initialCount: number;
   isAuthenticated: boolean;
+  viewer?: {
+    id: string;
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
   variant?: "dialog" | "inline";
   hideForm?: boolean;
   autoFocusComposer?: boolean;
@@ -39,6 +45,7 @@ export default function ReviewCommentsPanel({
   reviewId,
   initialCount,
   isAuthenticated,
+  viewer = null,
   variant = "dialog",
   hideForm = false,
   autoFocusComposer = false,
@@ -58,6 +65,14 @@ export default function ReviewCommentsPanel({
     reviewId,
     initialCount,
     enabled: true,
+    viewer: viewer
+      ? {
+          id: viewer.id,
+          username: viewer.username,
+          displayName: viewer.display_name,
+          avatarUrl: viewer.avatar_url,
+        }
+      : undefined,
   });
 
   const trimmedBody = useMemo(() => body.trim(), [body]);
@@ -131,9 +146,7 @@ export default function ReviewCommentsPanel({
         </div>
       ) : comments.length > 0 ? (
         comments.map((comment) => {
-          const author = Array.isArray(comment.author)
-            ? comment.author[0] ?? null
-            : comment.author;
+          const author = comment.author;
           const authorLabel = author?.display_name ?? (author ? `@${author.username}` : "You");
 
           return (

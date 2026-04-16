@@ -439,10 +439,6 @@ export function useNotifications({
         return;
       }
 
-      if (disposed || activeChannelRef.current) {
-        return;
-      }
-
       const channel = supabase.channel(notificationChannelTopic(recipientId), {
         config: { private: true },
       });

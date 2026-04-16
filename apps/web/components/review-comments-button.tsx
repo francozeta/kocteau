@@ -26,12 +26,19 @@ type ReviewCommentsButtonProps = {
   reviewId: string;
   initialCount: number;
   isAuthenticated: boolean;
+  viewer?: {
+    id: string;
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
 };
 
 export default function ReviewCommentsButton({
   reviewId,
   initialCount,
   isAuthenticated,
+  viewer = null,
 }: ReviewCommentsButtonProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -82,6 +89,7 @@ export default function ReviewCommentsButton({
               reviewId={reviewId}
               initialCount={initialCount}
               isAuthenticated={isAuthenticated}
+              viewer={viewer}
               variant="dialog"
               autoFocusComposer={open}
             />
@@ -110,6 +118,7 @@ export default function ReviewCommentsButton({
             reviewId={reviewId}
             initialCount={initialCount}
             isAuthenticated={isAuthenticated}
+            viewer={viewer}
             variant="dialog"
             autoFocusComposer={open}
           />

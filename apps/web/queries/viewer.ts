@@ -37,8 +37,8 @@ type ViewerSavedReviewEntity = {
 export type ViewerSavedReview = {
   saved_at: string;
   review: (ReviewCardData & {
-    author: ViewerSavedReviewAuthor | ViewerSavedReviewAuthor[] | null;
-    entities: ViewerSavedReviewEntity | ViewerSavedReviewEntity[] | null;
+    author: ViewerSavedReviewAuthor;
+    entities: ViewerSavedReviewEntity;
   }) | null;
 };
 
@@ -117,8 +117,8 @@ function patchFeedCollections(
   reviewId: string,
   patch: Partial<FeedBundleQueryData["feed"][number]>,
 ) {
-  queryClient.setQueryData<FeedBundleQueryData>(
-    feedKeys.bundle(),
+  queryClient.setQueriesData<FeedBundleQueryData>(
+    { queryKey: feedKeys.bundlePrefix() },
     (current) =>
       current
         ? {

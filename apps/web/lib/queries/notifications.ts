@@ -92,6 +92,25 @@ export function isMissingNotificationsError(error: QueryError) {
   );
 }
 
+function logNotificationsQueryError(
+  scope: "getNotificationsForUser" | "getUnreadNotificationsCount",
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: Record<string, unknown>,
+) {
+  console.error(`[notifications.${scope}] failed`, {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
+
 export async function getNotificationsForUser(
   supabase: ServerSupabaseClient,
   userId: string,
@@ -135,6 +154,14 @@ export async function getNotificationsForUser(
     return [] satisfies NotificationItem[];
   }
 
+  if (error) {
+    logNotificationsQueryError("getNotificationsForUser", error, {
+      userId,
+      limit,
+    });
+    return [] satisfies NotificationItem[];
+  }
+
   return ((data as NotificationQueryRecord[] | null) ?? []).map(normalizeNotification);
 }
 
@@ -149,6 +176,13 @@ export async function getUnreadNotificationsCount(
     .is("read_at", null);
 
   if (error && isMissingNotificationsError(error)) {
+    return 0;
+  }
+
+  if (error) {
+    logNotificationsQueryError("getUnreadNotificationsCount", error, {
+      userId,
+    });
     return 0;
   }
 

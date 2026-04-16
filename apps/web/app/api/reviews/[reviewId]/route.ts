@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { reviewIdParamsSchema, updateReviewSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -8,26 +9,13 @@ type ReviewDeleteRecord = {
   id: string;
   author_id: string;
   entity_id: string;
-  author:
-    | {
-        username: string;
-      }
-    | Array<{
-        username: string;
-      }>
-    | null;
+  author: {
+    username: string;
+  } | null;
 };
 
 function getAuthorUsername(review: ReviewDeleteRecord | null) {
-  if (!review?.author) {
-    return null;
-  }
-
-  if (Array.isArray(review.author)) {
-    return review.author[0]?.username ?? null;
-  }
-
-  return review.author.username;
+  return review?.author?.username ?? null;
 }
 
 function errorResponse(message: string, code: string | null, status: number) {
@@ -93,7 +81,7 @@ async function getOwnedReviewRecord(
   userId: string,
 ) {
   const supabase = await supabaseServer();
-  const { data: review, error: reviewError } = await supabase
+  const { data, error: reviewError } = await supabase
     .from("reviews")
     .select(
       `
@@ -116,6 +104,13 @@ async function getOwnedReviewRecord(
       rating?: number;
       is_pinned?: boolean;
     }>();
+
+  const review = data
+    ? {
+        ...data,
+        author: normalizeRelation(data.author),
+      }
+    : null;
 
   if (reviewError) {
     return { supabase, review: null, error: reviewError };

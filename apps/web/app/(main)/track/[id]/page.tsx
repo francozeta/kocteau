@@ -13,19 +13,10 @@ import {
   getEntityPageById,
   getTrackPublicBundle,
   getTrackViewerState,
-  type EntityReview,
 } from "@/lib/queries/entities";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildTrackPageJsonLd } from "@/lib/structured-data";
 import { trackKeys } from "@/queries/tracks";
-
-function getAuthor(review: EntityReview) {
-  if (Array.isArray(review.author)) {
-    return review.author[0] ?? null;
-  }
-
-  return review.author;
-}
 
 export async function generateMetadata({
   params,
@@ -146,7 +137,7 @@ export default async function TrackPage({
           {trackReviews.length > 0 ? (
             <div className="space-y-4">
               {trackReviews.map((review) => {
-                const author = getAuthor(review);
+                const author = review.author;
 
                 return (
                   <TrackReviewCard

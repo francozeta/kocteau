@@ -13,6 +13,22 @@ type QueryResult<T> = {
 
 type ReviewMetricsMode = "all" | "likes-only" | "base";
 
+function logReviewMetricsQueryError(
+  scope: "runReviewListQuery" | "runReviewMaybeQuery",
+  stage: ReviewMetricsMode,
+  error: QueryError,
+) {
+  if (!error) {
+    return;
+  }
+
+  console.error(`[review-likes.${scope}] failed`, {
+    stage,
+    code: error.code ?? null,
+    message: error.message ?? null,
+  });
+}
+
 export function isMissingLikesCountError(error: QueryError) {
   if (!error?.message) {
     return false;
@@ -69,13 +85,22 @@ export async function runReviewListQuery<
     }
 
     if (!isMissingLikesCountError(withLikesOnly.error)) {
+      logReviewMetricsQueryError(
+        "runReviewListQuery",
+        "likes-only",
+        withLikesOnly.error,
+      );
       return [];
     }
   } else if (!isMissingLikesCountError(withAllMetrics.error)) {
+    logReviewMetricsQueryError("runReviewListQuery", "all", withAllMetrics.error);
     return [];
   }
 
   const fallback = await run("base");
+  if (fallback.error) {
+    logReviewMetricsQueryError("runReviewListQuery", "base", fallback.error);
+  }
   return ((fallback.data as T[] | null) ?? []).map(withDefaultReviewMetrics);
 }
 
@@ -102,13 +127,22 @@ export async function runReviewMaybeQuery<
     }
 
     if (!isMissingLikesCountError(withLikesOnly.error)) {
+      logReviewMetricsQueryError(
+        "runReviewMaybeQuery",
+        "likes-only",
+        withLikesOnly.error,
+      );
       return null;
     }
   } else if (!isMissingLikesCountError(withAllMetrics.error)) {
+    logReviewMetricsQueryError("runReviewMaybeQuery", "all", withAllMetrics.error);
     return null;
   }
 
   const fallback = await run("base");
+  if (fallback.error) {
+    logReviewMetricsQueryError("runReviewMaybeQuery", "base", fallback.error);
+  }
   return fallback.data ? withDefaultReviewMetrics(fallback.data as T) : null;
 }
 

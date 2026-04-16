@@ -1,4 +1,8 @@
+import { normalizeRelation } from "@/lib/queries/normalize-relation";
+
 export type NotificationType = "review_liked" | "review_commented";
+
+type NestedMaybe<T> = T | T[] | null;
 
 export type NotificationActor = {
   username: string;
@@ -47,8 +51,6 @@ export type GroupedNotificationItem =
       othersCount: number;
     };
 
-type NestedMaybe<T> = T | T[] | null;
-
 type NotificationRecord = {
   id: string;
   recipient_id: string;
@@ -58,7 +60,7 @@ type NotificationRecord = {
   comment_id: string | null;
   read_at: string | null;
   created_at: string;
-  actor: NestedMaybe<NotificationActor>;
+  actor: NotificationActor | NotificationActor[] | null;
   review: NestedMaybe<{
     id: string | null;
     title: string | null;
@@ -82,23 +84,11 @@ export function notificationChannelTopic(recipientId: string) {
   return `notifications:user:${recipientId}`;
 }
 
-function unwrapNested<T>(value: NestedMaybe<T>) {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-
-  return value;
-}
-
 export function normalizeNotification(record: NotificationRecord): NotificationItem {
-  const actor = unwrapNested(record.actor);
-  const review = unwrapNested(record.review);
-  const comment = unwrapNested(record.comment);
-  const entity = review?.entities
-    ? Array.isArray(review.entities)
-      ? review.entities[0] ?? null
-      : review.entities
-    : null;
+  const actor = normalizeRelation(record.actor);
+  const review = normalizeRelation(record.review);
+  const comment = normalizeRelation(record.comment);
+  const entity = normalizeRelation(review?.entities);
 
   return {
     id: record.id,

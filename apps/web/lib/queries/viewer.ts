@@ -37,8 +37,8 @@ type ViewerSavedReviewEntity = {
 export type ViewerSavedReview = {
   saved_at: string;
   review: (ReviewCardData & {
-    author: ViewerSavedReviewAuthor | ViewerSavedReviewAuthor[] | null;
-    entities: ViewerSavedReviewEntity | ViewerSavedReviewEntity[] | null;
+    author: ViewerSavedReviewAuthor;
+    entities: ViewerSavedReviewEntity;
   }) | null;
 };
 

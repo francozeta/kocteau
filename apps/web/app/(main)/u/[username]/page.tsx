@@ -20,14 +20,6 @@ import { getViewerFollowsProfile } from "@/lib/queries/profile-follows";
 import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
 import { buildProfilePageJsonLd } from "@/lib/structured-data";
 
-function getEntity(review: ProfileReview) {
-  if (Array.isArray(review.entities)) {
-    return review.entities[0] ?? null;
-  }
-
-  return review.entities;
-}
-
 function applyViewerStateToReview(
   review: ProfileReview,
   likedReviewIds: Set<string>,
@@ -159,7 +151,7 @@ export default async function UserProfilePage({
               review={{
                 ...hydratedPinnedReview,
               }}
-              entity={getEntity(hydratedPinnedReview)}
+              entity={hydratedPinnedReview.entities}
               author={profileAuthor}
               featured
               isAuthenticated={Boolean(user)}
@@ -177,7 +169,7 @@ export default async function UserProfilePage({
                   review={{
                     ...review,
                   }}
-                  entity={getEntity(review)}
+                  entity={review.entities}
                   author={profileAuthor}
                   isAuthenticated={Boolean(user)}
                   canManage={isOwnProfile}

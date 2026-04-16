@@ -14,30 +14,6 @@ type SavedReviewsListProps = {
   emptyState: React.ReactNode;
 };
 
-function getAuthor(review: ViewerSavedReview["review"]) {
-  if (!review?.author) {
-    return null;
-  }
-
-  if (Array.isArray(review.author)) {
-    return review.author[0] ?? null;
-  }
-
-  return review.author;
-}
-
-function getEntity(review: ViewerSavedReview["review"]) {
-  if (!review?.entities) {
-    return null;
-  }
-
-  if (Array.isArray(review.entities)) {
-    return review.entities[0] ?? null;
-  }
-
-  return review.entities;
-}
-
 export default function SavedReviewsList({
   initialReviews,
   userId,
@@ -63,8 +39,8 @@ export default function SavedReviewsList({
           return null;
         }
 
-        const reviewAuthor = getAuthor(savedReview.review);
-        const reviewEntity = getEntity(savedReview.review);
+        const reviewAuthor = savedReview.review.author;
+        const reviewEntity = savedReview.review.entities;
 
         return (
           <SavedReviewCard
