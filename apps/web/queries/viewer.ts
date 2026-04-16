@@ -3,7 +3,7 @@ import { queryOptions } from "@tanstack/react-query";
 import type {
   ReviewCardData,
 } from "@/components/review-card";
-import type { FeedBundleQueryData } from "@/queries/feed";
+import type { FeedBundleQueryData, FeedInfiniteQueryData } from "@/queries/feed";
 import { feedKeys } from "@/queries/feed";
 import type { ReviewBundleQueryData } from "@/queries/reviews";
 import { reviewKeys } from "@/queries/reviews";
@@ -124,6 +124,20 @@ function patchFeedCollections(
         ? {
             ...current,
             feed: current.feed.map((review) => patchReviewRecord(review, reviewId, patch)),
+          }
+        : current,
+  );
+
+  queryClient.setQueriesData<FeedInfiniteQueryData>(
+    { queryKey: feedKeys.infinitePrefix() },
+    (current) =>
+      current
+        ? {
+            ...current,
+            pages: current.pages.map((page) => ({
+              ...page,
+              feed: page.feed.map((review) => patchReviewRecord(review, reviewId, patch)),
+            })),
           }
         : current,
   );

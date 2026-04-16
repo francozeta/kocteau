@@ -1,25 +1,24 @@
 import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { Clock3, Music2, Trophy } from "lucide-react";
+import { Clock3, Trophy, UsersRound } from "lucide-react";
+import FeedReviewList from "@/components/feed-review-list";
 import FollowProfileButton from "@/components/follow-profile-button";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { FeedReviewCard } from "@/components/review-route-cards-server";
 import UserAvatar from "@/components/user-avatar";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { isFeedView, type FeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
 import {
-  getFeedPublicBundle,
+  getFeedPage,
   getFeedViewerState,
 } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
-import { feedKeys } from "@/queries/feed";
+import { feedKeys, type FeedInfiniteQueryData } from "@/queries/feed";
 
 const feedViews: Array<{
   value: FeedView;
@@ -28,6 +27,10 @@ const feedViews: Array<{
   {
     value: "latest",
     label: "Latest",
+  },
+  {
+    value: "following",
+    label: "Following",
   },
   {
     value: "top-rated",
@@ -54,8 +57,12 @@ export default async function HomePage({
   const params = await searchParams;
   const activeView = isFeedView(params.view) ? params.view : "latest";
   const userPromise = getCurrentUser();
-  const publicBundlePromise = getFeedPublicBundle(activeView);
-  const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
+  const viewerProfilePromise = getCurrentViewerProfile();
+  const [user, viewerProfile] = await Promise.all([userPromise, viewerProfilePromise]);
+  const publicBundle = await getFeedPage({
+    view: activeView,
+    viewerId: user?.id,
+  });
   const activeUsers = publicBundle.activeUsers.filter((profile) => profile.id !== user?.id);
   const viewerStatePromise =
     user?.id && publicBundle.feed.length > 0
@@ -89,12 +96,21 @@ export default async function HomePage({
       ...profile,
       viewer_is_following: followingProfileIds.has(profile.id),
     })),
+    nextCursor: publicBundle.nextCursor,
+    view: publicBundle.view,
+    requiresAuth: activeView === "following" && !user,
   };
 
   queryClient.setQueryData(feedKeys.bundle(activeView), feedData);
+  queryClient.setQueryData<FeedInfiniteQueryData>(feedKeys.infinite(activeView), {
+    pages: [feedData],
+    pageParams: [null],
+  });
 
   const orderedFeed = feedData.feed;
-  const activeUsersRail = feedData.activeUsers.slice(0, 4);
+  const activeUsersRail = feedData.activeUsers
+    .filter((profile) => !profile.viewer_is_following)
+    .slice(0, 4);
   const hasSecondaryRail = activeUsersRail.length > 0;
   const feedStructuredData = buildFeedPageJsonLd(
     orderedFeed.flatMap((review) => {
@@ -126,35 +142,6 @@ export default async function HomePage({
     }).slice(0, 10),
   );
 
-  const feedCards = orderedFeed.length > 0 ? (
-    orderedFeed.map((review, index) => {
-      const entity = review.entities;
-      const author = review.author;
-
-      return (
-        <FeedReviewCard
-          key={review.id}
-          review={review}
-          entity={entity}
-          author={author}
-          featured={index === 0}
-          showInteractionBar={Boolean(user)}
-          isAuthenticated={Boolean(user)}
-          canManage={Boolean(user?.id && author?.id === user.id)}
-        />
-      );
-    })
-  ) : (
-    <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <Music2 className="size-4" />
-        </EmptyMedia>
-        <EmptyTitle>No reviews yet</EmptyTitle>
-        <EmptyDescription>Start with a review.</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
-  );
   const peopleCards = activeUsersRail.map((profile) => {
     const primaryLabel = profile.display_name ?? `@${profile.username}`;
 
@@ -208,7 +195,12 @@ export default async function HomePage({
       <div className="inline-flex items-center rounded-lg border border-border/42 bg-card/38 p-1">
         {feedViews.map((view) => {
           const isActive = activeView === view.value;
-          const Icon = view.value === "latest" ? Clock3 : Trophy;
+          const Icon =
+            view.value === "latest"
+              ? Clock3
+              : view.value === "following"
+                ? UsersRound
+                : Trophy;
 
           return (
             <Link
@@ -257,39 +249,53 @@ export default async function HomePage({
           </div>
 
           <div className="space-y-4">
-            {feedCards}
+            <FeedReviewList
+              view={activeView}
+              initialPage={feedData}
+              isAuthenticated={Boolean(user)}
+              viewer={viewerProfile}
+            />
           </div>
-
-          {hasSecondaryRail ? (
-            <aside className="space-y-3">
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                  People
-                </p>
-              </div>
-
-              <div className="grid gap-2 sm:grid-cols-2">
-                {peopleCards}
-              </div>
-            </aside>
-          ) : null}
         </section>
 
         <section className="hidden lg:block">
           <div className="mx-auto w-full max-w-[75rem]">
-            <div className="mx-auto w-full max-w-[42rem] space-y-4">
-              <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
-                <div className="min-w-0">
-                  {renderFeedSearchTrigger()}
+            <div
+              className={cn(
+                "mx-auto grid w-full gap-5",
+                hasSecondaryRail
+                  ? "lg:grid-cols-[minmax(0,42rem)_17rem] lg:justify-center"
+                  : "max-w-[42rem]",
+              )}
+            >
+              <div className="min-w-0 space-y-4">
+                <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+                  <div className="min-w-0">
+                    {renderFeedSearchTrigger()}
+                  </div>
+                  <div className="justify-self-start xl:justify-self-end">
+                    {renderFeedControls()}
+                  </div>
                 </div>
-                <div className="justify-self-start xl:justify-self-end">
-                  {renderFeedControls()}
-                </div>
+
+                <FeedReviewList
+                  view={activeView}
+                  initialPage={feedData}
+                  isAuthenticated={Boolean(user)}
+                  viewer={viewerProfile}
+                />
               </div>
 
-              <div className="space-y-3.5">
-                {feedCards}
-              </div>
+              {hasSecondaryRail ? (
+                <aside className="hidden space-y-3 lg:block">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                    Who to follow
+                  </p>
+                  <div className="space-y-2">
+                    {peopleCards}
+                  </div>
+                </aside>
+              ) : null}
             </div>
           </div>
         </section>

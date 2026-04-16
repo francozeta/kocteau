@@ -1,0 +1,175 @@
+"use client";
+
+import { useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Music2, UsersRound } from "lucide-react";
+import { FeedReviewCard } from "@/components/review-route-cards";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
+import type { FeedView } from "@/lib/feed-view";
+import {
+  feedInfiniteQueryOptions,
+  type FeedBundleQueryData,
+} from "@/queries/feed";
+
+type FeedReviewListViewer = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+} | null;
+
+type FeedReviewListProps = {
+  view: FeedView;
+  initialPage: FeedBundleQueryData;
+  isAuthenticated: boolean;
+  viewer: FeedReviewListViewer;
+};
+
+function FeedEmptyState({
+  view,
+  isAuthenticated,
+}: {
+  view: FeedView;
+  isAuthenticated: boolean;
+}) {
+  if (view === "following") {
+    return (
+      <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <UsersRound className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>{isAuthenticated ? "No following reviews yet" : "Log in to see Following"}</EmptyTitle>
+          <EmptyDescription>
+            {isAuthenticated
+              ? "Follow more listeners and their reviews will show up here."
+              : "Your following feed is built from people you follow."}
+          </EmptyDescription>
+        </EmptyHeader>
+        {!isAuthenticated ? (
+          <Link
+            href="/login"
+            className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-foreground px-3 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+          >
+            Log in
+          </Link>
+        ) : null}
+      </Empty>
+    );
+  }
+
+  return (
+    <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Music2 className="size-4" />
+        </EmptyMedia>
+        <EmptyTitle>No reviews yet</EmptyTitle>
+        <EmptyDescription>Start with a review.</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+export default function FeedReviewList({
+  view,
+  initialPage,
+  isAuthenticated,
+  viewer,
+}: FeedReviewListProps) {
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const feedQuery = useInfiniteQuery({
+    ...feedInfiniteQueryOptions(view),
+    initialData: {
+      pages: [initialPage],
+      pageParams: [null],
+    },
+  });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = feedQuery;
+  const reviews = useMemo(() => {
+    const seen = new Set<string>();
+
+    return (data?.pages ?? []).flatMap((page) =>
+      page.feed.filter((review) => {
+        if (seen.has(review.id)) {
+          return false;
+        }
+
+        seen.add(review.id);
+        return true;
+      }),
+    );
+  }, [data?.pages]);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+
+    if (!node || !hasNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+
+        if (entry?.isIntersecting && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      {
+        rootMargin: "360px 0px",
+      },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  if (reviews.length === 0) {
+    return <FeedEmptyState view={view} isAuthenticated={isAuthenticated} />;
+  }
+
+  return (
+    <div className="space-y-3.5">
+      {reviews.map((review, index) => {
+        const author = review.author;
+
+        return (
+          <FeedReviewCard
+            key={review.id}
+            review={review}
+            entity={review.entities}
+            author={author}
+            featured={index === 0}
+            showInteractionBar={isAuthenticated}
+            isAuthenticated={isAuthenticated}
+            canManage={Boolean(viewer?.id && author?.id === viewer.id)}
+            viewer={viewer}
+          />
+        );
+      })}
+
+      {hasNextPage ? (
+        <div ref={sentinelRef} className="flex min-h-12 items-center justify-center py-2">
+          {isFetchingNextPage ? (
+            <Spinner className="size-4 text-muted-foreground/70" />
+          ) : null}
+        </div>
+      ) : (
+        <p className="py-3 text-center text-xs text-muted-foreground">
+          You are all caught up.
+        </p>
+      )}
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isFeedView } from "@/lib/feed-view";
-import { getFeedPublicBundle, getFeedViewerState } from "@/lib/queries/feed";
+import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const viewParam = url.searchParams.get("view") ?? undefined;
   const activeView = isFeedView(viewParam) ? viewParam : "latest";
-  const publicBundlePromise = getFeedPublicBundle(activeView);
+  const cursor = url.searchParams.get("cursor");
   const userPromise = (async () => {
     const supabase = await supabaseServer();
     const {
@@ -16,7 +16,13 @@ export async function GET(req: Request) {
     } = await supabase.auth.getUser();
     return user;
   })();
-  const [bundle, user] = await Promise.all([publicBundlePromise, userPromise]);
+  const user = await userPromise;
+  const bundle = await getFeedPage({
+    view: activeView,
+    viewerId: user?.id,
+    cursor,
+    includeActiveUsers: !cursor,
+  });
   const activeUsers = bundle.activeUsers.filter((profile) => profile.id !== user?.id);
   const viewerState =
     user?.id && bundle.feed.length > 0
@@ -46,5 +52,8 @@ export async function GET(req: Request) {
       ...profile,
       viewer_is_following: followedProfileIds.has(profile.id),
     })),
+    nextCursor: bundle.nextCursor,
+    view: bundle.view,
+    requiresAuth: activeView === "following" && !user,
   });
 }

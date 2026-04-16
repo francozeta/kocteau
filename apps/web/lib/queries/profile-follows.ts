@@ -7,6 +7,25 @@ function normalizeProfileIds(profileIds: string[]) {
   return Array.from(new Set(profileIds.filter(Boolean)));
 }
 
+function logProfileFollowsQueryError(
+  scope: "getViewerFollowsProfile" | "getViewerFollowingProfileIds" | "getViewerFollowingIds",
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: Record<string, unknown>,
+) {
+  console.error(`[profile-follows.${scope}] failed`, {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
+
 export async function getViewerFollowsProfile(
   viewerId: string | null | undefined,
   profileId: string | null | undefined,
@@ -28,6 +47,10 @@ export async function getViewerFollowsProfile(
         .maybeSingle<{ following_id: string }>();
 
       if (error) {
+        logProfileFollowsQueryError("getViewerFollowsProfile", error, {
+          viewerId,
+          profileId,
+        });
         return false;
       }
 
@@ -68,6 +91,10 @@ export async function getViewerFollowingProfileIds(
         .in("following_id", normalizedProfileIds);
 
       if (error) {
+        logProfileFollowsQueryError("getViewerFollowingProfileIds", error, {
+          viewerId,
+          profileCount: normalizedProfileIds.length,
+        });
         return new Set<string>();
       }
 
@@ -80,6 +107,45 @@ export async function getViewerFollowingProfileIds(
     {
       viewerId,
       profileCount: normalizedProfileIds.length,
+    },
+  );
+}
+
+export async function getViewerFollowingIds(
+  viewerId: string | null | undefined,
+  limit = 500,
+) {
+  if (!viewerId) {
+    return [];
+  }
+
+  return measureServerTask(
+    "getViewerFollowingIds",
+    async () => {
+      const supabase = await supabaseServer();
+      const { data, error } = await supabase
+        .from("profile_follows")
+        .select("following_id")
+        .eq("follower_id", viewerId)
+        .limit(limit);
+
+      if (error) {
+        logProfileFollowsQueryError("getViewerFollowingIds", error, {
+          viewerId,
+          limit,
+        });
+        return [];
+      }
+
+      return normalizeProfileIds(
+        (data ?? [])
+          .map((row) => row.following_id)
+          .filter((value): value is string => typeof value === "string" && value.length > 0),
+      );
+    },
+    {
+      viewerId,
+      limit,
     },
   );
 }

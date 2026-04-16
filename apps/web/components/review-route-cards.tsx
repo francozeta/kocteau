@@ -26,6 +26,13 @@ export type ReviewCardPermissions = {
   canManage?: boolean;
 };
 
+type ReviewCardViewer = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+} | null;
+
 type RoutedReviewCardProps = {
   review: ReviewCardData;
   entity: ReviewCardEntity | null;
@@ -33,6 +40,7 @@ type RoutedReviewCardProps = {
   display?: ReviewCardDisplayOptions;
   behavior?: ReviewCardBehaviorOptions;
   permissions?: ReviewCardPermissions;
+  viewer?: ReviewCardViewer;
 };
 
 type ReviewCardRouteProps = {
@@ -41,10 +49,12 @@ type ReviewCardRouteProps = {
   author?: ReviewCardAuthor | null;
   isAuthenticated?: boolean;
   canManage?: boolean;
+  viewer?: ReviewCardViewer;
 };
 
 type FeedReviewCardProps = ReviewCardRouteProps & {
   featured?: boolean;
+  showInteractionBar?: boolean;
 };
 
 type ProfileReviewCardProps = ReviewCardRouteProps & {
@@ -118,6 +128,7 @@ function RoutedReviewCard({
   display,
   behavior,
   permissions,
+  viewer = null,
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
   const entityPriority = Boolean(display?.featured);
@@ -187,6 +198,7 @@ function RoutedReviewCard({
           <ReviewCardInteractionBar
             review={review}
             isAuthenticated={isAuthenticated}
+            viewer={viewer}
           />
         ) : null,
       }}
@@ -223,6 +235,8 @@ export function FeedReviewCard({
   isAuthenticated = false,
   canManage = false,
   featured = false,
+  showInteractionBar = true,
+  viewer = null,
 }: FeedReviewCardProps) {
   return (
     <RoutedReviewCard
@@ -230,7 +244,9 @@ export function FeedReviewCard({
       entity={entity}
       author={author}
       display={buildFeedReviewCardDisplay(featured)}
+      behavior={{ showInteractionBar }}
       permissions={{ isAuthenticated, canManage }}
+      viewer={viewer}
     />
   );
 }
@@ -241,6 +257,7 @@ export function TrackReviewCard({
   author = null,
   isAuthenticated = false,
   canManage = false,
+  viewer = null,
 }: ReviewCardRouteProps) {
   return (
     <RoutedReviewCard
@@ -249,6 +266,7 @@ export function TrackReviewCard({
       author={author}
       display={buildFeedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
+      viewer={viewer}
     />
   );
 }
@@ -260,6 +278,7 @@ export function ProfileReviewCard({
   isAuthenticated = false,
   canManage = false,
   featured = false,
+  viewer = null,
 }: ProfileReviewCardProps) {
   return (
     <RoutedReviewCard
@@ -268,6 +287,7 @@ export function ProfileReviewCard({
       author={author}
       display={buildFeedReviewCardDisplay(featured)}
       permissions={{ isAuthenticated, canManage }}
+      viewer={viewer}
     />
   );
 }
@@ -278,6 +298,7 @@ export function SavedReviewCard({
   author = null,
   isAuthenticated = false,
   canManage = false,
+  viewer = null,
 }: ReviewCardRouteProps) {
   return (
     <RoutedReviewCard
@@ -286,6 +307,7 @@ export function SavedReviewCard({
       author={author}
       display={buildFeedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
+      viewer={viewer}
     />
   );
 }
@@ -296,6 +318,7 @@ export function ReviewPageCard({
   author = null,
   isAuthenticated = false,
   canManage = false,
+  viewer = null,
 }: ReviewCardRouteProps) {
   return (
     <RoutedReviewCard
@@ -304,6 +327,7 @@ export function ReviewPageCard({
       author={author}
       display={buildFeedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
+      viewer={viewer}
     />
   );
 }
