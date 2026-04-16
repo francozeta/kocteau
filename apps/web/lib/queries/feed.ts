@@ -19,7 +19,7 @@ import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
 
-export const FEED_PAGE_SIZE = 12;
+export const FEED_PAGE_SIZE = 8;
 
 export type FeedReview = {
   id: ReviewCardData["id"];

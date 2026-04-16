@@ -7,18 +7,14 @@ import { Toaster } from "@/components/ui/sonner";
 import { getMetadataBase } from "@/lib/metadata";
 import { buildSiteGraphJsonLd } from "@/lib/structured-data";
 
-const merriweatherHeading = Merriweather({subsets:['latin'],variable:'--font-heading'});
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-const merriweather = Merriweather({
-  subsets: ['latin'],
-  variable: '--font-serif',
-  weight: ['400', '700'],
-});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const geist = Geist({
   subsets: ["latin"],
+  variable: "--font-sans",
+});
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  weight: ["400", "700"],
 });
 
 
@@ -51,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn( merriweather.variable, "font-sans", geist.className, merriweatherHeading.variable)}>
+    <html lang="en" className={cn(geist.variable, merriweather.variable, "font-sans")}>
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
         <link rel="dns-prefetch" href="https://cdn-images.dzcdn.net" />
@@ -63,7 +59,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://ytxilnlmvioccfaomizi.supabase.co" />
       </head>
       <body
-        className={`${geistSans.className} antialiased dark`}
+        className={`${geist.className} antialiased dark`}
       >
         <JsonLd data={buildSiteGraphJsonLd()} id="site-structured-data" />
         {children}

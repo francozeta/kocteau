@@ -11,6 +11,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
 } from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Drawer,
@@ -23,12 +24,24 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
-import NewReviewForm from "@/components/new-review-form";
+import type { NewReviewFormProps, NewReviewFormStep } from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus, Search } from "lucide-react";
 import { toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
+
+const NewReviewForm = dynamic<NewReviewFormProps>(
+  () => import("@/components/new-review-form"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full min-h-[20rem] items-center justify-center p-6">
+        <div className="size-5 animate-spin rounded-full border border-border/60 border-t-foreground" />
+      </div>
+    ),
+  },
+);
 
 type InitialSelection = {
   provider: "deezer";
@@ -102,7 +115,7 @@ export default function NewReviewDialog({
   }, [searchParams]);
   const resolvedInitialQuery = initialQuery ?? initialQueryFromUrl;
   const resolvedInitialSelection = initialSelection ?? initialSelectionFromUrl;
-  const [formStep, setFormStep] = useState<"search" | "compose">(
+  const [formStep, setFormStep] = useState<NewReviewFormStep>(
     resolvedInitialSelection ? "compose" : "search",
   );
 

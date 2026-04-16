@@ -27,20 +27,6 @@ const palette = {
   amber: "#fbbf24",
 };
 
-function trimText(value: string | null | undefined, maxLength: number) {
-  if (!value) {
-    return "";
-  }
-
-  const normalized = value.replace(/\s+/g, " ").trim();
-
-  if (normalized.length <= maxLength) {
-    return normalized;
-  }
-
-  return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
-}
-
 const getLogoDataUrl = cache(async () => {
   try {
     const logoPath = join(process.cwd(), "public", "logo-k.png");
@@ -268,55 +254,6 @@ async function createFrame(children: React.ReactNode) {
   );
 }
 
-function MetricPill({
-  label,
-  value,
-  highlighted = false,
-}: {
-  label: string;
-  value: string;
-  highlighted?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "12px 18px",
-        borderRadius: 999,
-        border: `1px solid ${highlighted ? "rgba(251,191,36,0.38)" : palette.border}`,
-        background: highlighted ? "rgba(251,191,36,0.08)" : palette.accentSoft,
-        fontFamily:
-          'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      }}
-    >
-      <span
-        style={{
-          display: "flex",
-          fontSize: 13,
-          color: palette.muted,
-          textTransform: "uppercase",
-          letterSpacing: "0.12em",
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          display: "flex",
-          fontSize: 18,
-          fontWeight: 700,
-          color: highlighted ? palette.amber : palette.text,
-          letterSpacing: "-0.03em",
-        }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
 function Surface({
   children,
   padding = "28px",
@@ -496,8 +433,6 @@ export async function createTrackOgImage({
   title,
   artistName,
   coverUrl,
-  reviewCount,
-  averageRating,
 }: {
   title: string;
   artistName?: string | null;
@@ -584,7 +519,6 @@ export async function createProfileOgImage({
   username,
   displayName,
   avatarUrl,
-  bio,
 }: {
   username: string;
   displayName?: string | null;

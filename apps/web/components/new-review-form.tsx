@@ -42,12 +42,12 @@ type PublishReviewResponse = {
   authorUsername?: string | null;
 };
 
-type NewReviewFormProps = {
+export type NewReviewFormProps = {
   mode?: "create" | "edit";
   reviewId?: string | null;
   onSuccess?: () => void;
   onCancel?: () => void;
-  onStepChange?: (step: Step) => void;
+  onStepChange?: (step: NewReviewFormStep) => void;
   showCancelAction?: boolean;
   primaryActionFullWidth?: boolean;
   initialQuery?: string;
@@ -59,7 +59,7 @@ type NewReviewFormProps = {
   redirectToOnSuccess?: string | null;
 };
 
-type Step = "search" | "compose";
+export type NewReviewFormStep = "search" | "compose";
 
 export default function NewReviewForm({
   mode = "create",
@@ -81,7 +81,7 @@ export default function NewReviewForm({
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const isEditMode = mode === "edit" && Boolean(reviewId);
 
-  const [step, setStep] = useState<Step>(initialSelection ? "compose" : "search");
+  const [step, setStep] = useState<NewReviewFormStep>(initialSelection ? "compose" : "search");
   const [query, setQuery] = useState(initialQuery);
   const [selected, setSelected] = useState<DeezerResult | null>(initialSelection);
   const [activeResultIndex, setActiveResultIndex] = useState(-1);

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export type CurrentViewerProfile = {
@@ -15,6 +16,15 @@ export type CurrentViewerProfile = {
 };
 
 export const getCurrentUser = cache(async () => {
+  const cookieStore = await cookies();
+  const hasSupabaseCookie = cookieStore
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
+
+  if (!hasSupabaseCookie) {
+    return null;
+  }
+
   const supabase = await supabaseServer();
   const {
     data: { user },
