@@ -1,4 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
+import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import type {
   ReviewCardData,
@@ -18,6 +18,23 @@ export type ReviewLikeState = {
 
 export type ReviewBookmarkState = {
   bookmarked: boolean;
+};
+
+export type ReviewContentPatch = Pick<
+  ReviewCardData,
+  "title" | "body" | "rating"
+> & {
+  is_pinned?: boolean;
+};
+
+type ReviewCacheSnapshotEntry<TData> = [QueryKey, TData | undefined];
+
+export type ReviewCacheSnapshot = {
+  feedBundles: ReviewCacheSnapshotEntry<FeedBundleQueryData>[];
+  feedInfinite: ReviewCacheSnapshotEntry<FeedInfiniteQueryData>[];
+  trackDetails: ReviewCacheSnapshotEntry<TrackBundleQueryData>[];
+  reviewDetails: ReviewCacheSnapshotEntry<ReviewBundleQueryData>[];
+  savedReviews: ViewerSavedReview[] | undefined;
 };
 
 type ViewerSavedReviewAuthor = {
@@ -112,6 +129,17 @@ function patchSavedReviewCollection(
   });
 }
 
+function removeSavedReviewFromCollection(
+  current: ViewerSavedReview[] | undefined,
+  reviewId: string,
+) {
+  if (!current) {
+    return current;
+  }
+
+  return current.filter((item) => item.review?.id !== reviewId);
+}
+
 function patchFeedCollections(
   queryClient: QueryClient,
   reviewId: string,
@@ -177,6 +205,114 @@ function patchReviewDetail(
             },
           }
         : current,
+  );
+}
+
+export function getReviewCacheSnapshot(
+  queryClient: QueryClient,
+): ReviewCacheSnapshot {
+  return {
+    feedBundles: queryClient.getQueriesData<FeedBundleQueryData>({
+      queryKey: feedKeys.bundlePrefix(),
+    }),
+    feedInfinite: queryClient.getQueriesData<FeedInfiniteQueryData>({
+      queryKey: feedKeys.infinitePrefix(),
+    }),
+    trackDetails: queryClient.getQueriesData<TrackBundleQueryData>({
+      queryKey: trackKeys.detailPrefix(),
+    }),
+    reviewDetails: queryClient.getQueriesData<ReviewBundleQueryData>({
+      queryKey: reviewKeys.detailPrefix(),
+    }),
+    savedReviews: queryClient.getQueryData<ViewerSavedReview[]>(
+      viewerKeys.savedReviews(),
+    ),
+  };
+}
+
+export function restoreReviewCacheSnapshot(
+  queryClient: QueryClient,
+  snapshot: ReviewCacheSnapshot,
+) {
+  snapshot.feedBundles.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
+  snapshot.feedInfinite.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
+  snapshot.trackDetails.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
+  snapshot.reviewDetails.forEach(([queryKey, data]) => {
+    queryClient.setQueryData(queryKey, data);
+  });
+  queryClient.setQueryData(viewerKeys.savedReviews(), snapshot.savedReviews);
+}
+
+export function syncReviewContent(
+  queryClient: QueryClient,
+  reviewId: string,
+  patch: ReviewContentPatch,
+) {
+  patchFeedCollections(queryClient, reviewId, patch);
+  patchTrackCollections(queryClient, reviewId, patch);
+  patchReviewDetail(queryClient, reviewId, patch);
+  queryClient.setQueryData<ViewerSavedReview[] | undefined>(
+    viewerKeys.savedReviews(),
+    (current) => patchSavedReviewCollection(current, reviewId, patch),
+  );
+}
+
+export function removeReviewFromCollections(
+  queryClient: QueryClient,
+  reviewId: string,
+) {
+  queryClient.setQueriesData<FeedBundleQueryData>(
+    { queryKey: feedKeys.bundlePrefix() },
+    (current) =>
+      current
+        ? {
+            ...current,
+            feed: current.feed.filter((review) => review.id !== reviewId),
+          }
+        : current,
+  );
+
+  queryClient.setQueriesData<FeedInfiniteQueryData>(
+    { queryKey: feedKeys.infinitePrefix() },
+    (current) =>
+      current
+        ? {
+            ...current,
+            pages: current.pages.map((page) => ({
+              ...page,
+              feed: page.feed.filter((review) => review.id !== reviewId),
+            })),
+          }
+        : current,
+  );
+
+  queryClient.setQueriesData<TrackBundleQueryData>(
+    { queryKey: trackKeys.detailPrefix() },
+    (current) =>
+      current
+        ? {
+            ...current,
+            reviews: current.reviews.filter((review) => review.id !== reviewId),
+            viewerReviewId:
+              current.viewerReviewId === reviewId ? null : current.viewerReviewId,
+          }
+        : current,
+  );
+
+  queryClient.removeQueries({
+    queryKey: reviewKeys.detail(reviewId),
+    exact: true,
+  });
+
+  queryClient.setQueryData<ViewerSavedReview[] | undefined>(
+    viewerKeys.savedReviews(),
+    (current) => removeSavedReviewFromCollection(current, reviewId),
   );
 }
 

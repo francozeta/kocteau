@@ -99,10 +99,13 @@ export default function ReviewCommentsPanel({
       return;
     }
 
+    const submittedBody = trimmedBody;
+    setBody("");
+
     try {
-      await createComment(trimmedBody);
-      setBody("");
+      await createComment(submittedBody);
     } catch (error) {
+      setBody(submittedBody);
       toastActionError(error, "We couldn't post your comment right now.");
     }
   }

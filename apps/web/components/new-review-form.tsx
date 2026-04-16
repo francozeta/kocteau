@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, LoaderCircle, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
 import { toast } from "sonner";
@@ -18,6 +19,11 @@ import { toastActionSuccess } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 import { ApiError, createApiError, getFirstFieldError } from "@/lib/validation/errors";
 import { createReviewSchema, updateReviewSchema } from "@/lib/validation/schemas";
+import {
+  getReviewCacheSnapshot,
+  restoreReviewCacheSnapshot,
+  syncReviewContent,
+} from "@/queries/viewer";
 import RatingStars from "./rating-stars";
 
 type DeezerResult = {
@@ -78,6 +84,7 @@ export default function NewReviewForm({
   redirectToOnSuccess = null,
 }: NewReviewFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const isEditMode = mode === "edit" && Boolean(reviewId);
 
@@ -267,6 +274,18 @@ export default function NewReviewForm({
       return;
     }
 
+    const optimisticSnapshot =
+      isEditMode && reviewId ? getReviewCacheSnapshot(queryClient) : null;
+
+    if (isEditMode && reviewId) {
+      syncReviewContent(queryClient, reviewId, {
+        title: parsed.data.review_title ?? null,
+        body: parsed.data.review_body ?? null,
+        rating: parsed.data.rating,
+        is_pinned: parsed.data.is_pinned,
+      });
+    }
+
     setSaving(true);
 
     try {
@@ -300,15 +319,25 @@ export default function NewReviewForm({
         selected?.entity_id !== payload.entityId;
 
       toastActionSuccess(isEditMode ? "Review updated." : "Review published.");
-      router.refresh();
-      if (redirectToOnSuccess) {
-        router.push(redirectToOnSuccess);
-      } else if (shouldRedirectToCreatedTrack && payload.entityId) {
-        router.push(`/track/${payload.entityId}`);
-      }
       onSuccess?.();
       resetAll();
+
+      startTransition(() => {
+        router.refresh();
+
+        if (redirectToOnSuccess) {
+          router.push(redirectToOnSuccess);
+        } else if (shouldRedirectToCreatedTrack && payload.entityId) {
+          router.push(`/track/${payload.entityId}`);
+        }
+      });
+
+      return;
     } catch (error) {
+      if (optimisticSnapshot) {
+        restoreReviewCacheSnapshot(queryClient, optimisticSnapshot);
+      }
+
       const reviewError = error as ReviewSubmitError | ApiError;
 
       if (reviewError instanceof ApiError && reviewError.fieldErrors) {

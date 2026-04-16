@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { startTransition, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import { createApiError } from "@/lib/validation/errors";
+import {
+  getReviewCacheSnapshot,
+  removeReviewFromCollections,
+  restoreReviewCacheSnapshot,
+} from "@/queries/viewer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +37,7 @@ export function useReviewActions({
   entityId = null,
 }: ReviewActionTarget) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -135,8 +142,12 @@ export function useReviewActions({
   }
 
   async function deleteReview() {
+    const snapshot = getReviewCacheSnapshot(queryClient);
+
     try {
       setIsDeleting(true);
+      setConfirmOpen(false);
+      removeReviewFromCollections(queryClient, reviewId);
 
       const response = await fetch(`/api/reviews/${reviewId}`, {
         method: "DELETE",
@@ -152,10 +163,13 @@ export function useReviewActions({
       await response.json().catch(() => null);
 
       toastActionSuccess("Review deleted");
-      setConfirmOpen(false);
 
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error) {
+      restoreReviewCacheSnapshot(queryClient, snapshot);
+      setConfirmOpen(true);
       toastActionError(error, "We couldn't delete this review right now.");
     } finally {
       setIsDeleting(false);
