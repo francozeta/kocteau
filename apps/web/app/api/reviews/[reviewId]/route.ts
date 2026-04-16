@@ -1,6 +1,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
+import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { reviewIdParamsSchema, updateReviewSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -163,6 +164,15 @@ export async function PATCH(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  const rateLimited = await enforceRateLimit(
+    rateLimits.updateReview,
+    auth.user.id,
+  );
+
+  if (rateLimited) {
+    return rateLimited;
+  }
+
   const payload = (await req.json().catch(() => null)) as unknown;
   const parsed = updateReviewSchema.safeParse(payload);
 
@@ -240,6 +250,15 @@ export async function DELETE(
 
   if (!auth.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(
+    rateLimits.deleteReview,
+    auth.user.id,
+  );
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const reviewLookup = await getOwnedReviewRecord(reviewId, auth.user.id);

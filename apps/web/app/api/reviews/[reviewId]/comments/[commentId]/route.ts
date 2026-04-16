@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { reviewCommentParamsSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -40,6 +41,15 @@ export async function DELETE(
 
   if (!auth.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(
+    rateLimits.deleteComment,
+    auth.user.id,
+  );
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const { data: deletedComment, error } = await supabase

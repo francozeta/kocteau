@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUnreadNotificationsCount } from "@/lib/queries/notifications";
+import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST() {
@@ -8,6 +9,15 @@ export async function POST() {
 
   if (!auth.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(
+    rateLimits.markNotificationsReadAll,
+    auth.user.id,
+  );
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const readAt = new Date().toISOString();

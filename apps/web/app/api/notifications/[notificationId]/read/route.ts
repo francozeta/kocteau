@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUnreadNotificationsCount } from "@/lib/queries/notifications";
+import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { notificationParamsSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -20,6 +21,15 @@ export async function POST(
 
   if (!auth.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(
+    rateLimits.markNotificationRead,
+    auth.user.id,
+  );
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const { data: current, error: currentError } = await supabase

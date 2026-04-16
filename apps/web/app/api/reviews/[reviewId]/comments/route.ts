@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
+import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { createCommentSchema, reviewIdParamsSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -93,6 +94,15 @@ export async function POST(
 
   if (!auth.user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(
+    rateLimits.createComment,
+    auth.user.id,
+  );
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const parsed = createCommentSchema.safeParse(await req.json().catch(() => null));
