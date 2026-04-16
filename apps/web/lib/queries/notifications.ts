@@ -1,11 +1,14 @@
 import { normalizeNotification, type NotificationItem } from "@/lib/notifications";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getRedisClient } from "@/lib/redis";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof supabaseServer>>;
 type QueryError = {
   code?: string | null;
   message?: string | null;
 } | null;
+
+const UNREAD_COUNT_CACHE_TTL_SECONDS = 20;
 
 type NotificationQueryRecord = {
   id: string;
@@ -111,6 +114,26 @@ function logNotificationsQueryError(
   });
 }
 
+function unreadCountCacheKey(userId: string) {
+  return `kocteau:notifications:unread-count:${userId}`;
+}
+
+export async function invalidateUnreadNotificationsCount(userId: string) {
+  const redis = await getRedisClient();
+
+  if (!redis) {
+    return;
+  }
+
+  try {
+    await redis.del(unreadCountCacheKey(userId));
+  } catch (error) {
+    console.error("[notifications.invalidateUnreadNotificationsCount] failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 export async function getNotificationsForUser(
   supabase: ServerSupabaseClient,
   userId: string,
@@ -169,6 +192,23 @@ export async function getUnreadNotificationsCount(
   supabase: ServerSupabaseClient,
   userId: string,
 ) {
+  const redis = await getRedisClient();
+  const cacheKey = unreadCountCacheKey(userId);
+
+  if (redis) {
+    try {
+      const cached = await redis.get(cacheKey);
+
+      if (cached !== null) {
+        return Number(cached) || 0;
+      }
+    } catch (error) {
+      console.error("[notifications.getUnreadNotificationsCount] cache read failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   const { count, error } = await supabase
     .from("notifications")
     .select("id", { count: "exact", head: true })
@@ -186,5 +226,19 @@ export async function getUnreadNotificationsCount(
     return 0;
   }
 
-  return count ?? 0;
+  const unreadCount = count ?? 0;
+
+  if (redis) {
+    try {
+      await redis.set(cacheKey, String(unreadCount), {
+        EX: UNREAD_COUNT_CACHE_TTL_SECONDS,
+      });
+    } catch (error) {
+      console.error("[notifications.getUnreadNotificationsCount] cache write failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  return unreadCount;
 }

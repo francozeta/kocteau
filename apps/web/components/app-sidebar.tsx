@@ -12,7 +12,7 @@ import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { Kbd } from "@/components/ui/kbd";
 import { NavUser } from "@/components/nav-user";
-import { useNotifications } from "@/hooks/use-notifications";
+import { notificationsUnreadCountKey } from "@/hooks/use-notifications";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { fetchJson } from "@/queries/http";
 import {
@@ -51,13 +51,11 @@ export default function AppSidebar({
   const pathname = usePathname();
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const previousPathnameRef = useRef(pathname);
-  const { unreadCount } = useNotifications({
-    userId: profile?.id ?? null,
-    initialUnreadCount,
-    initialNotifications: [],
-    hasInitialNotificationsData: false,
-    enableList: false,
-    subscribe: false,
+  const { data: unreadCount = initialUnreadCount } = useQuery<number>({
+    queryKey: notificationsUnreadCountKey,
+    queryFn: async () => initialUnreadCount,
+    enabled: false,
+    placeholderData: initialUnreadCount,
   });
   const { data: sidebarReviews = ownedReviews } = useQuery({
     queryKey: ["viewer", "sidebar-reviews"],

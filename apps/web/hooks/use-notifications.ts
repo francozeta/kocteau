@@ -41,7 +41,7 @@ export function notificationsListKey(limit: number) {
 export const notificationsUnreadCountKey = ["notifications", "unread-count"] as const;
 const notificationsListPrefix = ["notifications", "list"] as const;
 const NOTIFICATIONS_STALE_MS = 60_000;
-const UNREAD_FALLBACK_POLL_MS = 45_000;
+const UNREAD_FALLBACK_POLL_MS = 120_000;
 
 function upsertNotification(
   current: NotificationItem[],
@@ -146,7 +146,7 @@ export function useNotifications({
     refetchInterval:
       userId && !subscribe ? UNREAD_FALLBACK_POLL_MS : false,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: Boolean(subscribe),
+    refetchOnWindowFocus: false,
   });
 
   const notificationsQuery = useQuery({
@@ -345,10 +345,6 @@ export function useNotifications({
         notificationsUnreadCountKey,
         result.unreadCount,
       );
-      void queryClient.invalidateQueries({
-        queryKey: notificationsUnreadCountKey,
-        exact: true,
-      });
     },
   });
 

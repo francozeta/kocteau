@@ -1,6 +1,6 @@
 import "server-only";
 
-type ReviewMetricsMode = "all" | "likes-only" | "base";
+type ReviewMetricsMode = "all";
 
 type ReviewHydrationOptions = {
   includeAuthor?: boolean;
@@ -21,8 +21,8 @@ export function buildReviewHydrationSelect(
     "title",
     "body",
     "rating",
-    ...(mode !== "base" ? ["likes_count"] : []),
-    ...(mode === "all" ? ["comments_count"] : []),
+    "likes_count",
+    "comments_count",
     ...(includePinned ? ["is_pinned"] : []),
     "created_at",
     ...(includeEntity

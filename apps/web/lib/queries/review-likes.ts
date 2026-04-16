@@ -11,11 +11,10 @@ type QueryResult<T> = {
   error: QueryError;
 };
 
-type ReviewMetricsMode = "all" | "likes-only" | "base";
+type ReviewMetricsMode = "all";
 
 function logReviewMetricsQueryError(
   scope: "runReviewListQuery" | "runReviewMaybeQuery",
-  stage: ReviewMetricsMode,
   error: QueryError,
 ) {
   if (!error) {
@@ -23,34 +22,9 @@ function logReviewMetricsQueryError(
   }
 
   console.error(`[review-likes.${scope}] failed`, {
-    stage,
     code: error.code ?? null,
     message: error.message ?? null,
   });
-}
-
-export function isMissingLikesCountError(error: QueryError) {
-  if (!error?.message) {
-    return false;
-  }
-
-  return (
-    error.code === "42703" ||
-    error.code === "PGRST204" ||
-    error.message.toLowerCase().includes("likes_count")
-  );
-}
-
-export function isMissingCommentsCountError(error: QueryError) {
-  if (!error?.message) {
-    return false;
-  }
-
-  return (
-    error.code === "42703" ||
-    error.code === "PGRST204" ||
-    error.message.toLowerCase().includes("comments_count")
-  );
 }
 
 function withDefaultReviewMetrics<
@@ -71,37 +45,14 @@ export async function runReviewListQuery<
 >(
   run: (mode: ReviewMetricsMode) => Promise<QueryResult<unknown>>,
 ) {
-  const withAllMetrics = await run("all");
+  const result = await run("all");
 
-  if (!withAllMetrics.error) {
-    return ((withAllMetrics.data as T[] | null) ?? []).map(withDefaultReviewMetrics);
-  }
-
-  if (isMissingCommentsCountError(withAllMetrics.error)) {
-    const withLikesOnly = await run("likes-only");
-
-    if (!withLikesOnly.error) {
-      return ((withLikesOnly.data as T[] | null) ?? []).map(withDefaultReviewMetrics);
-    }
-
-    if (!isMissingLikesCountError(withLikesOnly.error)) {
-      logReviewMetricsQueryError(
-        "runReviewListQuery",
-        "likes-only",
-        withLikesOnly.error,
-      );
-      return [];
-    }
-  } else if (!isMissingLikesCountError(withAllMetrics.error)) {
-    logReviewMetricsQueryError("runReviewListQuery", "all", withAllMetrics.error);
+  if (result.error) {
+    logReviewMetricsQueryError("runReviewListQuery", result.error);
     return [];
   }
 
-  const fallback = await run("base");
-  if (fallback.error) {
-    logReviewMetricsQueryError("runReviewListQuery", "base", fallback.error);
-  }
-  return ((fallback.data as T[] | null) ?? []).map(withDefaultReviewMetrics);
+  return ((result.data as T[] | null) ?? []).map(withDefaultReviewMetrics);
 }
 
 export async function runReviewMaybeQuery<
@@ -109,41 +60,14 @@ export async function runReviewMaybeQuery<
 >(
   run: (mode: ReviewMetricsMode) => Promise<QueryResult<unknown>>,
 ) {
-  const withAllMetrics = await run("all");
+  const result = await run("all");
 
-  if (!withAllMetrics.error) {
-    return withAllMetrics.data
-      ? withDefaultReviewMetrics(withAllMetrics.data as T)
-      : null;
-  }
-
-  if (isMissingCommentsCountError(withAllMetrics.error)) {
-    const withLikesOnly = await run("likes-only");
-
-    if (!withLikesOnly.error) {
-      return withLikesOnly.data
-        ? withDefaultReviewMetrics(withLikesOnly.data as T)
-        : null;
-    }
-
-    if (!isMissingLikesCountError(withLikesOnly.error)) {
-      logReviewMetricsQueryError(
-        "runReviewMaybeQuery",
-        "likes-only",
-        withLikesOnly.error,
-      );
-      return null;
-    }
-  } else if (!isMissingLikesCountError(withAllMetrics.error)) {
-    logReviewMetricsQueryError("runReviewMaybeQuery", "all", withAllMetrics.error);
+  if (result.error) {
+    logReviewMetricsQueryError("runReviewMaybeQuery", result.error);
     return null;
   }
 
-  const fallback = await run("base");
-  if (fallback.error) {
-    logReviewMetricsQueryError("runReviewMaybeQuery", "base", fallback.error);
-  }
-  return fallback.data ? withDefaultReviewMetrics(fallback.data as T) : null;
+  return result.data ? withDefaultReviewMetrics(result.data as T) : null;
 }
 
 export async function getViewerLikedReviewIds(
