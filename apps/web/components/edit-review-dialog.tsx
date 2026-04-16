@@ -1,8 +1,8 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useCallback, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { PencilLine } from "lucide-react";
+import { PencilLine, X } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -21,7 +21,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
-import NewReviewForm from "@/components/new-review-form";
+import NewReviewForm, {
+  type NewReviewFormActionHandle,
+  type NewReviewFormActionState,
+} from "@/components/new-review-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
@@ -90,6 +93,17 @@ export default function EditReviewDialog({
   const router = useRouter();
   const searchParams = useSearchParams();
   const resolvedOpen = controlledOpen ?? internalOpen;
+  const mobileActionRef = useRef<NewReviewFormActionHandle | null>(null);
+  const [mobileActionState, setMobileActionState] = useState<NewReviewFormActionState>({
+    canContinue: Boolean(initialSelection) && initialRating !== null,
+    continueLabel: "Save",
+    saving: false,
+    step: "compose",
+  });
+
+  const handleMobileActionStateChange = useCallback((nextState: NewReviewFormActionState) => {
+    setMobileActionState(nextState);
+  }, []);
 
   function handleOpenChange(nextOpen: boolean) {
     if (controlledOpen === undefined) {
@@ -124,12 +138,34 @@ export default function EditReviewDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
+      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[95svh] max-h-[95svh] flex-col rounded-t-[1.1rem] border-border/34 p-0 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar">
-          <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
-            <DrawerTitle className="font-serif text-2xl">Edit review</DrawerTitle>
+        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-none border-0 bg-sidebar p-0 before:hidden data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none [&>div:first-child]:hidden">
+          <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
+            <div className="flex items-center gap-3">
+              <DrawerTitle className="min-w-0 flex-1 truncate font-serif text-2xl">Edit review</DrawerTitle>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => mobileActionRef.current?.continue()}
+                disabled={!mobileActionState.canContinue}
+                className="h-9 rounded-lg bg-white px-3.5 text-sm text-black hover:bg-white/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground"
+              >
+                {mobileActionState.continueLabel}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleOpenChange(false)}
+                disabled={mobileActionState.saving}
+                className="size-9 rounded-lg text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                aria-label="Close edit review drawer"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
             <DrawerDescription className="sr-only">Edit your review.</DrawerDescription>
           </DrawerHeader>
 
@@ -143,7 +179,9 @@ export default function EditReviewDialog({
               initialRating={initialRating}
               initialPinned={initialPinned}
               showCancelAction={false}
-              primaryActionFullWidth
+              hideFooter
+              actionRef={mobileActionRef}
+              onActionStateChange={handleMobileActionStateChange}
               onCancel={() => handleOpenChange(false)}
               onSuccess={() => handleOpenChange(false)}
             />

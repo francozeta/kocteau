@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
@@ -24,10 +25,15 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
-import type { NewReviewFormProps, NewReviewFormStep } from "@/components/new-review-form";
+import type {
+  NewReviewFormActionHandle,
+  NewReviewFormActionState,
+  NewReviewFormProps,
+  NewReviewFormStep,
+} from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
@@ -118,6 +124,17 @@ export default function NewReviewDialog({
   const [formStep, setFormStep] = useState<NewReviewFormStep>(
     resolvedInitialSelection ? "compose" : "search",
   );
+  const mobileActionRef = useRef<NewReviewFormActionHandle | null>(null);
+  const [mobileActionState, setMobileActionState] = useState<NewReviewFormActionState>({
+    canContinue: false,
+    continueLabel: resolvedInitialSelection ? "Publish" : "Next",
+    saving: false,
+    step: resolvedInitialSelection ? "compose" : "search",
+  });
+
+  const handleMobileActionStateChange = useCallback((nextState: NewReviewFormActionState) => {
+    setMobileActionState(nextState);
+  }, []);
 
   const clearComposeParams = useCallback(() => {
     if (!usesUrlComposeState) {
@@ -147,7 +164,14 @@ export default function NewReviewDialog({
     }
 
     if (nextOpen) {
-      setFormStep(resolvedInitialSelection ? "compose" : "search");
+      const nextStep = resolvedInitialSelection ? "compose" : "search";
+      setFormStep(nextStep);
+      setMobileActionState({
+        canContinue: false,
+        continueLabel: nextStep === "search" ? "Next" : "Publish",
+        saving: false,
+        step: nextStep,
+      });
     }
 
     onOpenChange?.(nextOpen);
@@ -245,14 +269,34 @@ export default function NewReviewDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
+      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[95svh] max-h-[95svh] flex-col rounded-t-[1.1rem] border-border/34 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar">
-          <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
-            <div className="flex items-center justify-between gap-3">
-              <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
+        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-none border-0 bg-sidebar p-0 before:hidden data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none [&>div:first-child]:hidden">
+          <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
+            <div className="flex items-center gap-3">
+              <DrawerTitle className="min-w-0 flex-1 truncate font-serif text-2xl">New review</DrawerTitle>
               {renderStepDots()}
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => mobileActionRef.current?.continue()}
+                disabled={!mobileActionState.canContinue}
+                className="h-9 rounded-lg bg-white px-3.5 text-sm text-black hover:bg-white/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground"
+              >
+                {mobileActionState.continueLabel}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => handleOpenChange(false)}
+                disabled={mobileActionState.saving}
+                className="size-9 rounded-lg text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                aria-label="Close review drawer"
+              >
+                <X className="size-4" />
+              </Button>
             </div>
             <DrawerDescription className="sr-only">Create or publish a review.</DrawerDescription>
           </DrawerHeader>
@@ -261,7 +305,9 @@ export default function NewReviewDialog({
             <NewReviewForm
               onStepChange={setFormStep}
               showCancelAction={false}
-              primaryActionFullWidth
+              hideFooter
+              actionRef={mobileActionRef}
+              onActionStateChange={handleMobileActionStateChange}
               initialQuery={resolvedInitialQuery}
               initialSelection={resolvedInitialSelection}
               redirectToOnSuccess={redirectToOnSuccess}
