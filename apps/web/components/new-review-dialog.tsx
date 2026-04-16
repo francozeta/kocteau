@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import type { NewReviewFormProps, NewReviewFormStep } from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
+import { useKeyboardAwareDrawerStyle } from "@/hooks/use-keyboard-aware-drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus, Search } from "lucide-react";
 import { toastAuthRequired } from "@/lib/feedback";
@@ -167,6 +168,7 @@ export default function NewReviewDialog({
   }, [clearComposeParams, isAuthenticated, shouldOpenFromUrl]);
 
   const resolvedOpen = isAuthenticated && (controlledOpen ?? (shouldOpenFromUrl || internalOpen));
+  const mobileDrawerStyle = useKeyboardAwareDrawerStyle(Boolean(resolvedOpen && isMobile));
 
   function renderStepDots() {
     return (
@@ -248,8 +250,11 @@ export default function NewReviewDialog({
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-[1.1rem] border-border/34 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar">
-          <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
+        <DrawerContent
+          style={mobileDrawerStyle}
+          className="flex h-[var(--review-drawer-height)] max-h-[var(--review-drawer-height)] flex-col overflow-hidden rounded-t-[1.1rem] border-border/34 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-[var(--review-drawer-height)]"
+        >
+          <DrawerHeader className="shrink-0 border-b border-border/30 px-6 py-4 text-left">
             <div className="flex items-center justify-between gap-3">
               <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
               {renderStepDots()}
