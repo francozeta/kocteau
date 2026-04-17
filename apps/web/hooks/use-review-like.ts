@@ -60,9 +60,11 @@ export function useReviewLike({
         throw new Error(payload?.error ?? "We couldn't update your like right now.");
       }
 
+      const liked = payload?.liked ?? false;
+
       return {
-        liked: payload?.liked ?? false,
-        count: payload?.likesCount ?? 0,
+        liked,
+        count: Math.max(payload?.likesCount ?? 0, liked ? 1 : 0),
       } satisfies ReviewLikeState;
     },
     onMutate: async () => {

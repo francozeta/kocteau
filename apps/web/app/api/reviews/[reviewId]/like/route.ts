@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -46,10 +47,15 @@ export async function POST(
   }
 
   const result = Array.isArray(data) ? data[0] : data;
+  const liked = result?.liked ?? false;
+  const likesCount = Math.max(result?.likes_count ?? 0, liked ? 1 : 0);
+
+  revalidateTag("feed", "max");
+  revalidateTag("reviews", "max");
 
   return NextResponse.json({
     ok: true,
-    liked: result?.liked ?? false,
-    likesCount: result?.likes_count ?? 0,
+    liked,
+    likesCount,
   });
 }

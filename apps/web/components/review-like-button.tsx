@@ -26,7 +26,7 @@ export default function ReviewLikeButton({
   const pulseTimeoutRef = useRef<number | null>(null);
   const initialState = useMemo(
     () => ({
-      count: initialCount,
+      count: Math.max(initialCount, initialLiked ? 1 : 0),
       liked: initialLiked,
     }),
     [initialCount, initialLiked],
@@ -35,6 +35,7 @@ export default function ReviewLikeButton({
     reviewId,
     initialState,
   });
+  const visibleCount = Math.max(state.count, state.liked ? 1 : 0);
 
   useEffect(() => {
     return () => {
@@ -96,8 +97,8 @@ export default function ReviewLikeButton({
             isPending && "scale-110",
           )}
         />
-        {state.count > 0 ? (
-          <span className={cn(animatePulse && "kocteau-like-count-pop")}>{state.count}</span>
+        {visibleCount > 0 ? (
+          <span className={cn(animatePulse && "kocteau-like-count-pop")}>{visibleCount}</span>
         ) : null}
       </button>
     </>
