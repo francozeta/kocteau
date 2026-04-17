@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  allowedDevOrigins: ["http://192.168.1.38:3000"],
+  allowedDevOrigins: ["192.168.1.40:3000"],
 };
 
 export default withSentryConfig(nextConfig, {
