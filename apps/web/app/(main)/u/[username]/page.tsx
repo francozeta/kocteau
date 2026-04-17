@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import ProfilePageHeader from "@/components/profile-page-header";
+import ProfileRecentReviewsSection from "@/components/profile-recent-reviews-section";
 import SavedReviewsList from "@/components/saved-reviews-list";
 import type { ReviewCardAuthor } from "@/components/review-card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -162,19 +163,28 @@ export default async function UserProfilePage({
 
         {hydratedReviews.length > 0 ? (
           <section className="space-y-4">
-            <div className="space-y-4">
-              {hydratedReviews.map((review) => (
-                <ProfileReviewCard
-                  key={review.id}
-                  review={{
-                    ...review,
-                  }}
-                  entity={review.entities}
-                  author={profileAuthor}
-                  isAuthenticated={Boolean(user)}
-                  canManage={isOwnProfile}
-                />
-              ))}
+            <ProfileRecentReviewsSection reviews={hydratedReviews} />
+
+            <div className="space-y-4 pt-2">
+              <div className="border-b border-border/32 pb-3 md:border-border/25">
+                <h2 className="text-base font-semibold tracking-[-0.01em] text-foreground">
+                  Reviews
+                </h2>
+              </div>
+              <div className="space-y-4">
+                {hydratedReviews.map((review) => (
+                  <ProfileReviewCard
+                    key={review.id}
+                    review={{
+                      ...review,
+                    }}
+                    entity={review.entities}
+                    author={profileAuthor}
+                    isAuthenticated={Boolean(user)}
+                    canManage={isOwnProfile}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         ) : !hydratedPinnedReview ? (
