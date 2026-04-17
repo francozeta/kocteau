@@ -31,16 +31,9 @@ export default async function TrackIndexPage() {
     <section className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/30 pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              Explore
-            </p>
-            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Tracks with recent reviews
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {tracks.length} {tracks.length === 1 ? "track" : "tracks"}
-            </p>
+          <div className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{tracks.length}</span>{" "}
+            {tracks.length === 1 ? "track" : "tracks"} with recent reviews
           </div>
 
           <div className="flex flex-wrap gap-2.5">

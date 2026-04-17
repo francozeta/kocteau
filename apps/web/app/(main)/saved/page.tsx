@@ -30,21 +30,14 @@ export default async function SavedReviewsPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
-      <div className="border-b border-border/30 pb-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Saved
-            </h1>
-          </div>
-          <div className="flex flex-wrap gap-2.5">
-            <Suspense fallback={null}>
-              <SavedProfileAction userId={user.id} />
-            </Suspense>
-            <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}>
-              Explore
-            </Link>
-          </div>
+      <div className="flex justify-end border-b border-border/30 pb-4">
+        <div className="flex flex-wrap gap-2.5">
+          <Suspense fallback={null}>
+            <SavedProfileAction userId={user.id} />
+          </Suspense>
+          <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}>
+            Explore
+          </Link>
         </div>
       </div>
 

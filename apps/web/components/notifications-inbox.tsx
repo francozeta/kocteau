@@ -47,19 +47,12 @@ export default function NotificationsInbox({
   return (
     <section className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/34 pb-4 md:border-border/30">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Activity
-            </h1>
-            <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{notifications.length}</span>
-              <span>{notifications.length === 1 ? "item" : "items"}</span>
-              <span>•</span>
-              <span className="font-medium text-foreground">{unreadCount}</span>
-              <span>unread</span>
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{notifications.length}</span>
+          <span>{notifications.length === 1 ? "item" : "items"}</span>
+          <span>•</span>
+          <span className="font-medium text-foreground">{unreadCount}</span>
+          <span>unread</span>
         </div>
       </div>
 

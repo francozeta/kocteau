@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
@@ -248,40 +247,6 @@ export default function SearchPageClient({
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
-      <div className="border-b border-border/34 pb-4 md:border-border/30">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-[1.95rem] font-semibold tracking-tight sm:text-[2.2rem]">
-              Explore
-            </h1>
-            {resultCountLabel ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{resultCountLabel}</span>
-                {isFetching ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <LoaderCircle className="size-3.5 animate-spin" />
-                    Updating…
-                  </span>
-                ) : null}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Search directly or browse what is active right now.
-              </p>
-            )}
-          </div>
-
-          {!hasQuery ? (
-            <Link
-              href="/track"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Open Track Index
-            </Link>
-          ) : null}
-        </div>
-      </div>
-
       <div className="space-y-4">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
@@ -297,80 +262,70 @@ export default function SearchPageClient({
           />
         </div>
 
-        {!hasQuery && (
-          <div className="grid gap-4 pt-2 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <div className="space-y-4">
-              {recentSearches.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                      Recent
-                    </p>
-                    <button
-                      type="button"
-                      onClick={clearRecentSearches}
-                      className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {recentSearches.map((item) => (
-                      <Button
-                        key={item.query}
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSearchSuggestionSelect(item.query)}
-                        className="rounded-full border-border/34 bg-card/24 hover:border-border/50 md:border-border/25 md:bg-card/18"
-                      >
-                        {item.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
+        {resultCountLabel ? (
+          <div className="flex items-center gap-2 px-1 text-sm text-muted-foreground">
+            <span>{resultCountLabel}</span>
+            {isFetching ? (
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <LoaderCircle className="size-3.5 animate-spin" />
+                Updating…
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
+        {!hasQuery && (
+          <div className="space-y-4 pt-2">
+            {recentSearches.length > 0 ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                    Suggested
+                    Recent
                   </p>
+                  <button
+                    type="button"
+                    onClick={clearRecentSearches}
+                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Clear
+                  </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {suggestedSearches.map((suggestion) => (
+                  {recentSearches.map((item) => (
                     <Button
-                      key={suggestion}
+                      key={item.query}
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSearchSuggestionSelect(suggestion)}
+                      onClick={() => handleSearchSuggestionSelect(item.query)}
                       className="rounded-full border-border/34 bg-card/24 hover:border-border/50 md:border-border/25 md:bg-card/18"
                     >
-                      {suggestion}
+                      {item.label}
                     </Button>
                   ))}
                 </div>
               </div>
-            </div>
+            ) : null}
 
-            <div className="rounded-[1.45rem] border border-border/32 bg-card/24 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
-              <div className="flex flex-col gap-2">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
                 <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Browse
+                  Suggested
                 </p>
-                <p className="text-base font-medium text-foreground">Track Index</p>
-                <p className="text-sm text-muted-foreground">
-                  Browse tracks with recent review activity without starting with a query.
-                </p>
-                <div className="pt-1">
-                  <Link
-                    href="/track"
-                    className="text-sm font-medium text-foreground transition-colors hover:text-foreground/80"
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {suggestedSearches.map((suggestion) => (
+                  <Button
+                    key={suggestion}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSearchSuggestionSelect(suggestion)}
+                    className="rounded-full border-border/34 bg-card/24 hover:border-border/50 md:border-border/25 md:bg-card/18"
                   >
-                    Open the index
-                  </Link>
-                </div>
+                    {suggestion}
+                  </Button>
+                ))}
               </div>
             </div>
           </div>
@@ -507,12 +462,6 @@ export default function SearchPageClient({
             <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               Active tracks
             </h2>
-            <Link
-              href="/track"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Track Index
-            </Link>
           </div>
 
           {highlights.length > 0 ? (

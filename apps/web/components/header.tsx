@@ -89,6 +89,10 @@ export default function Header({
       return "Explore";
     }
 
+    if (pathname === "/track") {
+      return "Tracks";
+    }
+
     if (pathname.startsWith("/saved")) {
       return "Saved";
     }
@@ -112,6 +116,23 @@ export default function Header({
       .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
       .join(" ");
   })();
+
+  function renderMobileRouteMark(label: string) {
+    return (
+      <PrefetchLink
+        href="/"
+        queryWarmup={{ kind: "feed" }}
+        className="pointer-events-auto inline-flex min-w-0 max-w-[min(66vw,18rem)] items-center gap-2 rounded-full px-2 py-1"
+        aria-label={`Go to feed. Current route: ${label}`}
+      >
+        <BrandLogo iconClassName="h-[1.25rem] w-[1.25rem] shrink-0" />
+        <span className="shrink-0 text-sm font-medium text-muted-foreground/45">/</span>
+        <span className="min-w-0 truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
+          {label}
+        </span>
+      </PrefetchLink>
+    );
+  }
 
   const handleDetailBack = useCallback(() => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -169,15 +190,8 @@ export default function Header({
           </Button>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 flex justify-center md:hidden">
-          <PrefetchLink
-            href="/"
-            queryWarmup={{ kind: "feed" }}
-            className="pointer-events-auto inline-flex items-center rounded-full px-2 py-1"
-            aria-label="Go to feed"
-          >
-            <BrandLogo iconClassName="h-[1.35rem] w-[1.35rem]" />
-          </PrefetchLink>
+        <div className="pointer-events-none absolute inset-x-14 flex min-w-0 justify-center md:hidden">
+          {renderMobileRouteMark(standardHeaderTitle)}
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 hidden justify-center md:flex">
@@ -264,6 +278,10 @@ export default function Header({
             >
               <ChevronLeft className="size-[1.1rem]" />
             </Button>
+
+            <div className="pointer-events-none absolute inset-x-16 flex min-w-0 justify-center">
+              {renderMobileRouteMark(standardHeaderTitle)}
+            </div>
 
             <div className="inline-flex items-center rounded-full border border-border/32 bg-background/58 p-1 shadow-none">
               <DropdownMenu>
