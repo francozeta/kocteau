@@ -245,11 +245,11 @@ export default function NewReviewDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange}>
+      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[92vh] max-h-[92vh] flex-col rounded-t-[1.1rem] border-border/34 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar">
-          <DrawerHeader className="border-b border-border/30 px-6 py-4 text-left">
+        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/34 p-2 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
+          <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
             <div className="flex items-center justify-between gap-3">
               <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
               {renderStepDots()}
