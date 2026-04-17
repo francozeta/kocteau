@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, LoaderCircle, Search } from "lucide-react";
@@ -56,9 +56,6 @@ export type NewReviewFormProps = {
   onStepChange?: (step: NewReviewFormStep) => void;
   showCancelAction?: boolean;
   primaryActionFullWidth?: boolean;
-  hideFooter?: boolean;
-  actionRef?: MutableRefObject<NewReviewFormActionHandle | null>;
-  onActionStateChange?: (state: NewReviewFormActionState) => void;
   initialQuery?: string;
   initialSelection?: DeezerResult | null;
   initialRating?: number | null;
@@ -70,18 +67,6 @@ export type NewReviewFormProps = {
 
 export type NewReviewFormStep = "search" | "compose";
 
-export type NewReviewFormActionState = {
-  canContinue: boolean;
-  continueLabel: string;
-  saving: boolean;
-  step: NewReviewFormStep;
-};
-
-export type NewReviewFormActionHandle = {
-  continue: () => void;
-  cancel: () => void;
-};
-
 export default function NewReviewForm({
   mode = "create",
   reviewId = null,
@@ -90,9 +75,6 @@ export default function NewReviewForm({
   onStepChange,
   showCancelAction = true,
   primaryActionFullWidth = false,
-  hideFooter = false,
-  actionRef,
-  onActionStateChange,
   initialQuery = "",
   initialSelection = null,
   initialRating = null,
@@ -433,30 +415,6 @@ export default function NewReviewForm({
     void onSubmit();
   }
 
-  useEffect(() => {
-    if (!actionRef) {
-      return;
-    }
-
-    actionRef.current = {
-      continue: handleContinue,
-      cancel: handleCancel,
-    };
-
-    return () => {
-      actionRef.current = null;
-    };
-  });
-
-  useEffect(() => {
-    onActionStateChange?.({
-      canContinue,
-      continueLabel,
-      saving,
-      step,
-    });
-  }, [canContinue, continueLabel, onActionStateChange, saving, step]);
-
   return (
     <div className="flex h-full min-h-0 flex-col bg-sidebar">
       {step === "search" ? (
@@ -699,35 +657,33 @@ export default function NewReviewForm({
         </div>
       )}
 
-      {!hideFooter ? (
-        <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 py-4">
-          <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
-            {showCancelAction ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={saving}
-                className="min-w-22 rounded-lg border-border/42 bg-transparent px-4 text-foreground hover:bg-accent"
-              >
-                Cancel
-              </Button>
-            ) : null}
-
+      <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 py-4">
+        <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
+          {showCancelAction ? (
             <Button
               type="button"
-              onClick={handleContinue}
-              disabled={!canContinue}
-              className={cn(
-                "min-w-24 rounded-lg bg-white px-4 text-black hover:bg-white/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
-                primaryActionFullWidth && "w-full",
-              )}
+              variant="outline"
+              onClick={handleCancel}
+              disabled={saving}
+              className="min-w-22 rounded-lg border-border/42 bg-transparent px-4 text-foreground hover:bg-accent"
             >
-              {continueLabel}
+              Cancel
             </Button>
-          </div>
+          ) : null}
+
+          <Button
+            type="button"
+            onClick={handleContinue}
+            disabled={!canContinue}
+            className={cn(
+              "min-w-24 rounded-lg bg-white px-4 text-black hover:bg-white/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
+              primaryActionFullWidth && "w-full",
+            )}
+          >
+            {continueLabel}
+          </Button>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
