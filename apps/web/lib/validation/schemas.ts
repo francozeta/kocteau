@@ -89,6 +89,17 @@ export const signupSchema = z.object({
     .max(72, "Password must be 72 characters or fewer."),
 });
 
+export const authEmailSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address.").transform((value) => value.toLowerCase()),
+});
+
+export const otpCodeSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Enter the 6-digit code from your email."),
+});
+
 export const profileEditorSchema = z.object({
   username: z
     .string()
@@ -173,6 +184,8 @@ export const reviewCollectionStateSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
+export type AuthEmailInput = z.infer<typeof authEmailSchema>;
+export type OtpCodeInput = z.infer<typeof otpCodeSchema>;
 export type ProfileEditorInput = z.infer<typeof profileEditorSchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;

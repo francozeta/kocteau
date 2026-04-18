@@ -26,7 +26,7 @@ import { profileEditorSchema } from "@/lib/validation/schemas";
 import { cn } from "@/lib/utils";
 
 type ProfileDraft = {
-  username: string;
+  username: string | null;
   display_name: string | null;
   bio: string | null;
   avatar_url: string | null;
@@ -36,10 +36,14 @@ type ProfileDraft = {
   deezer_url: string | null;
 };
 
+type SavedProfileDraft = ProfileDraft & {
+  username: string;
+};
+
 type ProfileEditorFormProps = {
   mode: "onboarding" | "settings";
   initialProfile?: Partial<ProfileDraft>;
-  onSaved?: (profile: ProfileDraft) => void;
+  onSaved?: (profile: SavedProfileDraft) => void;
   settingsLayout?: "default" | "panel";
   settingsSection?: "profile" | "avatar" | "links" | "all";
 };

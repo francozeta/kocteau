@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     .from("profiles")
     .select("username")
     .eq("id", auth.user.id)
-    .maybeSingle<{ username: string }>();
+    .maybeSingle<{ username: string | null }>();
 
   const usernames = new Set(
     [

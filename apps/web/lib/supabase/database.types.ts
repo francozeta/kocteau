@@ -123,7 +123,7 @@ export type Database = {
           onboarded: boolean
           spotify_url: string | null
           updated_at: string
-          username: string
+          username: string | null
         }
         Insert: {
           apple_music_url?: string | null
@@ -136,7 +136,7 @@ export type Database = {
           onboarded?: boolean
           spotify_url?: string | null
           updated_at?: string
-          username: string
+          username?: string | null
         }
         Update: {
           apple_music_url?: string | null
@@ -149,7 +149,7 @@ export type Database = {
           onboarded?: boolean
           spotify_url?: string | null
           updated_at?: string
-          username?: string
+          username?: string | null
         }
         Relationships: []
       }

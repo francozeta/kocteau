@@ -43,20 +43,13 @@ export const getCurrentViewerProfile = cache(async (): Promise<CurrentViewerProf
   const supabase = await supabaseServer();
   const { data } = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url")
+    .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded")
     .eq("id", user.id)
-    .maybeSingle<CurrentViewerProfile>();
+    .maybeSingle<CurrentViewerProfile & { onboarded: boolean | null }>();
 
-  return (
-    data ?? {
-      id: user.id,
-      username: "user",
-      avatar_url: null,
-      display_name: null,
-      bio: null,
-      spotify_url: null,
-      apple_music_url: null,
-      deezer_url: null,
-    }
-  );
+  if (!data?.username || !data.onboarded) {
+    return null;
+  }
+
+  return data;
 });

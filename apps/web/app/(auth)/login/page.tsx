@@ -3,7 +3,7 @@ import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata = createPageMetadata({
   title: "Log in",
-  description: "Log in to Kocteau.",
+  description: "Log in to Kocteau with a one-time email code.",
   path: "/login",
   noIndex: true,
 });

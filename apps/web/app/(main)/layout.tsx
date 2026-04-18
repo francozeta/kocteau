@@ -1,17 +1,25 @@
+import { redirect } from "next/navigation";
 import ReactQueryProvider from "../providers/react-query-provider";
 import Header from "@/components/header";
 import AppSidebar from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/route-header-context";
-import { getCurrentViewerProfile } from "@/lib/auth/server";
+import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const safeProfile = await getCurrentViewerProfile();
+  const [user, safeProfile] = await Promise.all([
+    getCurrentUser(),
+    getCurrentViewerProfile(),
+  ]);
   const initialUnreadCount = 0;
   const ownedReviews: SidebarOwnedReview[] = [];
+
+  if (user && !safeProfile) {
+    redirect("/onboarding");
+  }
 
   return (
     <ReactQueryProvider>
