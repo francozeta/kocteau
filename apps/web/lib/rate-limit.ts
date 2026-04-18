@@ -83,6 +83,11 @@ export const rateLimits = {
     limit: 20,
     windowMs: 10 * 60_000,
   },
+  saveTastePreferences: {
+    name: "taste:save",
+    limit: 20,
+    windowMs: 10 * 60_000,
+  },
 } satisfies Record<string, RateLimitConfig>;
 
 function sanitizeIdentifier(identifier: string) {

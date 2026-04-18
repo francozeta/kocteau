@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
 
+type PostAuthProfile = {
+  username: string | null;
+  onboarded: boolean | null;
+  taste_onboarded: boolean | null;
+};
+
 export async function GET() {
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
@@ -12,23 +18,33 @@ export async function GET() {
 
   const profileQuery = await supabase
     .from("profiles")
-    .select("username, onboarded")
+    .select("username, onboarded, taste_onboarded")
     .eq("id", auth.user.id)
-    .maybeSingle();
+    .maybeSingle<PostAuthProfile>();
 
   const profile = profileQuery.error
-    ? (
-        await supabase
+    ? await supabase
           .from("profiles")
-          .select("username")
+          .select("username, onboarded")
           .eq("id", auth.user.id)
-          .maybeSingle()
-      ).data
+          .maybeSingle<Omit<PostAuthProfile, "taste_onboarded">>()
+          .then((fallbackQuery) =>
+            fallbackQuery.data
+              ? { ...fallbackQuery.data, taste_onboarded: true }
+              : null,
+          )
     : profileQuery.data;
 
   const needsOnboarding = !isProfileOnboarded(profile);
+  const needsTasteOnboarding =
+    !needsOnboarding && profile?.taste_onboarded === false;
+
   return NextResponse.json({
     ok: true,
-    redirectTo: needsOnboarding ? "/onboarding" : "/",
+    redirectTo: needsOnboarding
+      ? "/onboarding"
+      : needsTasteOnboarding
+        ? "/onboarding/taste"
+        : "/",
   });
 }

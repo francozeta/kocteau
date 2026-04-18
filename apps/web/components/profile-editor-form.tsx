@@ -308,7 +308,7 @@ export default function ProfileEditorForm({
       if (mode === "onboarding") {
         startTransition(() => {
           router.refresh();
-          router.replace("/");
+          router.replace("/onboarding/taste");
         });
         setSaving(false);
         return;

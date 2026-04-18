@@ -5,20 +5,25 @@ import AppSidebar from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/route-header-context";
-import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
+import { getCurrentOnboardingState, getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const [user, safeProfile] = await Promise.all([
+  const [user, safeProfile, onboardingState] = await Promise.all([
     getCurrentUser(),
     getCurrentViewerProfile(),
+    getCurrentOnboardingState(),
   ]);
   const initialUnreadCount = 0;
   const ownedReviews: SidebarOwnedReview[] = [];
 
-  if (user && !safeProfile) {
+  if (user && onboardingState && !onboardingState.profileOnboarded) {
     redirect("/onboarding");
+  }
+
+  if (user && onboardingState && !onboardingState.tasteOnboarded) {
+    redirect("/onboarding/taste");
   }
 
   return (

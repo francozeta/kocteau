@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "email:dev": "email dev --dir emails --port 3001",
+    "email:export": "email export --dir emails --outDir emails/out",
     "start": "next start",
     "lint": "eslint app components hooks lib queries instrumentation-client.ts instrumentation.ts next.config.ts proxy.ts sentry.edge.config.ts sentry.server.config.ts --max-warnings=0"
   },
@@ -37,6 +39,7 @@
     "react-resizable-panels": "^4.7.0",
     "recharts": "3.8.0",
     "redis": "^5.12.1",
+    "resend": "^6.12.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "vaul": "^1.1.2",
@@ -50,6 +53,7 @@
     "@types/react-dom": "19.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "react-email": "^6.0.0",
     "shadcn": "^4.1.2",
     "supabase": "^2.76.15",
     "tailwindcss": "^4",

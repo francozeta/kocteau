@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { searchableEntityTypes } from "@/lib/search-types";
+import { tasteOnboardingMaxTags, tasteOnboardingMinTags } from "@/lib/taste";
 
 function optionalTrimmedString(maxLength: number) {
   return z
@@ -121,6 +122,29 @@ export const profileEditorSchema = z.object({
   deezer_url: optionalUrl("Deezer URL"),
 });
 
+export const tasteOnboardingSchema = z.object({
+  tagIds: z
+    .array(z.string().uuid("Invalid taste tag."))
+    .superRefine((tagIds, ctx) => {
+      const uniqueTagCount = new Set(tagIds).size;
+
+      if (uniqueTagCount < tasteOnboardingMinTags) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Choose at least ${tasteOnboardingMinTags} taste tags.`,
+        });
+      }
+
+      if (uniqueTagCount > tasteOnboardingMaxTags) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Choose ${tasteOnboardingMaxTags} taste tags or fewer.`,
+        });
+      }
+    })
+    .transform((tagIds) => Array.from(new Set(tagIds))),
+});
+
 export const createReviewSchema = z.object({
   provider: z.literal("deezer"),
   provider_id: z.string().trim().min(1, "Missing provider track id."),
@@ -187,6 +211,7 @@ export type SignupInput = z.infer<typeof signupSchema>;
 export type AuthEmailInput = z.infer<typeof authEmailSchema>;
 export type OtpCodeInput = z.infer<typeof otpCodeSchema>;
 export type ProfileEditorInput = z.infer<typeof profileEditorSchema>;
+export type TasteOnboardingInput = z.infer<typeof tasteOnboardingSchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;

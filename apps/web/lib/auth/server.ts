@@ -15,6 +15,11 @@ export type CurrentViewerProfile = {
   deezer_url: string | null;
 };
 
+export type CurrentOnboardingState = {
+  profileOnboarded: boolean;
+  tasteOnboarded: boolean;
+};
+
 export const getCurrentUser = cache(async () => {
   const cookieStore = await cookies();
   const hasSupabaseCookie = cookieStore
@@ -52,4 +57,48 @@ export const getCurrentViewerProfile = cache(async (): Promise<CurrentViewerProf
   }
 
   return data;
+});
+
+export const getCurrentOnboardingState = cache(async (): Promise<CurrentOnboardingState | null> => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const supabase = await supabaseServer();
+  const profileQuery = await supabase
+    .from("profiles")
+    .select("username, onboarded, taste_onboarded")
+    .eq("id", user.id)
+    .maybeSingle<{
+      username: string | null;
+      onboarded: boolean | null;
+      taste_onboarded: boolean | null;
+    }>();
+
+  if (!profileQuery.error) {
+    const profile = profileQuery.data;
+
+    return {
+      profileOnboarded: Boolean(profile?.username && profile.onboarded),
+      tasteOnboarded: profile?.taste_onboarded ?? false,
+    };
+  }
+
+  const fallbackQuery = await supabase
+    .from("profiles")
+    .select("username, onboarded")
+    .eq("id", user.id)
+    .maybeSingle<{
+      username: string | null;
+      onboarded: boolean | null;
+    }>();
+
+  const fallbackProfile = fallbackQuery.data;
+
+  return {
+    profileOnboarded: Boolean(fallbackProfile?.username && fallbackProfile.onboarded),
+    tasteOnboarded: true,
+  };
 });

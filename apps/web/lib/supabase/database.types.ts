@@ -111,6 +111,39 @@ export type Database = {
           },
         ]
       }
+      preference_tags: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_featured: boolean
+          kind: Database["public"]["Enums"]["preference_kind"]
+          label: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          kind: Database["public"]["Enums"]["preference_kind"]
+          label: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          kind?: Database["public"]["Enums"]["preference_kind"]
+          label?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           apple_music_url: string | null
@@ -122,6 +155,7 @@ export type Database = {
           id: string
           onboarded: boolean
           spotify_url: string | null
+          taste_onboarded: boolean
           updated_at: string
           username: string | null
         }
@@ -135,6 +169,7 @@ export type Database = {
           id: string
           onboarded?: boolean
           spotify_url?: string | null
+          taste_onboarded?: boolean
           updated_at?: string
           username?: string | null
         }
@@ -148,6 +183,7 @@ export type Database = {
           id?: string
           onboarded?: boolean
           spotify_url?: string | null
+          taste_onboarded?: boolean
           updated_at?: string
           username?: string | null
         }
@@ -423,6 +459,108 @@ export type Database = {
           },
         ]
       }
+      user_music_seeds: {
+        Row: {
+          artist_name: string | null
+          cover_url: string | null
+          created_at: string
+          entity_id: string | null
+          id: string
+          provider: string
+          provider_id: string
+          source: string
+          title: string
+          type: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          provider?: string
+          provider_id: string
+          source?: string
+          title: string
+          type: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          provider?: string
+          provider_id?: string
+          source?: string
+          title?: string
+          type?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_music_seeds_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_music_seeds_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preference_tags: {
+        Row: {
+          created_at: string
+          source: string
+          tag_id: string
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          source?: string
+          tag_id: string
+          updated_at?: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          source?: string
+          tag_id?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preference_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "preference_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_preference_tags_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -509,6 +647,7 @@ export type Database = {
     Enums: {
       entity_type: "track" | "album"
       notification_type: "review_liked" | "review_commented"
+      preference_kind: "genre" | "mood" | "scene" | "style" | "era" | "format"
     }
     CompositeTypes: {
       [_ in never]: never

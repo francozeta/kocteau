@@ -9,6 +9,8 @@ BEGIN;
 
 LOCK TABLE
   public.notifications,
+  public.user_music_seeds,
+  public.user_preference_tags,
   public.review_bookmarks,
   public.review_likes,
   public.entity_bookmarks,
@@ -30,6 +32,8 @@ FROM auth.users;
 
 -- Dependent app rows first.
 DELETE FROM public.notifications;
+DELETE FROM public.user_music_seeds;
+DELETE FROM public.user_preference_tags;
 DELETE FROM public.review_bookmarks;
 DELETE FROM public.review_likes;
 DELETE FROM public.entity_bookmarks;
