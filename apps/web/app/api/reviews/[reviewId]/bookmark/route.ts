@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
+import { trackServerAnalyticsEvent } from "@/lib/analytics/server";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { reviewIdParamsSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
 
+function getAnalyticsSource(value: unknown) {
+  return typeof value === "string" && /^[a-z0-9_:-]{2,80}$/.test(value)
+    ? value
+    : null;
+}
+
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ reviewId: string }> },
 ) {
   const paramsResult = reviewIdParamsSchema.safeParse(await params);
@@ -46,11 +53,28 @@ export async function POST(
   }
 
   const result = Array.isArray(data) ? data[0] : data;
+  const bookmarked = result?.bookmarked ?? false;
+  const payload = (await req.json().catch(() => null)) as
+    | { source?: unknown }
+    | null;
+  const analyticsSource = getAnalyticsSource(payload?.source);
+
+  if (analyticsSource === "feed:for-you") {
+    await trackServerAnalyticsEvent(supabase, {
+      userId: auth.user.id,
+      eventType: "for_you_review_action",
+      source: analyticsSource,
+      metadata: {
+        action: bookmarked ? "bookmark" : "unbookmark",
+        review_id: reviewId,
+      },
+    });
+  }
 
   return NextResponse.json({
     ok: true,
     reviewId: result?.review_id ?? reviewId,
-    bookmarked: result?.bookmarked ?? false,
+    bookmarked,
     savedAt: result?.saved_at ?? null,
   });
 }

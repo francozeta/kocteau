@@ -206,6 +206,35 @@ export const reviewCollectionStateSchema = z.object({
     .default([]),
 });
 
+const analyticsMetadataValueSchema: z.ZodType<
+  string | number | boolean | null | string[] | number[] | boolean[]
+> = z.union([
+  z.string().max(240),
+  z.number().finite(),
+  z.boolean(),
+  z.null(),
+  z.array(z.string().max(120)).max(40),
+  z.array(z.number().finite()).max(40),
+  z.array(z.boolean()).max(40),
+]);
+
+export const analyticsEventSchema = z.object({
+  eventType: z.enum([
+    "taste_onboarding_completed",
+    "for_you_reviews_loaded",
+    "for_you_review_action",
+    "for_you_fallback",
+  ]),
+  source: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9_:-]{2,80}$/, "Invalid analytics source.")
+    .default("web"),
+  metadata: z
+    .record(z.string().regex(/^[a-z0-9_:-]{1,64}$/), analyticsMetadataValueSchema)
+    .default({}),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type AuthEmailInput = z.infer<typeof authEmailSchema>;
@@ -216,3 +245,4 @@ export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;
+export type AnalyticsEventInput = z.infer<typeof analyticsEventSchema>;

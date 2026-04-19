@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewComments } from "@/hooks/use-review-comments";
+import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import { toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ type ReviewCommentsButtonProps = {
   reviewId: string;
   initialCount: number;
   isAuthenticated: boolean;
+  analyticsSource?: string | null;
   viewer?: {
     id: string;
     username: string;
@@ -38,6 +40,7 @@ export default function ReviewCommentsButton({
   reviewId,
   initialCount,
   isAuthenticated,
+  analyticsSource = null,
   viewer = null,
 }: ReviewCommentsButtonProps) {
   const isMobile = useIsMobile();
@@ -54,7 +57,22 @@ export default function ReviewCommentsButton({
       return;
     }
 
-    setOpen((current) => !current);
+    setOpen((current) => {
+      const nextOpen = !current;
+
+      if (nextOpen && analyticsSource === "feed:for-you") {
+        trackAnalyticsEvent({
+          eventType: "for_you_review_action",
+          source: analyticsSource,
+          metadata: {
+            action: "open_comments",
+            review_id: reviewId,
+          },
+        });
+      }
+
+      return nextOpen;
+    });
   }
 
   const trigger = (

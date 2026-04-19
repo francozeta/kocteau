@@ -10,6 +10,7 @@ type ReviewCardInteractionBarProps = {
   review: ReviewCardData;
   isAuthenticated?: boolean;
   bookmarkButtonRef?: Ref<HTMLButtonElement>;
+  analyticsSource?: string | null;
   viewer?: {
     id: string;
     username: string;
@@ -22,6 +23,7 @@ export default function ReviewCardInteractionBar({
   review,
   isAuthenticated = false,
   bookmarkButtonRef,
+  analyticsSource = null,
   viewer = null,
 }: ReviewCardInteractionBarProps) {
   return (
@@ -31,11 +33,13 @@ export default function ReviewCardInteractionBar({
         initialCount={review.likes_count}
         initialLiked={Boolean(review.viewer_has_liked)}
         isAuthenticated={isAuthenticated}
+        analyticsSource={analyticsSource}
       />
       <ReviewCommentsButton
         reviewId={review.id}
         initialCount={review.comments_count}
         isAuthenticated={isAuthenticated}
+        analyticsSource={analyticsSource}
         viewer={viewer}
       />
       <ReviewBookmarkButton
@@ -43,6 +47,7 @@ export default function ReviewCardInteractionBar({
         initialBookmarked={Boolean(review.viewer_has_bookmarked)}
         isAuthenticated={isAuthenticated}
         buttonRef={bookmarkButtonRef}
+        analyticsSource={analyticsSource}
       />
     </div>
   );

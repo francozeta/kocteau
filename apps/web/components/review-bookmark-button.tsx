@@ -12,6 +12,7 @@ type ReviewBookmarkButtonProps = {
   initialBookmarked: boolean;
   isAuthenticated: boolean;
   buttonRef?: Ref<HTMLButtonElement>;
+  analyticsSource?: string | null;
 };
 
 export default function ReviewBookmarkButton({
@@ -19,6 +20,7 @@ export default function ReviewBookmarkButton({
   initialBookmarked,
   isAuthenticated,
   buttonRef,
+  analyticsSource = null,
 }: ReviewBookmarkButtonProps) {
   const [animatePulse, setAnimatePulse] = useState(false);
   const pulseTimeoutRef = useRef<number | null>(null);
@@ -31,6 +33,7 @@ export default function ReviewBookmarkButton({
   const { state, toggleBookmark, isPending } = useReviewBookmark({
     reviewId,
     initialState,
+    source: analyticsSource,
   });
 
   useEffect(() => {

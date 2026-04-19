@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import { trackServerAnalyticsEvent } from "@/lib/analytics/server";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { tasteOnboardingSchema } from "@/lib/validation/schemas";
@@ -123,6 +124,16 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
+
+  await trackServerAnalyticsEvent(supabase, {
+    userId: auth.user.id,
+    eventType: "taste_onboarding_completed",
+    source: "onboarding:taste",
+    metadata: {
+      selected_tag_count: selectedTagIds.length,
+      genre_count: (tags ?? []).filter((tag) => tag.kind === "genre").length,
+    },
+  });
 
   revalidateTag("profiles", "max");
   revalidateTag(`taste:${auth.user.id}`, "max");

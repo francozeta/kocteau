@@ -11,11 +11,13 @@ import {
 type UseReviewBookmarkOptions = {
   reviewId: string;
   initialState: ReviewBookmarkState;
+  source?: string | null;
 };
 
 export function useReviewBookmark({
   reviewId,
   initialState,
+  source = null,
 }: UseReviewBookmarkOptions) {
   const queryClient = useQueryClient();
   const previousInitialState = useRef(initialState);
@@ -45,6 +47,12 @@ export function useReviewBookmark({
     mutationFn: async () => {
       const response = await fetch(`/api/reviews/${reviewId}/bookmark`, {
         method: "POST",
+        headers: source
+          ? {
+              "Content-Type": "application/json",
+            }
+          : undefined,
+        body: source ? JSON.stringify({ source }) : undefined,
       });
 
       const payload = (await response.json().catch(() => null)) as
