@@ -2,6 +2,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
+import { inferEntityPreferenceTagsFromReview } from "@/lib/recommendations/entity-tags";
 import { supabaseServer } from "@/lib/supabase/server";
 import { reviewIdParamsSchema, updateReviewSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -223,6 +224,12 @@ export async function PATCH(
       500,
     );
   }
+
+  await inferEntityPreferenceTagsFromReview(supabase, {
+    entityId: review.entity_id,
+    rating: parsed.data.rating,
+    context: "reviews.update",
+  });
 
   const authorUsername = revalidateReviewSurfaces(review, reviewId);
 

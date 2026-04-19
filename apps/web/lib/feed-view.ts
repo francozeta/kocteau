@@ -1,6 +1,7 @@
 export type FeedView = "for-you" | "latest" | "following" | "top-rated";
 
 export type RecommendationReason =
+  | "entity_taste"
   | "taste_match"
   | "following"
   | "familiar_entity"

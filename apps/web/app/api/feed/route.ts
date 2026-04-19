@@ -7,7 +7,6 @@ import { supabaseServer } from "@/lib/supabase/server";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const viewParam = url.searchParams.get("view") ?? undefined;
-  const activeView = isFeedView(viewParam) ? viewParam : "latest";
   const cursor = url.searchParams.get("cursor");
   const userPromise = (async () => {
     const supabase = await supabaseServer();
@@ -17,6 +16,7 @@ export async function GET(req: Request) {
     return user;
   })();
   const user = await userPromise;
+  const activeView = isFeedView(viewParam) ? viewParam : user ? "for-you" : "latest";
   const bundle = await getFeedPage({
     view: activeView,
     viewerId: user?.id,

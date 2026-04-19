@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { findEntityByProvider } from "@/lib/queries/entities";
 import { getViewerReview } from "@/lib/queries/reviews";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
+import { inferEntityPreferenceTagsFromReview } from "@/lib/recommendations/entity-tags";
 import { supabaseServer } from "@/lib/supabase/server";
 import { createReviewSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -118,6 +119,12 @@ export async function POST(req: Request) {
   const result = Array.isArray(data) ? data[0] : data;
   const reviewId = result?.review_id ?? null;
   const entityId = result?.entity_id ?? null;
+
+  await inferEntityPreferenceTagsFromReview(supabase, {
+    entityId,
+    rating: review.rating,
+    context: "reviews.create",
+  });
 
   const { data: profile } = await supabase
     .from("profiles")

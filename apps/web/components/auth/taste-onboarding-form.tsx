@@ -101,7 +101,7 @@ export function TasteOnboardingForm({
         throw new Error(data.error || "We could not save your taste profile.");
       }
 
-      router.replace(data.redirectTo || "/?view=for-you");
+      router.replace(data.redirectTo || "/");
       router.refresh();
     } catch (submitError) {
       setError(

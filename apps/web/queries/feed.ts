@@ -29,13 +29,19 @@ export type FeedBundleQueryData = {
 export type FeedInfiniteQueryData = InfiniteData<FeedBundleQueryData, string | null>;
 
 function getFeedUrl(view: FeedView, cursor?: string | null) {
-  const params = new URLSearchParams({ view });
+  const params = new URLSearchParams();
+
+  if (view !== "for-you") {
+    params.set("view", view);
+  }
 
   if (cursor) {
     params.set("cursor", cursor);
   }
 
-  return `/api/feed?${params.toString()}`;
+  const queryString = params.toString();
+
+  return queryString ? `/api/feed?${queryString}` : "/api/feed";
 }
 
 export const feedKeys = {
