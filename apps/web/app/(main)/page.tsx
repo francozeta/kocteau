@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { Clock3, Trophy, UsersRound } from "lucide-react";
+import { Clock3, Sparkles, Trophy, UsersRound } from "lucide-react";
 import FeedReviewList from "@/components/feed-review-list";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
@@ -22,6 +22,10 @@ const feedViews: Array<{
   label: string;
 }> = [
   {
+    value: "for-you",
+    label: "For You",
+  },
+  {
     value: "latest",
     label: "Latest",
   },
@@ -36,7 +40,7 @@ const feedViews: Array<{
 ];
 
 function getFeedViewHref(view: FeedView) {
-  return view === "latest" ? "/" : `/?view=${view}`;
+  return `/?view=${view}`;
 }
 
 export const metadata = createPageMetadata({
@@ -52,10 +56,11 @@ export default async function HomePage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const params = await searchParams;
-  const activeView = isFeedView(params.view) ? params.view : "latest";
+  const requestedView = isFeedView(params.view) ? params.view : null;
   const userPromise = getCurrentUser();
   const viewerProfilePromise = getCurrentViewerProfile();
   const [user, viewerProfile] = await Promise.all([userPromise, viewerProfilePromise]);
+  const activeView = requestedView ?? (user ? "for-you" : "latest");
   const publicBundle = await getFeedPage({
     view: activeView,
     viewerId: user?.id,
@@ -82,7 +87,7 @@ export default async function HomePage({
     activeUsers: [],
     nextCursor: publicBundle.nextCursor,
     view: publicBundle.view,
-    requiresAuth: activeView === "following" && !user,
+    requiresAuth: (activeView === "following" || activeView === "for-you") && !user,
   };
 
   queryClient.setQueryData(feedKeys.bundle(activeView), feedData);
@@ -128,7 +133,9 @@ export default async function HomePage({
         {feedViews.map((view) => {
           const isActive = activeView === view.value;
           const Icon =
-            view.value === "latest"
+            view.value === "for-you"
+              ? Sparkles
+              : view.value === "latest"
               ? Clock3
               : view.value === "following"
                 ? UsersRound

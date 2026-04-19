@@ -54,6 +54,7 @@ export function TasteOnboardingForm({
     selectedCount <= tasteOnboardingMaxTags &&
     !isSaving;
   const missingCount = Math.max(tasteOnboardingMinTags - selectedCount, 0);
+  const readyLabel = "Build my feed";
 
   function toggleTag(tagId: string) {
     setError(null);
@@ -100,7 +101,7 @@ export function TasteOnboardingForm({
         throw new Error(data.error || "We could not save your taste profile.");
       }
 
-      router.replace(data.redirectTo || "/");
+      router.replace(data.redirectTo || "/?view=for-you");
       router.refresh();
     } catch (submitError) {
       setError(
@@ -168,7 +169,7 @@ export function TasteOnboardingForm({
           )}
         </div>
         <FieldDescription>
-          These are only the first layer. Real activity will matter more over time.
+          Your reviews, saves, and follows will tune this over time.
         </FieldDescription>
       </Field>
 
@@ -188,7 +189,7 @@ export function TasteOnboardingForm({
 
       <Button type="submit" size="lg" disabled={!canSubmit}>
         {isSaving ? <LoaderCircle className="animate-spin" /> : null}
-        {missingCount > 0 ? `Select ${missingCount} more` : "Continue"}
+        {isSaving ? "Building feed..." : missingCount > 0 ? `Select ${missingCount} more` : readyLabel}
       </Button>
     </form>
   );

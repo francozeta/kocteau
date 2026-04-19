@@ -604,6 +604,20 @@ export type Database = {
           reset_at: string
         }[]
       }
+      get_recommended_review_ids: {
+        Args: {
+          p_cursor_created_at?: string | null
+          p_cursor_id?: string | null
+          p_cursor_score?: number | null
+          p_limit?: number
+        }
+        Returns: {
+          created_at: string
+          reason: string
+          review_id: string
+          score: number
+        }[]
+      }
       get_viewer_review_collection_state: {
         Args: {
           p_review_ids: string[]

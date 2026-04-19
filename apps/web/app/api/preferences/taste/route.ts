@@ -126,8 +126,9 @@ export async function POST(req: Request) {
 
   revalidateTag("profiles", "max");
   revalidateTag(`taste:${auth.user.id}`, "max");
+  revalidateTag("feed", "max");
   revalidatePath("/");
   revalidatePath("/onboarding/taste");
 
-  return NextResponse.json({ ok: true, redirectTo: "/" });
+  return NextResponse.json({ ok: true, redirectTo: "/?view=for-you" });
 }

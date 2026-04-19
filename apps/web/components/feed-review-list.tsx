@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Music2, UsersRound } from "lucide-react";
+import { Music2, Sparkles, UsersRound } from "lucide-react";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
@@ -11,6 +11,7 @@ import type { FeedView } from "@/lib/feed-view";
 import {
   feedInfiniteQueryOptions,
   type FeedBundleQueryData,
+  type FeedBundleReview,
 } from "@/queries/feed";
 
 type FeedReviewListViewer = {
@@ -27,6 +28,25 @@ type FeedReviewListProps = {
   viewer: FeedReviewListViewer;
 };
 
+const recommendationReasonLabels = {
+  taste_match: "Taste match",
+  following: "From your follows",
+  familiar_entity: "Related pick",
+  author_affinity: "Similar listener",
+  popular_recent: "Popular now",
+} satisfies Record<
+  NonNullable<FeedBundleReview["recommendation_reason"]>,
+  string
+>;
+
+function getRecommendationEyebrow(review: FeedBundleReview, view: FeedView) {
+  if (view !== "for-you" || !review.recommendation_reason) {
+    return null;
+  }
+
+  return recommendationReasonLabels[review.recommendation_reason];
+}
+
 function FeedEmptyState({
   view,
   isAuthenticated,
@@ -34,6 +54,32 @@ function FeedEmptyState({
   view: FeedView;
   isAuthenticated: boolean;
 }) {
+  if (view === "for-you") {
+    return (
+      <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Sparkles className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>{isAuthenticated ? "No picks yet" : "Log in to tune For You"}</EmptyTitle>
+          <EmptyDescription>
+            {isAuthenticated
+              ? "Review, save, or follow a few listeners to warm up your feed."
+              : "Your tuned feed starts from taste signals and listening activity."}
+          </EmptyDescription>
+        </EmptyHeader>
+        {!isAuthenticated ? (
+          <Link
+            href="/login"
+            className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-foreground px-3 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+          >
+            Log in
+          </Link>
+        ) : null}
+      </Empty>
+    );
+  }
+
   if (view === "following") {
     return (
       <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
@@ -154,6 +200,7 @@ export default function FeedReviewList({
             showInteractionBar={isAuthenticated}
             isAuthenticated={isAuthenticated}
             canManage={Boolean(viewer?.id && author?.id === viewer.id)}
+            recommendationEyebrow={getRecommendationEyebrow(review, view)}
             viewer={viewer}
           />
         );

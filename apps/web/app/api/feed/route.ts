@@ -54,6 +54,6 @@ export async function GET(req: Request) {
     })),
     nextCursor: bundle.nextCursor,
     view: bundle.view,
-    requiresAuth: activeView === "following" && !user,
+    requiresAuth: (activeView === "following" || activeView === "for-you") && !user,
   });
 }

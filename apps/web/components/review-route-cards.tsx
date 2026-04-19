@@ -55,6 +55,7 @@ type ReviewCardRouteProps = {
 type FeedReviewCardProps = ReviewCardRouteProps & {
   featured?: boolean;
   showInteractionBar?: boolean;
+  recommendationEyebrow?: string | null;
 };
 
 type ProfileReviewCardProps = ReviewCardRouteProps & {
@@ -63,10 +64,12 @@ type ProfileReviewCardProps = ReviewCardRouteProps & {
 
 function buildFeedReviewCardDisplay(
   featured = false,
+  eyebrow?: string | null,
 ): ReviewCardDisplayOptions {
   return {
     featured,
     bodyClampLines: 4,
+    eyebrow: eyebrow ?? undefined,
   };
 }
 
@@ -236,6 +239,7 @@ export function FeedReviewCard({
   canManage = false,
   featured = false,
   showInteractionBar = true,
+  recommendationEyebrow = null,
   viewer = null,
 }: FeedReviewCardProps) {
   return (
@@ -243,7 +247,7 @@ export function FeedReviewCard({
       review={review}
       entity={entity}
       author={author}
-      display={buildFeedReviewCardDisplay(featured)}
+      display={buildFeedReviewCardDisplay(featured, recommendationEyebrow)}
       behavior={{ showInteractionBar }}
       permissions={{ isAuthenticated, canManage }}
       viewer={viewer}

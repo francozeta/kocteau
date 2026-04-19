@@ -5,7 +5,7 @@ import type {
   ReviewCardData,
   ReviewCardEntity,
 } from "@/components/review-card";
-import type { FeedView } from "@/lib/feed-view";
+import type { FeedView, RecommendationReason } from "@/lib/feed-view";
 import type { ActiveProfile } from "@/lib/queries/profiles";
 import { fetchJson } from "@/queries/http";
 
@@ -14,6 +14,8 @@ export type { FeedView } from "@/lib/feed-view";
 export type FeedBundleReview = ReviewCardData & {
   entities: ReviewCardEntity | null;
   author: ReviewCardAuthor | null;
+  recommendation_score?: number | null;
+  recommendation_reason?: RecommendationReason | null;
 };
 
 export type FeedBundleQueryData = {

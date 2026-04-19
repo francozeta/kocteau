@@ -5,7 +5,7 @@ export type PreferenceTag = Tables<"preference_tags">;
 
 export const tasteOnboardingMinTags = 3;
 export const tasteOnboardingMaxTags = 8;
-export const tasteOnboardingPrimaryTagLimit = 24;
+export const tasteOnboardingPrimaryTagLimit = 18;
 
 export const preferenceKindOrder = [
   "genre",
