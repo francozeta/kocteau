@@ -130,5 +130,5 @@ export async function POST(req: Request) {
   revalidatePath("/");
   revalidatePath("/onboarding/taste");
 
-  return NextResponse.json({ ok: true, redirectTo: "/?view=for-you" });
+  return NextResponse.json({ ok: true, redirectTo: "/" });
 }

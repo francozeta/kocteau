@@ -29,6 +29,7 @@ type FeedReviewListProps = {
 };
 
 const recommendationReasonLabels = {
+  entity_taste: "In your lane",
   taste_match: "Taste match",
   following: "From your follows",
   familiar_entity: "Related pick",

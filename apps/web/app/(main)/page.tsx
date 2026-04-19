@@ -40,6 +40,10 @@ const feedViews: Array<{
 ];
 
 function getFeedViewHref(view: FeedView) {
+  if (view === "for-you") {
+    return "/";
+  }
+
   return `/?view=${view}`;
 }
 

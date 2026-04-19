@@ -28,6 +28,22 @@ For Supabase Auth SMTP, use `supabase-otp-template.html` and keep the code
 placeholder as `{{ .Token }}`. Since Kocteau verifies the code inside the app,
 do not include a button back to `/login`; it creates a confusing loop.
 
+Paste `supabase-otp-template.html` into:
+
+```text
+Supabase Dashboard -> Authentication -> Email Templates -> Magic Link
+```
+
+Set the subject to:
+
+```text
+Your Kocteau sign-in code
+```
+
+Important: the Magic Link template decides whether Supabase sends a clickable
+login link or a code. For Kocteau's OTP-first flow, keep this template code-only
+and do not add the Supabase confirmation URL variable.
+
 Short version:
 
 ```text

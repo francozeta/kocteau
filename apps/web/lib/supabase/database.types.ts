@@ -111,6 +111,48 @@ export type Database = {
           },
         ]
       }
+      entity_preference_tags: {
+        Row: {
+          created_at: string
+          entity_id: string
+          source: string
+          tag_id: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          source?: string
+          tag_id: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          source?: string
+          tag_id?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_preference_tags_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_preference_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "preference_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preference_tags: {
         Row: {
           created_at: string
@@ -617,6 +659,13 @@ export type Database = {
           review_id: string
           score: number
         }[]
+      }
+      infer_entity_preference_tags_from_user: {
+        Args: {
+          p_entity_id: string
+          p_signal_weight?: number | null
+        }
+        Returns: number
       }
       get_viewer_review_collection_state: {
         Args: {
