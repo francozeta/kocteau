@@ -7,6 +7,7 @@ import { Music2, Sparkles, UsersRound } from "lucide-react";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
+import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { FeedView } from "@/lib/feed-view";
 import {
   feedInfiniteQueryOptions,
@@ -127,6 +128,7 @@ export default function FeedReviewList({
   viewer,
 }: FeedReviewListProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const trackedPageKeysRef = useRef(new Set<string>());
   const feedQuery = useInfiniteQuery({
     ...feedInfiniteQueryOptions(view),
     initialData: {
@@ -154,6 +156,38 @@ export default function FeedReviewList({
       }),
     );
   }, [data?.pages]);
+
+  useEffect(() => {
+    if (view !== "for-you" || !isAuthenticated) {
+      return;
+    }
+
+    (data?.pages ?? []).forEach((page, pageIndex) => {
+      const reviewIds = page.feed.map((review) => review.id);
+
+      if (reviewIds.length === 0) {
+        return;
+      }
+
+      const pageKey = `${pageIndex}:${reviewIds.join(",")}`;
+
+      if (trackedPageKeysRef.current.has(pageKey)) {
+        return;
+      }
+
+      trackedPageKeysRef.current.add(pageKey);
+      trackAnalyticsEvent({
+        eventType: "for_you_reviews_loaded",
+        source: "feed:for-you",
+        metadata: {
+          page_index: pageIndex,
+          review_count: reviewIds.length,
+          review_ids: reviewIds,
+          has_next_page: Boolean(page.nextCursor),
+        },
+      });
+    });
+  }, [data?.pages, isAuthenticated, view]);
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -202,6 +236,7 @@ export default function FeedReviewList({
             isAuthenticated={isAuthenticated}
             canManage={Boolean(viewer?.id && author?.id === viewer.id)}
             recommendationEyebrow={getRecommendationEyebrow(review, view)}
+            analyticsSource={view === "for-you" ? "feed:for-you" : null}
             viewer={viewer}
           />
         );

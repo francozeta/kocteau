@@ -8,6 +8,7 @@
 BEGIN;
 
 LOCK TABLE
+  public.analytics_events,
   public.notifications,
   public.entity_preference_tags,
   public.user_music_seeds,
@@ -32,6 +33,7 @@ SELECT id
 FROM auth.users;
 
 -- Dependent app rows first.
+DELETE FROM public.analytics_events;
 DELETE FROM public.notifications;
 DELETE FROM public.entity_preference_tags;
 DELETE FROM public.user_music_seeds;

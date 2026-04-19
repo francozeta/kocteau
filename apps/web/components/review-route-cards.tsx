@@ -40,6 +40,7 @@ type RoutedReviewCardProps = {
   display?: ReviewCardDisplayOptions;
   behavior?: ReviewCardBehaviorOptions;
   permissions?: ReviewCardPermissions;
+  analyticsSource?: string | null;
   viewer?: ReviewCardViewer;
 };
 
@@ -56,6 +57,7 @@ type FeedReviewCardProps = ReviewCardRouteProps & {
   featured?: boolean;
   showInteractionBar?: boolean;
   recommendationEyebrow?: string | null;
+  analyticsSource?: string | null;
 };
 
 type ProfileReviewCardProps = ReviewCardRouteProps & {
@@ -131,6 +133,7 @@ function RoutedReviewCard({
   display,
   behavior,
   permissions,
+  analyticsSource = null,
   viewer = null,
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
@@ -202,6 +205,7 @@ function RoutedReviewCard({
             review={review}
             isAuthenticated={isAuthenticated}
             viewer={viewer}
+            analyticsSource={analyticsSource}
           />
         ) : null,
       }}
@@ -240,6 +244,7 @@ export function FeedReviewCard({
   featured = false,
   showInteractionBar = true,
   recommendationEyebrow = null,
+  analyticsSource = null,
   viewer = null,
 }: FeedReviewCardProps) {
   return (
@@ -250,6 +255,7 @@ export function FeedReviewCard({
       display={buildFeedReviewCardDisplay(featured, recommendationEyebrow)}
       behavior={{ showInteractionBar }}
       permissions={{ isAuthenticated, canManage }}
+      analyticsSource={analyticsSource}
       viewer={viewer}
     />
   );

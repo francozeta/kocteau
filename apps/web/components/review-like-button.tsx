@@ -13,6 +13,7 @@ type ReviewLikeButtonProps = {
   initialLiked: boolean;
   isAuthenticated: boolean;
   buttonRef?: Ref<HTMLButtonElement>;
+  analyticsSource?: string | null;
 };
 
 export default function ReviewLikeButton({
@@ -21,6 +22,7 @@ export default function ReviewLikeButton({
   initialLiked,
   isAuthenticated,
   buttonRef,
+  analyticsSource = null,
 }: ReviewLikeButtonProps) {
   const [animatePulse, setAnimatePulse] = useState(false);
   const pulseTimeoutRef = useRef<number | null>(null);
@@ -34,6 +36,7 @@ export default function ReviewLikeButton({
   const { state, toggleLike, isPending } = useReviewLike({
     reviewId,
     initialState,
+    source: analyticsSource,
   });
   const visibleCount = Math.max(state.count, state.liked ? 1 : 0);
 

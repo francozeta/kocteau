@@ -1,12 +1,19 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import { trackServerAnalyticsEvent } from "@/lib/analytics/server";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { reviewIdParamsSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
 
+function getAnalyticsSource(value: unknown) {
+  return typeof value === "string" && /^[a-z0-9_:-]{2,80}$/.test(value)
+    ? value
+    : null;
+}
+
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ reviewId: string }> },
 ) {
   const paramsResult = reviewIdParamsSchema.safeParse(await params);
@@ -49,6 +56,22 @@ export async function POST(
   const result = Array.isArray(data) ? data[0] : data;
   const liked = result?.liked ?? false;
   const likesCount = Math.max(result?.likes_count ?? 0, liked ? 1 : 0);
+  const payload = (await req.json().catch(() => null)) as
+    | { source?: unknown }
+    | null;
+  const analyticsSource = getAnalyticsSource(payload?.source);
+
+  if (analyticsSource === "feed:for-you") {
+    await trackServerAnalyticsEvent(supabase, {
+      userId: auth.user.id,
+      eventType: "for_you_review_action",
+      source: analyticsSource,
+      metadata: {
+        action: liked ? "like" : "unlike",
+        review_id: reviewId,
+      },
+    });
+  }
 
   revalidateTag("feed", "max");
   revalidateTag("reviews", "max");

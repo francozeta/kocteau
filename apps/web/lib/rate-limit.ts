@@ -81,6 +81,11 @@ export const rateLimits = {
     limit: 20,
     windowMs: 10 * 60_000,
   },
+  trackAnalyticsEvent: {
+    name: "analytics:event",
+    limit: 240,
+    windowMs: 60_000,
+  },
 } satisfies Record<string, RateLimitConfig>;
 
 export async function checkRateLimit(

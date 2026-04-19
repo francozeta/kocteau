@@ -15,11 +15,13 @@ import {
 type UseReviewLikeOptions = {
   reviewId: string;
   initialState: ReviewLikeState;
+  source?: string | null;
 };
 
 export function useReviewLike({
   reviewId,
   initialState,
+  source = null,
 }: UseReviewLikeOptions) {
   const queryClient = useQueryClient();
   const previousInitialState = useRef(initialState);
@@ -50,6 +52,12 @@ export function useReviewLike({
     mutationFn: async () => {
       const response = await fetch(`/api/reviews/${reviewId}/like`, {
         method: "POST",
+        headers: source
+          ? {
+              "Content-Type": "application/json",
+            }
+          : undefined,
+        body: source ? JSON.stringify({ source }) : undefined,
       });
 
       const payload = (await response.json().catch(() => null)) as

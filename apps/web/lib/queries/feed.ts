@@ -16,6 +16,7 @@ import {
 } from "@/lib/queries/review-likes";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
+import { trackServerAnalyticsEvent } from "@/lib/analytics/server";
 import { measureServerTask } from "@/lib/perf";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -267,6 +268,16 @@ async function queryRecommendedFeedPage({
     console.error("[feed.getRecommendedFeedPage] failed", {
       code: recommendationsResult.error.code ?? null,
       message: recommendationsResult.error.message ?? null,
+    });
+
+    await trackServerAnalyticsEvent(supabase, {
+      userId: viewerId,
+      eventType: "for_you_fallback",
+      source: "feed:server",
+      metadata: {
+        code: recommendationsResult.error.code ?? null,
+        cursor: Boolean(cursor),
+      },
     });
 
     const fallbackPage = await queryFeedPage({
