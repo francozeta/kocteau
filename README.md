@@ -96,6 +96,10 @@ The core public tables are:
 - `user_preference_tags`
 - `user_music_seeds`
 - `entity_preference_tags`
+- `editorial_collections`
+- `editorial_collection_items`
+- `starter_tracks`
+- `starter_track_tags`
 - `analytics_events`
 - `rate_limit_windows`
 
@@ -103,6 +107,7 @@ Important scripts live in `supabase/scripts`:
 
 - `wipe-demo-auth-data.sql`: destructive reset for demo/test data
 - `recommendation-v2.sql`: entity tags, recommendation scoring, inferred taste signals
+- `editorial-starter-layer.sql`: human-curated starter picks for cold-start For You
 - `analytics-events.sql`: lightweight product analytics table and policies
 
 Run SQL scripts manually from the Supabase SQL Editor after reviewing them.
@@ -135,6 +140,15 @@ Recommendation inputs currently include:
 - light diversity penalties to reduce repetition
 
 If the recommendation RPC fails, the app logs `for_you_fallback` and falls back to latest reviews instead of breaking the feed.
+
+When a signed-in user's For You feed is empty or sparse, Kocteau can show editorial starter picks. These are not fake reviews; they are curated track prompts stored in `starter_tracks` and ranked against the user's onboarding tags through `get_starter_tracks`.
+
+Starter picks can be curated from `/studio/starter` by the official `@kocteau` profile. The studio uses Deezer search, so curators do not need to copy provider ids manually.
+
+Official identity and internal permissions are separate:
+
+- `profiles.is_official` controls the public official badge.
+- `profile_roles` controls private roles such as `curator` and `admin`.
 
 ## Analytics
 

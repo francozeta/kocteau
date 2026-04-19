@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import FeedStarterLayer from "@/components/feed-starter-layer";
 import { Music2, Sparkles, UsersRound } from "lucide-react";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { FeedView } from "@/lib/feed-view";
+import type { StarterTrack } from "@/lib/starter";
 import {
   feedInfiniteQueryOptions,
   type FeedBundleQueryData,
@@ -27,6 +29,7 @@ type FeedReviewListProps = {
   initialPage: FeedBundleQueryData;
   isAuthenticated: boolean;
   viewer: FeedReviewListViewer;
+  starterTracks?: StarterTrack[];
 };
 
 const recommendationReasonLabels = {
@@ -126,6 +129,7 @@ export default function FeedReviewList({
   initialPage,
   isAuthenticated,
   viewer,
+  starterTracks = [],
 }: FeedReviewListProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const trackedPageKeysRef = useRef(new Set<string>());
@@ -216,7 +220,22 @@ export default function FeedReviewList({
     };
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const showStarterLayer =
+    view === "for-you" &&
+    isAuthenticated &&
+    starterTracks.length > 0 &&
+    reviews.length < 4;
+
   if (reviews.length === 0) {
+    if (showStarterLayer) {
+      return (
+        <FeedStarterLayer
+          tracks={starterTracks}
+          isAuthenticated={isAuthenticated}
+        />
+      );
+    }
+
     return <FeedEmptyState view={view} isAuthenticated={isAuthenticated} />;
   }
 
@@ -241,6 +260,13 @@ export default function FeedReviewList({
           />
         );
       })}
+
+      {showStarterLayer ? (
+        <FeedStarterLayer
+          tracks={starterTracks}
+          isAuthenticated={isAuthenticated}
+        />
+      ) : null}
 
       {hasNextPage ? (
         <div ref={sentinelRef} className="flex min-h-12 items-center justify-center py-2">

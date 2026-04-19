@@ -6,6 +6,7 @@ import FollowProfileButton from "@/components/follow-profile-button";
 import ProfileHeroAvatar from "@/components/profile-hero-avatar";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { useRouteHeader } from "@/components/route-header-context";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { shareUrl } from "@/lib/share";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,8 @@ type ProfilePageHeaderProfile = {
   spotify_url: string | null;
   apple_music_url: string | null;
   deezer_url: string | null;
+  is_official?: boolean | null;
+  official_label?: string | null;
 };
 
 type ProfilePageHeaderProps = {
@@ -127,9 +130,19 @@ export default function ProfilePageHeader({
 
           <div className="min-w-0 flex-1 space-y-3">
             <div className="space-y-2">
-              <h1 className="truncate text-[1.3rem] font-semibold tracking-tight text-foreground sm:text-[1.45rem] md:text-[1.6rem]">
-                {usernameLabel}
-              </h1>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <h1 className="truncate text-[1.3rem] font-semibold tracking-tight text-foreground sm:text-[1.45rem] md:text-[1.6rem]">
+                  {usernameLabel}
+                </h1>
+                {localProfile.is_official ? (
+                  <Badge
+                    variant="outline"
+                    className="h-5 border-foreground/18 bg-foreground/[0.045] text-[0.625rem] text-foreground/82"
+                  >
+                    {localProfile.official_label ?? "Official"}
+                  </Badge>
+                ) : null}
+              </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] sm:text-sm">
                 <div className="inline-flex items-baseline gap-1.5">

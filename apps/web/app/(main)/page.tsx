@@ -12,6 +12,7 @@ import {
   getFeedPage,
   getFeedViewerState,
 } from "@/lib/queries/feed";
+import { getStarterTracks } from "@/lib/queries/starter";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
@@ -65,11 +66,16 @@ export default async function HomePage({
   const viewerProfilePromise = getCurrentViewerProfile();
   const [user, viewerProfile] = await Promise.all([userPromise, viewerProfilePromise]);
   const activeView = requestedView ?? (user ? "for-you" : "latest");
-  const publicBundle = await getFeedPage({
-    view: activeView,
-    viewerId: user?.id,
-    includeActiveUsers: false,
-  });
+  const [publicBundle, starterTracks] = await Promise.all([
+    getFeedPage({
+      view: activeView,
+      viewerId: user?.id,
+      includeActiveUsers: false,
+    }),
+    activeView === "for-you" && user?.id
+      ? getStarterTracks({ viewerId: user.id, limit: 6 })
+      : Promise.resolve([]),
+  ]);
   const viewerStatePromise =
     user?.id && publicBundle.feed.length > 0
       ? getFeedViewerState(
@@ -197,6 +203,7 @@ export default async function HomePage({
               initialPage={feedData}
               isAuthenticated={Boolean(user)}
               viewer={viewerProfile}
+              starterTracks={starterTracks}
             />
           </div>
         </section>
@@ -221,6 +228,7 @@ export default async function HomePage({
                   initialPage={feedData}
                   isAuthenticated={Boolean(user)}
                   viewer={viewerProfile}
+                  starterTracks={starterTracks}
                 />
               </div>
 

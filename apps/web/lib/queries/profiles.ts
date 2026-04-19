@@ -16,6 +16,8 @@ export type PublicProfile = {
   spotify_url: string | null;
   apple_music_url: string | null;
   deezer_url: string | null;
+  is_official: boolean;
+  official_label: string | null;
   created_at: string;
 };
 
@@ -102,7 +104,7 @@ export async function getPublicProfileByUsername(username: string) {
 
               const { data, error } = await supabase
                 .from("profiles")
-                .select("id, username, display_name, avatar_url, bio, spotify_url, apple_music_url, deezer_url, created_at")
+                .select("id, username, display_name, avatar_url, bio, spotify_url, apple_music_url, deezer_url, is_official, official_label, created_at")
                 .eq("username", username)
                 .maybeSingle<PublicProfile>();
 

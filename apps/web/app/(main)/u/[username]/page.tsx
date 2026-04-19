@@ -132,6 +132,8 @@ export default async function UserProfilePage({
           spotify_url: profile.spotify_url,
           apple_music_url: profile.apple_music_url,
           deezer_url: profile.deezer_url,
+          is_official: profile.is_official,
+          official_label: profile.official_label,
         }}
         totalReviews={totalReviews}
         memberSince={memberSince}

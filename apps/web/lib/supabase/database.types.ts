@@ -188,6 +188,81 @@ export type Database = {
           },
         ]
       }
+      editorial_collections: {
+        Row: {
+          created_at: string
+          curation_note: string | null
+          description: string | null
+          id: string
+          is_published: boolean
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          curation_note?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          curation_note?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      editorial_collection_items: {
+        Row: {
+          collection_id: string
+          created_at: string
+          note: string | null
+          position: number
+          starter_track_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          note?: string | null
+          position?: number
+          starter_track_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          note?: string | null
+          position?: number
+          starter_track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_collection_items_starter_track_id_fkey"
+            columns: ["starter_track_id"]
+            isOneToOne: false
+            referencedRelation: "starter_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preference_tags: {
         Row: {
           created_at: string
@@ -230,7 +305,9 @@ export type Database = {
           deezer_url: string | null
           display_name: string | null
           id: string
+          is_official: boolean
           onboarded: boolean
+          official_label: string | null
           spotify_url: string | null
           taste_onboarded: boolean
           updated_at: string
@@ -244,7 +321,9 @@ export type Database = {
           deezer_url?: string | null
           display_name?: string | null
           id: string
+          is_official?: boolean
           onboarded?: boolean
+          official_label?: string | null
           spotify_url?: string | null
           taste_onboarded?: boolean
           updated_at?: string
@@ -258,7 +337,9 @@ export type Database = {
           deezer_url?: string | null
           display_name?: string | null
           id?: string
+          is_official?: boolean
           onboarded?: boolean
+          official_label?: string | null
           spotify_url?: string | null
           taste_onboarded?: boolean
           updated_at?: string
@@ -293,6 +374,32 @@ export type Database = {
           {
             foreignKeyName: "profile_follows_following_id_fkey"
             columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_roles: {
+        Row: {
+          created_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_roles_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -560,6 +667,96 @@ export type Database = {
           },
         ]
       }
+      starter_tracks: {
+        Row: {
+          artist_name: string | null
+          cover_url: string | null
+          created_at: string
+          deezer_url: string | null
+          editorial_note: string | null
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          prompt: string | null
+          provider: string
+          provider_id: string
+          sort_order: number
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+          updated_at: string
+        }
+        Insert: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          deezer_url?: string | null
+          editorial_note?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          prompt?: string | null
+          provider?: string
+          provider_id: string
+          sort_order?: number
+          title: string
+          type?: Database["public"]["Enums"]["entity_type"]
+          updated_at?: string
+        }
+        Update: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          deezer_url?: string | null
+          editorial_note?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          prompt?: string | null
+          provider?: string
+          provider_id?: string
+          sort_order?: number
+          title?: string
+          type?: Database["public"]["Enums"]["entity_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      starter_track_tags: {
+        Row: {
+          created_at: string
+          starter_track_id: string
+          tag_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          starter_track_id: string
+          tag_id: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          starter_track_id?: string
+          tag_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "starter_track_tags_starter_track_id_fkey"
+            columns: ["starter_track_id"]
+            isOneToOne: false
+            referencedRelation: "starter_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "starter_track_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "preference_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_music_seeds: {
         Row: {
           artist_name: string | null
@@ -681,6 +878,12 @@ export type Database = {
           reset_at: string
         }[]
       }
+      archive_starter_track: {
+        Args: {
+          p_starter_track_id: string
+        }
+        Returns: Database["public"]["Tables"]["starter_tracks"]["Row"]
+      }
       get_recommended_review_ids: {
         Args: {
           p_cursor_created_at?: string | null
@@ -694,6 +897,31 @@ export type Database = {
           review_id: string
           score: number
         }[]
+      }
+      get_starter_tracks: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: {
+          artist_name: string | null
+          collection_slug: string | null
+          collection_title: string | null
+          cover_url: string | null
+          deezer_url: string | null
+          editorial_note: string | null
+          id: string
+          matched_tag_count: number
+          prompt: string | null
+          provider: string
+          provider_id: string
+          score: number
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+        }[]
+      }
+      is_starter_curator: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       infer_entity_preference_tags_from_user: {
         Args: {
@@ -730,6 +958,23 @@ export type Database = {
           entity_id: string
           review_id: string
         }[]
+      }
+      upsert_starter_track: {
+        Args: {
+          p_artist_name?: string | null
+          p_collection_slug?: string
+          p_cover_url?: string | null
+          p_deezer_url?: string | null
+          p_editorial_note?: string | null
+          p_is_active?: boolean
+          p_is_featured?: boolean
+          p_prompt?: string | null
+          p_provider: string
+          p_provider_id: string
+          p_title: string
+          p_type: Database["public"]["Enums"]["entity_type"]
+        }
+        Returns: Database["public"]["Tables"]["starter_tracks"]["Row"]
       }
       create_notification: {
         Args: {
@@ -916,6 +1161,7 @@ export const Constants = {
     Enums: {
       entity_type: ["track", "album"],
       notification_type: ["review_liked", "review_commented"],
+      preference_kind: ["genre", "mood", "scene", "style", "era", "format"],
     },
   },
 } as const

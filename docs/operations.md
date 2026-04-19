@@ -80,17 +80,21 @@ Current scripts:
 
 - `wipe-demo-auth-data.sql`
 - `recommendation-v2.sql`
+- `editorial-starter-layer.sql`
 - `analytics-events.sql`
 
 Recommended production order for a fresh setup:
 
 1. Base schema and auth/profile scripts
 2. `recommendation-v2.sql`
-3. `analytics-events.sql`
-4. Supabase Auth email template updates
-5. Application deploy
+3. `editorial-starter-layer.sql`
+4. `analytics-events.sql`
+5. Supabase Auth email template updates
+6. Application deploy
 
 Run destructive scripts only after a backup and only when intentionally clearing demo/test data.
+
+Editorial starter content is product configuration, not demo user data. Keep it out of destructive demo wipes unless you intentionally want to rebuild the curated starter catalog.
 
 ## Post-Deploy Checks
 
@@ -123,6 +127,31 @@ from public.get_recommended_review_ids(8, null, null, null);
 ```
 
 Run that recommendation check as an authenticated user context when testing from the app; direct SQL editor calls may not have `auth.uid()`.
+
+Useful Starter Layer health check:
+
+```sql
+select *
+from public.get_starter_tracks(6);
+```
+
+Seed at least 8-12 active `starter_tracks` before inviting first users, and tag them with `starter_track_tags` so onboarding preferences can rank them.
+
+The easiest way to seed starter picks is the internal route:
+
+```text
+/studio/starter
+```
+
+Only the official `@kocteau` profile can write through this route. It searches Deezer, saves the track metadata, creates the default `starter-picks` collection if needed, and archives picks without deleting historical rows.
+
+Public identity and internal permissions are intentionally separate:
+
+- `profiles.is_official`: public badge for official accounts.
+- `profile_roles`: private permission rows, currently `curator` or `admin`.
+- `is_starter_curator()`: checks the authenticated user's role.
+
+The script grants `admin` to the profile whose username is `kocteau` when it runs. If that profile does not exist yet, create the profile first or insert the role later.
 
 ## Branching and Releases
 

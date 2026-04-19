@@ -110,6 +110,7 @@ For You combines:
 
 - explicit taste tags
 - inferred entity tags
+- editorial starter picks for cold-start sessions
 - user follows
 - familiar entities
 - author affinity
@@ -124,6 +125,10 @@ Fallback modes still exist:
 - top-rated
 
 Signed-out users fall back to a public latest-style experience.
+
+When there are not enough real reviews to rank, For You uses the Starter Layer: curated tracks from `starter_tracks`, grouped by optional `editorial_collections`, and matched to onboarding tags through `starter_track_tags`. This keeps early sessions useful without inventing fake users or fake reviews.
+
+The official `@kocteau` profile can manage these picks from `/studio/starter` using the same Deezer search source as review creation.
 
 ## 6. Social interactions
 

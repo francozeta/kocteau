@@ -166,6 +166,30 @@ export const createReviewSchema = z.object({
   is_pinned: z.boolean().optional().default(false),
 });
 
+export const starterTrackUpsertSchema = z.object({
+  provider: z.literal("deezer"),
+  provider_id: z.string().trim().min(1, "Missing provider track id."),
+  type: z.literal("track"),
+  title: z.string().trim().min(1, "Track title is required.").max(160, "Track title is too long."),
+  artist_name: optionalTrimmedString(160),
+  cover_url: z.string().trim().url("Cover URL must be valid.").nullable().optional().transform((value) => value ?? null),
+  deezer_url: z.string().trim().url("Deezer URL must be valid.").nullable().optional().transform((value) => value ?? null),
+  prompt: optionalTrimmedString(160),
+  editorial_note: optionalTrimmedString(240),
+  is_featured: z.boolean().optional().default(false),
+  is_active: z.boolean().optional().default(true),
+  collection_slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Collection slug is invalid.")
+    .optional()
+    .default("starter-picks"),
+});
+
+export const starterTrackArchiveSchema = z.object({
+  id: z.string().uuid("Invalid starter track id."),
+});
+
 export const updateReviewSchema = z.object({
   review_title: optionalTrimmedString(120),
   review_body: optionalTrimmedString(2000),
@@ -242,6 +266,8 @@ export type OtpCodeInput = z.infer<typeof otpCodeSchema>;
 export type ProfileEditorInput = z.infer<typeof profileEditorSchema>;
 export type TasteOnboardingInput = z.infer<typeof tasteOnboardingSchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
+export type StarterTrackUpsertInput = z.infer<typeof starterTrackUpsertSchema>;
+export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;
