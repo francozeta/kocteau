@@ -2,37 +2,63 @@
 
 ## Vision
 
-Kocteau is a place where people write song reviews, share them, and discover music through others.
+Kocteau is a place where people review music, express taste, and discover what to hear next through other listeners.
 
 The conceptual reference is:
 
 - Letterboxd for music
-- Pitchfork social
+- social music criticism
+- human curation supported by lightweight algorithms
 
-## Demo objective
+## Product Objective
 
-Demonstrate that Kocteau already has a recognizable identity with minimal but clear features:
+The MVP should prove that Kocteau has a clear loop:
 
-- search songs
-- rate them
-- leave an optional note
-- publish reviews
-- discover tracks and opinions from other people
+- create an account with email OTP
+- shape an initial taste profile
+- review tracks
+- interact with other reviews
+- return to a personalized For You feed
 
-## What's included in the MVP
+## Current MVP Scope
 
-### 1. Authentication and basic profile
+### 1. OTP-first authentication
 
-- login
-- signup
-- simple onboarding
-- public profile by `username`
+Kocteau uses Supabase Auth with email OTP as the primary auth path.
+
+Included:
+
+- login with email code
+- signup through the same OTP flow
+- post-auth redirect handling
+- incomplete profile state
+- profile onboarding after auth
+- taste onboarding after profile setup
+
+Important decision:
+
+- Supabase `Confirm email` stays enabled.
+- The email template is code-only; the app verifies the OTP inside Kocteau.
+
+### 2. Profile and onboarding
+
+Profiles allow an incomplete state so auth can happen before identity setup.
+
+Included:
+
+- nullable `username` until onboarding
+- display name
 - avatar
-- optional short bio
+- optional bio
+- optional music profile links
+- `onboarded`
+- `taste_onboarded`
 
-### 2. Create reviews
+Taste onboarding collects explicit first-party signals through `preference_tags` and `user_preference_tags`.
 
-The heart of the MVP.
+### 3. Review creation
+
+The heart of the product remains review creation.
 
 Flow:
 
@@ -52,10 +78,13 @@ Each review stores:
 - `body`
 - `created_at`
 - `is_pinned`
+- engagement counters
 
-## 3. Musical entity system
+Review creation goes through server routes and Supabase RPCs rather than direct client writes.
 
-The `entities` table caches music results to avoid depending on Deezer for every read.
+## 4. Musical entity system
+
+The `entities` table caches music results so the app does not depend on Deezer for every read.
 
 Main fields:
 
@@ -67,23 +96,51 @@ Main fields:
 - `cover_url`
 - `deezer_url`
 
-In this demo, the focus is on `track`, though the schema already allows expansion to `album`.
+The current product focuses on tracks, though the schema allows albums.
 
-## 4. Simple feed
+To group reviews correctly, `entities` should remain unique by:
 
-The home shows recent reviews with:
+- `(provider, provider_id, type)`
 
-- track cover
-- track name
-- review author
-- rating
-- optional note
+## 5. For You feed
 
-No algorithm or personalization yet.
+Home `/` is now the primary For You feed for signed-in users.
 
-## 5. Track page
+For You combines:
 
-Route:
+- explicit taste tags
+- inferred entity tags
+- user follows
+- familiar entities
+- author affinity
+- review quality signals
+- recency
+- diversity penalties
+
+Fallback modes still exist:
+
+- latest
+- following
+- top-rated
+
+Signed-out users fall back to a public latest-style experience.
+
+## 6. Social interactions
+
+The MVP now includes lightweight social behavior:
+
+- likes
+- bookmarks
+- comments
+- follows
+- notifications
+- saved reviews
+
+These actions are product features and recommendation signals.
+
+## 7. Track and profile pages
+
+Track route:
 
 - `/track/[id]`
 
@@ -91,64 +148,54 @@ Shows:
 
 - cover
 - basic track information
-- link to Deezer
-- all reviews associated with that same entity
+- Deezer link
+- reviews for the entity
 
-## 6. Public profile
-
-Route:
+Profile route:
 
 - `/u/[username]`
 
 Shows:
 
-- basic user identity
-- pinned review
-- remaining reviews
+- public identity
+- profile metadata
+- pinned/recent reviews
+- user activity surface
 
-## Data model concept
+## 8. Lightweight analytics
 
-The important MVP relationship is:
+Kocteau stores minimal first-party events in Supabase:
 
-- one row in `entities` represents a track
-- many rows in `reviews` can point to the same entity
+- taste onboarding completion
+- For You page loads
+- For You review actions
+- recommendation fallback
 
-This allows different users to review the same song and group them on the same track page.
+Analytics are used to understand whether the feed is working. They avoid sensitive fields like email, IP, and user agent.
 
-To guarantee this, the database must have a `unique` constraint on:
+## Out of Scope For Now
 
-- `(provider, provider_id, type)` on `entities`
-
-## What's out of scope for the MVP
-
-To avoid overloading the demo, these are out for now:
+Still deferred:
 
 - playlists
-- complex recommendations
-- comments on reviews
 - direct messages
-- curators
-- artist roles
-- complete MusicBrainz
 - gamification
-- advanced social system
+- heavy ML recommendations
+- full artist roles
+- curator/admin dashboards
+- first-class albums/artists beyond the existing entity support
+- native mobile parity
 
-## Expected MVP state
+## Expected MVP State
 
-When the MVP is complete, a person should be able to:
+When the MVP is healthy, a user should be able to:
 
-1. create an account
-2. complete their minimal profile
-3. publish a track review
-4. see that review in the feed
-5. enter the track page
-6. enter the author's profile
+1. log in or sign up with email OTP
+2. complete profile onboarding
+3. choose initial taste tags
+4. publish a track review
+5. see relevant reviews on `/`
+6. like, bookmark, comment, or follow
+7. return later and see For You improve from behavior
 
-If that loop feels clear and stable, the demo already identifies the product.
-
-## Risks / current decisions
-
-- rating is mandatory because it's the app's core
-- written note in the UI is optional to reduce friction
-- review creation is now intended to go through a server route / RPC instead of direct client writes
-- the current MVP prioritizes product clarity over future features
+If that loop feels clear and stable, Kocteau is past demo stage and ready for focused product iteration.

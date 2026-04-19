@@ -44,6 +44,10 @@ Important: the Magic Link template decides whether Supabase sends a clickable
 login link or a code. For Kocteau's OTP-first flow, keep this template code-only
 and do not add the Supabase confirmation URL variable.
 
+You may also keep `Confirm Signup` code-only for consistency. The current app
+primarily depends on the `Magic Link` template because `/login` and `/signup`
+use Supabase `signInWithOtp`.
+
 Short version:
 
 ```text

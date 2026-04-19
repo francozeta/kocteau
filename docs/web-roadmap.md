@@ -14,6 +14,20 @@ This roadmap is for the web app only.
   - major platform expansion
   - broad feature experiments that do not improve the core web product loop
 
+## Current Baseline
+
+As of the current production baseline, these foundations are already shipped:
+
+- OTP-first Supabase Auth with code-only email templates
+- profile onboarding and taste onboarding
+- For You as the primary signed-in home feed at `/`
+- recommendation v2 with taste tags, inferred entity tags, follows, affinity, recency, and diversity penalties
+- likes, bookmarks, comments, follows, notifications, and saved reviews
+- Supabase Postgres rate limiting, with Redis removed
+- lightweight first-party analytics for For You health
+
+The roadmap below should be read as the next product direction from this baseline, not from the original demo state.
+
 ## Product Goal
 
 Turn Kocteau from a solid MVP into a product that feels intentional, distinctive, and habit-forming on web.
@@ -41,6 +55,10 @@ The priority order is:
 
 Align the web app around a sharper product direction before larger UI execution.
 
+### Status
+
+Mostly shipped. The primary product direction is now OTP-first auth, taste onboarding, and For You as the main signed-in surface.
+
 ### Outcomes
 
 - clear product promise for web
@@ -52,16 +70,19 @@ Align the web app around a sharper product direction before larger UI execution.
 
 - Define the signed-out and signed-in product promise in one sentence each.
 - Freeze the primary nav model for web:
-  - `Feed`
+  - `For You`
+  - `Latest`
+  - `Following`
+  - `Top`
   - `Explore`
   - `Activity`
   - `Saved`
   - `Profile`
 - Decide whether `Tracks` remains a standalone destination or folds into `Explore`.
-- Define feed modes that deserve to exist now, and remove weak overlaps.
+- Continue pruning weak feed modes if they do not earn usage.
 - Define the minimum social graph direction:
-  - no follow system yet
-  - or lightweight follow system in Phase 3
+  - lightweight follows already exist
+  - next decision is whether follows should shape more notifications and recommendations
 
 ### Likely Files
 
@@ -83,6 +104,10 @@ Align the web app around a sharper product direction before larger UI execution.
 
 Make Kocteau understandable and emotionally legible within the first session.
 
+### Status
+
+Partially shipped. OTP-first entry, profile onboarding, and taste onboarding are live. The remaining work is copy polish, empty states, and first-session guidance.
+
 ### Outcomes
 
 - stronger signed-out and auth experience
@@ -91,16 +116,15 @@ Make Kocteau understandable and emotionally legible within the first session.
 
 ### Work
 
-- Redesign auth shell copy so it explains what Kocteau is.
-- Improve signup and login pages so they feel like entry into a product, not generic auth.
+- Continue polishing auth/onboarding copy now that OTP is stable.
 - Upgrade avatar upload in onboarding and profile settings:
   - add square crop flow before save
   - optimize uploaded images client-side to reduce payload without harsh quality loss
   - keep the implementation reusable for future user-image fields
-- Expand onboarding from identity setup into taste setup:
+- Extend taste onboarding only if it improves signal without adding friction:
   - favorite artists
-  - first review prompt
-  - optional suggested tracks or writers to follow later
+  - reference albums/tracks
+  - optional suggested listeners to follow later
 - Tighten empty states and product copy across feed, track, saved, and notifications.
 - Standardize language and remove mixed English/Spanish product strings.
 
@@ -172,6 +196,10 @@ Make writing a review faster, more expressive, and more confidence-building.
 
 Turn the home and discovery surfaces into a reason to return.
 
+### Status
+
+In progress. For You and recommendation v2 are live. The next job is measurement, tuning, and stronger discovery surfaces around the feed.
+
 ### Outcomes
 
 - a feed with stronger relevance and hierarchy
@@ -180,10 +208,10 @@ Turn the home and discovery surfaces into a reason to return.
 
 ### Work
 
-- Redesign feed hierarchy:
+- Tune feed hierarchy:
   - one clear primary rail
   - one secondary discovery rail
-- Replace weak tabs with meaningful feed modes.
+- Keep `/` as For You and keep secondary modes clearly optional.
 - Rank written reviews above low-signal entries when appropriate.
 - Add stronger explore groupings:
   - trending now
@@ -191,7 +219,11 @@ Turn the home and discovery surfaces into a reason to return.
   - top rated this week
   - recently active tracks
 - Rework search so it transitions naturally into discovery and review creation.
-- Decide and implement lightweight follow system if product value is clear enough here.
+- Use analytics events to tune the feed:
+  - For You loads
+  - actions per loaded review
+  - recommendation fallback rate
+  - interaction mix by reason label
 
 ### Likely Files
 
@@ -319,6 +351,7 @@ Strengthen the reasons people come back and feel safe participating.
   - report
   - block or mute
   - simple moderation pathways
+- Prefer lightweight automated thresholds and report queues before building a full moderation dashboard.
 - Add retention hooks only after the core loop is healthy:
   - weekly recap
   - active friends or active reviewers
@@ -344,7 +377,7 @@ Strengthen the reasons people come back and feel safe participating.
 - full mobile product expansion
 - playlists
 - albums and artists as first-class review targets
-- heavy recommendation systems
+- heavy ML recommendation systems
 - gamification and streaks
 - direct messages
 - large creator or curator programs
@@ -361,6 +394,7 @@ Strengthen the reasons people come back and feel safe participating.
 
 ## Immediate Next Execution Steps
 
-1. Lock the web IA and feed model in Phase 0.
-2. Execute Phase 1 and Phase 2 together where it improves first-session experience.
-3. Move next into Phase 3, because discovery and relevance are the biggest product-depth gap after clarity.
+1. Use analytics to validate For You health after real usage.
+2. Improve review creation quality and post-publish feedback.
+3. Strengthen Explore around trending, discussed, and top-rated music.
+4. Add lightweight trust/reporting flows without a heavy dashboard.

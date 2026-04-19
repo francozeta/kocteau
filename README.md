@@ -1,20 +1,32 @@
 # Kocteau
 
-Kocteau is a social app for music reviews. The current demo is focused on a simple and clear use case: search for a track, rate it, leave an optional note, and discover music through other people's reviews.
+Kocteau is a social music app for reviews, taste discovery, and human-led recommendations. The current product loop is simple: enter with email OTP, complete a profile, choose initial taste signals, review music, and discover new reviews through a personalized For You feed.
 
 ## Current Status
 
-The demo already covers the main product loop:
+Kocteau is now past the original demo baseline. The web app currently includes:
 
-- basic authentication and onboarding
-- review creation with Deezer search
-- main feed with recent reviews
-- public user profile
-- track page with all its reviews
+- OTP-first authentication with Supabase Auth
+- Resend/Supabase SMTP-ready code-only email templates
+- profile onboarding with nullable username until setup is complete
+- taste onboarding with curated preference tags
+- Deezer track search for review creation
+- reviews, likes, bookmarks, comments, follows, notifications, and saved reviews
+- a personalized For You home feed at `/`
+- fallback feed modes for latest, following, and top-rated reviews
+- lightweight feed analytics stored in Supabase
+- Supabase Postgres rate limiting, with no Redis dependency
 
-## MVP
+## Product Flow
 
-The MVP definition is documented in [docs/mvp.md](./docs/mvp.md).
+1. User enters an email on `/login` or `/signup`.
+2. Supabase sends a 6-digit email code.
+3. User verifies the code inside Kocteau.
+4. New users finish profile onboarding.
+5. Users choose taste tags during taste onboarding.
+6. Home `/` opens the personalized For You feed.
+7. Users create reviews from Deezer search.
+8. Likes, bookmarks, comments, follows, and review activity shape future recommendations.
 
 ## Stack
 
@@ -22,24 +34,30 @@ The MVP definition is documented in [docs/mvp.md](./docs/mvp.md).
 - React
 - TypeScript
 - Tailwind CSS + shadcn/ui
-- Supabase Auth, Database and Storage
-- TanStack Query for client-side cache and optimistic updates
+- Supabase Auth, Postgres, Storage, RLS, and RPCs
+- TanStack Query for client cache and optimistic updates
+- Resend SMTP through Supabase Auth for OTP email delivery
+- React Email for transactional email templates
 - Deezer Search API
 
 ## Environment Variables
 
-You need to define at least these variables in `.env.local`:
+Minimum local variables:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 ```
 
-Rate limiting is handled through Supabase Postgres, so no Redis service or `REDIS_URL` is required.
+Optional production services are configured outside the app:
+
+- Supabase Auth SMTP points to Resend.
+- Supabase email templates use the code-only OTP template in `apps/web/emails`.
+- Rate limiting is handled through Supabase Postgres, so no `REDIS_URL` is required.
 
 ## Local Development
 
-Install dependencies and start the server:
+Install dependencies and start the web app:
 
 ```bash
 pnpm install
@@ -48,32 +66,94 @@ pnpm dev
 
 Then open [http://localhost:3000](http://localhost:3000).
 
+Useful checks:
+
+```bash
+pnpm --filter web lint
+pnpm --filter web build
+```
+
+Email preview:
+
+```bash
+pnpm --filter web email:dev
+```
+
 ## Database
 
-The app uses these main tables:
+The core public tables are:
 
 - `profiles`
 - `entities`
 - `reviews`
-
-There are also future or secondary tables:
-
+- `review_comments`
 - `review_likes`
+- `review_bookmarks`
 - `entity_bookmarks`
+- `profile_follows`
+- `notifications`
+- `preference_tags`
+- `user_preference_tags`
+- `user_music_seeds`
+- `entity_preference_tags`
+- `analytics_events`
+- `rate_limit_windows`
 
-## Main Flow
+Important scripts live in `supabase/scripts`:
 
-1. user creates account or logs in
-2. completes onboarding with `username`
-3. opens new review modal
-4. searches for a track on Deezer
-5. selects the track
-6. leaves a required rating and optional note
-7. publishes
-8. the review appears in the feed, on their profile, and on the track page
+- `wipe-demo-auth-data.sql`: destructive reset for demo/test data
+- `recommendation-v2.sql`: entity tags, recommendation scoring, inferred taste signals
+- `analytics-events.sql`: lightweight product analytics table and policies
 
-## Notes
+Run SQL scripts manually from the Supabase SQL Editor after reviewing them.
 
-- the demo is currently focused on `track`, not albums or artists
-- review body is optional in the UI; apply the latest Supabase migration so the database matches that behavior too
-- some technical cleanups outside the main flow are still pending
+## Authentication
+
+Kocteau is OTP-first:
+
+- `signInWithOtp` sends codes for login/signup.
+- `verifyOtp({ type: "email" })` verifies the 6-digit code in-app.
+- `Confirm email` should stay enabled in Supabase.
+- The Supabase `Magic Link` template must be code-only and use `{{ .Token }}`.
+- Do not include `{{ .ConfirmationURL }}` or `{{ .TokenHash }}` in the OTP template unless intentionally re-enabling magic links.
+
+See [apps/web/emails/README.md](./apps/web/emails/README.md).
+
+## Recommendation System
+
+For You is the primary signed-in home experience at `/`.
+
+Recommendation inputs currently include:
+
+- explicit taste onboarding tags
+- inferred tags from positive review activity
+- tags attached to entities
+- follows
+- familiar entities
+- author affinity from liked/bookmarked reviews
+- rating, likes, comments, and recency
+- light diversity penalties to reduce repetition
+
+If the recommendation RPC fails, the app logs `for_you_fallback` and falls back to latest reviews instead of breaking the feed.
+
+## Analytics
+
+Kocteau uses a small first-party analytics table in Supabase. Events currently tracked:
+
+- `taste_onboarding_completed`
+- `for_you_reviews_loaded`
+- `for_you_review_action`
+- `for_you_fallback`
+
+The goal is product feedback, not surveillance. Events avoid emails, IPs, user agents, and long free-form payloads.
+
+## Documentation
+
+- MVP and product baseline: [docs/mvp.md](./docs/mvp.md)
+- Web roadmap: [docs/web-roadmap.md](./docs/web-roadmap.md)
+- Operational notes: [docs/operations.md](./docs/operations.md)
+- Email templates: [apps/web/emails/README.md](./apps/web/emails/README.md)
+
+## Current Product Direction
+
+Kocteau is becoming a hybrid music discovery system: human taste as the source material, lightweight algorithms as the routing layer. The near-term priority is to keep the product simple while making For You feel increasingly relevant from real user behavior.
