@@ -261,7 +261,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
 
     if (error) {
       setMessageTone("error");
-      setMessage(error.message || "That code is invalid or expired.");
+      setMessage("That code is invalid or expired. Request a fresh one if needed.");
       setVerifying(false);
       return;
     }
@@ -361,9 +361,10 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
                 maxLength={otpLength}
                 value={code}
                 onChange={(value) => {
-                  setCode(value);
+                  setCode(value.replace(/\D/g, "").slice(0, otpLength));
                   setFieldErrors((current) => ({ ...current, code: undefined }));
                 }}
+                autoComplete="one-time-code"
                 containerClassName="justify-center"
                 inputMode="numeric"
                 disabled={verifying || redirecting}

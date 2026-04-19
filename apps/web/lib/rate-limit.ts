@@ -1,7 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { getRedisClient } from "@/lib/redis";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export type RateLimitResult = {
   ok: boolean;
@@ -18,14 +18,7 @@ type RateLimitConfig = {
   windowMs: number;
 };
 
-const RATE_LIMIT_SCRIPT = `
-local current = redis.call("INCR", KEYS[1])
-if current == 1 then
-  redis.call("PEXPIRE", KEYS[1], ARGV[1])
-end
-local ttl = redis.call("PTTL", KEYS[1])
-return { current, ttl }
-`;
+let unavailableRateLimitWarned = false;
 
 export const rateLimits = {
   createReview: {
@@ -90,66 +83,55 @@ export const rateLimits = {
   },
 } satisfies Record<string, RateLimitConfig>;
 
-function sanitizeIdentifier(identifier: string) {
-  return identifier.replace(/[^a-zA-Z0-9:_-]/g, "_").slice(0, 160);
-}
-
-function toRateLimitTuple(value: unknown): [number, number] {
-  if (!Array.isArray(value)) {
-    return [0, 0];
-  }
-
-  const [count, ttl] = value;
-
-  return [
-    typeof count === "number" ? count : Number(count ?? 0),
-    typeof ttl === "number" ? ttl : Number(ttl ?? 0),
-  ];
-}
-
 export async function checkRateLimit(
   config: RateLimitConfig,
   identifier: string,
 ): Promise<RateLimitResult> {
-  const redis = await getRedisClient();
-
-  if (!redis) {
-    return {
-      ok: true,
-      enabled: false,
-      limit: config.limit,
-      remaining: config.limit,
-      resetMs: config.windowMs,
-      retryAfterSeconds: 0,
-    };
-  }
-
-  const key = `kocteau:rate-limit:${config.name}:${sanitizeIdentifier(identifier)}`;
+  const windowSeconds = Math.max(1, Math.ceil(config.windowMs / 1000));
 
   try {
-    const [count, ttl] = toRateLimitTuple(
-      await redis.eval(RATE_LIMIT_SCRIPT, {
-        keys: [key],
-        arguments: [String(config.windowMs)],
-      }),
+    const supabase = await supabaseServer();
+    const { data, error } = await supabase.rpc("check_rate_limit", {
+      p_identifier: identifier,
+      p_limit: config.limit,
+      p_scope: config.name,
+      p_window_seconds: windowSeconds,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const result = Array.isArray(data) ? data[0] : null;
+
+    if (!result) {
+      throw new Error("Missing rate limit result.");
+    }
+
+    const resetMs = Math.max(
+      new Date(result.reset_at).getTime() - Date.now(),
+      1_000,
     );
-    const resetMs = ttl > 0 ? ttl : config.windowMs;
-    const remaining = Math.max(config.limit - count, 0);
 
     return {
-      ok: count <= config.limit,
+      ok: result.ok,
       enabled: true,
       limit: config.limit,
-      remaining,
+      remaining: Math.max(Number(result.remaining ?? 0), 0),
       resetMs,
       retryAfterSeconds: Math.max(1, Math.ceil(resetMs / 1000)),
     };
   } catch (error) {
-    console.error("[rate-limit] check failed", {
-      name: config.name,
-      message: error instanceof Error ? error.message : String(error),
-    });
+    if (!unavailableRateLimitWarned) {
+      unavailableRateLimitWarned = true;
+      console.error("[rate-limit] check failed; continuing without rate limit", {
+        name: config.name,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
 
+    // Fail open if the migration is not applied yet. Route handlers still
+    // authenticate and validate authorization before mutations run.
     return {
       ok: true,
       enabled: false,

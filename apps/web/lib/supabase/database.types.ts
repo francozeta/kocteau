@@ -222,6 +222,30 @@ export type Database = {
           },
         ]
       }
+      rate_limit_windows: {
+        Row: {
+          identifier: string
+          request_count: number
+          scope: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          identifier: string
+          request_count?: number
+          scope: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          identifier?: string
+          request_count?: number
+          scope?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -566,6 +590,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_limit: number
+          p_scope: string
+          p_window_seconds: number
+        }
+        Returns: {
+          current_count: number
+          ok: boolean
+          remaining: number
+          reset_at: string
+        }[]
+      }
       get_viewer_review_collection_state: {
         Args: {
           p_review_ids: string[]

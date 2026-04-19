@@ -23,6 +23,7 @@ The MVP definition is documented in [docs/mvp.md](./docs/mvp.md).
 - TypeScript
 - Tailwind CSS + shadcn/ui
 - Supabase Auth, Database and Storage
+- TanStack Query for client-side cache and optimistic updates
 - Deezer Search API
 
 ## Environment Variables
@@ -32,10 +33,9 @@ You need to define at least these variables in `.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
-REDIS_URL=redis://...
 ```
 
-`REDIS_URL` is server-only and powers Redis-backed rate limiting. Keep it in `.env.local` and Vercel Environment Variables, never as a `NEXT_PUBLIC_` variable.
+Rate limiting is handled through Supabase Postgres, so no Redis service or `REDIS_URL` is required.
 
 ## Local Development
 

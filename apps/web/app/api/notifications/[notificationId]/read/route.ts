@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getUnreadNotificationsCount,
-  invalidateUnreadNotificationsCount,
-} from "@/lib/queries/notifications";
+import { getUnreadNotificationsCount } from "@/lib/queries/notifications";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 import { notificationParamsSchema } from "@/lib/validation/schemas";
@@ -79,7 +76,6 @@ export async function POST(
     readAt = updated.read_at;
   }
 
-  await invalidateUnreadNotificationsCount(auth.user.id);
   const unreadCount = await getUnreadNotificationsCount(supabase, auth.user.id);
 
   return NextResponse.json({
