@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { CircleAlert, MailCheck } from "lucide-react";
 import AuthFormShell from "@/components/auth/auth-form-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { getFirstFieldError } from "@/lib/validation/errors";
 import { authEmailSchema, otpCodeSchema } from "@/lib/validation/schemas";
@@ -19,8 +19,18 @@ type OtpAuthPageClientProps = {
   mode: OtpAuthMode;
 };
 
+type ClientPostAuthProfile = {
+  username: string | null;
+  onboarded: boolean | null;
+  taste_onboarded?: boolean | null;
+};
+
 const resendCooldownSeconds = 60;
 const otpLength = 6;
+
+function getEmailRedirectTo() {
+  return `${window.location.origin}/auth/callback`;
+}
 
 const copyByMode: Record<
   OtpAuthMode,
@@ -45,7 +55,7 @@ const copyByMode: Record<
   },
   signup: {
     title: "Create your account",
-    description: "Use your email to get a secure one-time code.",
+    description: "Confirm your email with a secure one-time code.",
     alternateLabel: "Already have an account?",
     alternateHref: "/login",
     alternateCta: "Log in",
@@ -56,7 +66,6 @@ const copyByMode: Record<
 
 export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
   const supabase = supabaseBrowser();
-  const router = useRouter();
   const copy = copyByMode[mode];
 
   const [email, setEmail] = useState("");
@@ -70,6 +79,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
   }>({});
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [resendIn, setResendIn] = useState(0);
 
   useEffect(() => {
@@ -83,6 +93,90 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
 
     return () => window.clearTimeout(timer);
   }, [resendIn]);
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const errorCode = query.get("error_code") ?? hash.get("error_code");
+    const hasAuthError = Boolean(errorCode || query.get("error") || hash.get("error"));
+
+    if (!hasAuthError) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setMessageTone("error");
+      setMessage(
+        errorCode === "otp_expired"
+          ? "That email link is invalid or expired. Enter the latest code from your inbox, or request a fresh one."
+          : "We could not open that email link. Enter the code from your inbox, or request a fresh one.",
+      );
+    }, 0);
+    window.history.replaceState(null, "", window.location.pathname);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const getPostAuthRedirect = useCallback(async () => {
+    const { data: auth } = await supabase.auth.getUser();
+
+    if (!auth.user) {
+      return null;
+    }
+
+    const profileQuery = await supabase
+      .from("profiles")
+      .select("username, onboarded, taste_onboarded")
+      .eq("id", auth.user.id)
+      .maybeSingle<ClientPostAuthProfile>();
+
+    const profile = profileQuery.error
+      ? await supabase
+          .from("profiles")
+          .select("username, onboarded")
+          .eq("id", auth.user.id)
+          .maybeSingle<Omit<ClientPostAuthProfile, "taste_onboarded">>()
+          .then((fallbackQuery) =>
+            fallbackQuery.data
+              ? { ...fallbackQuery.data, taste_onboarded: true }
+              : null,
+          )
+      : profileQuery.data;
+
+    if (!isProfileOnboarded(profile)) {
+      return "/onboarding";
+    }
+
+    if (profile?.taste_onboarded === false) {
+      return "/onboarding/taste";
+    }
+
+    return "/";
+  }, [supabase]);
+
+  const redirectAfterAuth = useCallback(async (options?: { retry?: boolean }) => {
+    setRedirecting(true);
+
+    try {
+      let redirectTo = await getPostAuthRedirect();
+
+      if (!redirectTo && options?.retry) {
+        await new Promise((resolve) => window.setTimeout(resolve, 250));
+        redirectTo = await getPostAuthRedirect();
+      }
+
+      if (!redirectTo) {
+        setRedirecting(false);
+        return false;
+      }
+
+      window.location.replace(redirectTo);
+      return true;
+    } catch {
+      setRedirecting(false);
+      return false;
+    }
+  }, [getPostAuthRedirect]);
 
   async function sendOtp(isResend = false) {
     const parsed = authEmailSchema.safeParse({ email });
@@ -104,6 +198,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
     const { error } = await supabase.auth.signInWithOtp({
       email: parsed.data.email,
       options: {
+        emailRedirectTo: getEmailRedirectTo(),
         shouldCreateUser: true,
       },
     });
@@ -171,15 +266,12 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
       return;
     }
 
-    try {
-      const res = await fetch("/api/post-auth", { cache: "no-store" });
-      const data = await res.json().catch(() => null);
+    const redirected = await redirectAfterAuth({ retry: true });
 
-      router.replace(data?.redirectTo ?? "/onboarding");
-      router.refresh();
-    } catch {
-      router.replace("/onboarding");
-      router.refresh();
+    if (!redirected) {
+      setVerifying(false);
+      setMessageTone("error");
+      setMessage("We verified the code, but could not open your session. Try again in a moment.");
     }
   }
 
@@ -245,7 +337,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
             </Field>
 
             <Field>
-              <Button type="submit" className="h-10 w-full rounded-xl" disabled={sending}>
+              <Button type="submit" className="h-10 w-full rounded-xl" disabled={sending || redirecting}>
                 {sending ? copy.sendingEmail : copy.submitEmail}
               </Button>
             </Field>
@@ -274,7 +366,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
                 }}
                 containerClassName="justify-center"
                 inputMode="numeric"
-                disabled={verifying}
+                disabled={verifying || redirecting}
                 aria-invalid={Boolean(fieldErrors.code)}
               >
                 <InputOTPGroup className="gap-2 rounded-none">
@@ -313,9 +405,9 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
               <Button
                 type="submit"
                 className="h-10 w-full rounded-xl"
-                disabled={verifying || code.length < otpLength}
+                disabled={verifying || redirecting || code.length < otpLength}
               >
-                {verifying ? "Verifying..." : "Continue"}
+                {redirecting ? "Opening Kocteau..." : verifying ? "Verifying..." : "Continue"}
               </Button>
             </Field>
 
@@ -324,7 +416,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
                 type="button"
                 variant="ghost"
                 className="h-10 rounded-xl"
-                disabled={sending || verifying}
+                disabled={sending || verifying || redirecting}
                 onClick={resetEmailStep}
               >
                 Change email
@@ -333,7 +425,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
                 type="button"
                 variant="outline"
                 className="h-10 rounded-xl"
-                disabled={sending || verifying || resendIn > 0}
+                disabled={sending || verifying || redirecting || resendIn > 0}
                 onClick={() => void sendOtp(true)}
               >
                 {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}

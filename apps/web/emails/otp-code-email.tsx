@@ -1,6 +1,5 @@
 import {
   EmailShell,
-  PrimaryButton,
   emailStyles,
   kocteauEmail,
 } from "./kocteau-email-kit";
@@ -8,7 +7,6 @@ import {
 export type KocteauOtpEmailProps = {
   userName?: string;
   otpCode?: string;
-  loginUrl?: string;
   logoUrl?: string;
   expiresInMinutes?: number;
 };
@@ -22,7 +20,6 @@ export function kocteauOtpEmailPreheader(otpCode = "603224") {
 export function KocteauOtpEmail({
   userName,
   otpCode = "603224",
-  loginUrl = kocteauEmail.loginUrl,
   logoUrl = kocteauEmail.logoUrl,
   expiresInMinutes = 10,
 }: KocteauOtpEmailProps) {
@@ -41,7 +38,6 @@ export function KocteauOtpEmail({
         {expiresInMinutes} minutes.
       </p>
       <div style={emailStyles.code}>{otpCode}</div>
-      <PrimaryButton href={loginUrl}>Open Kocteau</PrimaryButton>
       <p style={emailStyles.note}>
         Never share this code. Kocteau will never ask for it outside the
         sign-in screen.
@@ -53,7 +49,6 @@ export function KocteauOtpEmail({
 export function kocteauOtpEmailText({
   userName,
   otpCode = "603224",
-  loginUrl = kocteauEmail.loginUrl,
   expiresInMinutes = 10,
 }: KocteauOtpEmailProps) {
   const greeting = userName ? `Hi ${userName},` : "Hi,";
@@ -61,8 +56,6 @@ export function kocteauOtpEmailText({
   return `${greeting}
 
 Your Kocteau code is ${otpCode}. It expires in ${expiresInMinutes} minutes.
-
-Open Kocteau: ${loginUrl}
 
 If you did not request this, you can ignore this email.`;
 }

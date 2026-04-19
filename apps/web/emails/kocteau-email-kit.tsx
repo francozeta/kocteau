@@ -41,8 +41,6 @@ export const emailStyles = {
     width: "42px",
     height: "42px",
     display: "inline-block",
-    borderRadius: "14px",
-    border: "1px solid #2d2d2d",
   },
   eyebrow: {
     margin: "0 0 12px",

@@ -17,17 +17,16 @@ React Email runs on port `3001` so it does not collide with the Next.js app.
 - Subject: `Your Kocteau sign-in code`
 - Preheader: `Use {{otpCode}} to continue to Kocteau.`
 - Primary text: a short code-only login message.
-- CTA: `Open Kocteau`
+- CTA: none. The OTP email should only expose the code.
 - Variables:
   - `userName`
   - `otpCode`
-  - `loginUrl`
   - `logoUrl`
   - `expiresInMinutes`
 
 For Supabase Auth SMTP, use `supabase-otp-template.html` and keep the code
 placeholder as `{{ .Token }}`. Since Kocteau verifies the code inside the app,
-the CTA points to `/login` instead of relying on a magic link.
+do not include a button back to `/login`; it creates a confusing loop.
 
 Short version:
 
@@ -84,3 +83,4 @@ Logo:
 - Use `https://kocteau.com/logo-k.png` in production emails.
 - Avoid `logo.svg` in email bodies. SVG support is inconsistent in Outlook and
   several Gmail rendering paths. Keep SVG for the app UI and use PNG for email.
+- Do not round the logo in email CSS. Use the exported PNG shape as-is.
