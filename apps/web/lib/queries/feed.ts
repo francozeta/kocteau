@@ -217,7 +217,8 @@ type RecommendedReviewRow = {
 };
 
 function normalizeRecommendationReason(value: string | null | undefined): RecommendationReason {
-  return value === "taste_match" ||
+  return value === "entity_taste" ||
+    value === "taste_match" ||
     value === "following" ||
     value === "familiar_entity" ||
     value === "author_affinity" ||
