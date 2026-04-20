@@ -81,22 +81,23 @@ Current scripts:
 - `wipe-demo-auth-data.sql`
 - `recommendation-v2.sql`
 - `editorial-starter-layer.sql`
-- `entity-external-links.sql`
 - `analytics-events.sql`
+- `cleanup-experimental-music-links.sql` (optional; only for removing the old ISRC/link experiment)
 
 Recommended production order for a fresh setup:
 
 1. Base schema and auth/profile scripts
 2. `recommendation-v2.sql`
 3. `editorial-starter-layer.sql`
-4. `entity-external-links.sql`
-5. `analytics-events.sql`
-6. Supabase Auth email template updates
-7. Application deploy
+4. `analytics-events.sql`
+5. Supabase Auth email template updates
+6. Application deploy
 
 Run destructive scripts only after a backup and only when intentionally clearing demo/test data.
 
 Editorial starter content is product configuration, not demo user data. Keep it out of destructive demo wipes unless you intentionally want to rebuild the curated starter catalog.
+
+`cleanup-experimental-music-links.sql` is not part of a fresh setup. Run it only in environments where the old `entity_external_links`/ISRC experiment was already applied.
 
 ## Post-Deploy Checks
 
@@ -156,28 +157,9 @@ The feed presents these picks as a lightweight taste queue. A pass records `for_
 
 If the full starter script hits a production lock or deadlock after the base layer already exists, run `supabase/scripts/starter-algorithm-signals-patch.sql` instead. It updates only the starter tag table and related RPC functions, so it takes fewer schema locks.
 
-Track pages can also show platform links beyond Deezer. Run `supabase/scripts/entity-external-links.sql` to add `entities.isrc`, `entity_external_links`, and the `upsert_entity_music_link_resolution()` RPC. Deezer remains available through `entities.deezer_url`.
+Track pages currently keep Deezer as the canonical external music link. Spotify/Apple/ISRC resolution is intentionally not part of the app right now because the provider access model adds avoidable operational friction for the current product stage. Future playback should be designed as a separate YouTube embed layer, likely behind explicit curator/admin controls.
 
-When a user reviews a Deezer track, the app can fetch the track's ISRC and resolve Spotify/Apple Music links in the background. Configure only the providers you want:
-
-```text
-SUPABASE_SERVICE_ROLE_KEY
-SPOTIFY_CLIENT_ID
-SPOTIFY_CLIENT_SECRET
-APPLE_MUSIC_DEVELOPER_TOKEN
-APPLE_MUSIC_STOREFRONT
-MUSIC_LINKS_MARKET
-```
-
-`SUPABASE_SERVICE_ROLE_KEY` must be configured only as a server-side Vercel/Supabase secret. `APPLE_MUSIC_STOREFRONT` defaults to `us`; `MUSIC_LINKS_MARKET` defaults to `US`. If Spotify or Apple credentials are missing, the resolver skips that provider without failing review creation.
-
-For older tracks and starter picks, use the internal action in:
-
-```text
-/studio/starter -> Sync links
-```
-
-That action runs `/api/starter/music-links/backfill`, checks a small batch of Deezer entities/starter picks, creates catalog entities for starter picks when needed, stores ISRC, and writes Spotify/Apple Music links when provider credentials are available. If track pages still show only Deezer, check these in order: `entity-external-links.sql` ran successfully, `SUPABASE_SERVICE_ROLE_KEY` is server-side, Spotify credentials are present, and the backfill processed the target track.
+If an environment still has old ISRC/link tables from experimentation, run `supabase/scripts/cleanup-experimental-music-links.sql` after reviewing it. Do not run new backfills or add Spotify/Apple credentials unless that integration is intentionally reopened.
 
 Public identity and internal permissions are intentionally separate:
 

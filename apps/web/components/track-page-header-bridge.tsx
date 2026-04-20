@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouteHeader } from "@/components/route-header-context";
-import type { EntityExternalLink } from "@/lib/queries/entities";
 
 type TrackPageHeaderBridgeProps = {
   entityId?: string | null;
@@ -10,7 +9,6 @@ type TrackPageHeaderBridgeProps = {
   title: string;
   artistName: string | null;
   deezerUrl: string | null;
-  links?: EntityExternalLink[];
 };
 
 export default function TrackPageHeaderBridge({
@@ -19,26 +17,20 @@ export default function TrackPageHeaderBridge({
   title,
   artistName,
   deezerUrl,
-  links,
 }: TrackPageHeaderBridgeProps) {
   const { setDetailHeader } = useRouteHeader();
   const resolvedSharePath = sharePath ?? (entityId ? `/track/${entityId}` : null);
   const externalLinks = useMemo(
     () =>
-      links && links.length > 0
-        ? links.map((link) => ({
-            label: `Open in ${link.label}`,
-            url: link.url,
-          }))
-        : deezerUrl
-          ? [
-              {
-                label: "Open in Deezer",
-                url: deezerUrl,
-              },
-            ]
-          : [],
-    [deezerUrl, links],
+      deezerUrl
+        ? [
+            {
+              label: "Open in Deezer",
+              url: deezerUrl,
+            },
+          ]
+        : [],
+    [deezerUrl],
   );
 
   useEffect(() => {

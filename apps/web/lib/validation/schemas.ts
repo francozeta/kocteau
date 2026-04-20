@@ -202,12 +202,6 @@ export const starterPreferenceTagSchema = z.object({
   is_featured: z.boolean().optional().default(true),
 });
 
-export const musicLinksBackfillSchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).optional().default(24),
-  includeExistingEntities: z.boolean().optional().default(true),
-  includeStarterTracks: z.boolean().optional().default(true),
-});
-
 export const updateReviewSchema = z.object({
   review_title: optionalTrimmedString(120),
   review_body: optionalTrimmedString(2000),
@@ -288,7 +282,6 @@ export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type StarterTrackUpsertInput = z.infer<typeof starterTrackUpsertSchema>;
 export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>;
 export type StarterPreferenceTagInput = z.infer<typeof starterPreferenceTagSchema>;
-export type MusicLinksBackfillInput = z.infer<typeof musicLinksBackfillSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;

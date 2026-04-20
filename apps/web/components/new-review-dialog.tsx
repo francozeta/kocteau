@@ -67,6 +67,7 @@ export default function NewReviewDialog({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
+  onSuccess,
   initialQuery,
   initialSelection,
   redirectToOnSuccess = null,
@@ -81,6 +82,7 @@ export default function NewReviewDialog({
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSuccess?: NewReviewFormProps["onSuccess"];
   initialQuery?: string;
   initialSelection?: InitialSelection | null;
   redirectToOnSuccess?: string | null;
@@ -266,7 +268,10 @@ export default function NewReviewDialog({
               initialSelection={resolvedInitialSelection}
               redirectToOnSuccess={redirectToOnSuccess}
               onCancel={() => handleOpenChange(false)}
-              onSuccess={() => handleOpenChange(false)}
+              onSuccess={(payload) => {
+                handleOpenChange(false);
+                onSuccess?.(payload);
+              }}
             />
           </div>
         </DrawerContent>
@@ -297,7 +302,10 @@ export default function NewReviewDialog({
             initialSelection={resolvedInitialSelection}
             redirectToOnSuccess={redirectToOnSuccess}
             onCancel={() => handleOpenChange(false)}
-            onSuccess={() => handleOpenChange(false)}
+            onSuccess={(payload) => {
+              handleOpenChange(false);
+              onSuccess?.(payload);
+            }}
           />
         </div>
       </DialogContent>

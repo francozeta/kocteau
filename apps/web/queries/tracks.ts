@@ -30,16 +30,8 @@ export type TrackTasteTag = {
   weight: number;
 };
 
-export type TrackExternalLink = {
-  platform: string;
-  label: string;
-  url: string;
-  sort_order: number;
-};
-
 export type TrackBundleQueryData = {
   entity: TrackEntity;
-  links: TrackExternalLink[];
   tags: TrackTasteTag[];
   reviews: TrackBundleReview[];
   viewerReviewId: string | null;
@@ -53,7 +45,6 @@ export type DeezerSearchResult = {
   artist_name: string | null;
   cover_url: string | null;
   deezer_url: string | null;
-  isrc?: string | null;
   entity_id?: string | null;
 };
 

@@ -24,6 +24,7 @@ import {
   restoreReviewCacheSnapshot,
   syncReviewContent,
 } from "@/queries/viewer";
+import { feedKeys } from "@/queries/feed";
 import RatingStars from "./rating-stars";
 
 type DeezerResult = {
@@ -41,7 +42,7 @@ type ReviewSubmitError = Error & {
   code?: string;
 };
 
-type PublishReviewResponse = {
+export type PublishReviewResponse = {
   ok: boolean;
   reviewId?: string | null;
   entityId?: string | null;
@@ -51,7 +52,7 @@ type PublishReviewResponse = {
 export type NewReviewFormProps = {
   mode?: "create" | "edit";
   reviewId?: string | null;
-  onSuccess?: () => void;
+  onSuccess?: (payload: PublishReviewResponse) => void;
   onCancel?: () => void;
   onStepChange?: (step: NewReviewFormStep) => void;
   showCancelAction?: boolean;
@@ -319,7 +320,8 @@ export default function NewReviewForm({
         selected?.entity_id !== payload.entityId;
 
       toastActionSuccess(isEditMode ? "Review updated." : "Review published.");
-      onSuccess?.();
+      void queryClient.invalidateQueries({ queryKey: feedKeys.all });
+      onSuccess?.(payload);
       resetAll();
 
       startTransition(() => {

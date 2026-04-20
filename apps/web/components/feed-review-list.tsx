@@ -160,6 +160,31 @@ export default function FeedReviewList({
       }),
     );
   }, [data?.pages]);
+  const reviewedStarterKeys = useMemo(() => {
+    const keys = new Set<string>();
+
+    reviews.forEach((review) => {
+      const entity = review.entities;
+
+      if (!entity?.provider || !entity.provider_id || !entity.type) {
+        return;
+      }
+
+      keys.add(`${entity.provider}:${entity.type}:${entity.provider_id}`);
+    });
+
+    return keys;
+  }, [reviews]);
+  const visibleStarterTracks = useMemo(
+    () =>
+      starterTracks.filter(
+        (track) =>
+          !reviewedStarterKeys.has(
+            `${track.provider}:${track.type}:${track.provider_id}`,
+          ),
+      ),
+    [reviewedStarterKeys, starterTracks],
+  );
 
   useEffect(() => {
     if (view !== "for-you" || !isAuthenticated) {
@@ -223,14 +248,14 @@ export default function FeedReviewList({
   const showStarterLayer =
     view === "for-you" &&
     isAuthenticated &&
-    starterTracks.length > 0 &&
+    visibleStarterTracks.length > 0 &&
     reviews.length < 4;
 
   if (reviews.length === 0) {
     if (showStarterLayer) {
       return (
         <FeedStarterLayer
-          tracks={starterTracks}
+          tracks={visibleStarterTracks}
           isAuthenticated={isAuthenticated}
         />
       );
@@ -263,7 +288,7 @@ export default function FeedReviewList({
 
       {showStarterLayer ? (
         <FeedStarterLayer
-          tracks={starterTracks}
+          tracks={visibleStarterTracks}
           isAuthenticated={isAuthenticated}
         />
       ) : null}

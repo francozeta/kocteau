@@ -6,14 +6,12 @@ export type DeezerTrackResult = {
   artist_name: string | null;
   cover_url: string | null;
   deezer_url: string | null;
-  isrc: string | null;
 };
 
 type DeezerTrackApiItem = {
   id: number | string;
   title: string;
   link?: string | null;
-  isrc?: string | null;
   artist?: {
     name?: string | null;
   } | null;
@@ -36,7 +34,6 @@ function mapDeezerTrack(item: DeezerTrackApiItem): DeezerTrackResult {
     artist_name: item.artist?.name ?? null,
     cover_url: item.album?.cover_medium ?? item.album?.cover ?? null,
     deezer_url: item.link ?? null,
-    isrc: item.isrc ?? null,
   };
 }
 

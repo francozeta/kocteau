@@ -30,9 +30,13 @@ export default function FeedStarterLayer({
   isAuthenticated,
 }: FeedStarterLayerProps) {
   const [passedTrackIds, setPassedTrackIds] = useState<Set<string>>(() => new Set());
+  const [reviewedTrackIds, setReviewedTrackIds] = useState<Set<string>>(() => new Set());
   const visibleTracks = useMemo(
-    () => tracks.filter((track) => !passedTrackIds.has(track.id)),
-    [passedTrackIds, tracks],
+    () =>
+      tracks.filter(
+        (track) => !passedTrackIds.has(track.id) && !reviewedTrackIds.has(track.id),
+      ),
+    [passedTrackIds, reviewedTrackIds, tracks],
   );
   const activeTrack = visibleTracks[0] ?? null;
   const upcomingTracks = visibleTracks.slice(1, 4);
@@ -53,6 +57,25 @@ export default function FeedStarterLayer({
       source: "feed:starter",
       metadata: {
         action: "starter_pass",
+        starter_track_id: track.id,
+        provider_id: track.provider_id,
+        matched_tag_count: track.matched_tag_count,
+      },
+    });
+  }
+
+  function handleReviewPublished(track: StarterTrack) {
+    setReviewedTrackIds((current) => new Set(current).add(track.id));
+
+    if (!isAuthenticated) {
+      return;
+    }
+
+    trackAnalyticsEvent({
+      eventType: "for_you_recommendation_action",
+      source: "feed:starter",
+      metadata: {
+        action: "starter_review_published",
         starter_track_id: track.id,
         provider_id: track.provider_id,
         matched_tag_count: track.matched_tag_count,
@@ -158,6 +181,7 @@ export default function FeedStarterLayer({
                     deezer_url: activeTrack.deezer_url,
                     entity_id: null,
                   }}
+                  onSuccess={() => handleReviewPublished(activeTrack)}
                   trigger={
                     <Button
                       type="button"

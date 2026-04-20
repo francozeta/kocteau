@@ -33,13 +33,6 @@ export type EntityTasteTag = {
   weight: number;
 };
 
-export type EntityExternalLink = {
-  platform: string;
-  label: string;
-  url: string;
-  sort_order: number;
-};
-
 export type ExistingEntity = {
   id: string;
 };
@@ -58,7 +51,6 @@ export type EntityReview = {
 
 export type TrackPagePublicBundle = {
   entity: EntityPage;
-  links: EntityExternalLink[];
   tags: EntityTasteTag[];
   reviews: EntityReview[];
 };
@@ -71,7 +63,6 @@ const entityPageLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | null>>();
 const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
 const entityTasteTagLoaders = new Map<string, () => Promise<EntityTasteTag[]>>();
-const entityExternalLinkLoaders = new Map<string, () => Promise<EntityExternalLink[]>>();
 
 function logEntitiesQueryError(
   scope: "getEntityPageById" | "findEntityByProvider",
@@ -218,53 +209,6 @@ export async function getReviewsForEntity(entityId: string) {
   )();
 }
 
-function getPlatformLabel(platform: string) {
-  switch (platform) {
-    case "apple_music":
-      return "Apple Music";
-    case "youtube_music":
-      return "YouTube Music";
-    default:
-      return platform
-        .split("_")
-        .filter(Boolean)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(" ");
-  }
-}
-
-function mergeEntityLinks(
-  entity: EntityPage,
-  externalLinks: EntityExternalLink[],
-) {
-  const links: EntityExternalLink[] = [];
-  const seen = new Set<string>();
-
-  if (entity.deezer_url) {
-    links.push({
-      platform: "deezer",
-      label: "Deezer",
-      url: entity.deezer_url,
-      sort_order: 0,
-    });
-    seen.add("deezer");
-  }
-
-  for (const link of externalLinks) {
-    if (seen.has(link.platform)) {
-      continue;
-    }
-
-    links.push({
-      ...link,
-      label: link.label || getPlatformLabel(link.platform),
-    });
-    seen.add(link.platform);
-  }
-
-  return links.sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label));
-}
-
 export async function getEntityTasteTags(entityId: string) {
   return getOrCreateLoader(
     entityTasteTagLoaders,
@@ -341,66 +285,14 @@ export async function getEntityTasteTags(entityId: string) {
   )();
 }
 
-export async function getEntityExternalLinks(entityId: string) {
-  return getOrCreateLoader(
-    entityExternalLinkLoaders,
-    ["entity-external-links", entityId],
-    () =>
-      unstable_cache(
-        async () =>
-          measureServerTask(
-            "getEntityExternalLinks",
-            async () => {
-              const supabase = supabasePublic();
-              type EntityExternalLinkRow = Omit<EntityExternalLink, "label"> & {
-                label: string | null;
-              };
-
-              const { data, error } = await supabase
-                .from("entity_external_links")
-                .select("platform, label, url, sort_order")
-                .eq("entity_id", entityId)
-                .order("sort_order", { ascending: true })
-                .returns<EntityExternalLinkRow[]>();
-
-              if (error) {
-                if (error.code === "42P01") {
-                  return [];
-                }
-
-                console.error("[entities.getEntityExternalLinks] failed", {
-                  code: error.code ?? null,
-                  message: error.message ?? null,
-                  entityId,
-                });
-                return [];
-              }
-
-              return (data ?? []).map((link) => ({
-                ...link,
-                label: link.label || getPlatformLabel(link.platform),
-              }));
-            },
-            { entityId },
-          ),
-        ["entity-external-links", entityId],
-        {
-          revalidate: 300,
-          tags: ["entities", `entity:${entityId}`, `entity:${entityId}:links`],
-        },
-      ),
-  )();
-}
-
 export async function getTrackPublicBundle(entityId: string) {
-  const [entity, reviews, tags, externalLinks] = await measureServerTask(
+  const [entity, reviews, tags] = await measureServerTask(
     "getTrackPublicBundle",
     async () =>
       Promise.all([
         getEntityPageById(entityId),
         getReviewsForEntity(entityId),
         getEntityTasteTags(entityId),
-        getEntityExternalLinks(entityId),
       ]),
     { entityId },
   );
@@ -411,7 +303,6 @@ export async function getTrackPublicBundle(entityId: string) {
 
   return {
     entity,
-    links: mergeEntityLinks(entity, externalLinks),
     tags,
     reviews,
   } satisfies TrackPagePublicBundle;

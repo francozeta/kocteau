@@ -1,6 +1,5 @@
 import { revalidatePath, revalidateTag } from "next/cache";
-import { after, NextResponse } from "next/server";
-import { syncEntityMusicLinksFromDeezer } from "@/lib/music-links";
+import { NextResponse } from "next/server";
 import { findEntityByProvider } from "@/lib/queries/entities";
 import { getViewerReview } from "@/lib/queries/reviews";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
@@ -137,25 +136,6 @@ export async function POST(req: Request) {
     rating: review.rating,
     context: "reviews.create",
   });
-
-  if (review.provider === "deezer" && review.type === "track" && entityId) {
-    after(async () => {
-      const syncResult = await syncEntityMusicLinksFromDeezer({
-        entityId,
-        providerId: review.provider_id,
-        context: "reviews.create",
-      });
-
-      if (!syncResult.ok || syncResult.linksResolved === 0) {
-        return;
-      }
-
-      revalidateTag("entities", "max");
-      revalidateTag(`entity:${entityId}`, "max");
-      revalidateTag(`entity:${entityId}:links`, "max");
-      revalidatePath(`/track/${entityId}`);
-    });
-  }
 
   const { data: profile } = await supabase
     .from("profiles")

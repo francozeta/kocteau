@@ -8,7 +8,6 @@ import {
   LoaderCircle,
   Pencil,
   Plus,
-  RefreshCw,
   Search,
   Star,
   Tags,
@@ -42,20 +41,6 @@ type StarterTagResponse = {
   tag: StarterPreferenceTag;
 };
 
-type MusicLinkBackfillResponse = {
-  ok: boolean;
-  processed: number;
-  synced: number;
-  linksResolved: number;
-  entitiesCreated: number;
-  skipped: number;
-  providerStatus: {
-    serviceRoleConfigured: boolean;
-    spotifyConfigured: boolean;
-    appleMusicConfigured: boolean;
-  };
-};
-
 type StarterDraftTrack = Pick<
   StarterTrackRow,
   | "provider"
@@ -75,6 +60,7 @@ const starterTagKinds = [
   "scene",
   "style",
 ] as const satisfies readonly PreferenceKind[];
+const starterTagKindSet = new Set<string>(starterTagKinds);
 
 function TrackCover({
   src,
@@ -92,6 +78,39 @@ function TrackCover({
       iconClassName="size-5"
     />
   );
+}
+
+function getTagKindLabel(kind: string) {
+  return preferenceKindLabels[kind as PreferenceKind] ?? kind;
+}
+
+function groupTagsByKind(tags: StarterPreferenceTag[]) {
+  const groups = new Map<string, StarterPreferenceTag[]>();
+
+  tags.forEach((tag) => {
+    const current = groups.get(tag.kind) ?? [];
+    current.push(tag);
+    groups.set(tag.kind, current);
+  });
+
+  const orderedKinds = [
+    ...starterTagKinds,
+    ...Array.from(groups.keys()).filter((kind) => !starterTagKindSet.has(kind)),
+  ];
+
+  return orderedKinds.flatMap((kind) => {
+    const groupedTags = groups.get(kind) ?? [];
+
+    return groupedTags.length
+      ? [
+          {
+            kind,
+            label: getTagKindLabel(kind),
+            tags: groupedTags,
+          },
+        ]
+      : [];
+  });
 }
 
 export default function StarterStudioClient() {
@@ -146,6 +165,14 @@ export default function StarterStudioClient() {
       })
       .slice(0, 36);
   }, [availableTags, tagQuery]);
+  const filteredTagGroups = useMemo(
+    () => groupTagsByKind(filteredTags),
+    [filteredTags],
+  );
+  const selectedTagGroups = useMemo(
+    () => groupTagsByKind(selectedTags),
+    [selectedTags],
+  );
 
   function toggleTag(tagId: string) {
     setSelectedTagIds((current) => {
@@ -274,41 +301,6 @@ export default function StarterStudioClient() {
     },
   });
 
-  const musicLinkBackfillMutation = useMutation({
-    mutationFn: () =>
-      fetchJson<MusicLinkBackfillResponse>("/api/starter/music-links/backfill", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          limit: 24,
-          includeExistingEntities: true,
-          includeStarterTracks: true,
-        }),
-      }),
-    onSuccess: (payload) => {
-      const missingProviders = [
-        payload.providerStatus.spotifyConfigured ? null : "Spotify",
-        payload.providerStatus.appleMusicConfigured ? null : "Apple Music",
-      ].filter(Boolean);
-
-      toast.success(
-        `Checked ${payload.processed} tracks, resolved ${payload.linksResolved} links.`,
-        missingProviders.length
-          ? {
-              description: `${missingProviders.join(" and ")} credentials are not configured.`,
-            }
-          : undefined,
-      );
-
-      void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
   const pendingProviderId = addMutation.isPending
     ? addMutation.variables?.provider_id ?? null
     : null;
@@ -318,31 +310,14 @@ export default function StarterStudioClient() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Kocteau editorial</p>
-          <h1 className="font-serif text-3xl font-semibold tracking-normal text-foreground">
-            Starter Studio
-          </h1>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-            Curate the first records people see when For You is still warming up.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={musicLinkBackfillMutation.isPending}
-          onClick={() => musicLinkBackfillMutation.mutate()}
-          className="w-fit gap-1.5"
-        >
-          {musicLinkBackfillMutation.isPending ? (
-            <LoaderCircle className="size-3 animate-spin" />
-          ) : (
-            <RefreshCw className="size-3" />
-          )}
-          Sync links
-        </Button>
+      <header className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground">Kocteau editorial</p>
+        <h1 className="font-serif text-3xl font-semibold tracking-normal text-foreground">
+          Starter Studio
+        </h1>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+          Curate the first records people see when For You is still warming up.
+        </p>
       </header>
 
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -443,6 +418,42 @@ export default function StarterStudioClient() {
           </div>
         </div>
 
+        <div className="rounded-md border border-border/28 bg-background/24 p-2">
+          {selectedTagGroups.length > 0 ? (
+            <div className="space-y-2">
+              {selectedTagGroups.map((group) => (
+                <div
+                  key={group.kind}
+                  className="grid gap-1.5 sm:grid-cols-[4.5rem_minmax(0,1fr)] sm:items-start"
+                >
+                  <p className="pt-1 text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground">
+                    {group.label}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.tags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        asChild
+                        variant="outline"
+                        className="h-6 border-primary/42 bg-primary/10 px-2 text-xs text-foreground"
+                      >
+                        <button type="button" onClick={() => toggleTag(tag.id)}>
+                          {tag.label}
+                          <X className="size-2.5" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="px-1 py-1.5 text-xs text-muted-foreground">
+              Pick up to six signals before adding or updating a starter pick.
+            </p>
+          )}
+        </div>
+
         <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_12rem_auto]">
           <Input
             value={tagQuery}
@@ -453,6 +464,7 @@ export default function StarterStudioClient() {
           <select
             value={newTagKind}
             onChange={(event) => setNewTagKind(event.target.value as PreferenceKind)}
+            aria-label="New tag kind"
             className="h-8 rounded-md border border-input bg-input px-2 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           >
             {starterTagKinds.map((kind) => (
@@ -490,47 +502,44 @@ export default function StarterStudioClient() {
           </div>
         </div>
 
-        <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto pr-1">
-          {filteredTags.map((tag) => {
-            const isSelected = selectedTagIds.has(tag.id);
+        <div className="max-h-44 space-y-3 overflow-y-auto pr-1">
+          {filteredTagGroups.map((group) => (
+            <div key={group.kind} className="space-y-1.5">
+              <p className="text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground">
+                {group.label}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {group.tags.map((tag) => {
+                  const isSelected = selectedTagIds.has(tag.id);
 
-            return (
-              <button
-                key={tag.id}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => toggleTag(tag.id)}
-                className={cn(
-                  "inline-flex h-7 max-w-full items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
-                  isSelected
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border/60 bg-muted/18 text-foreground hover:border-foreground/25 hover:bg-muted/45",
-                )}
-              >
-                <span className="truncate">{tag.label}</span>
-                {isSelected ? <Check className="size-3" /> : null}
-              </button>
-            );
-          })}
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => toggleTag(tag.id)}
+                      className={cn(
+                        "inline-flex h-7 max-w-full items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border/60 bg-muted/18 text-foreground hover:border-foreground/25 hover:bg-muted/45",
+                      )}
+                    >
+                      <span className="truncate">{tag.label}</span>
+                      {isSelected ? <Check className="size-3" /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {filteredTagGroups.length === 0 ? (
+            <p className="rounded-md border border-border/28 bg-background/24 px-3 py-4 text-center text-xs text-muted-foreground">
+              No matching tags.
+            </p>
+          ) : null}
         </div>
-
-        {selectedTags.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5 border-t border-border/24 pt-2">
-            {selectedTags.map((tag) => (
-              <Badge
-                key={tag.id}
-                asChild
-                variant="outline"
-                className="border-border/48 bg-background/34"
-              >
-                <button type="button" onClick={() => toggleTag(tag.id)}>
-                {tag.label}
-                  <X className="size-2.5" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        ) : null}
       </section>
 
       <div className="grid min-h-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -620,53 +629,68 @@ export default function StarterStudioClient() {
             {starterTracks.map((track) => {
               const isArchiving = pendingArchiveId === track.id;
               const tags = track.starter_track_tags ?? [];
+              const isEditing = editingTrack?.id === track.id;
 
               return (
                 <article
                   key={track.id}
                   className={cn(
-                    "grid min-h-[4.5rem] grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-2.5 rounded-lg border border-border/34 bg-card/24 p-2",
+                    "grid min-h-[4.5rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-border/34 bg-card/24 p-2 transition-colors",
                     track.is_featured && "border-foreground/20",
+                    isEditing && "border-primary/50 bg-primary/8",
                   )}
                 >
-                  <TrackCover src={track.cover_url} title={track.title} />
-                  <div className="min-w-0">
-                    <h3 className="truncate text-sm font-medium text-foreground">
-                      {track.title}
-                    </h3>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {track.artist_name ?? "Unknown artist"}
-                    </p>
-                    {tags.length ? (
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {tags.slice(0, 3).flatMap((tag) =>
-                          tag.preference_tags ? (
-                            <Badge
-                              key={tag.tag_id}
-                              variant="outline"
-                              className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
-                            >
-                              {tag.preference_tags.label}
-                            </Badge>
-                          ) : [],
-                        )}
-                        {tags.length > 3 ? (
+                  <button
+                    type="button"
+                    onClick={() => startEditing(track)}
+                    className="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2.5 rounded-md text-left focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
+                  >
+                    <TrackCover src={track.cover_url} title={track.title} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium text-foreground">
+                        {track.title}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {track.artist_name ?? "Unknown artist"}
+                      </span>
+                      <span className="mt-1 flex flex-wrap gap-1">
+                        {tags.length ? (
+                          <>
+                            {tags.slice(0, 3).flatMap((tag) =>
+                              tag.preference_tags ? (
+                                <Badge
+                                  key={tag.tag_id}
+                                  variant="outline"
+                                  className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                                >
+                                  {tag.preference_tags.label}
+                                </Badge>
+                              ) : [],
+                            )}
+                            {tags.length > 3 ? (
+                              <Badge
+                                variant="outline"
+                                className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                              >
+                                +{tags.length - 3}
+                              </Badge>
+                            ) : null}
+                          </>
+                        ) : (
                           <Badge
                             variant="outline"
-                            className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                            className="h-4 border-amber-500/28 bg-amber-500/8 px-1.5 text-[0.56rem] text-amber-200/80"
                           >
-                            +{tags.length - 3}
+                            No signals
                           </Badge>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
+                        )}
+                      </span>
+                    </span>
+                  </button>
                   <div className="flex items-center gap-1">
                     <Button
                       type="button"
-                      variant={
-                        editingTrack?.id === track.id ? "secondary" : "ghost"
-                      }
+                      variant={isEditing ? "secondary" : "ghost"}
                       size="icon-sm"
                       onClick={() => startEditing(track)}
                       title="Edit starter pick"
