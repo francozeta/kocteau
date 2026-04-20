@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { Clock3, Sparkles, Trophy, UsersRound } from "lucide-react";
+import { Sparkles, Trophy, UsersRound } from "lucide-react";
 import FeedReviewList from "@/components/feed-review-list";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
@@ -25,10 +25,6 @@ const feedViews: Array<{
   {
     value: "for-you",
     label: "For You",
-  },
-  {
-    value: "latest",
-    label: "Latest",
   },
   {
     value: "following",
@@ -61,7 +57,8 @@ export default async function HomePage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const params = await searchParams;
-  const requestedView = isFeedView(params.view) ? params.view : null;
+  const requestedView =
+    isFeedView(params.view) && params.view !== "latest" ? params.view : null;
   const userPromise = getCurrentUser();
   const viewerProfilePromise = getCurrentViewerProfile();
   const [user, viewerProfile] = await Promise.all([userPromise, viewerProfilePromise]);
@@ -145,8 +142,6 @@ export default async function HomePage({
           const Icon =
             view.value === "for-you"
               ? Sparkles
-              : view.value === "latest"
-              ? Clock3
               : view.value === "following"
                 ? UsersRound
                 : Trophy;

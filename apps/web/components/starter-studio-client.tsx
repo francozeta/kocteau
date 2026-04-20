@@ -113,6 +113,10 @@ function groupTagsByKind(tags: StarterPreferenceTag[]) {
   });
 }
 
+function normalizeTagLabel(label: string) {
+  return label.trim().toLowerCase();
+}
+
 export default function StarterStudioClient() {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
@@ -307,6 +311,35 @@ export default function StarterStudioClient() {
   const pendingArchiveId = archiveMutation.isPending
     ? archiveMutation.variables ?? null
     : null;
+  const canCreateTag =
+    newTagLabel.trim().length >= 2 &&
+    selectedTagIds.size < starterTagLimit &&
+    !createTagMutation.isPending;
+
+  function handleCreateTag() {
+    const normalizedNewTag = normalizeTagLabel(newTagLabel);
+
+    if (!normalizedNewTag || selectedTagIds.size >= starterTagLimit) {
+      return;
+    }
+
+    const existingTag = availableTags.find(
+      (tag) =>
+        normalizeTagLabel(tag.label) === normalizedNewTag ||
+        normalizeTagLabel(tag.slug) === normalizedNewTag,
+    );
+
+    if (existingTag) {
+      setSelectedTagIds((current) => new Set(current).add(existingTag.id));
+      setNewTagLabel("");
+      setTagQuery("");
+      return;
+    }
+
+    if (canCreateTag) {
+      createTagMutation.mutate();
+    }
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6">
@@ -402,6 +435,23 @@ export default function StarterStudioClient() {
             Starter signals
           </div>
           <div className="flex items-center gap-2">
+            {editingTrack ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                disabled={addMutation.isPending}
+                onClick={() => addMutation.mutate(editingTrack)}
+              >
+                {addMutation.isPending &&
+                addMutation.variables?.provider_id === editingTrack.provider_id ? (
+                  <LoaderCircle className="size-2.5 animate-spin" />
+                ) : (
+                  <Check className="size-2.5" />
+                )}
+                Save
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="ghost"
@@ -477,6 +527,12 @@ export default function StarterStudioClient() {
             <Input
               value={newTagLabel}
               onChange={(event) => setNewTagLabel(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleCreateTag();
+                }
+              }}
               placeholder="New tag"
               className="h-8 rounded-md bg-background/44 text-sm md:w-28"
             />
@@ -484,12 +540,8 @@ export default function StarterStudioClient() {
               type="button"
               variant="outline"
               size="sm"
-              disabled={
-                newTagLabel.trim().length < 2 ||
-                selectedTagIds.size >= starterTagLimit ||
-                createTagMutation.isPending
-              }
-              onClick={() => createTagMutation.mutate()}
+              disabled={!canCreateTag}
+              onClick={handleCreateTag}
               className="h-8"
             >
               {createTagMutation.isPending ? (

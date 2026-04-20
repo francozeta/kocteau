@@ -223,9 +223,41 @@ function normalizeRecommendationReason(value: string | null | undefined): Recomm
     value === "following" ||
     value === "familiar_entity" ||
     value === "author_affinity" ||
+    value === "own_review" ||
     value === "popular_recent"
     ? value
     : "popular_recent";
+}
+
+async function queryViewerRecentReviews({
+  viewerId,
+  limit,
+}: {
+  viewerId: string;
+  limit: number;
+}) {
+  const supabase = supabasePublic();
+
+  const reviews = await runReviewListQuery<FeedReview>(async (mode) =>
+    supabase
+      .from("reviews")
+      .select(
+        buildReviewHydrationSelect(mode, {
+          includeAuthor: true,
+          includeEntity: true,
+        }),
+      )
+      .eq("author_id", viewerId)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(Math.max(1, Math.min(limit, 3))),
+  );
+
+  return reviews.map((review) => ({
+    ...normalizeFeedReview(review),
+    recommendation_score: 1000,
+    recommendation_reason: "own_review" as const,
+  }));
 }
 
 async function queryRecommendedFeedPage({
@@ -254,13 +286,19 @@ async function queryRecommendedFeedPage({
   }
 
   const supabase = await supabaseServer();
-  const [recommendationsResult, activeUsers] = await Promise.all([
+  const [recommendationsResult, viewerReviews, activeUsers] = await Promise.all([
     supabase.rpc("get_recommended_review_ids", {
       p_limit: pageLimit + 1,
       p_cursor_score: decodedCursor?.score ?? null,
       p_cursor_created_at: decodedCursor?.created_at ?? null,
       p_cursor_id: decodedCursor?.id ?? null,
     }),
+    decodedCursor
+      ? Promise.resolve([])
+      : queryViewerRecentReviews({
+          viewerId,
+          limit: 2,
+        }),
     includeActiveUsers ? getRecentlyActiveProfiles(4) : Promise.resolve([]),
   ]);
 
@@ -303,7 +341,7 @@ async function queryRecommendedFeedPage({
       }));
   const reviewIds = recommendationRows.map((row) => row.review_id);
 
-  if (reviewIds.length === 0) {
+  if (reviewIds.length === 0 && viewerReviews.length === 0) {
     return {
       feed: [],
       activeUsers,
@@ -315,21 +353,23 @@ async function queryRecommendedFeedPage({
   const recommendationByReviewId = new Map(
     recommendationRows.map((row) => [row.review_id, row]),
   );
-  const feed = await runReviewListQuery<FeedReview>(async (mode) =>
-    supabase
-      .from("reviews")
-      .select(
-        buildReviewHydrationSelect(mode, {
-          includeAuthor: true,
-          includeEntity: true,
-        }),
+  const feed = reviewIds.length
+    ? await runReviewListQuery<FeedReview>(async (mode) =>
+        supabase
+          .from("reviews")
+          .select(
+            buildReviewHydrationSelect(mode, {
+              includeAuthor: true,
+              includeEntity: true,
+            }),
+          )
+          .in("id", reviewIds),
       )
-      .in("id", reviewIds),
-  );
+    : [];
   const feedById = new Map(
     feed.map((review) => [review.id, normalizeFeedReview(review)]),
   );
-  const orderedFeed = recommendationRows.flatMap((row) => {
+  const recommendedFeed = recommendationRows.flatMap((row) => {
     const review = feedById.get(row.review_id);
 
     if (!review) {
@@ -345,6 +385,15 @@ async function queryRecommendedFeedPage({
         recommendation_reason: recommendation?.reason ?? "popular_recent",
       },
     ];
+  });
+  const seenReviewIds = new Set<string>();
+  const orderedFeed = [...viewerReviews, ...recommendedFeed].filter((review) => {
+    if (seenReviewIds.has(review.id)) {
+      return false;
+    }
+
+    seenReviewIds.add(review.id);
+    return true;
   });
   const pageFeed = orderedFeed.slice(0, pageLimit);
   const lastReview = pageFeed.at(-1) ?? null;

@@ -38,6 +38,7 @@ const recommendationReasonLabels = {
   following: "From your follows",
   familiar_entity: "Related pick",
   author_affinity: "Similar listener",
+  own_review: "Your contribution",
   popular_recent: "Popular now",
 } satisfies Record<
   NonNullable<FeedBundleReview["recommendation_reason"]>,

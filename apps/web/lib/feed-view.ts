@@ -6,6 +6,7 @@ export type RecommendationReason =
   | "following"
   | "familiar_entity"
   | "author_affinity"
+  | "own_review"
   | "popular_recent";
 
 export function isFeedView(value: string | undefined): value is FeedView {

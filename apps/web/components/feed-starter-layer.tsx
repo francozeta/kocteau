@@ -40,6 +40,7 @@ export default function FeedStarterLayer({
   );
   const activeTrack = visibleTracks[0] ?? null;
   const upcomingTracks = visibleTracks.slice(1, 4);
+  const completedCount = tracks.length - visibleTracks.length;
 
   if (tracks.length === 0) {
     return null;
@@ -112,49 +113,67 @@ export default function FeedStarterLayer({
 
   return (
     <section className="space-y-3">
-      <div className="flex items-start justify-between gap-3 px-0.5">
+      <div className="flex items-end justify-between gap-3 px-0.5">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <div className="flex items-center gap-2 text-[0.68rem] font-medium uppercase tracking-[0.24em] text-muted-foreground">
             <Sparkles className="size-3.5" />
-            Starter picks
+            Kocteau cue
           </div>
-          <h2 className="mt-1 text-base font-semibold text-foreground">
+          <h2 className="mt-1 font-serif text-2xl font-semibold leading-tight text-foreground">
             Start your taste graph
           </h2>
         </div>
-        <p className="hidden max-w-48 text-right text-xs leading-5 text-muted-foreground sm:block">
-          Editorial prompts for your first reviews.
-        </p>
+        <div className="hidden items-center gap-1.5 sm:flex">
+          {tracks.map((track, index) => {
+            const isCleared = index < completedCount;
+            const isActive = track.id === activeTrack.id;
+
+            return (
+              <span
+                key={track.id}
+                className={
+                  isActive
+                    ? "h-1.5 w-7 rounded-full bg-foreground"
+                    : isCleared
+                      ? "h-1.5 w-3 rounded-full bg-foreground/34"
+                      : "h-1.5 w-3 rounded-full bg-border"
+                }
+              />
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_13rem]">
-        <article className="grid min-h-[10rem] gap-3 rounded-md border border-border/32 bg-background/36 p-2.5 transition-colors hover:border-border/52 hover:bg-background/52 sm:grid-cols-[7rem_minmax(0,1fr)]">
-          <EntityCoverImage
-            src={activeTrack.cover_url}
-            alt={`${activeTrack.title} cover`}
-            sizes="112px"
-            className="aspect-square w-full rounded-md border border-border/24 bg-muted/20 sm:size-28"
-            iconClassName="size-6"
-          />
+      <article className="overflow-hidden rounded-md border border-border/32 bg-card/24">
+        <div className="grid gap-0 md:grid-cols-[9.5rem_minmax(0,1fr)] lg:grid-cols-[10.5rem_minmax(0,1fr)_13rem]">
+          <div className="border-b border-border/24 p-3 md:border-r md:border-b-0">
+            <EntityCoverImage
+              src={activeTrack.cover_url}
+              alt={`${activeTrack.title} cover`}
+              sizes="168px"
+              className="aspect-square w-full rounded-md border border-border/24 bg-muted/20"
+              iconClassName="size-7"
+            />
+          </div>
 
-          <div className="flex min-w-0 flex-col justify-between gap-3">
+          <div className="flex min-w-0 flex-col justify-between gap-5 p-4">
             <div className="min-w-0">
-              <div className="mb-2 flex items-center gap-2 text-[0.68rem] font-medium uppercase text-muted-foreground">
+              <div className="mb-3 flex items-center gap-2 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                 <Sparkles className="size-3" />
-                Taste queue
+                Editorial starter
               </div>
-              <h3 className="line-clamp-2 font-serif text-2xl font-semibold leading-tight text-foreground">
+              <h3 className="line-clamp-2 font-serif text-3xl font-semibold leading-none text-foreground">
                 {activeTrack.title}
               </h3>
-              <p className="mt-1 truncate text-sm text-muted-foreground">
+              <p className="mt-2 truncate text-sm text-muted-foreground">
                 {activeTrack.artist_name ?? "Unknown artist"}
               </p>
-              <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground/88">
+              <p className="mt-4 line-clamp-3 max-w-xl text-sm leading-6 text-muted-foreground/90">
                 {getStarterPrompt(activeTrack)}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="text-xs text-muted-foreground">
                 {visibleTracks.length} left
               </span>
@@ -163,7 +182,7 @@ export default function FeedStarterLayer({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-full border border-border/28 bg-card/18 px-3"
+                  className="h-8 gap-1.5 rounded-full border border-border/28 bg-background/18 px-3"
                   onClick={() => handlePass(activeTrack)}
                 >
                   <X className="size-3" />
@@ -187,7 +206,7 @@ export default function FeedStarterLayer({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5 rounded-full border-border/42 bg-card/32 px-3 text-xs"
+                      className="h-8 gap-1.5 rounded-full border-border/42 bg-background/24 px-3 text-xs"
                       onClick={() => {
                         trackAnalyticsEvent({
                           eventType: "for_you_review_action",
@@ -208,38 +227,43 @@ export default function FeedStarterLayer({
               </div>
             </div>
           </div>
-        </article>
 
-        {upcomingTracks.length > 0 ? (
-          <div className="hidden min-w-0 flex-col gap-2 lg:flex">
-            {upcomingTracks.map((track) => (
-              <button
-                key={track.id}
-                type="button"
-                className="grid min-h-[4.75rem] grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-border/24 bg-card/18 p-2 text-left transition hover:border-border/45 hover:bg-card/30"
-                onClick={() => handlePass(activeTrack)}
-              >
-                <EntityCoverImage
-                  src={track.cover_url}
-                  alt={`${track.title} cover`}
-                  sizes="52px"
-                  className="size-[3.25rem] rounded-md border border-border/20 bg-muted/20"
-                  iconClassName="size-4"
-                />
-                <span className="min-w-0">
-                  <span className="block truncate text-xs font-medium text-foreground">
-                    {track.title}
-                  </span>
-                  <span className="block truncate text-[0.68rem] text-muted-foreground">
-                    {track.artist_name ?? "Unknown artist"}
-                  </span>
-                </span>
-                <ArrowRight className="size-3 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
+          {upcomingTracks.length > 0 ? (
+            <div className="hidden min-w-0 border-l border-border/24 lg:block">
+              <div className="border-b border-border/24 px-3 py-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Up next
+              </div>
+              <div className="divide-y divide-border/20">
+                {upcomingTracks.map((track) => (
+                  <button
+                    key={track.id}
+                    type="button"
+                    className="grid min-h-[4.75rem] w-full grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-2 p-2.5 text-left transition hover:bg-background/28"
+                    onClick={() => handlePass(activeTrack)}
+                  >
+                    <EntityCoverImage
+                      src={track.cover_url}
+                      alt={`${track.title} cover`}
+                      sizes="48px"
+                      className="size-12 rounded-md border border-border/20 bg-muted/20"
+                      iconClassName="size-4"
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-medium text-foreground">
+                        {track.title}
+                      </span>
+                      <span className="block truncate text-[0.68rem] text-muted-foreground">
+                        {track.artist_name ?? "Unknown artist"}
+                      </span>
+                    </span>
+                    <ArrowRight className="size-3 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </article>
     </section>
   );
 }
