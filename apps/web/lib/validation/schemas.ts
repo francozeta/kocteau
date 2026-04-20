@@ -178,6 +178,11 @@ export const starterTrackUpsertSchema = z.object({
   editorial_note: optionalTrimmedString(240),
   is_featured: z.boolean().optional().default(false),
   is_active: z.boolean().optional().default(true),
+  tag_ids: z
+    .array(z.string().uuid("Invalid starter tag."))
+    .max(6, "Choose 6 starter tags or fewer.")
+    .optional()
+    .default([]),
   collection_slug: z
     .string()
     .trim()
@@ -188,6 +193,19 @@ export const starterTrackUpsertSchema = z.object({
 
 export const starterTrackArchiveSchema = z.object({
   id: z.string().uuid("Invalid starter track id."),
+});
+
+export const starterPreferenceTagSchema = z.object({
+  label: z.string().trim().min(2, "Tag label is required.").max(32, "Tag label is too long."),
+  kind: z.enum(["genre", "mood", "scene", "style", "era", "format"]),
+  description: optionalTrimmedString(140),
+  is_featured: z.boolean().optional().default(true),
+});
+
+export const musicLinksBackfillSchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).optional().default(24),
+  includeExistingEntities: z.boolean().optional().default(true),
+  includeStarterTracks: z.boolean().optional().default(true),
 });
 
 export const updateReviewSchema = z.object({
@@ -247,6 +265,7 @@ export const analyticsEventSchema = z.object({
     "taste_onboarding_completed",
     "for_you_reviews_loaded",
     "for_you_review_action",
+    "for_you_recommendation_action",
     "for_you_fallback",
   ]),
   source: z
@@ -268,6 +287,8 @@ export type TasteOnboardingInput = z.infer<typeof tasteOnboardingSchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type StarterTrackUpsertInput = z.infer<typeof starterTrackUpsertSchema>;
 export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>;
+export type StarterPreferenceTagInput = z.infer<typeof starterPreferenceTagSchema>;
+export type MusicLinksBackfillInput = z.infer<typeof musicLinksBackfillSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;

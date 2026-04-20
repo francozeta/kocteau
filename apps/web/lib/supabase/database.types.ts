@@ -81,6 +81,7 @@ export type Database = {
           created_at: string
           deezer_url: string | null
           id: string
+          isrc: string | null
           provider: string
           provider_id: string
           title: string
@@ -93,6 +94,7 @@ export type Database = {
           created_at?: string
           deezer_url?: string | null
           id?: string
+          isrc?: string | null
           provider?: string
           provider_id: string
           title: string
@@ -105,6 +107,7 @@ export type Database = {
           created_at?: string
           deezer_url?: string | null
           id?: string
+          isrc?: string | null
           provider?: string
           provider_id?: string
           title?: string
@@ -112,6 +115,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      entity_external_links: {
+        Row: {
+          created_at: string
+          confidence: number
+          entity_id: string
+          label: string | null
+          last_checked_at: string | null
+          match_source: string
+          platform: string
+          provider_id: string | null
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          confidence?: number
+          entity_id: string
+          label?: string | null
+          last_checked_at?: string | null
+          match_source?: string
+          platform: string
+          provider_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          confidence?: number
+          entity_id?: string
+          label?: string | null
+          last_checked_at?: string | null
+          match_source?: string
+          platform?: string
+          provider_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_external_links_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entity_bookmarks: {
         Row: {
@@ -930,6 +983,16 @@ export type Database = {
         }
         Returns: number
       }
+      sync_entity_tags_from_starter_track: {
+        Args: {
+          p_entity_id: string
+          p_provider: string
+          p_provider_id: string
+          p_signal_weight?: number | null
+          p_type: Database["public"]["Enums"]["entity_type"]
+        }
+        Returns: number
+      }
       get_viewer_review_collection_state: {
         Args: {
           p_review_ids: string[]
@@ -939,6 +1002,14 @@ export type Database = {
           liked: boolean
           bookmarked: boolean
         }[]
+      }
+      upsert_entity_music_link_resolution: {
+        Args: {
+          p_entity_id: string
+          p_isrc?: string | null
+          p_links?: Json
+        }
+        Returns: number
       }
       create_review_with_entity: {
         Args: {
@@ -959,6 +1030,16 @@ export type Database = {
           review_id: string
         }[]
       }
+      upsert_preference_tag: {
+        Args: {
+          p_description?: string | null
+          p_is_featured?: boolean
+          p_kind: Database["public"]["Enums"]["preference_kind"]
+          p_label: string
+          p_slug?: string | null
+        }
+        Returns: Database["public"]["Tables"]["preference_tags"]["Row"]
+      }
       upsert_starter_track: {
         Args: {
           p_artist_name?: string | null
@@ -971,6 +1052,7 @@ export type Database = {
           p_prompt?: string | null
           p_provider: string
           p_provider_id: string
+          p_tag_ids?: string[]
           p_title: string
           p_type: Database["public"]["Enums"]["entity_type"]
         }

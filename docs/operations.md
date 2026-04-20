@@ -81,6 +81,7 @@ Current scripts:
 - `wipe-demo-auth-data.sql`
 - `recommendation-v2.sql`
 - `editorial-starter-layer.sql`
+- `entity-external-links.sql`
 - `analytics-events.sql`
 
 Recommended production order for a fresh setup:
@@ -88,9 +89,10 @@ Recommended production order for a fresh setup:
 1. Base schema and auth/profile scripts
 2. `recommendation-v2.sql`
 3. `editorial-starter-layer.sql`
-4. `analytics-events.sql`
-5. Supabase Auth email template updates
-6. Application deploy
+4. `entity-external-links.sql`
+5. `analytics-events.sql`
+6. Supabase Auth email template updates
+7. Application deploy
 
 Run destructive scripts only after a backup and only when intentionally clearing demo/test data.
 
@@ -143,7 +145,39 @@ The easiest way to seed starter picks is the internal route:
 /studio/starter
 ```
 
-Only the official `@kocteau` profile can write through this route. It searches Deezer, saves the track metadata, creates the default `starter-picks` collection if needed, and archives picks without deleting historical rows.
+Only the official `@kocteau` profile can write through this route. It searches Deezer, saves the track metadata, creates the default `starter-picks` collection if needed, attaches editorial tags, creates lightweight new tags when needed, and archives picks without deleting historical rows.
+
+Starter tags affect recommendations in two stages:
+
+1. `get_starter_tracks()` ranks starter picks against the viewer's onboarding taste.
+2. `sync_entity_tags_from_starter_track()` copies starter tags to `entity_preference_tags` when a user reviews that track. If a curator edits the starter tags later, stale `system` tags are removed while manual tags are preserved.
+
+The feed presents these picks as a lightweight taste queue. A pass records `for_you_recommendation_action` in analytics; a review click still records `for_you_review_action`.
+
+If the full starter script hits a production lock or deadlock after the base layer already exists, run `supabase/scripts/starter-algorithm-signals-patch.sql` instead. It updates only the starter tag table and related RPC functions, so it takes fewer schema locks.
+
+Track pages can also show platform links beyond Deezer. Run `supabase/scripts/entity-external-links.sql` to add `entities.isrc`, `entity_external_links`, and the `upsert_entity_music_link_resolution()` RPC. Deezer remains available through `entities.deezer_url`.
+
+When a user reviews a Deezer track, the app can fetch the track's ISRC and resolve Spotify/Apple Music links in the background. Configure only the providers you want:
+
+```text
+SUPABASE_SERVICE_ROLE_KEY
+SPOTIFY_CLIENT_ID
+SPOTIFY_CLIENT_SECRET
+APPLE_MUSIC_DEVELOPER_TOKEN
+APPLE_MUSIC_STOREFRONT
+MUSIC_LINKS_MARKET
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` must be configured only as a server-side Vercel/Supabase secret. `APPLE_MUSIC_STOREFRONT` defaults to `us`; `MUSIC_LINKS_MARKET` defaults to `US`. If Spotify or Apple credentials are missing, the resolver skips that provider without failing review creation.
+
+For older tracks and starter picks, use the internal action in:
+
+```text
+/studio/starter -> Sync links
+```
+
+That action runs `/api/starter/music-links/backfill`, checks a small batch of Deezer entities/starter picks, creates catalog entities for starter picks when needed, stores ISRC, and writes Spotify/Apple Music links when provider credentials are available. If track pages still show only Deezer, check these in order: `entity-external-links.sql` ran successfully, `SUPABASE_SERVICE_ROLE_KEY` is server-side, Spotify credentials are present, and the backfill processed the target track.
 
 Public identity and internal permissions are intentionally separate:
 

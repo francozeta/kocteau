@@ -45,3 +45,40 @@ export async function inferEntityPreferenceTagsFromReview(
     });
   }
 }
+
+export async function syncEntityPreferenceTagsFromStarterTrack(
+  supabase: SupabaseServerClient,
+  {
+    entityId,
+    provider,
+    providerId,
+    type,
+    context,
+  }: {
+    entityId: string | null | undefined;
+    provider: string;
+    providerId: string;
+    type: "track" | "album";
+    context: string;
+  },
+) {
+  if (!entityId) {
+    return;
+  }
+
+  const { error } = await supabase.rpc("sync_entity_tags_from_starter_track", {
+    p_entity_id: entityId,
+    p_provider: provider,
+    p_provider_id: providerId,
+    p_type: type,
+    p_signal_weight: 1,
+  });
+
+  if (error) {
+    console.warn("[recommendations.syncStarterEntityTags] skipped", {
+      context,
+      code: error.code ?? null,
+      message: error.message ?? null,
+    });
+  }
+}

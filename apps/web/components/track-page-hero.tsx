@@ -6,6 +6,7 @@ import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { Button } from "@/components/ui/button";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
+import type { EntityExternalLink, EntityTasteTag } from "@/lib/queries/entities";
 
 type TrackPageHeroProps = {
   entity: {
@@ -16,6 +17,8 @@ type TrackPageHeroProps = {
     cover_url: string | null;
     deezer_url: string | null;
   };
+  links?: EntityExternalLink[];
+  tags?: EntityTasteTag[];
   isAuthenticated: boolean;
   sharePath?: string;
   viewerReview: {
@@ -36,11 +39,28 @@ const sideActionClassName =
 
 export default function TrackPageHero({
   entity,
+  links = [],
+  tags = [],
   isAuthenticated,
   sharePath,
   viewerReview,
   shouldOpenViewerEditor = false,
 }: TrackPageHeroProps) {
+  const externalLinks = links.length
+    ? links
+    : entity.deezer_url
+      ? [
+          {
+            platform: "deezer",
+            label: "Deezer",
+            url: entity.deezer_url,
+            sort_order: 0,
+          },
+        ]
+      : [];
+  const primaryExternalLink = externalLinks[0] ?? null;
+  const visibleTags = tags.slice(0, 5);
+  const remainingTagCount = Math.max(tags.length - visibleTags.length, 0);
   const createSelection = {
     provider: "deezer" as const,
     provider_id: entity.provider_id,
@@ -163,7 +183,7 @@ export default function TrackPageHero({
               />
             )}
 
-            {entity.deezer_url ? (
+            {primaryExternalLink ? (
               <Button
                 asChild
                 type="button"
@@ -171,7 +191,12 @@ export default function TrackPageHero({
                 size="icon"
                 className={sideActionClassName}
               >
-                <a href={entity.deezer_url} target="_blank" rel="noreferrer" aria-label="Open in Deezer">
+                <a
+                  href={primaryExternalLink.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Open in ${primaryExternalLink.label}`}
+                >
                   <ExternalLink className="size-4" />
                 </a>
               </Button>
@@ -180,15 +205,35 @@ export default function TrackPageHero({
             )}
           </div>
 
-          <div className="mt-3 flex items-center justify-center gap-2 text-[0.66rem] font-medium uppercase tracking-[0.16em] text-muted-foreground md:justify-start">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[0.66rem] font-medium uppercase tracking-[0.16em] text-muted-foreground md:justify-start">
             <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1">
               Notes
             </span>
-            {entity.deezer_url ? (
+            {visibleTags.map((tag) => (
+              <span
+                key={tag.id}
+                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 text-foreground/78"
+                title={`Taste signal: ${tag.kind}`}
+              >
+                {tag.label}
+              </span>
+            ))}
+            {remainingTagCount > 0 ? (
               <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1">
-                Deezer
+                +{remainingTagCount}
               </span>
             ) : null}
+            {externalLinks.map((link) => (
+              <a
+                key={link.platform}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 transition hover:border-border/45 hover:bg-card/30 hover:text-foreground"
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
         </div>
       </div>

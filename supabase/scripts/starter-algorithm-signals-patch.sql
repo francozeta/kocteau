@@ -1,108 +1,18 @@
--- Kocteau editorial starter layer.
--- Run from the Supabase SQL editor after recommendation-v2.sql.
+-- Kocteau starter algorithm signals patch.
+-- Run this after editorial-starter-layer.sql and recommendation-v2.sql.
 --
 -- Purpose:
--- - Keep human-curated starter content separate from user reviews.
--- - Give new users useful review prompts while For You is still sparse.
--- - Let taste onboarding tags rank starter tracks without adding a heavy ML layer.
+-- - Add editable tags to starter tracks.
+-- - Rank starter picks against onboarding taste.
+-- - Copy starter tags into entity_preference_tags once a starter pick is reviewed.
+--
+-- This patch is intentionally smaller than the full starter layer script so it
+-- takes fewer schema locks in production.
 
 BEGIN;
 
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '90s';
-
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS is_official boolean NOT NULL DEFAULT false;
-
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS official_label text;
-
-CREATE TABLE IF NOT EXISTS public.profile_roles (
-  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  role text NOT NULL CHECK (role IN ('curator', 'admin')),
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT profile_roles_pkey PRIMARY KEY (user_id, role)
-);
-
-CREATE INDEX IF NOT EXISTS profile_roles_role_user_idx
-  ON public.profile_roles (role, user_id);
-
-ALTER TABLE public.profile_roles ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can read their own roles"
-  ON public.profile_roles;
-
-CREATE POLICY "Users can read their own roles"
-  ON public.profile_roles
-  FOR SELECT
-  TO authenticated
-  USING (user_id = (SELECT auth.uid()));
-
-GRANT SELECT ON public.profile_roles TO authenticated;
-
-UPDATE public.profiles
-SET
-  is_official = true,
-  official_label = coalesce(official_label, 'Official'),
-  updated_at = now()
-WHERE username = 'kocteau';
-
-INSERT INTO public.profile_roles (user_id, role)
-SELECT id, 'admin'
-FROM public.profiles
-WHERE username = 'kocteau'
-ON CONFLICT (user_id, role) DO NOTHING;
-
-CREATE TABLE IF NOT EXISTS public.editorial_collections (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  slug text NOT NULL,
-  title text NOT NULL,
-  description text,
-  curation_note text,
-  is_published boolean NOT NULL DEFAULT false,
-  sort_order integer NOT NULL DEFAULT 0,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT editorial_collections_pkey PRIMARY KEY (id),
-  CONSTRAINT editorial_collections_slug_key UNIQUE (slug),
-  CONSTRAINT editorial_collections_slug_check
-    CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
-);
-
-CREATE TABLE IF NOT EXISTS public.starter_tracks (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  provider text NOT NULL DEFAULT 'deezer',
-  provider_id text NOT NULL,
-  type public.entity_type NOT NULL DEFAULT 'track',
-  title text NOT NULL,
-  artist_name text,
-  cover_url text,
-  deezer_url text,
-  prompt text,
-  editorial_note text,
-  is_active boolean NOT NULL DEFAULT true,
-  is_featured boolean NOT NULL DEFAULT false,
-  sort_order integer NOT NULL DEFAULT 0,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT starter_tracks_pkey PRIMARY KEY (id),
-  CONSTRAINT starter_tracks_provider_check CHECK (provider = 'deezer'),
-  CONSTRAINT starter_tracks_type_check CHECK (type = 'track'),
-  CONSTRAINT starter_tracks_provider_entity_key UNIQUE (provider, provider_id, type)
-);
-
-CREATE TABLE IF NOT EXISTS public.editorial_collection_items (
-  collection_id uuid NOT NULL
-    REFERENCES public.editorial_collections(id) ON DELETE CASCADE,
-  starter_track_id uuid NOT NULL
-    REFERENCES public.starter_tracks(id) ON DELETE CASCADE,
-  position integer NOT NULL DEFAULT 0,
-  note text,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT editorial_collection_items_pkey
-    PRIMARY KEY (collection_id, starter_track_id),
-  CONSTRAINT editorial_collection_items_position_check CHECK (position >= 0)
-);
 
 CREATE TABLE IF NOT EXISTS public.starter_track_tags (
   starter_track_id uuid NOT NULL
@@ -115,18 +25,6 @@ CREATE TABLE IF NOT EXISTS public.starter_track_tags (
   CONSTRAINT starter_track_tags_pkey PRIMARY KEY (starter_track_id, tag_id)
 );
 
-CREATE INDEX IF NOT EXISTS editorial_collections_published_sort_idx
-  ON public.editorial_collections (is_published, sort_order, created_at DESC);
-
-CREATE INDEX IF NOT EXISTS editorial_collection_items_collection_position_idx
-  ON public.editorial_collection_items (collection_id, position);
-
-CREATE INDEX IF NOT EXISTS editorial_collection_items_track_idx
-  ON public.editorial_collection_items (starter_track_id);
-
-CREATE INDEX IF NOT EXISTS starter_tracks_active_sort_idx
-  ON public.starter_tracks (is_active, is_featured DESC, sort_order, created_at DESC);
-
 CREATE INDEX IF NOT EXISTS starter_track_tags_tag_idx
   ON public.starter_track_tags (tag_id, weight DESC);
 
@@ -136,47 +34,10 @@ CREATE INDEX IF NOT EXISTS entities_provider_type_provider_id_idx
 CREATE INDEX IF NOT EXISTS reviews_author_entity_idx
   ON public.reviews (author_id, entity_id);
 
-ALTER TABLE public.editorial_collections ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.editorial_collection_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.starter_tracks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.starter_track_tags ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Published editorial collections are readable"
-  ON public.editorial_collections;
-DROP POLICY IF EXISTS "Published editorial collection items are readable"
-  ON public.editorial_collection_items;
-DROP POLICY IF EXISTS "Active starter tracks are readable"
-  ON public.starter_tracks;
 DROP POLICY IF EXISTS "Starter track tags are readable for active tracks"
   ON public.starter_track_tags;
-
-CREATE POLICY "Published editorial collections are readable"
-  ON public.editorial_collections
-  FOR SELECT
-  TO anon, authenticated
-  USING (is_published);
-
-CREATE POLICY "Active starter tracks are readable"
-  ON public.starter_tracks
-  FOR SELECT
-  TO anon, authenticated
-  USING (is_active);
-
-CREATE POLICY "Published editorial collection items are readable"
-  ON public.editorial_collection_items
-  FOR SELECT
-  TO anon, authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.editorial_collections collection
-      JOIN public.starter_tracks track
-        ON track.id = editorial_collection_items.starter_track_id
-      WHERE collection.id = editorial_collection_items.collection_id
-        AND collection.is_published
-        AND track.is_active
-    )
-  );
 
 CREATE POLICY "Starter track tags are readable for active tracks"
   ON public.starter_track_tags
@@ -191,9 +52,6 @@ CREATE POLICY "Starter track tags are readable for active tracks"
     )
   );
 
-GRANT SELECT ON public.editorial_collections TO anon, authenticated;
-GRANT SELECT ON public.editorial_collection_items TO anon, authenticated;
-GRANT SELECT ON public.starter_tracks TO anon, authenticated;
 GRANT SELECT ON public.starter_track_tags TO anon, authenticated;
 
 DROP FUNCTION IF EXISTS public.get_starter_tracks(integer);
@@ -226,7 +84,6 @@ DROP FUNCTION IF EXISTS public.upsert_starter_track(
   boolean,
   text
 );
-DROP FUNCTION IF EXISTS public.archive_starter_track(uuid);
 DROP FUNCTION IF EXISTS public.upsert_preference_tag(
   public.preference_kind,
   text,
@@ -241,22 +98,6 @@ DROP FUNCTION IF EXISTS public.sync_entity_tags_from_starter_track(
   public.entity_type,
   numeric
 );
-DROP FUNCTION IF EXISTS public.is_starter_curator();
-
-CREATE OR REPLACE FUNCTION public.is_starter_curator()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public, auth
-AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.profile_roles role
-    WHERE role.user_id = auth.uid()
-      AND role.role IN ('curator', 'admin')
-  );
-$$;
 
 CREATE OR REPLACE FUNCTION public.get_starter_tracks(
   p_limit integer DEFAULT 6
@@ -704,40 +545,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.archive_starter_track(
-  p_starter_track_id uuid
-)
-RETURNS public.starter_tracks
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, auth
-AS $$
-DECLARE
-  v_track public.starter_tracks%rowtype;
-BEGIN
-  IF NOT public.is_starter_curator() THEN
-    RAISE EXCEPTION 'Not allowed to curate starter tracks.'
-      USING ERRCODE = '42501';
-  END IF;
-
-  UPDATE public.starter_tracks
-  SET
-    is_active = false,
-    updated_at = now()
-  WHERE id = p_starter_track_id
-  RETURNING * INTO v_track;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Starter track not found.'
-      USING ERRCODE = '02000';
-  END IF;
-
-  RETURN v_track;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.is_starter_curator()
-  TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_starter_track(
   text,
   text,
@@ -753,8 +560,6 @@ GRANT EXECUTE ON FUNCTION public.upsert_starter_track(
   uuid[],
   text
 ) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.archive_starter_track(uuid)
-  TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_preference_tag(
   public.preference_kind,
   text,

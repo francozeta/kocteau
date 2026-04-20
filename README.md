@@ -14,6 +14,7 @@ Kocteau is now past the original demo baseline. The web app currently includes:
 - reviews, likes, bookmarks, comments, follows, notifications, and saved reviews
 - a personalized For You home feed at `/`
 - fallback feed modes for latest, following, and top-rated reviews
+- track pages with taste tags and optional Spotify/Apple Music links resolved from ISRC
 - lightweight feed analytics stored in Supabase
 - Supabase Postgres rate limiting, with no Redis dependency
 
@@ -39,6 +40,7 @@ Kocteau is now past the original demo baseline. The web app currently includes:
 - Resend SMTP through Supabase Auth for OTP email delivery
 - React Email for transactional email templates
 - Deezer Search API
+- Spotify Web API and Apple Music API for optional ISRC-based platform links
 
 ## Environment Variables
 
@@ -54,6 +56,19 @@ Optional production services are configured outside the app:
 - Supabase Auth SMTP points to Resend.
 - Supabase email templates use the code-only OTP template in `apps/web/emails`.
 - Rate limiting is handled through Supabase Postgres, so no `REDIS_URL` is required.
+
+Optional platform link resolver variables:
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=...
+SPOTIFY_CLIENT_ID=...
+SPOTIFY_CLIENT_SECRET=...
+APPLE_MUSIC_DEVELOPER_TOKEN=...
+APPLE_MUSIC_STOREFRONT=us
+MUSIC_LINKS_MARKET=US
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` must stay server-only. Spotify links resolve automatically when the Spotify variables are present. Apple Music links require an Apple Music developer token; without it, the app simply skips Apple Music resolution.
 
 ## Local Development
 
@@ -96,6 +111,7 @@ The core public tables are:
 - `user_preference_tags`
 - `user_music_seeds`
 - `entity_preference_tags`
+- `entity_external_links`
 - `editorial_collections`
 - `editorial_collection_items`
 - `starter_tracks`
@@ -108,6 +124,7 @@ Important scripts live in `supabase/scripts`:
 - `wipe-demo-auth-data.sql`: destructive reset for demo/test data
 - `recommendation-v2.sql`: entity tags, recommendation scoring, inferred taste signals
 - `editorial-starter-layer.sql`: human-curated starter picks for cold-start For You
+- `entity-external-links.sql`: ISRC storage plus optional platform links for tracks
 - `analytics-events.sql`: lightweight product analytics table and policies
 
 Run SQL scripts manually from the Supabase SQL Editor after reviewing them.
@@ -145,6 +162,12 @@ When a signed-in user's For You feed is empty or sparse, Kocteau can show editor
 
 Starter picks can be curated from `/studio/starter` by the official `@kocteau` profile. The studio uses Deezer search, so curators do not need to copy provider ids manually.
 
+Starter picks become personalized through `starter_track_tags`. Those tags rank the cold-start picks against onboarding taste, and when a starter track is reviewed the same editorial tags are copied into `entity_preference_tags` so the real recommendation graph can use them.
+
+Track pages surface the resulting taste tags and can read optional platform links from `entity_external_links`. Deezer remains the ingestion source; when a user reviews a Deezer track, Kocteau can fetch its ISRC and resolve matching Spotify/Apple Music links in the background.
+
+Existing tracks and starter picks can be backfilled from `/studio/starter` with the `Sync links` action after the SQL script and server-side provider credentials are configured.
+
 Official identity and internal permissions are separate:
 
 - `profiles.is_official` controls the public official badge.
@@ -157,6 +180,7 @@ Kocteau uses a small first-party analytics table in Supabase. Events currently t
 - `taste_onboarding_completed`
 - `for_you_reviews_loaded`
 - `for_you_review_action`
+- `for_you_recommendation_action`
 - `for_you_fallback`
 
 The goal is product feedback, not surveillance. Events avoid emails, IPs, user agents, and long free-form payloads.

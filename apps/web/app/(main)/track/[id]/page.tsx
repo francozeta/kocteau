@@ -71,6 +71,8 @@ export default async function TrackPage({
   const queryClient = createServerQueryClient();
   const trackData = {
     entity: bundle.entity,
+    links: bundle.links,
+    tags: bundle.tags,
     viewerReviewId: viewerState.viewerReviewId,
     reviews: bundle.reviews.map((review) => ({
       ...review,
@@ -113,10 +115,13 @@ export default async function TrackPage({
           title={entity.title}
           artistName={entity.artist_name}
           deezerUrl={entity.deezer_url}
+          links={trackData.links}
         />
 
         <TrackPageHero
           entity={entity}
+          links={trackData.links}
+          tags={trackData.tags}
           isAuthenticated={Boolean(user)}
           viewerReview={
             viewerReview

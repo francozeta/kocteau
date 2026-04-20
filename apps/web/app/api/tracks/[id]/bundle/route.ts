@@ -40,6 +40,8 @@ export async function GET(
 
   return NextResponse.json({
     entity: bundle.entity,
+    links: bundle.links,
+    tags: bundle.tags,
     viewerReviewId: viewerState.viewerReviewId,
     reviews: bundle.reviews.map((review) => ({
       ...review,

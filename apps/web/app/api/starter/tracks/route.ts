@@ -1,51 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { requireStarterCurator } from "@/lib/curation/access";
 import {
   starterTrackArchiveSchema,
   starterTrackUpsertSchema,
 } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
-
-async function requireStarterCurator() {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "Not authenticated" }, { status: 401 }),
-    };
-  }
-
-  const { data: hasAccess, error } = await supabase.rpc("is_starter_curator");
-
-  if (error) {
-    console.error("[starter.tracks.requireStarterCurator] failed", {
-      code: error.code ?? null,
-      message: error.message ?? null,
-    });
-
-    return {
-      ok: false as const,
-      response: NextResponse.json(
-        { error: "Starter curator roles are not configured." },
-        { status: 500 },
-      ),
-    };
-  }
-
-  if (!hasAccess) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "Not allowed" }, { status: 403 }),
-    };
-  }
-
-  return { ok: true as const, supabase };
-}
 
 function starterMutationErrorResponse(error: {
   code?: string | null;
@@ -71,24 +31,65 @@ export async function GET() {
     return curator.response;
   }
 
-  const { data, error } = await curator.supabase
-    .from("starter_tracks")
-    .select(
-      "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url, prompt, editorial_note, is_active, is_featured, sort_order, created_at, updated_at",
-    )
-    .eq("is_active", true)
-    .order("is_featured", { ascending: false })
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: false });
+  const [tracksResult, tagsResult] = await Promise.all([
+    curator.supabase
+      .from("starter_tracks")
+      .select(
+        `
+          id,
+          provider,
+          provider_id,
+          type,
+          title,
+          artist_name,
+          cover_url,
+          deezer_url,
+          prompt,
+          editorial_note,
+          is_active,
+          is_featured,
+          sort_order,
+          created_at,
+          updated_at,
+          starter_track_tags (
+            tag_id,
+            weight,
+            preference_tags (
+              id,
+              kind,
+              slug,
+              label,
+              description,
+              is_featured,
+              sort_order,
+              created_at
+            )
+          )
+        `,
+      )
+      .eq("is_active", true)
+      .order("is_featured", { ascending: false })
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false }),
+    curator.supabase
+      .from("preference_tags")
+      .select("id, kind, slug, label, description, is_featured, sort_order, created_at")
+      .order("sort_order", { ascending: true })
+      .order("kind", { ascending: true })
+      .order("label", { ascending: true }),
+  ]);
 
-  if (error) {
+  if (tracksResult.error || tagsResult.error) {
     return NextResponse.json(
-      { error: "We could not load starter tracks." },
+      { error: "We could not load starter studio data." },
       { status: 500 },
     );
   }
 
-  return NextResponse.json(data ?? []);
+  return NextResponse.json({
+    tracks: tracksResult.data ?? [],
+    tags: tagsResult.data ?? [],
+  });
 }
 
 export async function POST(req: Request) {
@@ -118,6 +119,7 @@ export async function POST(req: Request) {
     p_editorial_note: starter.editorial_note,
     p_is_featured: starter.is_featured,
     p_is_active: starter.is_active,
+    p_tag_ids: starter.tag_ids,
     p_collection_slug: starter.collection_slug,
   });
 
