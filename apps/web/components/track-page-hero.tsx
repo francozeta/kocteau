@@ -110,7 +110,7 @@ export default function TrackPageHero({
 
   return (
     <section className="border-b border-border/32 pb-4 md:border-border/24 md:pb-5">
-      <div className="grid gap-4 md:grid-cols-[10rem,minmax(0,1fr)] md:items-center lg:grid-cols-[11.5rem,minmax(0,1fr)] lg:gap-5">
+      <div className="grid gap-4 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center lg:grid-cols-[11.5rem_minmax(0,1fr)] lg:gap-5">
         <EntityCoverImage
           src={entity.cover_url}
           alt={entity.title}

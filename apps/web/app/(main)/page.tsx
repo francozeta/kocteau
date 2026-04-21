@@ -61,7 +61,7 @@ export default async function HomePage({
     isFeedView(params.view) && params.view !== "latest" ? params.view : null;
   const userPromise = getCurrentUser();
   const viewerProfilePromise = getCurrentViewerProfile();
-  const [user, viewerProfile] = await Promise.all([userPromise, viewerProfilePromise]);
+  const user = await userPromise;
   const activeView = requestedView ?? (user ? "for-you" : "latest");
   const [publicBundle, starterTracks] = await Promise.all([
     getFeedPage({
@@ -83,7 +83,10 @@ export default async function HomePage({
           likedReviewIds: new Set<string>(),
           bookmarkedReviewIds: new Set<string>(),
         });
-  const viewerState = await viewerStatePromise;
+  const [viewerProfile, viewerState] = await Promise.all([
+    viewerProfilePromise,
+    viewerStatePromise,
+  ]);
   const queryClient = createServerQueryClient();
   const feedData = {
     feed: publicBundle.feed.map((review) => ({

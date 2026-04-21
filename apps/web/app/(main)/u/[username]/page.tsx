@@ -4,11 +4,11 @@ import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import ProfilePageHeader from "@/components/profile-page-header";
 import ProfileRecentReviewsSection from "@/components/profile-recent-reviews-section";
+import { SavedReviewsSectionSkeleton } from "@/components/route-loading-skeletons";
 import SavedReviewsList from "@/components/saved-reviews-list";
 import type { ReviewCardAuthor } from "@/components/review-card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ProfileReviewCard } from "@/components/review-route-cards-server";
-import { Spinner } from "@/components/ui/spinner";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import {
@@ -242,17 +242,5 @@ async function SavedReviewsSection({
 }
 
 function SavedReviewsSectionFallback() {
-  return (
-    <section className="space-y-4 border-t border-border/34 pt-8 [contain-intrinsic-size:720px] [content-visibility:auto] md:border-border/30">
-      <div className="flex items-end justify-between border-b border-border/32 pb-4 md:border-border/25">
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Saved
-        </h2>
-      </div>
-
-      <div className="flex justify-center rounded-[1.65rem] border border-border/32 bg-card/24 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
-        <Spinner className="size-4 text-muted-foreground/70" />
-      </div>
-    </section>
-  );
+  return <SavedReviewsSectionSkeleton />;
 }
