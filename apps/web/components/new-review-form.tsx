@@ -51,9 +51,11 @@ export type PublishReviewResponse = {
 
 export type NewReviewFormProps = {
   mode?: "create" | "edit";
+  intent?: "review" | "search";
   reviewId?: string | null;
   onSuccess?: (payload: PublishReviewResponse) => void;
   onCancel?: () => void;
+  onSearchResultOpen?: () => void;
   onStepChange?: (step: NewReviewFormStep) => void;
   showCancelAction?: boolean;
   primaryActionFullWidth?: boolean;
@@ -70,9 +72,11 @@ export type NewReviewFormStep = "search" | "compose";
 
 export default function NewReviewForm({
   mode = "create",
+  intent = "review",
   reviewId = null,
   onSuccess,
   onCancel,
+  onSearchResultOpen,
   onStepChange,
   showCancelAction = true,
   primaryActionFullWidth = false,
@@ -88,8 +92,11 @@ export default function NewReviewForm({
   const queryClient = useQueryClient();
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const isEditMode = mode === "edit" && Boolean(reviewId);
+  const isSearchIntent = intent === "search" && !isEditMode;
 
-  const [step, setStep] = useState<NewReviewFormStep>(initialSelection ? "compose" : "search");
+  const [step, setStep] = useState<NewReviewFormStep>(
+    isSearchIntent ? "search" : initialSelection ? "compose" : "search",
+  );
   const [query, setQuery] = useState(initialQuery);
   const [selected, setSelected] = useState<DeezerResult | null>(initialSelection);
   const [activeResultIndex, setActiveResultIndex] = useState(-1);
@@ -122,6 +129,13 @@ export default function NewReviewForm({
   }, [initialQuery]);
 
   useEffect(() => {
+    if (isSearchIntent) {
+      setStep("search");
+      setSelected(null);
+      setErrorMsg(null);
+      return;
+    }
+
     if (initialSelection) {
       setSelected(initialSelection);
       setStep("compose");
@@ -131,7 +145,7 @@ export default function NewReviewForm({
 
     setSelected(null);
     setStep("search");
-  }, [initialSelection]);
+  }, [initialSelection, isSearchIntent]);
 
   useEffect(() => {
     setRating(initialRating);
@@ -163,8 +177,8 @@ export default function NewReviewForm({
   }, [onStepChange, step]);
 
   function resetAll() {
-    setStep(initialSelection ? "compose" : "search");
-    setSelected(initialSelection);
+    setStep(isSearchIntent ? "search" : initialSelection ? "compose" : "search");
+    setSelected(isSearchIntent ? null : initialSelection);
     setQuery(initialQuery);
     setRating(initialRating);
     setTitle(initialTitle);
@@ -201,6 +215,21 @@ export default function NewReviewForm({
     }));
   }
 
+  function getResultHref(result: DeezerResult) {
+    return result.entity_id ? `/track/${result.entity_id}` : `/track/deezer/${result.provider_id}`;
+  }
+
+  function openTrack(result: DeezerResult) {
+    const href = getResultHref(result);
+
+    router.prefetch(href);
+    onSearchResultOpen?.();
+
+    startTransition(() => {
+      router.push(href);
+    });
+  }
+
   function handleCancel() {
     if (saving) {
       return;
@@ -231,7 +260,18 @@ export default function NewReviewForm({
 
     if (event.key === "Enter" && activeResultIndex >= 0) {
       event.preventDefault();
-      handleResultSelect(results[activeResultIndex]);
+      const activeResult = results[activeResultIndex];
+
+      if (!activeResult) {
+        return;
+      }
+
+      if (isSearchIntent) {
+        openTrack(activeResult);
+        return;
+      }
+
+      handleResultSelect(activeResult);
     }
   }
 
@@ -408,6 +448,11 @@ export default function NewReviewForm({
   function handleContinue() {
     if (step === "search") {
       if (highlightedResult) {
+        if (isSearchIntent) {
+          openTrack(highlightedResult);
+          return;
+        }
+
         handleResultSelect(highlightedResult);
       }
 
@@ -521,7 +566,14 @@ export default function NewReviewForm({
                       ref={(node) => {
                         resultRefs.current[index] = node;
                       }}
-                      onClick={() => handleResultSelect(result)}
+                      onClick={() => {
+                        if (isSearchIntent) {
+                          openTrack(result);
+                          return;
+                        }
+
+                        handleResultSelect(result);
+                      }}
                       className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/46 data-[active=true]:bg-muted/54"
                       data-active={activeResultIndex === index}
                     >
@@ -659,7 +711,8 @@ export default function NewReviewForm({
         </div>
       )}
 
-      <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 py-4">
+      {!isSearchIntent ? (
+        <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 py-4">
         <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
           {showCancelAction ? (
             <Button
@@ -685,7 +738,8 @@ export default function NewReviewForm({
             {continueLabel}
           </Button>
         </div>
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

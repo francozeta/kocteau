@@ -1,12 +1,11 @@
-import Link from "next/link";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { Sparkles, Trophy, UsersRound } from "lucide-react";
+import FeedViewTabs from "@/components/feed-view-tabs";
 import FeedReviewList from "@/components/feed-review-list";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
-import { isFeedView, type FeedView } from "@/lib/feed-view";
+import { isFeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
 import {
   getFeedPage,
@@ -15,34 +14,7 @@ import {
 import { getStarterTracks } from "@/lib/queries/starter";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildFeedPageJsonLd } from "@/lib/structured-data";
-import { cn } from "@/lib/utils";
 import { feedKeys, type FeedInfiniteQueryData } from "@/queries/feed";
-
-const feedViews: Array<{
-  value: FeedView;
-  label: string;
-}> = [
-  {
-    value: "for-you",
-    label: "For You",
-  },
-  {
-    value: "following",
-    label: "Following",
-  },
-  {
-    value: "top-rated",
-    label: "Top",
-  },
-];
-
-function getFeedViewHref(view: FeedView) {
-  if (view === "for-you") {
-    return "/";
-  }
-
-  return `/?view=${view}`;
-}
 
 export const metadata = createPageMetadata({
   title: "Music Reviews, Ratings, and Discovery",
@@ -63,6 +35,7 @@ export default async function HomePage({
   const viewerProfilePromise = getCurrentViewerProfile();
   const user = await userPromise;
   const activeView = requestedView ?? (user ? "for-you" : "latest");
+  const tabActiveView = activeView === "latest" ? "for-you" : activeView;
   const [publicBundle, starterTracks] = await Promise.all([
     getFeedPage({
       view: activeView,
@@ -137,40 +110,6 @@ export default async function HomePage({
     }).slice(0, 10),
   );
 
-  function renderFeedControls({ compact = false }: { compact?: boolean } = {}) {
-    return (
-      <div className="inline-flex items-center rounded-lg border border-border/42 bg-card/38 p-1">
-        {feedViews.map((view) => {
-          const isActive = activeView === view.value;
-          const Icon =
-            view.value === "for-you"
-              ? Sparkles
-              : view.value === "following"
-                ? UsersRound
-                : Trophy;
-
-          return (
-            <Link
-              key={view.value}
-              href={getFeedViewHref(view.value)}
-              aria-label={view.label}
-              title={view.label}
-              className={cn(
-                "inline-flex h-9 items-center rounded-md text-sm transition-colors",
-                compact ? "w-9 justify-center px-0" : "px-3.5",
-                isActive
-                  ? "border border-border/48 bg-background text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {compact ? <Icon className="size-4" /> : view.label}
-            </Link>
-          );
-        })}
-      </div>
-    );
-  }
-
   function renderFeedSearchTrigger() {
     return (
       <NewReviewDialog
@@ -186,13 +125,11 @@ export default async function HomePage({
       <JsonLd data={feedStructuredData} id="home-structured-data" />
       <div className="flex h-full min-h-0 flex-col">
         <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:hidden">
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-2.5">
+            <div className="min-w-0">
               {renderFeedSearchTrigger()}
             </div>
-            <div className="shrink-0">
-              {renderFeedControls({ compact: true })}
-            </div>
+            <FeedViewTabs activeView={tabActiveView} fullWidth />
           </div>
 
           <div className="space-y-4">
@@ -212,12 +149,12 @@ export default async function HomePage({
               className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,42rem)_17rem] lg:justify-center"
             >
               <div className="min-w-0 space-y-4">
-                <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+                <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                   <div className="min-w-0">
                     {renderFeedSearchTrigger()}
                   </div>
                   <div className="justify-self-start xl:justify-self-end">
-                    {renderFeedControls()}
+                    <FeedViewTabs activeView={tabActiveView} />
                   </div>
                 </div>
 

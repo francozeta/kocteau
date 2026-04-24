@@ -3,8 +3,10 @@
 import { useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, ExternalLink, MoreHorizontal, Search, Share2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, MessageSquare, MoreHorizontal, Search, Share2 } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
+import CommandIcon from "@/components/command-icon";
+import NewReviewDialog from "@/components/new-review-dialog";
 import NotificationsButton from "@/components/notifications-button";
 import PrefetchLink from "@/components/prefetch-link";
 import { useRouteHeader } from "@/components/route-header-context";
@@ -177,7 +179,7 @@ export default function Header({
       shouldUseContextualHeader && "max-md:hidden",
     )}>
       <div className="relative flex h-15 items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="ghost"
@@ -187,6 +189,16 @@ export default function Header({
             aria-label="Toggle navigation"
           >
             <HamburgerIcon className="size-[1.15rem]" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleGiveFeedback}
+            className="hidden h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground md:inline-flex"
+          >
+            <MessageSquare className="size-4" />
+            <span>Feedback</span>
           </Button>
         </div>
 
@@ -204,19 +216,23 @@ export default function Header({
 
         <div className="flex items-center gap-2">
           {!isSearchRoute ? (
-            <Link href="/search" className="hidden md:block">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground"
-              >
-                <Search className="size-4" />
-                <span>Search</span>
-                <Kbd className="ml-1 border-border/60 bg-muted/32 text-[0.62rem] text-muted-foreground">
-                  F
-                </Kbd>
-              </Button>
-            </Link>
+            <NewReviewDialog
+              isAuthenticated={Boolean(profile)}
+              intent="search"
+              trigger={
+                <button
+                  type="button"
+                  className="hidden h-10 items-center gap-2 rounded-full border border-border/30 bg-background/55 px-3.5 text-sm text-muted-foreground transition-colors hover:bg-muted/26 hover:text-foreground md:inline-flex"
+                >
+                  <Search className="size-4" />
+                  <span>Search</span>
+                  <Kbd className="h-6 gap-1.5 rounded-md border border-border/55 bg-muted/28 px-1.5 text-[0.62rem] text-muted-foreground">
+                    <CommandIcon className="size-3 text-muted-foreground" />
+                    <span>K</span>
+                  </Kbd>
+                </button>
+              }
+            />
           ) : null}
           {profile ? (
             <NotificationsButton
@@ -235,29 +251,6 @@ export default function Header({
               </Button>
             </Link>
           )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="hidden rounded-full border border-border/30 bg-background/55 text-muted-foreground hover:bg-muted/26 hover:text-foreground md:inline-flex"
-                aria-label="More actions"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="end"
-              className="w-48 rounded-xl border-border/30 bg-popover/96 p-1.5 shadow-none"
-            >
-              <DropdownMenuItem onSelect={() => handleGiveFeedback()}>
-                <ExternalLink className="size-4" />
-                Give feedback
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </header>

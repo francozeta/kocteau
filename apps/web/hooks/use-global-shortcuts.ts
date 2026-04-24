@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
 
 export const OPEN_NEW_REVIEW_SHORTCUT_EVENT = "kocteau:new-review-open";
+export const OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT = "kocteau:search-launcher-open";
 
 function shouldIgnoreGlobalShortcut(event: KeyboardEvent) {
   if (event.defaultPrevented || event.repeat) {
     return true;
   }
 
-  if (event.metaKey || event.ctrlKey || event.altKey) {
+  if (event.altKey) {
     return true;
   }
 
@@ -28,25 +28,13 @@ function shouldIgnoreGlobalShortcut(event: KeyboardEvent) {
 }
 
 export function useGlobalShortcuts() {
-  const router = useRouter();
-  const pathname = usePathname();
-
   useEffect(() => {
     function handleOpenCompose() {
       window.dispatchEvent(new CustomEvent(OPEN_NEW_REVIEW_SHORTCUT_EVENT));
     }
 
-    function handleFocusSearch() {
-      const searchInput = document.querySelector<HTMLInputElement>("[data-global-search-input='true']");
-
-      if (searchInput) {
-        searchInput.focus();
-        searchInput.select();
-        return;
-      }
-
-      router.prefetch("/search");
-      router.push("/search");
+    function handleOpenSearchLauncher() {
+      window.dispatchEvent(new CustomEvent(OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT));
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -55,16 +43,22 @@ export function useGlobalShortcuts() {
       }
 
       const key = event.key.toLowerCase();
+      const isCommandPaletteShortcut =
+        key === "k" && (event.metaKey || event.ctrlKey) && !event.shiftKey;
+
+      if (isCommandPaletteShortcut) {
+        event.preventDefault();
+        handleOpenSearchLauncher();
+        return;
+      }
+
+      if (event.metaKey || event.ctrlKey) {
+        return;
+      }
 
       if (key === "n") {
         event.preventDefault();
         handleOpenCompose();
-        return;
-      }
-
-      if (key === "f") {
-        event.preventDefault();
-        handleFocusSearch();
       }
     }
 
@@ -73,5 +67,5 @@ export function useGlobalShortcuts() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [pathname, router]);
+  }, []);
 }

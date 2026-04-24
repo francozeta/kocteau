@@ -55,9 +55,11 @@ type InitialSelection = {
 };
 
 type NewReviewDialogTriggerVariant = "default" | "search";
+type NewReviewDialogIntent = "review" | "search";
 
 export default function NewReviewDialog({
   isAuthenticated = true,
+  intent = "review",
   triggerClassName,
   triggerLabelClassName,
   triggerLabel,
@@ -73,6 +75,7 @@ export default function NewReviewDialog({
   redirectToOnSuccess = null,
 }: {
   isAuthenticated?: boolean;
+  intent?: NewReviewDialogIntent;
   triggerClassName?: string;
   triggerLabelClassName?: string;
   triggerLabel?: string;
@@ -92,7 +95,10 @@ export default function NewReviewDialog({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const usesUrlComposeState = initialQuery === undefined && initialSelection === undefined;
+  const isSearchIntent = intent === "search";
+  const canOpenDialog = isAuthenticated || isSearchIntent;
+  const usesUrlComposeState =
+    !isSearchIntent && initialQuery === undefined && initialSelection === undefined;
   const shouldOpenFromUrl = usesUrlComposeState && searchParams.get("compose") === "1";
   const initialQueryFromUrl = useMemo(() => searchParams.get("reviewQuery")?.trim() ?? "", [searchParams]);
   const initialSelectionFromUrl = useMemo(() => {
@@ -118,8 +124,9 @@ export default function NewReviewDialog({
   const resolvedInitialQuery = initialQuery ?? initialQueryFromUrl;
   const resolvedInitialSelection = initialSelection ?? initialSelectionFromUrl;
   const [formStep, setFormStep] = useState<NewReviewFormStep>(
-    resolvedInitialSelection ? "compose" : "search",
+    isSearchIntent ? "search" : resolvedInitialSelection ? "compose" : "search",
   );
+  const dialogTitle = isSearchIntent ? "Search" : "New review";
 
   const clearComposeParams = useCallback(() => {
     if (!usesUrlComposeState) {
@@ -149,7 +156,7 @@ export default function NewReviewDialog({
     }
 
     if (nextOpen) {
-      setFormStep(resolvedInitialSelection ? "compose" : "search");
+      setFormStep(isSearchIntent ? "search" : resolvedInitialSelection ? "compose" : "search");
     }
 
     onOpenChange?.(nextOpen);
@@ -168,7 +175,7 @@ export default function NewReviewDialog({
     clearComposeParams();
   }, [clearComposeParams, isAuthenticated, shouldOpenFromUrl]);
 
-  const resolvedOpen = isAuthenticated && (controlledOpen ?? (shouldOpenFromUrl || internalOpen));
+  const resolvedOpen = canOpenDialog && (controlledOpen ?? (shouldOpenFromUrl || internalOpen));
 
   function renderStepDots() {
     return (
@@ -196,11 +203,11 @@ export default function NewReviewDialog({
       <button
         type="button"
         className={cn(
-          "flex h-11 w-full items-center gap-3 rounded-lg border border-border/42 bg-card/42 px-3.5 text-left text-muted-foreground transition-colors hover:border-border/58 hover:bg-card/58 hover:text-foreground",
+          "flex h-11 w-full items-center gap-3 rounded-[0.95rem] border border-white/[0.08] bg-[#111112] px-4 text-left text-muted-foreground/88 transition-colors hover:border-white/[0.12] hover:bg-[#141415] hover:text-foreground",
           triggerClassName,
         )}
       >
-        <Search className="size-4 shrink-0" />
+        <Search className="size-4 shrink-0 text-muted-foreground/78" />
         <span className={cn("truncate text-sm", triggerLabelClassName)}>
           {triggerLabel ?? "Search tracks, albums, or artists to review..."}
         </span>
@@ -221,7 +228,7 @@ export default function NewReviewDialog({
     )
   );
 
-  const resolvedTrigger = !isAuthenticated && isValidElement(baseTrigger)
+  const resolvedTrigger = !canOpenDialog && isValidElement(baseTrigger)
     ? cloneElement(
         baseTrigger as ReactElement<{
           onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
@@ -241,7 +248,7 @@ export default function NewReviewDialog({
       )
     : baseTrigger;
 
-  if (!isAuthenticated) {
+  if (!canOpenDialog) {
     return showTrigger ? <>{resolvedTrigger}</> : null;
   }
 
@@ -253,20 +260,24 @@ export default function NewReviewDialog({
         <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/34 p-2 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
           <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
             <div className="flex items-center justify-between gap-3">
-              <DrawerTitle className="font-serif text-2xl">New review</DrawerTitle>
-              {renderStepDots()}
+              <DrawerTitle className="font-serif text-2xl">{dialogTitle}</DrawerTitle>
+              {!isSearchIntent ? renderStepDots() : null}
             </div>
-            <DrawerDescription className="sr-only">Create or publish a review.</DrawerDescription>
+            <DrawerDescription className="sr-only">
+              {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
+            </DrawerDescription>
           </DrawerHeader>
 
           <div className="min-h-0 flex-1 overflow-hidden">
             <NewReviewForm
+              intent={intent}
               onStepChange={setFormStep}
               showCancelAction={false}
               primaryActionFullWidth
               initialQuery={resolvedInitialQuery}
               initialSelection={resolvedInitialSelection}
               redirectToOnSuccess={redirectToOnSuccess}
+              onSearchResultOpen={() => handleOpenChange(false)}
               onCancel={() => handleOpenChange(false)}
               onSuccess={(payload) => {
                 handleOpenChange(false);
@@ -283,24 +294,31 @@ export default function NewReviewDialog({
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
-      <DialogContent showCloseButton={false} className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-sidebar p-0">
+      <DialogContent
+        showCloseButton={false}
+        className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-sidebar p-0"
+      >
         <DialogHeader className="border-b border-border/30 bg-sidebar px-6 py-4">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="font-serif text-2xl">New review</DialogTitle>
+            <DialogTitle className="font-serif text-2xl">{dialogTitle}</DialogTitle>
             <Kbd className="rounded-md border border-border/42 bg-card/42 px-2 text-[0.625rem] text-muted-foreground">
               Esc
             </Kbd>
           </div>
-          <DialogDescription className="sr-only">Create or publish a review.</DialogDescription>
+          <DialogDescription className="sr-only">
+            {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-hidden">
           <NewReviewForm
+            intent={intent}
             onStepChange={setFormStep}
             showCancelAction={false}
             initialQuery={resolvedInitialQuery}
             initialSelection={resolvedInitialSelection}
             redirectToOnSuccess={redirectToOnSuccess}
+            onSearchResultOpen={() => handleOpenChange(false)}
             onCancel={() => handleOpenChange(false)}
             onSuccess={(payload) => {
               handleOpenChange(false);

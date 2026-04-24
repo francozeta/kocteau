@@ -44,7 +44,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         />
         <SidebarInset className="min-h-svh bg-background lg:h-dvh lg:overflow-hidden lg:p-2.5">
           <RouteHeaderProvider>
-            {safeProfile ? <GlobalShortcuts /> : null}
+            <GlobalShortcuts isAuthenticated={Boolean(safeProfile)} />
             <div className="flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-lg lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.018),rgba(255,255,255,0.01))] lg:ring-1 lg:ring-white/[0.05]">
               <Header
                 profile={safeProfile}
