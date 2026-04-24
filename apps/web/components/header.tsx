@@ -1,17 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, ExternalLink, MessageSquare, MoreHorizontal, Search, Share2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, MessageSquare, MoreHorizontal, Share2 } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
-import CommandIcon from "@/components/command-icon";
-import NewReviewDialog from "@/components/new-review-dialog";
 import NotificationsButton from "@/components/notifications-button";
 import PrefetchLink from "@/components/prefetch-link";
 import { useRouteHeader } from "@/components/route-header-context";
-import { Kbd } from "@/components/ui/kbd";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -74,7 +70,6 @@ export default function Header({
   const isProfileDetailRoute = /^\/u\/[^/]+$/.test(pathname);
   const shouldUseContextualHeader = isTrackDetailRoute || isProfileDetailRoute;
   const isSearchRoute = pathname.startsWith("/search");
-  const prefersReducedMotion = useReducedMotion();
 
   const standardHeaderTitle = (() => {
     if (isTrackDetailRoute) {
@@ -217,39 +212,6 @@ export default function Header({
         </div>
 
         <div className="flex items-center gap-2">
-          {!isSearchRoute ? (
-            <NewReviewDialog
-              isAuthenticated={Boolean(profile)}
-              intent="search"
-              trigger={
-                <motion.button
-                  type="button"
-                  className="hidden h-9 items-center gap-2 rounded-[0.85rem] border border-border/24 bg-card/24 px-3 text-sm text-muted-foreground/88 transition-colors hover:bg-card/36 hover:text-foreground md:inline-flex"
-                  whileHover={
-                    prefersReducedMotion
-                      ? undefined
-                      : {
-                          y: -1,
-                        }
-                  }
-                  whileTap={
-                    prefersReducedMotion
-                      ? undefined
-                      : {
-                          scale: 0.992,
-                        }
-                  }
-                >
-                  <Search className="size-4" />
-                  <span>Search</span>
-                  <Kbd className="h-5 gap-1.5 rounded-md border border-border/45 bg-muted/22 px-1.5 text-[0.6rem] text-muted-foreground">
-                    <CommandIcon className="size-3 text-muted-foreground" />
-                    <span>K</span>
-                  </Kbd>
-                </motion.button>
-              }
-            />
-          ) : null}
           {profile ? (
             <NotificationsButton
               userId={profile.id}

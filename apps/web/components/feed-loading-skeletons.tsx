@@ -30,6 +30,7 @@ export function FeedSearchSkeleton() {
     >
       <Skeleton className="size-4 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
       <SkeletonLine className="h-3.5 w-[min(18rem,72%)] bg-muted-foreground/[0.1]" />
+      <Skeleton className="ml-auto h-5 w-5 shrink-0 rounded-md bg-muted-foreground/[0.08]" />
     </div>
   );
 }
@@ -42,7 +43,7 @@ export function FeedControlsSkeleton({
       aria-hidden="true"
       className={cn(
         "relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] border border-border/45 bg-card/62 p-1",
-        fullWidth ? "w-full" : "w-full max-w-[16.75rem] lg:w-[16.75rem]",
+        fullWidth ? "w-full" : "w-full max-w-[18.25rem] lg:w-[18.25rem]",
       )}
     >
       <span
@@ -65,7 +66,7 @@ export function FeedControlsSkeleton({
           <Skeleton
             className={cn(
               "h-3 rounded-full bg-muted-foreground/[0.12]",
-              index === 0 ? "w-11 bg-muted-foreground/[0.2]" : index === 1 ? "w-[4rem]" : "w-7",
+              index === 0 ? "w-11 bg-muted-foreground/[0.2]" : index === 1 ? "w-[4rem]" : "w-16",
             )}
           />
         </div>

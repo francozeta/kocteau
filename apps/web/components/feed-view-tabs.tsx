@@ -19,7 +19,7 @@ const feedViews: Array<{
   },
   {
     value: "top-rated",
-    label: "Top",
+    label: "Trending",
   },
 ];
 
@@ -49,7 +49,7 @@ export default function FeedViewTabs({
     <div
       className={cn(
         "relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] border border-border/55 bg-card/78 p-1",
-        fullWidth ? "w-full" : "w-full max-w-[16.75rem] lg:w-[16.75rem]",
+        fullWidth ? "w-full" : "w-full max-w-[18.25rem] lg:w-[18.25rem]",
         className,
       )}
     >
@@ -78,7 +78,7 @@ export default function FeedViewTabs({
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "relative z-10 inline-flex h-8 items-center justify-center rounded-[0.7rem] px-3 text-sm font-medium text-muted-foreground/88 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-0",
-              fullWidth ? "min-w-0 px-2" : "min-w-[4.65rem]",
+              fullWidth ? "min-w-0 px-2" : "min-w-[5.1rem]",
               isActive ? "text-foreground" : "hover:text-foreground",
             )}
           >

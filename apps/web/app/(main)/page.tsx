@@ -115,7 +115,7 @@ export default async function HomePage({
       <NewReviewDialog
         isAuthenticated={Boolean(user)}
         triggerVariant="search"
-        triggerLabel="Search tracks, albums, or artists to review..."
+        triggerLabel="Find a track to review..."
       />
     );
   }

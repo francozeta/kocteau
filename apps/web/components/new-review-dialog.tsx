@@ -10,6 +10,7 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
+  type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "motion/react";
@@ -64,6 +65,7 @@ export default function NewReviewDialog({
   triggerClassName,
   triggerLabelClassName,
   triggerLabel,
+  triggerShortcut,
   triggerVariant = "default",
   trigger,
   showTrigger = true,
@@ -80,6 +82,7 @@ export default function NewReviewDialog({
   triggerClassName?: string;
   triggerLabelClassName?: string;
   triggerLabel?: string;
+  triggerShortcut?: ReactNode;
   triggerVariant?: NewReviewDialogTriggerVariant;
   trigger?: React.ReactNode;
   showTrigger?: boolean;
@@ -129,6 +132,10 @@ export default function NewReviewDialog({
     isSearchIntent ? "search" : resolvedInitialSelection ? "compose" : "search",
   );
   const dialogTitle = isSearchIntent ? "Search" : "New review";
+  const resolvedTriggerShortcut =
+    triggerShortcut === undefined && triggerVariant === "search" && !isSearchIntent
+      ? "N"
+      : triggerShortcut;
 
   const clearComposeParams = useCallback(() => {
     if (!usesUrlComposeState) {
@@ -233,9 +240,14 @@ export default function NewReviewDialog({
         }
       >
         <Search className="size-4 shrink-0 text-muted-foreground/78" />
-        <span className={cn("truncate text-sm", triggerLabelClassName)}>
-          {triggerLabel ?? "Search tracks, albums, or artists to review..."}
+        <span className={cn("min-w-0 flex-1 truncate text-sm", triggerLabelClassName)}>
+          {triggerLabel ?? "Find a track to review..."}
         </span>
+        {resolvedTriggerShortcut ? (
+          <Kbd className="ml-auto h-5 shrink-0 rounded-md border-border/45 bg-muted/24 px-1.5 text-[0.6rem] text-muted-foreground">
+            {resolvedTriggerShortcut}
+          </Kbd>
+        ) : null}
       </motion.button>
     ) : (
       <Button
