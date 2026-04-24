@@ -151,6 +151,8 @@ export default function FeedStarterLayer({
               src={activeTrack.cover_url}
               alt={`${activeTrack.title} cover`}
               sizes="168px"
+              quality={88}
+              variant="card"
               className="aspect-square w-full rounded-md border border-border/24 bg-muted/20"
               iconClassName="size-7"
             />

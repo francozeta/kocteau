@@ -106,23 +106,24 @@ export function ReviewCardSkeleton({
           </div>
         </div>
 
-        <div className="-mx-1 flex items-center gap-3 rounded-lg px-1 py-1.5">
-          <Skeleton className="size-11 shrink-0 rounded-md border border-border/34 bg-muted-foreground/[0.12] md:border-border/28 md:bg-muted-foreground/[0.09]" />
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <SkeletonLine className="h-4 w-[min(18rem,82%)] bg-muted-foreground/[0.15]" />
-            <SkeletonLine className="h-3 w-[min(11rem,54%)] bg-muted-foreground/[0.1]" />
+        <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[9.5rem_minmax(0,1fr)] lg:grid-cols-[10.5rem_minmax(0,1fr)] lg:gap-5">
+          <Skeleton className="aspect-square w-full rounded-[1rem] border border-border/24 bg-muted-foreground/[0.1] shadow-[0_12px_32px_rgba(0,0,0,0.16)]" />
+
+          <div className="flex min-w-0 flex-col gap-3.5 self-center">
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <SkeletonLine className="h-7 w-[min(20rem,92%)] bg-muted-foreground/[0.18] sm:h-8" />
+              <SkeletonLine className="h-7 w-[min(13rem,68%)] bg-muted-foreground/[0.13] sm:h-8" />
+              <SkeletonLine className="h-3.5 w-[min(11rem,56%)] bg-muted-foreground/[0.1]" />
+            </div>
+
+            <SkeletonLine className="h-4 w-[min(16rem,72%)] bg-muted-foreground/[0.12]" />
+
+            <div className="flex flex-col gap-2">
+              <SkeletonLine className="h-3.5 w-full bg-muted-foreground/[0.11]" />
+              <SkeletonLine className="h-3.5 w-[94%] bg-muted-foreground/[0.1]" />
+              <SkeletonLine className="h-3.5 w-[78%] bg-muted-foreground/[0.08]" />
+            </div>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <SkeletonLine className="h-5 w-[min(24rem,86%)] bg-muted-foreground/[0.18]" />
-          <SkeletonLine className="h-5 w-[min(17rem,62%)] bg-muted-foreground/[0.12]" />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <SkeletonLine className="h-3.5 w-full bg-muted-foreground/[0.11]" />
-          <SkeletonLine className="h-3.5 w-[94%] bg-muted-foreground/[0.1]" />
-          <SkeletonLine className="h-3.5 w-[76%] bg-muted-foreground/[0.08]" />
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-border/24 pt-2.5 md:border-border/18">

@@ -38,7 +38,8 @@ function RecentReviewTile({
           src={entity?.cover_url}
           alt={entity?.title ?? "Reviewed track"}
           sizes={compact ? "45vw" : "(min-width: 1280px) 210px, (min-width: 768px) 28vw, 72vw"}
-          quality={64}
+          quality={84}
+          variant="card"
           className="absolute inset-0 bg-muted"
           imageClassName="transition-transform duration-500 group-hover:scale-[1.04]"
           iconClassName="size-7"

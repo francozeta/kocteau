@@ -40,7 +40,7 @@ export type ReviewCardDisplayOptions = {
   showAuthor?: boolean;
   showEntity?: boolean;
   showRatingBadge?: boolean;
-  entityMode?: "full" | "inline";
+  entityMode?: "full" | "inline" | "cover";
   eyebrow?: string;
   featured?: boolean;
   bodyClampLines?: 3 | 4 | 5;
@@ -49,13 +49,14 @@ export type ReviewCardDisplayOptions = {
 export type ReviewCardSlots = {
   authorName?: ReactNode;
   entity?: ReactNode;
+  entityCover?: ReactNode;
   headerActions?: ReactNode;
   footer?: ReactNode;
 };
 
 export type ReviewCardEntitySummaryProps = {
   entity: ReviewCardEntity | null;
-  mode: "full" | "inline";
+  mode: "full" | "inline" | "cover";
   interactive?: boolean;
   className?: string;
   priority?: boolean;
@@ -91,6 +92,24 @@ export function ReviewCardEntitySummary({
 }: ReviewCardEntitySummaryProps) {
   if (!entity) {
     return null;
+  }
+
+  if (mode === "cover") {
+    return (
+      <div
+        className={cn(
+          "min-w-0 space-y-1.5",
+          className,
+        )}
+      >
+        <p className="line-clamp-2 font-serif text-[1.45rem] font-semibold leading-[1.02] text-foreground sm:text-[1.7rem]">
+          {entity.title}
+        </p>
+        <p className="line-clamp-1 text-[15px] text-muted-foreground/92 sm:text-base">
+          {entity.artist_name ?? "Unknown artist"}
+        </p>
+      </div>
+    );
   }
 
   if (mode === "inline") {
@@ -144,6 +163,36 @@ export function ReviewCardEntitySummary({
   );
 }
 
+export function ReviewCardEntityCover({
+  entity,
+  className,
+  priority = false,
+}: {
+  entity: ReviewCardEntity | null;
+  className?: string;
+  priority?: boolean;
+}) {
+  if (!entity) {
+    return null;
+  }
+
+  return (
+    <EntityCoverImage
+      src={entity.cover_url}
+      alt={entity.title}
+      sizes="(max-width: 639px) 108px, (max-width: 1023px) 152px, 168px"
+      priority={priority}
+      quality={86}
+      variant="card"
+      className={cn(
+        "aspect-square w-full rounded-[1rem] border border-border/24 bg-muted/16 shadow-[0_12px_32px_rgba(0,0,0,0.22)]",
+        className,
+      )}
+      iconClassName="size-8"
+    />
+  );
+}
+
 export default function ReviewCard({
   review,
   entity,
@@ -166,6 +215,7 @@ export default function ReviewCard({
   const authorLabel = getAuthorLabel(author);
   const headerActions = slots?.headerActions;
   const footer = slots?.footer;
+  const isCoverLedEntity = showEntity && entityMode === "cover" && entity;
 
   return (
     <article
@@ -228,27 +278,62 @@ export default function ReviewCard({
           ) : null}
         </div>
 
-        {showEntity ? slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode={entityMode} /> : null}
+        {isCoverLedEntity ? (
+          <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[9.5rem_minmax(0,1fr)] lg:grid-cols-[10.5rem_minmax(0,1fr)] lg:gap-5">
+            <div className="min-w-0">
+              {slots?.entityCover ?? <ReviewCardEntityCover entity={entity} priority={featured} />}
+            </div>
 
-        {hasTitle ? (
-          <h3 className="font-serif text-[1.15rem] font-semibold tracking-tight text-foreground sm:text-[1.22rem]">
-            {review.title}
-          </h3>
-        ) : null}
+            <div className="min-w-0 space-y-3.5 self-center">
+              {slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode="cover" />}
 
-        {review.body ? (
-          <p
-            className={cn(
-              "font-serif text-[15.5px] leading-[1.6] text-foreground/86",
-              bodyClampLines === 3 && "line-clamp-3",
-              bodyClampLines === 4 && "line-clamp-4",
-              bodyClampLines === 5 && "line-clamp-5",
-            )}
-          >
-            {review.body}
-          </p>
+              {hasTitle ? (
+                <h3 className="font-serif text-[1rem] font-medium tracking-tight text-foreground/88 sm:text-[1.06rem]">
+                  {review.title}
+                </h3>
+              ) : null}
+
+              {review.body ? (
+                <p
+                  className={cn(
+                    "text-[15px] leading-[1.72] text-foreground/78 sm:text-[15.5px]",
+                    bodyClampLines === 3 && "line-clamp-3",
+                    bodyClampLines === 4 && "line-clamp-4",
+                    bodyClampLines === 5 && "line-clamp-5",
+                  )}
+                >
+                  {review.body}
+                </p>
+              ) : (
+                <p className="text-sm italic text-muted-foreground">Only a rating was left for this track.</p>
+              )}
+            </div>
+          </div>
         ) : (
-          <p className="text-sm italic text-muted-foreground">Only a rating was left for this track.</p>
+          <>
+            {showEntity ? slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode={entityMode} /> : null}
+
+            {hasTitle ? (
+              <h3 className="font-serif text-[1.15rem] font-semibold tracking-tight text-foreground sm:text-[1.22rem]">
+                {review.title}
+              </h3>
+            ) : null}
+
+            {review.body ? (
+              <p
+                className={cn(
+                  "font-serif text-[15.5px] leading-[1.6] text-foreground/86",
+                  bodyClampLines === 3 && "line-clamp-3",
+                  bodyClampLines === 4 && "line-clamp-4",
+                  bodyClampLines === 5 && "line-clamp-5",
+                )}
+              >
+                {review.body}
+              </p>
+            ) : (
+              <p className="text-sm italic text-muted-foreground">Only a rating was left for this track.</p>
+            )}
+          </>
         )}
 
         {footer ? (

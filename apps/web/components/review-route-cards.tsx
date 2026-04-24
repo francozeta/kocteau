@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef } from "react";
 import type { EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import ReviewCard, {
+  ReviewCardEntityCover,
   ReviewCardEntitySummary,
   type ReviewCardAuthor,
   type ReviewCardData,
@@ -71,7 +72,15 @@ function buildFeedReviewCardDisplay(
   return {
     featured,
     bodyClampLines: 4,
+    entityMode: "cover",
     eyebrow: eyebrow ?? undefined,
+  };
+}
+
+function buildTrackReviewCardDisplay(): ReviewCardDisplayOptions {
+  return {
+    bodyClampLines: 4,
+    showEntity: false,
   };
 }
 
@@ -101,7 +110,7 @@ function LinkedEntitySummary({
   priority = false,
 }: {
   entity: ReviewCardEntity | null;
-  mode: "full" | "inline";
+  mode: "full" | "inline" | "cover";
   priority?: boolean;
 }) {
   if (!entity) {
@@ -121,6 +130,30 @@ function LinkedEntitySummary({
           interactive
           priority={priority}
         />
+      </PrefetchLink>
+    </div>
+  );
+}
+
+function LinkedEntityCover({
+  entity,
+  priority = false,
+}: {
+  entity: ReviewCardEntity | null;
+  priority?: boolean;
+}) {
+  if (!entity) {
+    return null;
+  }
+
+  return (
+    <div data-prevent-review-link="true">
+      <PrefetchLink
+        href={`/track/${entity.id}`}
+        queryWarmup={{ kind: "track", id: entity.id }}
+        className="block"
+      >
+        <ReviewCardEntityCover entity={entity} priority={priority} />
       </PrefetchLink>
     </div>
   );
@@ -188,6 +221,10 @@ function RoutedReviewCard({
             priority={entityPriority}
           />
         ) : undefined,
+        entityCover:
+          entity && entityMode === "cover" ? (
+            <LinkedEntityCover entity={entity} priority={entityPriority} />
+          ) : undefined,
         headerActions: showHeaderActions ? (
           <ReviewActionsMenu
             reviewId={review.id}
@@ -274,7 +311,7 @@ export function TrackReviewCard({
       review={review}
       entity={entity}
       author={author}
-      display={buildFeedReviewCardDisplay()}
+      display={buildTrackReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
       viewer={viewer}
     />

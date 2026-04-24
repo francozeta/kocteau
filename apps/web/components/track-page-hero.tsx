@@ -116,7 +116,8 @@ export default function TrackPageHero({
           alt={entity.title}
           sizes="(max-width: 767px) 176px, (max-width: 1279px) 160px, 184px"
           priority
-          quality={75}
+          quality={90}
+          variant="hero"
           className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted/16 shadow-[0_12px_32px_rgba(0,0,0,0.24)] md:mx-0 md:size-[10rem] lg:size-[11.5rem]"
           iconClassName="size-10"
         />
