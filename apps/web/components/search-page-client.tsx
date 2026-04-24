@@ -341,12 +341,12 @@ export default function SearchPageClient({
               {Array.from({ length: 5 }).map((_, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-4 rounded-[1.5rem] border border-border/32 bg-card/24 px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/20 md:bg-card/18"
+                  className="flex items-center gap-4 rounded-[1.4rem] px-2 py-2.5"
                 >
-                  <Skeleton className="h-16 w-16 rounded-[1.1rem]" />
+                  <Skeleton className="h-[4.5rem] w-[4.5rem] rounded-[1.2rem]" />
                   <div className="min-w-0 flex-1 space-y-2">
                     <Skeleton className="h-3 w-18" />
-                    <Skeleton className="h-4 w-2/5" />
+                    <Skeleton className="h-[1.125rem] w-2/5" />
                     <Skeleton className="h-3.5 w-1/3" />
                   </div>
                 </div>
@@ -414,35 +414,36 @@ export default function SearchPageClient({
                   >
                     <div
                       className={cn(
-                        "flex items-center gap-4 rounded-[1.5rem] border border-border/32 bg-card/24 px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-colors hover:bg-card/32 md:border-border/20 md:bg-card/18 md:hover:bg-card/30",
-                        activeIndex === index && "border-foreground/28 bg-card/32 md:border-foreground/20 md:bg-card/28",
+                        "flex items-center gap-4 rounded-[1.4rem] px-2 py-2.5 transition-colors hover:bg-card/20 md:hover:bg-card/18",
+                        activeIndex === index && "bg-card/24 md:bg-card/22",
                       )}
                     >
                       <EntityCoverImage
                         src={result.cover_url}
                         alt={result.title}
-                        sizes="64px"
-                        quality={56}
-                        className="h-16 w-16 shrink-0 rounded-[1.1rem] bg-muted"
+                        sizes="72px"
+                        quality={84}
+                        variant="card"
+                        className="h-[4.5rem] w-[4.5rem] shrink-0 rounded-[1.2rem] bg-muted/50"
                         imageClassName="transition-transform group-hover:scale-105"
                         iconClassName="size-6"
                       />
 
                       <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                        <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/78">
                           <span>{result.entity_id ? "In library" : "Deezer"}</span>
                         </div>
-                        <h3 className="line-clamp-1 font-medium group-hover:underline">
+                        <h3 className="line-clamp-1 font-serif text-[1.02rem] font-semibold tracking-tight text-foreground">
                           {highlightMatch(result.title, normalizedQuery)}
                         </h3>
-                        <p className="line-clamp-1 text-sm text-muted-foreground">
+                        <p className="line-clamp-1 text-[14px] text-muted-foreground/88">
                           {highlightMatch(result.artist_name ?? "Unknown artist", normalizedQuery)}
                         </p>
                       </div>
 
                       <div className="hidden sm:block">
                         {activeIndex === index ? (
-                          <span className="inline-flex rounded-full border border-border/36 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground md:border-border/30">
+                          <span className="inline-flex rounded-full bg-card/26 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                             Enter
                           </span>
                         ) : (
@@ -458,14 +459,14 @@ export default function SearchPageClient({
         </div>
       ) : (
         <section className="space-y-6">
-          <div className="flex items-end justify-between border-b border-border/32 pb-4 md:border-border/25">
+          <div className="flex items-end justify-between">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               Active tracks
             </h2>
           </div>
 
           {highlights.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
               {highlights.map((track) => (
                 <TrackContextMenu
                   key={track.entityId}
@@ -476,26 +477,31 @@ export default function SearchPageClient({
                   <PrefetchLink
                     href={`/track/${track.entityId}`}
                     queryWarmup={{ kind: "track", id: track.entityId }}
-                    className="group flex items-center gap-3 rounded-[1.45rem] border border-border/32 bg-card/24 px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-colors hover:bg-card/32 md:border-border/20 md:bg-card/18 md:hover:bg-card/30"
+                    className="group block rounded-[1.5rem] p-2 transition-colors hover:bg-card/16"
                   >
-                    <EntityCoverImage
-                      src={track.coverUrl}
-                      alt={track.title}
-                      sizes="56px"
-                      quality={56}
-                      className="h-14 w-14 shrink-0 rounded-[1rem] bg-muted"
-                      imageClassName="transition-transform group-hover:scale-105"
-                      iconClassName="size-5"
-                    />
+                    <div className="space-y-3">
+                      <EntityCoverImage
+                        src={track.coverUrl}
+                        alt={track.title}
+                        sizes="(max-width: 639px) 46vw, (max-width: 1023px) 30vw, 220px"
+                        quality={86}
+                        variant="card"
+                        className="aspect-square w-full rounded-[1.15rem] bg-muted/50"
+                        imageClassName="transition-transform duration-300 group-hover:scale-[1.025]"
+                        iconClassName="size-6"
+                      />
 
-                    <div className="min-w-0 flex-1">
-                      <h3 className="line-clamp-1 font-medium group-hover:underline">{track.title}</h3>
-                      <p className="line-clamp-1 text-sm text-muted-foreground">
-                        {track.artistName ?? "Unknown artist"}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatDate(track.latestReviewAt)}
-                      </p>
+                      <div className="min-w-0 space-y-1 px-0.5">
+                        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground/72">
+                          {formatDate(track.latestReviewAt)}
+                        </p>
+                        <h3 className="line-clamp-1 font-serif text-[1.08rem] font-semibold tracking-tight text-foreground">
+                          {track.title}
+                        </h3>
+                        <p className="line-clamp-1 text-[14px] text-muted-foreground/88">
+                          {track.artistName ?? "Unknown artist"}
+                        </p>
+                      </div>
                     </div>
                   </PrefetchLink>
                 </TrackContextMenu>

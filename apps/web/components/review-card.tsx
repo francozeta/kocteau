@@ -23,6 +23,8 @@ export type ReviewCardAuthor = {
   avatar_url: string | null;
 };
 
+export type ReviewCardCopyTone = "default" | "balanced";
+
 export type ReviewCardData = {
   id: string;
   title: string | null;
@@ -60,6 +62,7 @@ export type ReviewCardEntitySummaryProps = {
   interactive?: boolean;
   className?: string;
   priority?: boolean;
+  tone?: ReviewCardCopyTone;
 };
 
 type ReviewCardProps = {
@@ -83,12 +86,24 @@ function getAuthorLabel(author: ReviewCardAuthor | null | undefined) {
   return author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
 }
 
+export function getReviewCardCopyTone(review: ReviewCardData): ReviewCardCopyTone {
+  const bodyLength = review.body?.trim().length ?? 0;
+  const titleLength = review.title?.trim().length ?? 0;
+
+  if (bodyLength > 240 || titleLength > 64) {
+    return "balanced";
+  }
+
+  return "default";
+}
+
 export function ReviewCardEntitySummary({
   entity,
   mode,
   interactive = false,
   className,
   priority = false,
+  tone = "default",
 }: ReviewCardEntitySummaryProps) {
   if (!entity) {
     return null;
@@ -102,10 +117,22 @@ export function ReviewCardEntitySummary({
           className,
         )}
       >
-        <p className="line-clamp-2 font-serif text-[1.45rem] font-semibold leading-[1.02] text-foreground sm:text-[1.7rem]">
+        <p
+          className={cn(
+            "line-clamp-2 font-serif font-semibold tracking-tight text-foreground",
+            tone === "balanced"
+              ? "text-[1.22rem] leading-[1.04] sm:text-[1.4rem]"
+              : "text-[1.3rem] leading-[1.03] sm:text-[1.5rem]",
+          )}
+        >
           {entity.title}
         </p>
-        <p className="line-clamp-1 text-[15px] text-muted-foreground/92 sm:text-base">
+        <p
+          className={cn(
+            "line-clamp-1 text-muted-foreground/88",
+            tone === "balanced" ? "text-[14px] sm:text-[14.5px]" : "text-[14.5px] sm:text-[15px]",
+          )}
+        >
           {entity.artist_name ?? "Unknown artist"}
         </p>
       </div>
@@ -180,7 +207,7 @@ export function ReviewCardEntityCover({
     <EntityCoverImage
       src={entity.cover_url}
       alt={entity.title}
-      sizes="(max-width: 639px) 108px, (max-width: 1023px) 152px, 168px"
+      sizes="(max-width: 639px) 104px, (max-width: 1023px) 144px, 156px"
       priority={priority}
       quality={86}
       variant="card"
@@ -216,6 +243,8 @@ export default function ReviewCard({
   const headerActions = slots?.headerActions;
   const footer = slots?.footer;
   const isCoverLedEntity = showEntity && entityMode === "cover" && entity;
+  const copyTone = getReviewCardCopyTone(review);
+  const usesBalancedCopy = copyTone === "balanced";
 
   return (
     <article
@@ -279,16 +308,23 @@ export default function ReviewCard({
         </div>
 
         {isCoverLedEntity ? (
-          <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[9.5rem_minmax(0,1fr)] lg:grid-cols-[10.5rem_minmax(0,1fr)] lg:gap-5">
+          <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)] lg:gap-5">
             <div className="min-w-0">
               {slots?.entityCover ?? <ReviewCardEntityCover entity={entity} priority={featured} />}
             </div>
 
-            <div className="min-w-0 space-y-3.5 self-center">
-              {slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode="cover" />}
+            <div className={cn("min-w-0 self-start", usesBalancedCopy ? "space-y-3" : "space-y-3.5")}>
+              {slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode="cover" tone={copyTone} />}
 
               {hasTitle ? (
-                <h3 className="font-serif text-[1rem] font-medium tracking-tight text-foreground/88 sm:text-[1.06rem]">
+                <h3
+                  className={cn(
+                    "text-foreground/86",
+                    usesBalancedCopy
+                      ? "text-[0.93rem] font-medium sm:text-[0.98rem]"
+                      : "text-[0.98rem] font-medium sm:text-[1.02rem]",
+                  )}
+                >
                   {review.title}
                 </h3>
               ) : null}
@@ -296,7 +332,10 @@ export default function ReviewCard({
               {review.body ? (
                 <p
                   className={cn(
-                    "text-[15px] leading-[1.72] text-foreground/78 sm:text-[15.5px]",
+                    "font-serif text-foreground/84",
+                    usesBalancedCopy
+                      ? "text-[15.15px] leading-[1.74] sm:text-[15.55px]"
+                      : "text-[15.35px] leading-[1.68] sm:text-[15.7px]",
                     bodyClampLines === 3 && "line-clamp-3",
                     bodyClampLines === 4 && "line-clamp-4",
                     bodyClampLines === 5 && "line-clamp-5",
@@ -305,7 +344,7 @@ export default function ReviewCard({
                   {review.body}
                 </p>
               ) : (
-                <p className="text-sm italic text-muted-foreground">Only a rating was left for this track.</p>
+                <p className="text-[15px] italic text-muted-foreground">Only a rating was left for this track.</p>
               )}
             </div>
           </div>

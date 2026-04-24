@@ -33,7 +33,7 @@ export default function SavedReviewsList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       {savedReviews.map((savedReview) => {
         if (!savedReview.review) {
           return null;

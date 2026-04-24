@@ -106,17 +106,17 @@ export function ReviewCardSkeleton({
           </div>
         </div>
 
-        <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[9.5rem_minmax(0,1fr)] lg:grid-cols-[10.5rem_minmax(0,1fr)] lg:gap-5">
+        <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)] lg:gap-5">
           <Skeleton className="aspect-square w-full rounded-[1rem] border border-border/24 bg-muted-foreground/[0.1] shadow-[0_12px_32px_rgba(0,0,0,0.16)]" />
 
-          <div className="flex min-w-0 flex-col gap-3.5 self-center">
+          <div className="flex min-w-0 flex-col gap-3 self-start">
             <div className="flex min-w-0 flex-col gap-1.5">
-              <SkeletonLine className="h-7 w-[min(20rem,92%)] bg-muted-foreground/[0.18] sm:h-8" />
-              <SkeletonLine className="h-7 w-[min(13rem,68%)] bg-muted-foreground/[0.13] sm:h-8" />
+              <SkeletonLine className="h-6 w-[min(18rem,88%)] bg-muted-foreground/[0.18] sm:h-7" />
+              <SkeletonLine className="h-6 w-[min(12rem,62%)] bg-muted-foreground/[0.13] sm:h-7" />
               <SkeletonLine className="h-3.5 w-[min(11rem,56%)] bg-muted-foreground/[0.1]" />
             </div>
 
-            <SkeletonLine className="h-4 w-[min(16rem,72%)] bg-muted-foreground/[0.12]" />
+            <SkeletonLine className="h-4 w-[min(13rem,62%)] bg-muted-foreground/[0.12]" />
 
             <div className="flex flex-col gap-2">
               <SkeletonLine className="h-3.5 w-full bg-muted-foreground/[0.11]" />
@@ -236,9 +236,9 @@ export function FeedStarterLayerSkeleton() {
 
 function RailProfileSkeleton({ index }: { index: number }) {
   return (
-    <div className="rounded-lg bg-card/44 p-3 ring-1 ring-border/25">
+    <div className="rounded-[1.2rem] px-3 py-2.5">
       <div className="flex items-start gap-3">
-        <Skeleton className="size-10 shrink-0 rounded-lg bg-muted-foreground/[0.12]" />
+        <Skeleton className="size-10 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
         <div className="flex min-w-0 flex-1 flex-col gap-2 pt-0.5">
           <SkeletonLine
             className={cn(
@@ -253,7 +253,7 @@ function RailProfileSkeleton({ index }: { index: number }) {
             )}
           />
         </div>
-        <Skeleton className="h-7 w-14 shrink-0 rounded-full border border-border/28 bg-muted-foreground/[0.07]" />
+        <Skeleton className="h-7 w-14 shrink-0 rounded-full bg-muted-foreground/[0.07]" />
       </div>
     </div>
   );
@@ -267,7 +267,7 @@ export function WhoToFollowRailSkeleton({
       {showHeading ? (
         <SkeletonLine className="h-3 w-28 bg-muted-foreground/[0.09]" />
       ) : null}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         {Array.from({ length: 4 }).map((_, index) => (
           <RailProfileSkeleton key={`rail-profile-${index}`} index={index} />
         ))}

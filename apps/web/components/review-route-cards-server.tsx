@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from "react";
 import Link from "next/link";
 import type { EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import ReviewCard, {
+  getReviewCardCopyTone,
   ReviewCardEntityCover,
   ReviewCardEntitySummary,
   type ReviewCardAuthor,
@@ -124,10 +125,12 @@ function LinkedEntitySummary({
   entity,
   mode,
   priority = false,
+  tone = "default",
 }: {
   entity: ReviewCardEntity | null;
   mode: "full" | "inline" | "cover";
   priority?: boolean;
+  tone?: "default" | "balanced";
 }) {
   if (!entity) {
     return null;
@@ -141,6 +144,7 @@ function LinkedEntitySummary({
           mode={mode}
           interactive
           priority={priority}
+          tone={tone}
         />
       </Link>
     </div>
@@ -177,6 +181,7 @@ async function RoutedReviewCardServer({
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
   const entityPriority = Boolean(display?.featured);
+  const copyTone = getReviewCardCopyTone(review);
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
   const canUseReviewMenus = isAuthenticated || canManage;
   const {
@@ -208,6 +213,7 @@ async function RoutedReviewCardServer({
             entity={entity}
             mode={entityMode}
             priority={entityPriority}
+            tone={copyTone}
           />
         ) : undefined,
         entityCover:

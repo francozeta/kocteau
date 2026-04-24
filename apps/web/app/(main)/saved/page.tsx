@@ -29,13 +29,28 @@ export default async function SavedReviewsPage() {
   const { reviews: savedReviews } = await getViewerSavedReviewsBundle(user.id);
 
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
-      <div className="flex justify-end border-b border-border/30 pb-4">
+    <section className="mx-auto w-full max-w-[42rem] space-y-5 sm:space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="font-serif text-[2rem] font-semibold tracking-tight text-foreground sm:text-[2.35rem]">
+            Saved
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {savedReviews.length} {savedReviews.length === 1 ? "saved review" : "saved reviews"}
+          </p>
+        </div>
+
         <div className="flex flex-wrap gap-2.5">
           <Suspense fallback={null}>
             <SavedProfileAction userId={user.id} />
           </Suspense>
-          <Link href="/search" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "rounded-full border-border/30")}>
+          <Link
+            href="/search"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "rounded-full border-border/24 bg-card/18 hover:border-border/40 hover:bg-card/26",
+            )}
+          >
             Explore
           </Link>
         </div>
@@ -81,7 +96,10 @@ async function SavedProfileAction({ userId }: { userId: string }) {
   return (
     <PrefetchLink
       href={`/u/${profile.username}`}
-      className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
+      className={cn(
+        buttonVariants({ variant: "ghost", size: "sm" }),
+        "rounded-full bg-card/12 hover:bg-card/22",
+      )}
     >
       Profile
     </PrefetchLink>

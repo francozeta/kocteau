@@ -3,6 +3,7 @@
 import type { ComponentPropsWithoutRef } from "react";
 import type { EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import ReviewCard, {
+  getReviewCardCopyTone,
   ReviewCardEntityCover,
   ReviewCardEntitySummary,
   type ReviewCardAuthor,
@@ -84,6 +85,13 @@ function buildTrackReviewCardDisplay(): ReviewCardDisplayOptions {
   };
 }
 
+function buildSavedReviewCardDisplay(): ReviewCardDisplayOptions {
+  return {
+    bodyClampLines: 5,
+    entityMode: "cover",
+  };
+}
+
 function getAuthorLabel(author: ReviewCardAuthor | null | undefined) {
   return author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
 }
@@ -108,10 +116,12 @@ function LinkedEntitySummary({
   entity,
   mode,
   priority = false,
+  tone = "default",
 }: {
   entity: ReviewCardEntity | null;
   mode: "full" | "inline" | "cover";
   priority?: boolean;
+  tone?: "default" | "balanced";
 }) {
   if (!entity) {
     return null;
@@ -129,6 +139,7 @@ function LinkedEntitySummary({
           mode={mode}
           interactive
           priority={priority}
+          tone={tone}
         />
       </PrefetchLink>
     </div>
@@ -171,6 +182,7 @@ function RoutedReviewCard({
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
   const entityPriority = Boolean(display?.featured);
+  const copyTone = getReviewCardCopyTone(review);
   const {
     showHeaderActions = true,
     showInteractionBar = true,
@@ -219,6 +231,7 @@ function RoutedReviewCard({
             entity={entity}
             mode={entityMode}
             priority={entityPriority}
+            tone={copyTone}
           />
         ) : undefined,
         entityCover:
@@ -352,7 +365,7 @@ export function SavedReviewCard({
       review={review}
       entity={entity}
       author={author}
-      display={buildFeedReviewCardDisplay()}
+      display={buildSavedReviewCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
       viewer={viewer}
     />
