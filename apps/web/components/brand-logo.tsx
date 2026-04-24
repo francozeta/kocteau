@@ -21,10 +21,11 @@ export default function BrandLogo({
         )}
       >
         <Image
-          src="/logo-k.png"
+          src="/logo.svg"
           alt="Kocteau logo"
           fill
           priority={priority}
+          unoptimized
           sizes="(max-width: 640px) 32px, 40px"
           className="object-contain"
         />

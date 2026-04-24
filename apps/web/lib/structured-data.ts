@@ -35,7 +35,7 @@ export function buildSiteGraphJsonLd() {
         "@id": `${siteUrl}#organization`,
         name: "Kocteau",
         url: siteUrl,
-        logo: absoluteUrl("/logo-k.png"),
+        logo: absoluteUrl("/logo.svg"),
         description:
           "Kocteau is a music review and discovery app for ratings, listening notes, saved reviews, and public taste profiles.",
       },

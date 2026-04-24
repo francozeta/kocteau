@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Merriweather } from "next/font/google";
+import { Geist, Italianno, Merriweather } from "next/font/google";
 import "./globals.css";
 import JsonLd from "@/components/json-ld";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,11 @@ const merriweather = Merriweather({
   subsets: ["latin"],
   variable: "--font-heading",
   weight: ["400", "700"],
+});
+const italianno = Italianno({
+  subsets: ["latin"],
+  variable: "--font-italianno",
+  weight: "400",
 });
 
 
@@ -35,9 +40,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
   },
   icons: {
-    icon: "/logo-k.png",
-    shortcut: "/logo-k.png",
-    apple: "/logo-k.png",
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
   },
 };
 
@@ -47,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn(geist.variable, merriweather.variable, "font-sans")}>
+    <html lang="en" className={cn(geist.variable, merriweather.variable, italianno.variable, "font-sans")}>
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
         <link rel="dns-prefetch" href="https://cdn-images.dzcdn.net" />
