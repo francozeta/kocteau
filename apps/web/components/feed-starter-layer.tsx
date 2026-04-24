@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, PenLine, Sparkles, X } from "lucide-react";
 import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";
@@ -31,6 +32,7 @@ export default function FeedStarterLayer({
 }: FeedStarterLayerProps) {
   const [passedTrackIds, setPassedTrackIds] = useState<Set<string>>(() => new Set());
   const [reviewedTrackIds, setReviewedTrackIds] = useState<Set<string>>(() => new Set());
+  const prefersReducedMotion = useReducedMotion();
   const visibleTracks = useMemo(
     () =>
       tracks.filter(
@@ -115,12 +117,12 @@ export default function FeedStarterLayer({
     <section className="space-y-3">
       <div className="flex items-end justify-between gap-3 px-0.5">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-[0.68rem] font-medium uppercase tracking-[0.24em] text-muted-foreground">
+          <div className="flex items-center gap-2 text-[0.68rem] font-medium uppercase tracking-[0.2em] text-muted-foreground/78">
             <Sparkles className="size-3.5" />
-            Kocteau cue
+            Starter picks
           </div>
-          <h2 className="mt-1 font-serif text-2xl font-semibold leading-tight text-foreground">
-            Start your taste graph
+          <h2 className="mt-1 font-serif text-[1.35rem] font-semibold leading-tight text-foreground sm:text-2xl">
+            Pick your next review
           </h2>
         </div>
         <div className="hidden items-center gap-1.5 sm:flex">
@@ -144,8 +146,14 @@ export default function FeedStarterLayer({
         </div>
       </div>
 
-      <article className="overflow-hidden rounded-md border border-border/32 bg-card/24">
-        <div className="grid gap-0 md:grid-cols-[9.5rem_minmax(0,1fr)] lg:grid-cols-[10.5rem_minmax(0,1fr)_13rem]">
+      <motion.article
+        key={activeTrack.id}
+        className="overflow-hidden rounded-[0.95rem] border border-border/20 bg-card/22"
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
+      >
+        <div className="grid gap-0 md:grid-cols-[9rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)_12.25rem]">
           <div className="border-b border-border/24 p-3 md:border-r md:border-b-0">
             <EntityCoverImage
               src={activeTrack.cover_url}
@@ -153,18 +161,18 @@ export default function FeedStarterLayer({
               sizes="168px"
               quality={88}
               variant="card"
-              className="aspect-square w-full rounded-md border border-border/24 bg-muted/20"
+              className="aspect-square w-full rounded-[0.85rem] border border-border/18 bg-muted/20"
               iconClassName="size-7"
             />
           </div>
 
-          <div className="flex min-w-0 flex-col justify-between gap-5 p-4">
+          <div className="flex min-w-0 flex-col justify-between gap-4 p-4">
             <div className="min-w-0">
-              <div className="mb-3 flex items-center gap-2 text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="mb-2.5 flex items-center gap-2 text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground/76">
                 <Sparkles className="size-3" />
                 Editorial starter
               </div>
-              <h3 className="line-clamp-2 font-serif text-3xl font-semibold leading-none text-foreground">
+              <h3 className="line-clamp-2 font-serif text-[1.65rem] font-semibold leading-[1.03] text-pretty text-foreground sm:text-[1.85rem]">
                 {activeTrack.title}
               </h3>
               <p className="mt-2 truncate text-sm text-muted-foreground">
@@ -184,7 +192,7 @@ export default function FeedStarterLayer({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-full border border-border/28 bg-background/18 px-3"
+                  className="h-8 gap-1.5 rounded-full border border-border/20 bg-background/16 px-3 text-xs"
                   onClick={() => handlePass(activeTrack)}
                 >
                   <X className="size-3" />
@@ -208,7 +216,7 @@ export default function FeedStarterLayer({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5 rounded-full border-border/42 bg-background/24 px-3 text-xs"
+                      className="h-8 gap-1.5 rounded-full border-border/30 bg-background/22 px-3 text-xs"
                       onClick={() => {
                         trackAnalyticsEvent({
                           eventType: "for_you_review_action",
@@ -231,16 +239,16 @@ export default function FeedStarterLayer({
           </div>
 
           {upcomingTracks.length > 0 ? (
-            <div className="hidden min-w-0 border-l border-border/24 lg:block">
-              <div className="border-b border-border/24 px-3 py-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="hidden min-w-0 border-l border-border/18 lg:block">
+              <div className="border-b border-border/18 px-3 py-2 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted-foreground/76">
                 Up next
               </div>
-              <div className="divide-y divide-border/20">
+              <div className="divide-y divide-border/14">
                 {upcomingTracks.map((track) => (
                   <button
                     key={track.id}
                     type="button"
-                    className="grid min-h-[4.75rem] w-full grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-2 p-2.5 text-left transition hover:bg-background/28"
+                    className="grid min-h-[4.75rem] w-full grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-2 p-2.5 text-left transition-colors hover:bg-background/24"
                     onClick={() => handlePass(activeTrack)}
                   >
                     <EntityCoverImage
@@ -265,7 +273,7 @@ export default function FeedStarterLayer({
             </div>
           ) : null}
         </div>
-      </article>
+      </motion.article>
     </section>
   );
 }

@@ -92,8 +92,8 @@ export default function FeedViewTabs({
                         duration: 0,
                       }
                     : {
-                        duration: 0.22,
-                        ease: [0.22, 1, 0.36, 1],
+                        duration: 0.18,
+                        ease: "easeOut",
                       }
                 }
               />

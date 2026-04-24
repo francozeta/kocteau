@@ -113,16 +113,16 @@ export function ReviewCardEntitySummary({
     return (
       <div
         className={cn(
-          "min-w-0 space-y-1.5",
+          "min-w-0 space-y-1.5 text-pretty",
           className,
         )}
       >
         <p
           className={cn(
-            "line-clamp-2 font-serif font-semibold tracking-tight text-foreground",
+            "line-clamp-2 font-serif font-semibold text-foreground",
             tone === "balanced"
-              ? "text-[1.22rem] leading-[1.04] sm:text-[1.4rem]"
-              : "text-[1.3rem] leading-[1.03] sm:text-[1.5rem]",
+              ? "text-[1.18rem] leading-[1.08] sm:text-[1.34rem]"
+              : "text-[1.26rem] leading-[1.06] sm:text-[1.46rem]",
           )}
         >
           {entity.title}
@@ -212,7 +212,7 @@ export function ReviewCardEntityCover({
       quality={86}
       variant="card"
       className={cn(
-        "aspect-square w-full rounded-[1rem] border border-border/24 bg-muted/16 shadow-[0_12px_32px_rgba(0,0,0,0.22)]",
+        "aspect-square w-full rounded-[0.85rem] border border-border/18 bg-muted/16 shadow-[0_10px_28px_rgba(0,0,0,0.24)]",
         className,
       )}
       iconClassName="size-8"
@@ -250,21 +250,21 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "overflow-hidden rounded-lg border border-border/40 bg-card/44 transition-colors md:border-border/32 md:bg-card/34",
-        featured && "border-border/48 bg-card/54 md:border-border/36 md:bg-card/42",
+        "overflow-hidden rounded-[0.95rem] border border-border/24 bg-card/26 transition-colors hover:border-border/36 hover:bg-card/34 md:border-border/20 md:bg-card/22",
+        featured && "border-border/32 bg-card/34 md:border-border/28 md:bg-card/30",
         className,
       )}
     >
-      <div className="space-y-4 p-4 sm:p-[1.125rem]">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
+      <div className="space-y-4 p-3.5 sm:p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-2">
             {eyebrow ? (
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 {eyebrow}
               </p>
             ) : null}
 
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
               {showAuthor ? (
                 <>
                   <UserAvatar
@@ -295,10 +295,10 @@ export default function ReviewCard({
           </div>
 
           {showRatingBadge || headerActions ? (
-            <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex shrink-0 items-center gap-2">
               {showRatingBadge ? (
-                <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/38 bg-muted/38 px-2.5 py-1 text-sm font-medium whitespace-nowrap md:border-border/28 md:bg-muted/28">
-                  <Star className="size-3.5 fill-current text-amber-400" />
+                <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/24 bg-background/24 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground/92 md:border-border/18 md:bg-background/18">
+                  <Star className="size-3.5 fill-current text-amber-300" />
                   {review.rating.toFixed(1)}
                 </div>
               ) : null}
@@ -308,7 +308,12 @@ export default function ReviewCard({
         </div>
 
         {isCoverLedEntity ? (
-          <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)] lg:gap-5">
+          <div
+            className={cn(
+              "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.75rem_minmax(0,1fr)] lg:gap-4.5",
+              featured && "grid-cols-[6.75rem_minmax(0,1fr)] sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)] lg:gap-5",
+            )}
+          >
             <div className="min-w-0">
               {slots?.entityCover ?? <ReviewCardEntityCover entity={entity} priority={featured} />}
             </div>
@@ -321,8 +326,8 @@ export default function ReviewCard({
                   className={cn(
                     "text-foreground/86",
                     usesBalancedCopy
-                      ? "text-[0.93rem] font-medium sm:text-[0.98rem]"
-                      : "text-[0.98rem] font-medium sm:text-[1.02rem]",
+                      ? "text-[0.92rem] font-medium leading-6 sm:text-[0.97rem]"
+                      : "text-[0.96rem] font-medium leading-6 sm:text-[1rem]",
                   )}
                 >
                   {review.title}
@@ -332,10 +337,10 @@ export default function ReviewCard({
               {review.body ? (
                 <p
                   className={cn(
-                    "font-serif text-foreground/84",
+                    "font-serif text-pretty text-foreground/82",
                     usesBalancedCopy
-                      ? "text-[15.15px] leading-[1.74] sm:text-[15.55px]"
-                      : "text-[15.35px] leading-[1.68] sm:text-[15.7px]",
+                      ? "text-[15px] leading-[1.76] sm:text-[15.45px]"
+                      : "text-[15.2px] leading-[1.7] sm:text-[15.55px]",
                     bodyClampLines === 3 && "line-clamp-3",
                     bodyClampLines === 4 && "line-clamp-4",
                     bodyClampLines === 5 && "line-clamp-5",
@@ -353,7 +358,7 @@ export default function ReviewCard({
             {showEntity ? slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode={entityMode} /> : null}
 
             {hasTitle ? (
-              <h3 className="font-serif text-[1.15rem] font-semibold tracking-tight text-foreground sm:text-[1.22rem]">
+              <h3 className="font-serif text-[1.15rem] font-semibold text-pretty text-foreground sm:text-[1.22rem]">
                 {review.title}
               </h3>
             ) : null}
@@ -361,7 +366,7 @@ export default function ReviewCard({
             {review.body ? (
               <p
                 className={cn(
-                  "font-serif text-[15.5px] leading-[1.6] text-foreground/86",
+                  "font-serif text-[15.5px] leading-[1.66] text-pretty text-foreground/84",
                   bodyClampLines === 3 && "line-clamp-3",
                   bodyClampLines === 4 && "line-clamp-4",
                   bodyClampLines === 5 && "line-clamp-5",
@@ -378,7 +383,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="flex items-center justify-between gap-3 border-t border-border/24 pt-2.5 md:border-border/18"
+            className="flex items-center justify-between gap-3 border-t border-border/16 pt-2.5 md:border-border/12"
           >
             {footer}
           </div>

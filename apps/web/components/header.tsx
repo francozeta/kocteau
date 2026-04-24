@@ -197,7 +197,7 @@ export default function Header({
             variant="ghost"
             size="sm"
             onClick={handleGiveFeedback}
-            className="hidden h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground md:inline-flex"
+            className="hidden h-9 rounded-[0.85rem] border border-border/22 bg-transparent px-3 text-muted-foreground/88 hover:bg-card/20 hover:text-foreground md:inline-flex"
           >
             <MessageSquare className="size-4" />
             <span>Feedback</span>
@@ -224,7 +224,7 @@ export default function Header({
               trigger={
                 <motion.button
                   type="button"
-                  className="hidden h-10 items-center gap-2 rounded-full border border-border/30 bg-background/55 px-3.5 text-sm text-muted-foreground transition-colors hover:bg-muted/26 hover:text-foreground md:inline-flex"
+                  className="hidden h-9 items-center gap-2 rounded-[0.85rem] border border-border/24 bg-card/24 px-3 text-sm text-muted-foreground/88 transition-colors hover:bg-card/36 hover:text-foreground md:inline-flex"
                   whileHover={
                     prefersReducedMotion
                       ? undefined
@@ -242,7 +242,7 @@ export default function Header({
                 >
                   <Search className="size-4" />
                   <span>Search</span>
-                  <Kbd className="h-6 gap-1.5 rounded-md border border-border/55 bg-muted/28 px-1.5 text-[0.62rem] text-muted-foreground">
+                  <Kbd className="h-5 gap-1.5 rounded-md border border-border/45 bg-muted/22 px-1.5 text-[0.6rem] text-muted-foreground">
                     <CommandIcon className="size-3 text-muted-foreground" />
                     <span>K</span>
                   </Kbd>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { motion, useReducedMotion } from "motion/react";
 import FeedStarterLayer from "@/components/feed-starter-layer";
 import { Music2, Sparkles, UsersRound } from "lucide-react";
 import { FeedReviewCard } from "@/components/review-route-cards";
@@ -134,6 +135,7 @@ export default function FeedReviewList({
 }: FeedReviewListProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const trackedPageKeysRef = useRef(new Set<string>());
+  const prefersReducedMotion = useReducedMotion();
   const feedQuery = useInfiniteQuery({
     ...feedInfiniteQueryOptions(view),
     initialData: {
@@ -271,19 +273,33 @@ export default function FeedReviewList({
         const author = review.author;
 
         return (
-          <FeedReviewCard
+          <motion.div
             key={review.id}
-            review={review}
-            entity={review.entities}
-            author={author}
-            featured={index === 0}
-            showInteractionBar={isAuthenticated}
-            isAuthenticated={isAuthenticated}
-            canManage={Boolean(viewer?.id && author?.id === viewer.id)}
-            recommendationEyebrow={getRecommendationEyebrow(review, view)}
-            analyticsSource={view === "for-you" ? "feed:for-you" : null}
-            viewer={viewer}
-          />
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              prefersReducedMotion
+                ? { duration: 0 }
+                : {
+                    duration: 0.18,
+                    ease: "easeOut",
+                    delay: Math.min(index * 0.018, 0.06),
+                  }
+            }
+          >
+            <FeedReviewCard
+              review={review}
+              entity={review.entities}
+              author={author}
+              featured={index === 0}
+              showInteractionBar={isAuthenticated}
+              isAuthenticated={isAuthenticated}
+              canManage={Boolean(viewer?.id && author?.id === viewer.id)}
+              recommendationEyebrow={getRecommendationEyebrow(review, view)}
+              analyticsSource={view === "for-you" ? "feed:for-you" : null}
+              viewer={viewer}
+            />
+          </motion.div>
         );
       })}
 

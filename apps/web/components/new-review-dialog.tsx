@@ -205,8 +205,8 @@ export default function NewReviewDialog({
         duration: 0,
       }
     : {
-        duration: 0.22,
-        ease: [0.22, 1, 0.36, 1] as const,
+        duration: 0.2,
+        ease: "easeOut" as const,
       };
 
   const baseTrigger = trigger ?? (

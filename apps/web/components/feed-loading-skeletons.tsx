@@ -26,7 +26,7 @@ export function FeedSearchSkeleton() {
   return (
     <div
       aria-hidden="true"
-      className="flex h-11 w-full items-center gap-3 rounded-[0.95rem] border border-white/[0.08] bg-[#111112] px-4"
+      className="flex h-11 w-full items-center gap-3 rounded-[0.95rem] border border-border/45 bg-card/62 px-4"
     >
       <Skeleton className="size-4 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
       <SkeletonLine className="h-3.5 w-[min(18rem,72%)] bg-muted-foreground/[0.1]" />
@@ -41,7 +41,7 @@ export function FeedControlsSkeleton({
     <div
       aria-hidden="true"
       className={cn(
-        "relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] border border-white/[0.08] bg-[#111112] p-1",
+        "relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] border border-border/45 bg-card/62 p-1",
         fullWidth ? "w-full" : "w-full max-w-[16.75rem] lg:w-[16.75rem]",
       )}
     >
@@ -82,8 +82,8 @@ export function ReviewCardSkeleton({
     <article
       aria-hidden="true"
       className={cn(
-        "overflow-hidden rounded-[1.15rem] border border-border/26 bg-card/24",
-        featured && "bg-card/32",
+        "overflow-hidden rounded-[0.95rem] border border-border/18 bg-card/22",
+        featured && "border-border/24 bg-card/30",
       )}
     >
       <div className="flex flex-col gap-4 p-4 sm:p-[1.125rem]">
@@ -105,8 +105,13 @@ export function ReviewCardSkeleton({
           <Skeleton className="h-8 w-12 rounded-full bg-muted-foreground/[0.08]" />
         </div>
 
-        <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[7.75rem_minmax(0,1fr)] lg:grid-cols-[8.5rem_minmax(0,1fr)]">
-          <Skeleton className="aspect-square w-full rounded-[1rem] bg-muted-foreground/[0.1]" />
+        <div
+          className={cn(
+            "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.75rem_minmax(0,1fr)]",
+            featured && "grid-cols-[6.75rem_minmax(0,1fr)] sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)]",
+          )}
+        >
+          <Skeleton className="aspect-square w-full rounded-[0.85rem] bg-muted-foreground/[0.1]" />
 
           <div className="flex min-w-0 flex-col justify-center gap-2.5 self-stretch">
             <SkeletonLine className="h-6 w-[min(16rem,86%)] bg-muted-foreground/[0.16] sm:h-7" />
@@ -138,10 +143,10 @@ export function FeedStarterLayerSkeleton() {
         <SkeletonLine className="h-6 w-[min(16rem,78vw)] bg-muted-foreground/[0.14]" />
       </div>
 
-      <article className="overflow-hidden rounded-[1.15rem] border border-border/26 bg-card/22">
+      <article className="overflow-hidden rounded-[0.95rem] border border-border/18 bg-card/20">
         <div className="grid gap-0 md:grid-cols-[8.75rem_minmax(0,1fr)]">
           <div className="p-3 md:border-r md:border-border/18">
-            <Skeleton className="aspect-square w-full rounded-[1rem] bg-muted-foreground/[0.09]" />
+            <Skeleton className="aspect-square w-full rounded-[0.85rem] bg-muted-foreground/[0.09]" />
           </div>
 
           <div className="flex min-w-0 flex-col justify-center gap-3 p-4">
@@ -161,7 +166,7 @@ export function FeedStarterLayerSkeleton() {
 
 function RailProfileSkeleton({ index }: { index: number }) {
   return (
-    <div className="rounded-[1.2rem] px-3 py-2.5">
+    <div className="rounded-[0.85rem] px-2.5 py-2.5">
       <div className="flex items-start gap-3">
         <Skeleton className="size-10 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
         <div className="flex min-w-0 flex-1 flex-col gap-2 pt-0.5">
@@ -239,8 +244,8 @@ export default function FeedLoadingSkeleton() {
       </section>
 
       <section className="hidden lg:block">
-        <div className="mx-auto w-full max-w-[75rem]">
-          <div className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,42rem)_17rem] lg:justify-center">
+        <div className="mx-auto w-full max-w-[76rem]">
+          <div className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-center xl:gap-6">
             <div className="flex min-w-0 flex-col gap-4">
               <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div className="min-w-0">

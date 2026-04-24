@@ -144,9 +144,9 @@ export default async function HomePage({
         </section>
 
         <section className="hidden lg:block">
-          <div className="mx-auto w-full max-w-[75rem]">
+          <div className="mx-auto w-full max-w-[76rem]">
             <div
-              className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,42rem)_17rem] lg:justify-center"
+              className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-center xl:gap-6"
             >
               <div className="min-w-0 space-y-4">
                 <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
