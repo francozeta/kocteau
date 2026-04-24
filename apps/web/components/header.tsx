@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ExternalLink, MessageSquare, MoreHorizontal, Search, Share2 } from "lucide-react";
@@ -73,6 +74,7 @@ export default function Header({
   const isProfileDetailRoute = /^\/u\/[^/]+$/.test(pathname);
   const shouldUseContextualHeader = isTrackDetailRoute || isProfileDetailRoute;
   const isSearchRoute = pathname.startsWith("/search");
+  const prefersReducedMotion = useReducedMotion();
 
   const standardHeaderTitle = (() => {
     if (isTrackDetailRoute) {
@@ -220,9 +222,23 @@ export default function Header({
               isAuthenticated={Boolean(profile)}
               intent="search"
               trigger={
-                <button
+                <motion.button
                   type="button"
                   className="hidden h-10 items-center gap-2 rounded-full border border-border/30 bg-background/55 px-3.5 text-sm text-muted-foreground transition-colors hover:bg-muted/26 hover:text-foreground md:inline-flex"
+                  whileHover={
+                    prefersReducedMotion
+                      ? undefined
+                      : {
+                          y: -1,
+                        }
+                  }
+                  whileTap={
+                    prefersReducedMotion
+                      ? undefined
+                      : {
+                          scale: 0.992,
+                        }
+                  }
                 >
                   <Search className="size-4" />
                   <span>Search</span>
@@ -230,7 +246,7 @@ export default function Header({
                     <CommandIcon className="size-3 text-muted-foreground" />
                     <span>K</span>
                   </Kbd>
-                </button>
+                </motion.button>
               }
             />
           ) : null}

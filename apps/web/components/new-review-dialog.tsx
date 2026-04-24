@@ -12,6 +12,7 @@ import {
   type ReactElement,
 } from "react";
 import dynamic from "next/dynamic";
+import { motion, useReducedMotion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Drawer,
@@ -95,6 +96,7 @@ export default function NewReviewDialog({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const prefersReducedMotion = useReducedMotion();
   const isSearchIntent = intent === "search";
   const canOpenDialog = isAuthenticated || isSearchIntent;
   const usesUrlComposeState =
@@ -198,20 +200,43 @@ export default function NewReviewDialog({
     );
   }
 
+  const surfaceMotionTransition = prefersReducedMotion
+    ? {
+        duration: 0,
+      }
+    : {
+        duration: 0.22,
+        ease: [0.22, 1, 0.36, 1] as const,
+      };
+
   const baseTrigger = trigger ?? (
     triggerVariant === "search" ? (
-      <button
+      <motion.button
         type="button"
         className={cn(
-          "flex h-11 w-full items-center gap-3 rounded-[0.95rem] border border-white/[0.08] bg-[#111112] px-4 text-left text-muted-foreground/88 transition-colors hover:border-white/[0.12] hover:bg-[#141415] hover:text-foreground",
+          "flex h-11 w-full items-center gap-3 rounded-[0.95rem] border border-border/55 bg-card/78 px-4 text-left text-muted-foreground/88 transition-colors hover:border-border/75 hover:bg-card hover:text-foreground",
           triggerClassName,
         )}
+        whileHover={
+          prefersReducedMotion
+            ? undefined
+            : {
+                y: -1,
+              }
+        }
+        whileTap={
+          prefersReducedMotion
+            ? undefined
+            : {
+                scale: 0.995,
+              }
+        }
       >
         <Search className="size-4 shrink-0 text-muted-foreground/78" />
         <span className={cn("truncate text-sm", triggerLabelClassName)}>
           {triggerLabel ?? "Search tracks, albums, or artists to review..."}
         </span>
-      </button>
+      </motion.button>
     ) : (
       <Button
         size="sm"
@@ -258,33 +283,40 @@ export default function NewReviewDialog({
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
         <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/34 p-2 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
-          <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
-            <div className="flex items-center justify-between gap-3">
-              <DrawerTitle className="font-serif text-2xl">{dialogTitle}</DrawerTitle>
-              {!isSearchIntent ? renderStepDots() : null}
-            </div>
-            <DrawerDescription className="sr-only">
-              {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
-            </DrawerDescription>
-          </DrawerHeader>
+          <motion.div
+            className="flex h-full min-h-0 flex-col"
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={surfaceMotionTransition}
+          >
+            <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
+              <div className="flex items-center justify-between gap-3">
+                <DrawerTitle className="font-serif text-2xl">{dialogTitle}</DrawerTitle>
+                {!isSearchIntent ? renderStepDots() : null}
+              </div>
+              <DrawerDescription className="sr-only">
+                {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
+              </DrawerDescription>
+            </DrawerHeader>
 
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <NewReviewForm
-              intent={intent}
-              onStepChange={setFormStep}
-              showCancelAction={false}
-              primaryActionFullWidth
-              initialQuery={resolvedInitialQuery}
-              initialSelection={resolvedInitialSelection}
-              redirectToOnSuccess={redirectToOnSuccess}
-              onSearchResultOpen={() => handleOpenChange(false)}
-              onCancel={() => handleOpenChange(false)}
-              onSuccess={(payload) => {
-                handleOpenChange(false);
-                onSuccess?.(payload);
-              }}
-            />
-          </div>
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <NewReviewForm
+                intent={intent}
+                onStepChange={setFormStep}
+                showCancelAction={false}
+                primaryActionFullWidth
+                initialQuery={resolvedInitialQuery}
+                initialSelection={resolvedInitialSelection}
+                redirectToOnSuccess={redirectToOnSuccess}
+                onSearchResultOpen={() => handleOpenChange(false)}
+                onCancel={() => handleOpenChange(false)}
+                onSuccess={(payload) => {
+                  handleOpenChange(false);
+                  onSuccess?.(payload);
+                }}
+              />
+            </div>
+          </motion.div>
         </DrawerContent>
       </Drawer>
     );
@@ -298,34 +330,41 @@ export default function NewReviewDialog({
         showCloseButton={false}
         className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-sidebar p-0"
       >
-        <DialogHeader className="border-b border-border/30 bg-sidebar px-6 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="font-serif text-2xl">{dialogTitle}</DialogTitle>
-            <Kbd className="rounded-md border border-border/42 bg-card/42 px-2 text-[0.625rem] text-muted-foreground">
-              Esc
-            </Kbd>
-          </div>
-          <DialogDescription className="sr-only">
-            {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
-          </DialogDescription>
-        </DialogHeader>
+        <motion.div
+          className="flex h-full min-h-0 flex-col"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={surfaceMotionTransition}
+        >
+          <DialogHeader className="border-b border-border/30 bg-sidebar px-6 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <DialogTitle className="font-serif text-2xl">{dialogTitle}</DialogTitle>
+              <Kbd className="rounded-md border border-border/42 bg-card/42 px-2 text-[0.625rem] text-muted-foreground">
+                Esc
+              </Kbd>
+            </div>
+            <DialogDescription className="sr-only">
+              {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <NewReviewForm
-            intent={intent}
-            onStepChange={setFormStep}
-            showCancelAction={false}
-            initialQuery={resolvedInitialQuery}
-            initialSelection={resolvedInitialSelection}
-            redirectToOnSuccess={redirectToOnSuccess}
-            onSearchResultOpen={() => handleOpenChange(false)}
-            onCancel={() => handleOpenChange(false)}
-            onSuccess={(payload) => {
-              handleOpenChange(false);
-              onSuccess?.(payload);
-            }}
-          />
-        </div>
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <NewReviewForm
+              intent={intent}
+              onStepChange={setFormStep}
+              showCancelAction={false}
+              initialQuery={resolvedInitialQuery}
+              initialSelection={resolvedInitialSelection}
+              redirectToOnSuccess={redirectToOnSuccess}
+              onSearchResultOpen={() => handleOpenChange(false)}
+              onCancel={() => handleOpenChange(false)}
+              onSuccess={(payload) => {
+                handleOpenChange(false);
+                onSuccess?.(payload);
+              }}
+            />
+          </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );
