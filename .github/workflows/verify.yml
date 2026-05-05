@@ -18,6 +18,13 @@ jobs:
   verify:
     name: Verify
     runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_KOCTEAU_API_URL: https://kocteau.local
+      EXPO_PUBLIC_SUPABASE_KEY: ci-placeholder
+      EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SITE_URL: https://kocteau.local
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ci-placeholder
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
 
     steps:
       - name: Checkout
