@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Italianno, Merriweather } from "next/font/google";
+import { Geist, Instrument_Serif, Merriweather } from "next/font/google";
 import "./globals.css";
 import JsonLd from "@/components/json-ld";
 import { cn } from "@/lib/utils";
@@ -16,10 +16,11 @@ const merriweather = Merriweather({
   variable: "--font-heading",
   weight: ["400", "700"],
 });
-const italianno = Italianno({
+const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
-  variable: "--font-italianno",
+  variable: "--font-editorial-serif",
   weight: "400",
+  style: ["normal", "italic"],
 });
 
 
@@ -52,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn(geist.variable, merriweather.variable, italianno.variable, "font-sans")}>
+    <html lang="en" className={cn(geist.variable, merriweather.variable, instrumentSerif.variable, "font-sans")}>
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
         <link rel="dns-prefetch" href="https://cdn-images.dzcdn.net" />

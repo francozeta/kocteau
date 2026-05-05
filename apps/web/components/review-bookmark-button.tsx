@@ -81,9 +81,9 @@ export default function ReviewBookmarkButton({
       aria-busy={isPending}
       aria-label={state.bookmarked ? "Remove from saved reviews" : "Save this review"}
       className={cn(
-        "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-muted/34 hover:text-foreground active:scale-[0.96] disabled:pointer-events-none",
+        "inline-flex min-h-8 items-center gap-1 rounded-md border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-foreground/[0.055] hover:text-foreground active:scale-[0.96] disabled:pointer-events-none",
         state.bookmarked && "text-foreground",
-        animatePulse && "bg-muted/60",
+        animatePulse && "bg-foreground/[0.075]",
         isPending && "opacity-80",
       )}
     >

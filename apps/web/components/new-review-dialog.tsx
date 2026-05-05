@@ -221,7 +221,7 @@ export default function NewReviewDialog({
       <motion.button
         type="button"
         className={cn(
-          "kocteau-control-surface flex h-11 w-full items-center gap-3 rounded-[0.95rem] px-4 text-left text-muted-foreground/88 hover:text-foreground",
+          "kocteau-control-surface flex h-10 w-full items-center gap-2.5 rounded-[var(--kocteau-radius-control)] px-3.5 text-left text-muted-foreground/88 hover:text-foreground",
           triggerClassName,
         )}
         whileHover={
@@ -239,12 +239,12 @@ export default function NewReviewDialog({
               }
         }
       >
-        <Search className="size-4 shrink-0 text-muted-foreground/78" />
-        <span className={cn("min-w-0 flex-1 truncate text-sm", triggerLabelClassName)}>
+        <Search className="size-3.5 shrink-0 text-muted-foreground/78" />
+        <span className={cn("min-w-0 flex-1 truncate text-[13px]", triggerLabelClassName)}>
           {triggerLabel ?? "Find a track to review..."}
         </span>
         {resolvedTriggerShortcut ? (
-          <Kbd className="ml-auto h-5 shrink-0 rounded-md border-transparent bg-foreground/[0.055] px-1.5 text-[0.6rem] text-muted-foreground">
+          <Kbd className="ml-auto h-5 shrink-0 rounded-md border-transparent bg-foreground/[0.055] px-1.5 text-[0.6rem] text-muted-foreground/90">
             {resolvedTriggerShortcut}
           </Kbd>
         ) : null}

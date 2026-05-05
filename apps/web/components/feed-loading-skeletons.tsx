@@ -26,9 +26,9 @@ export function FeedSearchSkeleton() {
   return (
     <div
       aria-hidden="true"
-      className="kocteau-control-surface flex h-11 w-full items-center gap-3 rounded-[0.95rem] px-4"
+      className="kocteau-control-surface flex h-10 w-full items-center gap-2.5 rounded-[var(--kocteau-radius-control)] px-3.5"
     >
-      <Skeleton className="size-4 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
+      <Skeleton className="size-3.5 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
       <SkeletonLine className="h-3.5 w-[min(18rem,72%)] bg-muted-foreground/[0.1]" />
       <Skeleton className="ml-auto h-5 w-5 shrink-0 rounded-md bg-muted-foreground/[0.08]" />
     </div>
@@ -42,8 +42,8 @@ export function FeedControlsSkeleton({
     <div
       aria-hidden="true"
       className={cn(
-        "kocteau-feed-tabs relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] p-1",
-        fullWidth ? "w-full" : "w-full max-w-[18.25rem] lg:w-[18.25rem]",
+        "kocteau-feed-tabs relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[var(--kocteau-radius-control)] p-0.5",
+        fullWidth ? "w-full" : "w-full max-w-[17.25rem] lg:w-[17.25rem]",
       )}
     >
       <span
@@ -59,7 +59,7 @@ export function FeedControlsSkeleton({
         <div
           key={`feed-control-${index}`}
           className={cn(
-            "relative z-10 flex h-8 items-center justify-center rounded-[0.7rem]",
+            "relative z-10 flex h-8 items-center justify-center rounded-[0.62rem]",
             index === 0 && "kocteau-feed-tab-active",
           )}
         >
@@ -83,11 +83,11 @@ export function ReviewCardSkeleton({
     <article
       aria-hidden="true"
       className={cn(
-        "kocteau-review-card overflow-hidden rounded-[1.05rem]",
+        "kocteau-review-card overflow-hidden rounded-[var(--kocteau-radius-card)]",
         featured && "kocteau-review-card-featured",
       )}
     >
-      <div className="flex flex-col gap-4 p-4 sm:p-[1.125rem]">
+      <div className="flex flex-col gap-3.5 p-3.5 sm:p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <Skeleton className="size-7 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
@@ -108,11 +108,11 @@ export function ReviewCardSkeleton({
 
         <div
           className={cn(
-            "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.75rem_minmax(0,1fr)]",
-            featured && "grid-cols-[6.75rem_minmax(0,1fr)] sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)]",
+            "grid grid-cols-[5.75rem_minmax(0,1fr)] items-start gap-3.5 sm:grid-cols-[7.25rem_minmax(0,1fr)] lg:grid-cols-[7.75rem_minmax(0,1fr)]",
+            featured && "grid-cols-[6.25rem_minmax(0,1fr)] sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.5rem_minmax(0,1fr)]",
           )}
         >
-          <Skeleton className="aspect-square w-full rounded-[0.85rem] bg-muted-foreground/[0.1] shadow-[0_12px_32px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.06)]" />
+          <Skeleton className="aspect-square w-full rounded-[0.78rem] bg-muted-foreground/[0.1] shadow-[0_12px_30px_rgba(0,0,0,0.24),0_0_0_1px_rgba(255,255,255,0.055)]" />
 
           <div className="flex min-w-0 flex-col justify-center gap-2.5 self-stretch">
             <SkeletonLine className="h-6 w-[min(16rem,86%)] bg-muted-foreground/[0.16] sm:h-7" />
@@ -167,9 +167,9 @@ export function FeedStarterLayerSkeleton() {
 
 function RailProfileSkeleton({ index }: { index: number }) {
   return (
-    <div className="rounded-[0.85rem] px-2.5 py-2.5">
-      <div className="flex items-start gap-3">
-        <Skeleton className="size-10 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
+    <div className="border-b border-border/24 px-1 py-3">
+      <div className="flex items-start gap-2.5">
+        <Skeleton className="size-8 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
         <div className="flex min-w-0 flex-1 flex-col gap-2 pt-0.5">
           <SkeletonLine
             className={cn(
@@ -184,7 +184,7 @@ function RailProfileSkeleton({ index }: { index: number }) {
             )}
           />
         </div>
-        <Skeleton className="h-7 w-14 shrink-0 rounded-full bg-muted-foreground/[0.07]" />
+        <Skeleton className="h-7 w-12 shrink-0 rounded-md bg-muted-foreground/[0.07]" />
       </div>
     </div>
   );
@@ -198,7 +198,7 @@ export function WhoToFollowRailSkeleton({
       {showHeading ? (
         <SkeletonLine className="h-3 w-28 bg-muted-foreground/[0.09]" />
       ) : null}
-      <div className="flex flex-col gap-1">
+      <div className="border-t border-border/32">
         {Array.from({ length: 4 }).map((_, index) => (
           <RailProfileSkeleton key={`rail-profile-${index}`} index={index} />
         ))}

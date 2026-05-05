@@ -87,7 +87,7 @@ export default function ReviewCardActionsMenu({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-7 rounded-full border border-transparent bg-transparent text-muted-foreground/82 hover:bg-muted/22 hover:text-foreground"
+              className="size-7 rounded-md border border-transparent bg-transparent text-muted-foreground/82 hover:bg-foreground/[0.055] hover:text-foreground"
               aria-label="Review actions"
             >
               <MoreHorizontal className="size-4" />

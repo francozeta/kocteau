@@ -10,8 +10,9 @@ Reviews are the main event. Navigation, tabs, launchers, and side rails must sup
 
 Use a black and white monochrome world:
 
-- Canvas: true black or near-black.
-- Elevated surfaces: charcoal steps that get slightly lighter as they rise.
+- Canonical grayscale source: OKLCH gray from oklch.fyi, stored as `--kocteau-gray-1` through `--kocteau-gray-12`.
+- Canvas: `--kocteau-gray-1`, a neutral near-black.
+- Elevated surfaces: mostly `--kocteau-gray-2` with restrained mixes of `--kocteau-gray-3`; do not jump to mid-gray for cards.
 - Text: warm white for primary reading, softened warm gray for metadata.
 - Dividers: low-opacity grayscale only.
 - Color: album art and rating stars only. Avoid decorative purple, blue, green, neon, gradients, and colorful pills.
@@ -41,14 +42,15 @@ Use surface color shifts plus soft layered shadows. Avoid heavy borders.
 
 ## Radius And Spacing
 
-- Review cards: `1.05rem`.
-- Feed controls and search launcher: `0.95rem`.
+- Review cards: `0.95rem`.
+- Feed controls and search launcher: `0.78rem`.
 - Tab active state: inner radius should stay visually concentric with the outer control.
-- Keep padding calm and symmetric; prefer small spacing adjustments over new wrappers.
+- Keep padding compact and symmetric; the shell can feel spacious, but feed internals should stay tight and reading-led.
 
 ## Typography
 
 - Use serif type to give reviews and track identity editorial weight.
+- Use Instrument Serif for small editorial labels; avoid decorative script for product labels.
 - Use sans type for navigation, controls, and metadata.
 - Apply `text-pretty` to review copy and `text-balance` where headings can wrap awkwardly.
 - Use `tabular-nums` for ratings and counters.

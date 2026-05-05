@@ -42,28 +42,24 @@ export default function WhoToFollowRail({
   });
   const profiles = data?.profiles ?? [];
 
-  if (!isDesktop) {
-    return null;
-  }
-
   return (
     <aside className="hidden lg:block" aria-label="Fresh voices">
-      <div className="sticky top-1 space-y-2.5 pt-1">
-        <p className="px-1 font-editorial text-[1.45rem] font-normal leading-none text-muted-foreground/76">
+      <div className="sticky top-1 space-y-3 pt-1">
+        <p className="px-1 font-editorial text-[1.02rem] font-normal italic leading-none text-muted-foreground/74">
           Fresh voices
         </p>
 
         {isLoading ? (
           <WhoToFollowRailSkeleton showHeading={false} />
         ) : profiles.length > 0 ? (
-          <div className="space-y-0.5">
+          <div className="border-t border-border/32">
             {profiles.map((profile, index) => {
               const primaryLabel = profile.display_name ?? `@${profile.username}`;
 
               return (
                 <motion.div
                   key={profile.id}
-                  className="kocteau-rail-row rounded-[0.85rem] px-2.5 py-2.5"
+                  className="kocteau-rail-row border-b border-border/24 px-1 py-3"
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={
@@ -76,26 +72,26 @@ export default function WhoToFollowRail({
                         }
                   }
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2.5">
                     <PrefetchLink
                       href={`/u/${profile.username}`}
-                      className="group min-w-0 flex-1 rounded-[1rem] transition-colors hover:text-foreground"
+                      className="group min-w-0 flex-1 rounded-[0.7rem] transition-colors hover:text-foreground"
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2.5">
                         <UserAvatar
                           avatarUrl={profile.avatar_url}
                           displayName={profile.display_name}
                           username={profile.username}
-                          className="size-10 shrink-0 ring-1 ring-white/[0.05]"
-                          sizes="40px"
+                          className="size-8 shrink-0 ring-1 ring-white/[0.05]"
+                          sizes="32px"
                           initialsLength={2}
                         />
 
-                        <div className="min-w-0 flex-1 space-y-0.5 pt-0.5">
-                          <p className="truncate text-[14px] font-medium text-foreground">
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <p className="truncate text-[13px] font-medium text-foreground">
                             {primaryLabel}
                           </p>
-                          <p className="truncate text-[12.5px] text-muted-foreground/82">
+                          <p className="truncate text-[12px] text-muted-foreground/78">
                             @{profile.username}
                           </p>
                         </div>
@@ -108,7 +104,7 @@ export default function WhoToFollowRail({
                         initialFollowing={profile.viewer_is_following}
                         isAuthenticated
                         size="xs"
-                        className="h-7 shrink-0 px-2.5 text-[10px] !border-transparent !bg-transparent !text-foreground/90 hover:!bg-foreground/[0.06] hover:!text-foreground"
+                        className="h-7 shrink-0 rounded-md px-2 text-[10px] !border-transparent !bg-transparent !text-foreground/88 hover:!bg-foreground/[0.055] hover:!text-foreground"
                       />
                     ) : null}
                   </div>
@@ -117,7 +113,7 @@ export default function WhoToFollowRail({
             })}
           </div>
         ) : (
-          <div className="px-3 text-sm text-muted-foreground">
+          <div className="border-t border-border/28 px-1 py-3 text-[13px] text-muted-foreground/78">
             No fresh voices yet.
           </div>
         )}

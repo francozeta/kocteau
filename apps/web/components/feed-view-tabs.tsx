@@ -48,8 +48,8 @@ export default function FeedViewTabs({
   return (
     <div
       className={cn(
-        "kocteau-feed-tabs mobile-liquid-panel relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] p-1",
-        fullWidth ? "w-full" : "w-full max-w-[18.25rem] lg:w-[18.25rem]",
+        "kocteau-feed-tabs mobile-liquid-panel relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[var(--kocteau-radius-control)] p-0.5",
+        fullWidth ? "w-full" : "w-full max-w-[17.25rem] lg:w-[17.25rem]",
         className,
       )}
     >
@@ -77,7 +77,7 @@ export default function FeedViewTabs({
             href={getFeedViewHref(view.value)}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "relative z-10 inline-flex h-8 items-center justify-center rounded-[0.7rem] px-3 text-sm font-medium text-muted-foreground/84 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-0",
+              "relative z-10 inline-flex h-8 items-center justify-center rounded-[0.62rem] px-2.5 text-[13px] font-medium text-muted-foreground/84 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-0",
               fullWidth ? "min-w-0 px-2" : "min-w-[5.1rem]",
               isActive ? "text-foreground" : "hover:text-foreground",
             )}
@@ -85,7 +85,7 @@ export default function FeedViewTabs({
             {isActive ? (
               <motion.span
                 layoutId="feed-tab-active"
-                className="kocteau-feed-tab-active absolute inset-0 rounded-[0.7rem]"
+                className="kocteau-feed-tab-active absolute inset-0 rounded-[0.62rem]"
                 transition={
                   prefersReducedMotion
                     ? {
