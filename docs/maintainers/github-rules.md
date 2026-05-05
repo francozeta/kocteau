@@ -11,6 +11,17 @@ These settings keep Kocteau open to public contributions while protecting releas
 - Disable auto-merge until the public workflow is stable.
 - Keep merge commits disabled once contributors are comfortable with squash PRs.
 
+## Actions Permissions
+
+Release Please needs permission to open and update release PRs.
+
+In GitHub, enable:
+
+- Settings -> Actions -> General -> Workflow permissions: `Read and write permissions`.
+- Settings -> Actions -> General -> Workflow permissions: `Allow GitHub Actions to create and approve pull requests`.
+
+Without the second setting, Release Please will run but fail when it tries to create the release PR.
+
 ## Branch Protection for `main`
 
 Start with advisory checks during launch. After one to two stable public contribution weeks, enable:

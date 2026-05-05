@@ -17,6 +17,8 @@ The current release ritual is web-first. `apps/web` is the production contributi
 5. The release PR updates `package.json`, `.release-please-manifest.json`, and `CHANGELOG.md`.
 6. When the maintainer merges the release PR, Release Please creates the tag and GitHub Release.
 
+Release Please requires GitHub Actions to be allowed to create pull requests. See `docs/maintainers/github-rules.md` for the repository setting.
+
 ## PR Title Inputs
 
 Make sure user-facing web changes use clear conventional titles:
