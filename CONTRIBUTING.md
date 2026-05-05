@@ -17,6 +17,8 @@ Good first contributions usually live in one of these areas:
 
 Avoid starting with auth, Supabase, recommendation, analytics, release, or CI changes unless a maintainer has already discussed the direction with you.
 
+See [docs/backlog.md](./docs/backlog.md) for the current public backlog. Maintainers use it to turn small, clear tasks into GitHub issues.
+
 ## Local Setup
 
 Install dependencies:
