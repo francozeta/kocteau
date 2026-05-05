@@ -172,12 +172,12 @@ export default function Header({
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
     )}>
-      <div className="relative flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
-        <div
-          className="mobile-liquid-header pointer-events-none absolute inset-x-0 top-[calc(50%+0.2rem)] h-[3.25rem] -translate-y-1/2 rounded-[1.4rem] md:hidden"
-          aria-hidden="true"
-        />
+      <div
+        className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[7.25rem] w-screen -translate-x-1/2 md:hidden"
+        aria-hidden="true"
+      />
 
+      <div className="relative z-10 flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
         <div className="relative z-10 flex items-center gap-2">
           <Button
             type="button"
@@ -241,12 +241,12 @@ export default function Header({
     return (
       <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
-          <div className="relative flex h-11 items-center justify-between gap-3">
-            <div
-              className="mobile-liquid-header pointer-events-none absolute inset-x-0 top-[calc(50%+0.2rem)] h-[3.25rem] -translate-y-1/2 rounded-[1.4rem]"
-              aria-hidden="true"
-            />
+          <div
+            className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[7.25rem] w-screen -translate-x-1/2"
+            aria-hidden="true"
+          />
 
+          <div className="relative z-10 flex h-11 items-center justify-between gap-3">
             <Button
               type="button"
               variant="ghost"
