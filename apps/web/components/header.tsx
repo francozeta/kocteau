@@ -173,7 +173,7 @@ export default function Header({
       shouldUseContextualHeader && "max-md:hidden",
     )}>
       <div
-        className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[4.5rem] w-screen -translate-x-1/2 md:hidden"
+        className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[3.75rem] w-screen -translate-x-1/2 md:hidden"
         aria-hidden="true"
       />
 
@@ -242,7 +242,7 @@ export default function Header({
       <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
           <div
-            className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[6.5rem] w-screen -translate-x-1/2"
+            className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[3.75rem] w-screen -translate-x-1/2"
             aria-hidden="true"
           />
 
