@@ -225,14 +225,14 @@
     }
 
     .mobile-liquid-bar {
-      @apply backdrop-blur-3xl backdrop-saturate-200;
-      border: 0 !important;
-      background: color-mix(in oklch, var(--background) 58%, transparent) !important;
+      @apply backdrop-blur-2xl backdrop-saturate-150;
+      border: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent) !important;
+      background: color-mix(in oklch, var(--background) 52%, transparent) !important;
       box-shadow:
-        0 18px 48px rgba(0, 0, 0, 0.36),
-        inset 0 1px 0 rgba(255, 255, 255, 0.075) !important;
-      backdrop-filter: blur(30px) saturate(170%) !important;
-      -webkit-backdrop-filter: blur(30px) saturate(170%) !important;
+        0 16px 44px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+      backdrop-filter: blur(24px) saturate(150%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
     }
 
     .mobile-liquid-panel {
@@ -278,10 +278,11 @@
     }
 
     .dark .mobile-liquid-bar {
-      background: rgba(12, 12, 14, 0.66) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      background: rgba(10, 10, 12, 0.58) !important;
       box-shadow:
-        0 18px 48px rgba(0, 0, 0, 0.46),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        0 16px 44px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
     }
 
     .dark .mobile-liquid-panel {
