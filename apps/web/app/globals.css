@@ -170,20 +170,20 @@
 @layer components {
   @media (max-width: 767px) {
     .mobile-liquid-header {
-      @apply backdrop-blur-3xl backdrop-saturate-200;
+      @apply backdrop-blur-2xl backdrop-saturate-150;
       border: 0 !important;
       background:
         linear-gradient(
           180deg,
-          color-mix(in oklch, var(--background) 78%, transparent) 0%,
-          color-mix(in oklch, var(--background) 56%, transparent) 38%,
-          color-mix(in oklch, var(--background) 24%, transparent) 68%,
+          color-mix(in oklch, var(--background) 66%, transparent) 0%,
+          color-mix(in oklch, var(--background) 42%, transparent) 38%,
+          color-mix(in oklch, var(--background) 16%, transparent) 68%,
           transparent 100%
         ) !important;
       box-shadow:
-        0 28px 78px rgba(0, 0, 0, 0.34) !important;
-      backdrop-filter: blur(42px) saturate(180%) !important;
-      -webkit-backdrop-filter: blur(42px) saturate(180%) !important;
+        0 22px 58px rgba(0, 0, 0, 0.24) !important;
+      backdrop-filter: blur(34px) saturate(150%) !important;
+      -webkit-backdrop-filter: blur(34px) saturate(150%) !important;
       mask-image: linear-gradient(180deg, #000 0%, #000 46%, rgba(0, 0, 0, 0.7) 70%, transparent 100%);
       -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 46%, rgba(0, 0, 0, 0.7) 70%, transparent 100%);
     }
@@ -261,13 +261,13 @@
       background:
         linear-gradient(
           180deg,
-          rgba(9, 9, 10, 0.86) 0%,
-          rgba(9, 9, 10, 0.62) 38%,
-          rgba(9, 9, 10, 0.28) 68%,
+          rgba(9, 9, 10, 0.7) 0%,
+          rgba(9, 9, 10, 0.46) 38%,
+          rgba(9, 9, 10, 0.18) 68%,
           rgba(9, 9, 10, 0) 100%
         ) !important;
       box-shadow:
-        0 28px 78px rgba(0, 0, 0, 0.52) !important;
+        0 22px 58px rgba(0, 0, 0, 0.34) !important;
     }
 
     .dark .mobile-liquid-logo {
