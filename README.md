@@ -172,14 +172,15 @@ The goal is product feedback, not surveillance. Events avoid emails, IPs, user a
 - MVP and product baseline: [docs/mvp.md](./docs/mvp.md)
 - Web roadmap: [docs/web-roadmap.md](./docs/web-roadmap.md)
 - Operational notes: [docs/operations.md](./docs/operations.md)
-- Release checklist: [docs/maintainers/release.md](./docs/maintainers/release.md)
+- Release automation: [docs/maintainers/release.md](./docs/maintainers/release.md)
+- GitHub rules: [docs/maintainers/github-rules.md](./docs/maintainers/github-rules.md)
 - Email templates: [apps/web/emails/README.md](./apps/web/emails/README.md)
 
 ## Contributing
 
 Kocteau is open to public contributions, with a web-first focus for now. Good first contributions include docs, copy, accessibility, loading states, empty states, and small web UI polish.
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR. Contributors do not need to edit `CHANGELOG.md`; maintainers generate it automatically from PR titles and squash commits during release.
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR. Contributors do not need to edit `CHANGELOG.md`; Release Please generates version bumps, release notes, tags, and GitHub Releases from PR titles and squash commits.
 
 ## Current Product Direction
 

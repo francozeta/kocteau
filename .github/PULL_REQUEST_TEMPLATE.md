@@ -10,7 +10,7 @@
 
 ## Changelog impact
 
-No manual `CHANGELOG.md` edit is required. Maintainers generate it automatically from PR titles and squash commits.
+No manual `CHANGELOG.md` edit is required. Release Please generates release notes from PR titles and squash commits.
 
 - [ ] User-facing web change
 - [ ] Developer experience or documentation change

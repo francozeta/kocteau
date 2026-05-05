@@ -2,9 +2,9 @@
 
 **Goal:** Prepare Kocteau for 100% public contribution with automation that feels professional, welcoming, and protective without blocking early momentum.
 
-**Context:** Kocteau is a public-facing music review product with a Next.js web app, Expo mobile app, Supabase-backed data/auth flows, and sensitive recommendation/editorial logic. Public contribution automation is web-first for now because `apps/web` is the production surface; `apps/mobile` remains future-facing. The repo currently has no versioned `.github` automation. The known reliable checks are `pnpm lint` and `pnpm --filter web build`; root `pnpm build` timed out locally and should not become the first CI gate.
+**Context:** Kocteau is a public-facing music review product with a Next.js web app, Expo mobile app, Supabase-backed data/auth flows, and sensitive recommendation/editorial logic. Public contribution automation is web-first for now because `apps/web` is the production surface; `apps/mobile` remains future-facing. The known reliable checks are `pnpm lint` and `pnpm --filter web build`; root `pnpm build` timed out locally and should not become the first CI gate.
 
-**Decision:** Use an advisory-first maintainer system for launch. GitHub automation should sort, guide, and verify contributions visibly, while maintainers keep final control over sensitive areas and release timing.
+**Decision:** Use an advisory-first maintainer system for launch. GitHub automation should sort, guide, verify, and prepare releases visibly, while maintainers keep final control over sensitive areas and release PR merges.
 
 ---
 
@@ -201,25 +201,21 @@ Controls to defer until justified:
 - Husky hooks
 - Auto-merge
 - Stale bot
-- Release Please
 
 ## Changelog and Release Strategy
 
-Keep releases manual for now, matching `docs/operations.md`, but make the public `CHANGELOG.md` automatic.
+Use Release Please for versioning, `CHANGELOG.md`, tags, and GitHub Releases. Keep the final release PR merge manual.
 
 Add `docs/maintainers/release.md` with:
 
 - Pre-release checks
-- Automatic changelog generation from conventional commit history
+- Release Please PR review rules
 - Web-first changelog scope for the current production surface
-- Tag naming convention
+- Tag naming convention through Release Please
 - GitHub Release checklist
 - Post-release smoke checks
-- Reminder that Release Please is intentionally not active yet
 
-Contributors should not write changelog entries manually. Maintainers should preserve or adjust clear PR titles and squash commit messages so `pnpm changelog` can generate useful release notes.
-
-Release Please can be reconsidered after public contribution flow stabilizes and commit hygiene naturally improves.
+Contributors should not write changelog entries manually. Maintainers should preserve or adjust clear PR titles and squash commit messages so Release Please can generate useful release notes.
 
 ## Security and Fork Safety
 
@@ -252,10 +248,10 @@ Public forks must not receive secrets.
 - Add stricter review requirements for sensitive lanes if needed.
 - Keep first-contribution paths lightweight.
 
-**Phase 4: Release Automation Review**
+**Phase 4: Release Automation Hardening**
 
-- Keep manual releases during launch.
-- Revisit Release Please only after public contribution patterns are clear.
+- Keep Release Please PR merges manual during launch.
+- Revisit auto-merge only after public contribution patterns are clear.
 
 ## Success Criteria
 
@@ -268,7 +264,7 @@ Public forks must not receive secrets.
 
 ## Non-Goals
 
-- No automatic release management in v1.
+- No release PR auto-merge in v1.
 - No manual changelog entry requirement for contributors.
 - No stale bot in v1.
 - No auto-merge in v1.

@@ -1,0 +1,22 @@
+name: Documentation issue
+description: Improve docs, setup notes, or contributor guidance.
+title: "docs: "
+labels:
+  - docs
+  - "area:docs"
+body:
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is unclear or missing?
+    validations:
+      required: true
+  - type: input
+    id: file
+    attributes:
+      label: File or page
+      placeholder: README.md, CONTRIBUTING.md, docs/...
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording or fix

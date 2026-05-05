@@ -1,0 +1,101 @@
+"area:web":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/**
+          - packages/**
+
+"area:mobile":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/mobile/**
+
+"area:ui":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/components/**
+          - apps/web/app/**/page.tsx
+          - apps/web/app/**/loading.tsx
+          - apps/web/app/globals.css
+          - packages/ui/**
+
+"area:docs":
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - README.md
+              - CONTRIBUTING.md
+              - CHANGELOG.md
+              - CODE_OF_CONDUCT.md
+              - SECURITY.md
+              - SUPPORT.md
+              - docs/**
+              - "**/*.md"
+      - head-branch:
+          - "^docs/"
+
+"area:supabase":
+  - changed-files:
+      - any-glob-to-any-file:
+          - supabase/**
+          - apps/web/lib/supabase/**
+
+"area:auth":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/app/(auth)/**
+          - apps/web/app/auth/**
+          - apps/web/lib/auth/**
+          - apps/web/proxy.ts
+
+"area:recommendations":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/lib/recommendations/**
+          - apps/web/lib/queries/feed.ts
+          - apps/web/lib/queries/starter.ts
+          - apps/web/components/feed-starter-layer.tsx
+          - supabase/scripts/recommendation-v2.sql
+          - supabase/scripts/editorial-starter-layer.sql
+          - supabase/scripts/starter-algorithm-signals-patch.sql
+
+"area:analytics":
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/lib/analytics/**
+          - apps/web/app/api/analytics/**
+          - supabase/scripts/analytics-events.sql
+
+"area:ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+          - package.json
+          - pnpm-lock.yaml
+          - pnpm-workspace.yaml
+          - turbo.json
+          - release-please-config.json
+          - .release-please-manifest.json
+
+"area:dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - pnpm-lock.yaml
+          - apps/*/package.json
+          - packages/*/package.json
+
+bug:
+  - head-branch:
+      - "^fix/"
+
+feature:
+  - head-branch:
+      - "^feat/"
+
+docs:
+  - head-branch:
+      - "^docs/"
+
+chore:
+  - head-branch:
+      - "^chore/"

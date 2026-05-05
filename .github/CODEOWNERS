@@ -1,0 +1,31 @@
+* @francozeta
+
+.github/** @francozeta
+package.json @francozeta
+pnpm-lock.yaml @francozeta
+pnpm-workspace.yaml @francozeta
+turbo.json @francozeta
+release-please-config.json @francozeta
+.release-please-manifest.json @francozeta
+CHANGELOG.md @francozeta
+
+supabase/** @francozeta
+apps/web/app/api/** @francozeta
+apps/web/app/auth/** @francozeta
+apps/web/app/(auth)/** @francozeta
+apps/web/lib/auth/** @francozeta
+apps/web/lib/supabase/** @francozeta
+apps/web/lib/recommendations/** @francozeta
+apps/web/lib/analytics/** @francozeta
+apps/web/lib/queries/feed.ts @francozeta
+apps/web/lib/queries/starter.ts @francozeta
+apps/web/lib/queries/reviews.ts @francozeta
+apps/web/lib/queries/notifications.ts @francozeta
+apps/web/proxy.ts @francozeta
+apps/web/next.config.ts @francozeta
+apps/web/sentry.*.config.ts @francozeta
+apps/web/instrumentation.ts @francozeta
+apps/web/instrumentation-client.ts @francozeta
+
+docs/operations.md @francozeta
+docs/maintainers/** @francozeta

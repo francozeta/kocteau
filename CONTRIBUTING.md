@@ -66,7 +66,7 @@ Keep PRs narrow. A strong PR explains:
 - whether it touches a sensitive area
 - screenshots or short recordings for visible UI changes
 
-Use clear PR titles. Maintainers use PR titles and squash commit messages to generate `CHANGELOG.md` automatically, so contributors do not need to write changelog entries by hand.
+Use clear PR titles. Release Please uses PR titles and squash commit messages to update versions, generate `CHANGELOG.md`, create tags, and publish GitHub Releases, so contributors do not need to write changelog entries by hand.
 
 Good title examples:
 
@@ -95,11 +95,6 @@ Public contribution is welcome here, but please open an issue or discussion firs
 
 Do not edit `CHANGELOG.md` in normal feature or fix PRs.
 
-The changelog is generated from git history:
+Release Please updates the changelog automatically after changes land on `main`. Maintainers review and merge the generated release PR.
 
-```bash
-pnpm changelog:preview
-pnpm changelog
-```
-
-Maintainers run this during the release process after choosing the release version and final squash commit titles.
+Use clear PR titles so release notes stay readable.

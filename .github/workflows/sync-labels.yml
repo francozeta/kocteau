@@ -1,0 +1,92 @@
+name: Sync Labels
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/labels.json
+      - .github/workflows/sync-labels.yml
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sync-labels-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync-labels:
+    name: Sync Labels
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync labels
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const path = ".github/labels.json";
+
+            const response = await github.rest.repos.getContent({
+              owner,
+              repo,
+              path,
+              ref: context.sha,
+            });
+
+            if (Array.isArray(response.data) || !response.data.content) {
+              throw new Error(`${path} must be a JSON file.`);
+            }
+
+            const labels = JSON.parse(
+              Buffer.from(response.data.content, response.data.encoding).toString("utf8"),
+            );
+
+            for (const label of labels) {
+              const desired = {
+                owner,
+                repo,
+                name: label.name,
+                color: label.color.replace(/^#/, ""),
+                description: label.description || "",
+              };
+
+              try {
+                const current = await github.rest.issues.getLabel({
+                  owner,
+                  repo,
+                  name: label.name,
+                });
+
+                const currentDescription = current.data.description || "";
+                const needsUpdate =
+                  current.data.name !== desired.name ||
+                  current.data.color.toLowerCase() !== desired.color.toLowerCase() ||
+                  currentDescription !== desired.description;
+
+                if (!needsUpdate) {
+                  core.info(`Label up to date: ${desired.name}`);
+                  continue;
+                }
+
+                await github.rest.issues.updateLabel({
+                  owner,
+                  repo,
+                  name: current.data.name,
+                  new_name: desired.name,
+                  color: desired.color,
+                  description: desired.description,
+                });
+                core.info(`Updated label: ${desired.name}`);
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+
+                await github.rest.issues.createLabel(desired);
+                core.info(`Created label: ${desired.name}`);
+              }
+            }

@@ -173,12 +173,13 @@ The script grants `admin` to the profile whose username is `kocteau` when it run
 
 Current preference:
 
-- Avoid automatic versioning unless explicitly requested.
-- Generate `CHANGELOG.md` automatically from conventional commit history during manual releases.
+- Use Release Please for automatic versioning, changelog updates, tags, and GitHub Releases.
 - Keep the public release process web-first until mobile becomes a production surface.
 - Use branches for meaningful features.
-- Let GitHub PRs, merges, tags, and releases be handled manually unless asked otherwise.
-- Use `docs/maintainers/release.md` for the release checklist.
+- Use squash merge titles as the release-note source.
+- Keep release PR merging manual; do not enable auto-merge for release PRs yet.
+- Use `docs/maintainers/release.md` for release automation notes.
+- Use `docs/maintainers/github-rules.md` for recommended repository rules.
 
 Good branch names:
 

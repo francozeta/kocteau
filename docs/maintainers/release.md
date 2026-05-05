@@ -1,19 +1,25 @@
-# Release Checklist
+# Release Automation
 
-Kocteau uses manual releases with an automatically generated changelog.
+Kocteau uses Release Please for versioning, changelog updates, tags, and GitHub Releases.
 
-This keeps release control with the maintainer while avoiding manual changelog writing for contributors.
+This keeps release control with the maintainer while avoiding manual version and changelog work.
 
 ## Scope
 
 The current release ritual is web-first. `apps/web` is the production contribution surface. Mobile changes can exist in the repo, but they should not drive public release notes until mobile becomes a production surface.
 
-## Before Release
+## How It Works
 
-1. Pull the latest `main`.
-2. Check that the working tree is clean.
-3. Review merged PR titles and squash commit messages.
-4. Make sure user-facing web changes use clear conventional titles:
+1. Contributors open PRs with clear titles.
+2. Maintainers squash merge with a conventional title.
+3. Release Please watches `main`.
+4. Release Please opens or updates a release PR.
+5. The release PR updates `package.json`, `.release-please-manifest.json`, and `CHANGELOG.md`.
+6. When the maintainer merges the release PR, Release Please creates the tag and GitHub Release.
+
+## PR Title Inputs
+
+Make sure user-facing web changes use clear conventional titles:
 
 ```text
 feat(web): add saved review empty state
@@ -22,55 +28,18 @@ docs: clarify contributor setup
 chore(repo): update maintainer automation
 ```
 
-5. Run:
+During the current web-first phase, mobile changes should usually use `chore(mobile): ...` unless the maintainer intentionally wants them in public release notes.
 
-```bash
-pnpm check
-```
+## Release PR Review
 
-## Prepare Changelog
+Before merging a Release Please PR:
 
-1. Choose the next version.
-2. Update the root `package.json` version.
-3. Preview the generated web changelog:
+- Read the generated `CHANGELOG.md` section.
+- Confirm the version bump matches the merged changes.
+- Confirm `package.json` and `.release-please-manifest.json` match.
+- Confirm CI passes.
 
-```bash
-pnpm changelog:preview
-```
-
-4. Generate `CHANGELOG.md`:
-
-```bash
-pnpm changelog
-```
-
-5. Review `CHANGELOG.md` for obvious noise. Prefer fixing noisy commit or PR titles before generation instead of hand-editing entries.
-
-## Commit and Tag
-
-Commit the release files:
-
-```bash
-git add package.json pnpm-lock.yaml CHANGELOG.md
-git commit -m "chore(release): vX.Y.Z"
-```
-
-Create the tag:
-
-```bash
-git tag vX.Y.Z
-```
-
-Push:
-
-```bash
-git push origin main
-git push origin vX.Y.Z
-```
-
-## GitHub Release
-
-Create a GitHub Release from the tag and use the matching `CHANGELOG.md` section as the release notes.
+Prefer fixing noisy PR titles before merge. Avoid hand-editing generated release PR files unless the generated output is clearly wrong.
 
 ## Post-Release Smoke Check
 
@@ -86,8 +55,6 @@ After deploy:
 
 ## What Is Intentionally Not Automated Yet
 
-- Version bumping
-- GitHub Release creation
-- Tag creation
-- Release Please
 - npm publishing
+- Auto-merge for release PRs
+- Production deploy promotion

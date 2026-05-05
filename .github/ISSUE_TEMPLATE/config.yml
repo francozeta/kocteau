@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/francozeta/kocteau/security/advisories/new
+    about: Please report security issues privately.
+  - name: Product direction
+    url: https://github.com/francozeta/kocteau/discussions
+    about: Use discussions for open-ended product or taste-discovery ideas when enabled.

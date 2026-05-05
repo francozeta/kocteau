@@ -1,0 +1,26 @@
+name: Pull Request Labeler
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: labeler-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  labeler:
+    name: Label Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Label pull request
+        uses: actions/labeler@v6

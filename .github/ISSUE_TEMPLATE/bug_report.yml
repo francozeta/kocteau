@@ -1,0 +1,54 @@
+name: Bug report
+description: Report something that is not working as expected.
+title: "fix(web): "
+labels:
+  - bug
+  - "area:web"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep reports specific. A small reproduction is the fastest path to a fix.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the visible behavior and where it happened.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: route
+    attributes:
+      label: Route or surface
+      placeholder: /, /track/..., /u/...
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or recording
+      description: Add screenshots for visual bugs when possible.
+  - type: dropdown
+    id: sensitive
+    attributes:
+      label: Does this touch a sensitive area?
+      options:
+        - No, this looks like UI/docs/copy.
+        - Maybe: auth, Supabase, API, recommendations, analytics, CI, or release.
+        - Yes: auth, Supabase, API, recommendations, analytics, CI, or release.
+    validations:
+      required: true

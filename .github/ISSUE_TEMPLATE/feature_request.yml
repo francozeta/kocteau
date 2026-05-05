@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest a focused product improvement.
+title: "feat(web): "
+labels:
+  - feature
+  - "area:web"
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What should this improve?
+      description: Tie the request to reviewing music, taste discovery, or the For You loop.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed shape
+      description: Describe the smallest useful version.
+    validations:
+      required: true
+  - type: dropdown
+    id: lane
+    attributes:
+      label: Contribution lane
+      options:
+        - Fast Lane: docs, copy, isolated web UI, accessibility, loading/empty/error state.
+        - Maintainer Review Lane: auth, Supabase, API writes, recommendations, analytics, CI, release.
+        - Not sure.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes, references, or screenshots

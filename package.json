@@ -2,6 +2,14 @@
   "name": "kocteau",
   "version": "0.1.3",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/francozeta/kocteau.git"
+  },
+  "bugs": {
+    "url": "https://github.com/francozeta/kocteau/issues"
+  },
   "packageManager": "pnpm@9.15.3",
   "workspaces": [
     "apps/*",
@@ -14,13 +22,9 @@
     "dev:mobile:clear": "pnpm --filter mobile run start:clear",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "check": "pnpm lint && pnpm --filter web build",
-    "changelog": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -o CHANGELOG.md -r 0 --output-unreleased --commit-path apps/web",
-    "changelog:preview": "conventional-changelog -p conventionalcommits -r 0 --output-unreleased --commit-path apps/web --stdout"
+    "check": "pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
-    "conventional-changelog": "^7.2.0",
-    "conventional-changelog-conventionalcommits": "^9.3.1",
     "turbo": "2.9.2"
   },
   "pnpm": {
