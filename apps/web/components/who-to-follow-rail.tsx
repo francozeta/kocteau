@@ -63,7 +63,7 @@ export default function WhoToFollowRail({
               return (
                 <motion.div
                   key={profile.id}
-                  className="rounded-[0.85rem] px-2.5 py-2.5 transition-colors hover:bg-card/16"
+                  className="kocteau-rail-row rounded-[0.85rem] px-2.5 py-2.5"
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={
@@ -108,7 +108,7 @@ export default function WhoToFollowRail({
                         initialFollowing={profile.viewer_is_following}
                         isAuthenticated
                         size="xs"
-                        className="h-7 shrink-0 px-2.5 text-[10px] !border-border/18 !bg-transparent !text-foreground/90 hover:!bg-card/22 hover:!text-foreground"
+                        className="h-7 shrink-0 px-2.5 text-[10px] !border-transparent !bg-transparent !text-foreground/90 hover:!bg-foreground/[0.06] hover:!text-foreground"
                       />
                     ) : null}
                   </div>

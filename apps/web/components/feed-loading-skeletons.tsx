@@ -26,7 +26,7 @@ export function FeedSearchSkeleton() {
   return (
     <div
       aria-hidden="true"
-      className="flex h-11 w-full items-center gap-3 rounded-[0.95rem] border border-border/45 bg-card/62 px-4"
+      className="kocteau-control-surface flex h-11 w-full items-center gap-3 rounded-[0.95rem] px-4"
     >
       <Skeleton className="size-4 shrink-0 rounded-full bg-muted-foreground/[0.12]" />
       <SkeletonLine className="h-3.5 w-[min(18rem,72%)] bg-muted-foreground/[0.1]" />
@@ -42,7 +42,7 @@ export function FeedControlsSkeleton({
     <div
       aria-hidden="true"
       className={cn(
-        "relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] border border-border/45 bg-card/62 p-1",
+        "kocteau-feed-tabs relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[0.95rem] p-1",
         fullWidth ? "w-full" : "w-full max-w-[18.25rem] lg:w-[18.25rem]",
       )}
     >
@@ -60,7 +60,7 @@ export function FeedControlsSkeleton({
           key={`feed-control-${index}`}
           className={cn(
             "relative z-10 flex h-8 items-center justify-center rounded-[0.7rem]",
-            index === 0 && "bg-white/[0.08]",
+            index === 0 && "kocteau-feed-tab-active",
           )}
         >
           <Skeleton
@@ -83,8 +83,8 @@ export function ReviewCardSkeleton({
     <article
       aria-hidden="true"
       className={cn(
-        "overflow-hidden rounded-[0.95rem] border border-border/18 bg-card/22",
-        featured && "border-border/24 bg-card/30",
+        "kocteau-review-card overflow-hidden rounded-[1.05rem]",
+        featured && "kocteau-review-card-featured",
       )}
     >
       <div className="flex flex-col gap-4 p-4 sm:p-[1.125rem]">
@@ -112,7 +112,7 @@ export function ReviewCardSkeleton({
             featured && "grid-cols-[6.75rem_minmax(0,1fr)] sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)]",
           )}
         >
-          <Skeleton className="aspect-square w-full rounded-[0.85rem] bg-muted-foreground/[0.1]" />
+          <Skeleton className="aspect-square w-full rounded-[0.85rem] bg-muted-foreground/[0.1] shadow-[0_12px_32px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.06)]" />
 
           <div className="flex min-w-0 flex-col justify-center gap-2.5 self-stretch">
             <SkeletonLine className="h-6 w-[min(16rem,86%)] bg-muted-foreground/[0.16] sm:h-7" />
@@ -124,7 +124,7 @@ export function ReviewCardSkeleton({
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-border/18 pt-2.5">
+        <div className="flex items-center justify-between gap-3 pt-1.5">
           <div className="flex items-center gap-2">
             <Skeleton className="h-3 w-10 rounded-full bg-muted-foreground/[0.08]" />
             <Skeleton className="h-3 w-8 rounded-full bg-muted-foreground/[0.06]" />

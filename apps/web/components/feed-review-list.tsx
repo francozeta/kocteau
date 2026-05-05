@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { motion, useReducedMotion } from "motion/react";
 import FeedStarterLayer from "@/components/feed-starter-layer";
 import { Music2, Sparkles, UsersRound } from "lucide-react";
 import { FeedReviewCard } from "@/components/review-route-cards";
@@ -135,7 +134,6 @@ export default function FeedReviewList({
 }: FeedReviewListProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const trackedPageKeysRef = useRef(new Set<string>());
-  const prefersReducedMotion = useReducedMotion();
   const feedQuery = useInfiniteQuery({
     ...feedInfiniteQueryOptions(view),
     initialData: {
@@ -273,20 +271,7 @@ export default function FeedReviewList({
         const author = review.author;
 
         return (
-          <motion.div
-            key={review.id}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={
-              prefersReducedMotion
-                ? { duration: 0 }
-                : {
-                    duration: 0.18,
-                    ease: "easeOut",
-                    delay: Math.min(index * 0.018, 0.06),
-                  }
-            }
-          >
+          <div key={review.id}>
             <FeedReviewCard
               review={review}
               entity={review.entities}
@@ -299,7 +284,7 @@ export default function FeedReviewList({
               analyticsSource={view === "for-you" ? "feed:for-you" : null}
               viewer={viewer}
             />
-          </motion.div>
+          </div>
         );
       })}
 

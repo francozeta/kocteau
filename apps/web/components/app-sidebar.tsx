@@ -155,7 +155,7 @@ export default function AppSidebar({
               trigger={
                 <button
                   type="button"
-                  className="flex h-9 w-full items-center justify-between rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none transition-colors hover:bg-sidebar-primary/95"
+                  className="flex h-9 w-full items-center justify-between rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none transition-[color,background-color,transform] hover:bg-sidebar-primary/95 active:scale-[0.96]"
                 >
                   <span className="inline-flex items-center gap-2">
                     <Plus className="size-4" />
@@ -176,7 +176,7 @@ export default function AppSidebar({
                 <button
                   type="button"
                   aria-label="New review"
-                  className="mx-auto flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground transition-colors hover:bg-sidebar-primary/95"
+                  className="mx-auto flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground transition-[color,background-color,transform] hover:bg-sidebar-primary/95 active:scale-[0.96]"
                 >
                   <Plus className="size-4" />
                 </button>

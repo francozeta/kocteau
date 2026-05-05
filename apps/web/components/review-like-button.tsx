@@ -57,7 +57,7 @@ export default function ReviewLikeButton({
     pulseTimeoutRef.current = window.setTimeout(() => {
       setAnimatePulse(false);
       pulseTimeoutRef.current = null;
-    }, 320);
+    }, 200);
   }
 
   async function handleClick() {
@@ -86,16 +86,16 @@ export default function ReviewLikeButton({
         aria-busy={isPending}
         aria-label={state.liked ? "Unlike this review" : "Like this review"}
         className={cn(
-          "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-colors duration-150 hover:bg-muted/34 hover:text-foreground active:scale-[0.98] disabled:pointer-events-none",
+          "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-muted/34 hover:text-foreground active:scale-[0.96] disabled:pointer-events-none",
           state.liked && "text-foreground",
-          animatePulse && "bg-rose-500/8",
+          animatePulse && "bg-muted/60",
           isPending && "opacity-80",
         )}
       >
         <Heart
           className={cn(
             "size-4 transition-colors duration-150",
-            state.liked ? "fill-rose-500 text-rose-500" : "text-muted-foreground",
+            state.liked ? "fill-current text-foreground" : "text-muted-foreground",
             animatePulse && "kocteau-like-pop",
             isPending && "scale-110",
           )}

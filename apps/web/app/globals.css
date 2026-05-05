@@ -91,40 +91,66 @@
   --scrollbar-thumb-hover: oklch(0.38 0 0 / 0.34);
   --selection: oklch(0.82 0 0 / 0.3);
   --selection-foreground: oklch(0.16 0 0);
+  --kocteau-canvas: #f5f4f1;
+  --kocteau-shell: #efede9;
+  --kocteau-surface: #f1efeb;
+  --kocteau-surface-raised: #f7f6f4;
+  --kocteau-surface-raised-hover: #ffffff;
+  --kocteau-surface-featured: #f2f1ee;
+  --kocteau-surface-featured-hover: #fbfaf8;
+  --kocteau-surface-control: #f0eee9;
+  --kocteau-surface-control-hover: #f7f6f3;
+  --kocteau-line: rgba(20, 20, 20, 0.1);
+  --kocteau-line-soft: rgba(20, 20, 20, 0.06);
+  --kocteau-topline: rgba(255, 255, 255, 0.68);
+  --kocteau-text: #171717;
+  --kocteau-text-soft: rgba(23, 23, 23, 0.68);
+  --kocteau-shadow-card:
+    0 18px 48px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 var(--kocteau-topline);
+  --kocteau-shadow-card-hover:
+    0 22px 58px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  --kocteau-shadow-control:
+    0 10px 26px rgba(0, 0, 0, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  --kocteau-radius-card: 1.05rem;
+  --kocteau-radius-control: 0.95rem;
+  --kocteau-ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
 .dark {
   color-scheme: dark;
-  --background: #09090a;
+  --background: #050505;
   --foreground: #f6f4f1;
-  --card: #101012;
+  --card: #101011;
   --card-foreground: #f6f4f1;
-  --popover: #131316;
+  --popover: #141415;
   --popover-foreground: #f6f4f1;
   --primary: #ffffff;
   --primary-foreground: #0a0a0a;
-  --secondary: #111114;
+  --secondary: #0d0d0e;
   --secondary-foreground: #f1efec;
-  --muted: #0f0f11;
+  --muted: #101011;
   --muted-foreground: #a8a39f;
-  --accent: #19191c;
+  --accent: #181819;
   --accent-foreground: #f4f2ef;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: #29292d;
-  --input: #101012;
+  --border: #262629;
+  --input: #0d0d0e;
   --ring: rgba(246, 244, 241, 0.34);
-  --chart-1: oklch(0.78 0.09 215);
-  --chart-2: oklch(0.72 0.11 85);
-  --chart-3: oklch(0.62 0.05 255);
-  --chart-4: oklch(0.4 0.03 255);
-  --chart-5: oklch(0.88 0.02 95);
-  --sidebar: #09090a;
+  --chart-1: #f6f4f1;
+  --chart-2: #d8d3cc;
+  --chart-3: #aaa49d;
+  --chart-4: #79746f;
+  --chart-5: #4f4c49;
+  --sidebar: #050505;
   --sidebar-foreground: #f4f2ef;
   --sidebar-primary: #ffffff;
   --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: #18181b;
+  --sidebar-accent: #141415;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #242428;
+  --sidebar-border: #202023;
   --sidebar-ring: rgba(246, 244, 241, 0.34);
   --surface-topline: transparent;
   --surface-glow-1: transparent;
@@ -134,6 +160,29 @@
   --scrollbar-thumb-hover: rgba(245, 244, 243, 0.16);
   --selection: rgba(245, 244, 243, 0.12);
   --selection-foreground: #ffffff;
+  --kocteau-canvas: #050505;
+  --kocteau-shell: #080808;
+  --kocteau-surface: #101011;
+  --kocteau-surface-raised: #19191b;
+  --kocteau-surface-raised-hover: #1d1d1f;
+  --kocteau-surface-featured: #202023;
+  --kocteau-surface-featured-hover: #232326;
+  --kocteau-surface-control: #111112;
+  --kocteau-surface-control-hover: #171718;
+  --kocteau-line: rgba(246, 244, 241, 0.1);
+  --kocteau-line-soft: rgba(246, 244, 241, 0.055);
+  --kocteau-topline: rgba(255, 255, 255, 0.045);
+  --kocteau-text: #f6f4f1;
+  --kocteau-text-soft: rgba(246, 244, 241, 0.68);
+  --kocteau-shadow-card:
+    0 20px 54px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --kocteau-shadow-card-hover:
+    0 24px 64px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --kocteau-shadow-control:
+    0 14px 36px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
   background-image: none;
 }
 
@@ -168,6 +217,79 @@
 }
 
 @layer components {
+  .kocteau-app-frame {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .kocteau-control-surface {
+    border: 0;
+    background: var(--kocteau-surface-control);
+    box-shadow: var(--kocteau-shadow-control);
+    transition-duration: 160ms;
+    transition-property: color, background-color, box-shadow, transform;
+    transition-timing-function: var(--kocteau-ease);
+  }
+
+  .kocteau-control-surface:hover {
+    background: var(--kocteau-surface-control-hover);
+  }
+
+  .kocteau-feed-tabs {
+    background: var(--kocteau-surface-control);
+    box-shadow: var(--kocteau-shadow-control);
+  }
+
+  .kocteau-feed-tab-active {
+    background: color-mix(in oklch, var(--foreground) 9%, transparent);
+    box-shadow: inset 0 1px 0 var(--kocteau-topline);
+  }
+
+  .kocteau-rail-row {
+    background: transparent;
+    transition-duration: 160ms;
+    transition-property: background-color, color;
+    transition-timing-function: ease-out;
+  }
+
+  .kocteau-rail-row:hover {
+    background: color-mix(in oklch, var(--foreground) 5%, transparent);
+  }
+
+  .kocteau-sidebar-note {
+    background: color-mix(in oklch, var(--foreground) 5%, transparent);
+    box-shadow: inset 0 1px 0 var(--kocteau-line-soft);
+  }
+
+  .kocteau-review-card {
+    border: 0;
+    background: var(--kocteau-surface-raised);
+    box-shadow: var(--kocteau-shadow-card);
+    transition-duration: 200ms;
+    transition-property: background-color, box-shadow;
+    transition-timing-function: var(--kocteau-ease);
+  }
+
+  .kocteau-review-card:hover {
+    background: var(--kocteau-surface-raised-hover);
+    box-shadow: var(--kocteau-shadow-card-hover);
+  }
+
+  .kocteau-review-card-featured {
+    background: var(--kocteau-surface-featured);
+  }
+
+  .kocteau-review-card-featured:hover {
+    background: var(--kocteau-surface-featured-hover);
+  }
+
+  @media (min-width: 1024px) {
+    .kocteau-app-frame {
+      background: var(--kocteau-shell);
+      box-shadow: inset 0 0 0 1px var(--kocteau-line-soft);
+    }
+  }
+
   @media (max-width: 767px) {
     .mobile-liquid-header {
       @apply backdrop-blur-xl backdrop-saturate-150;
@@ -328,10 +450,10 @@
     transform: scale(1);
   }
   35% {
-    transform: scale(1.22);
+    transform: scale(1.1);
   }
   65% {
-    transform: scale(0.96);
+    transform: scale(0.98);
   }
   100% {
     transform: scale(1);
@@ -354,11 +476,11 @@
 }
 
 .kocteau-like-pop {
-  animation: kocteau-like-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: kocteau-like-pop 200ms ease-out;
 }
 
 .kocteau-like-count-pop {
-  animation: kocteau-like-count-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: kocteau-like-count-pop 200ms ease-out;
 }
 
 @keyframes kocteau-save-pop {
@@ -366,7 +488,7 @@
     transform: scale(1);
   }
   45% {
-    transform: scale(1.14);
+    transform: scale(1.08);
   }
   100% {
     transform: scale(1);
@@ -374,7 +496,7 @@
 }
 
 .kocteau-save-pop {
-  animation: kocteau-save-pop 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: kocteau-save-pop 180ms ease-out;
 }
 
 ::-webkit-scrollbar {

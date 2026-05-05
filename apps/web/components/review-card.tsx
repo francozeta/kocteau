@@ -143,8 +143,8 @@ export function ReviewCardEntitySummary({
     return (
       <div
         className={cn(
-          "inline-flex max-w-full items-center gap-2 rounded-lg border border-border/42 bg-card/42 px-2.5 py-1.5 text-sm text-muted-foreground max-md:border-transparent max-md:bg-card/24 md:border-border/34 md:bg-card/28",
-          interactive && "transition-colors hover:bg-muted/26 hover:text-foreground active:bg-muted/32 md:hover:bg-muted/18 md:active:bg-muted/24",
+          "inline-flex max-w-full items-center gap-2 rounded-lg bg-background/30 px-2.5 py-1.5 text-sm text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] md:bg-background/24",
+          interactive && "transition-colors hover:bg-muted/22 hover:text-foreground active:bg-muted/28 md:hover:bg-muted/16 md:active:bg-muted/22",
           className,
         )}
       >
@@ -212,7 +212,7 @@ export function ReviewCardEntityCover({
       quality={86}
       variant="card"
       className={cn(
-        "aspect-square w-full rounded-[0.85rem] border border-border/18 bg-muted/16 shadow-[0_10px_28px_rgba(0,0,0,0.24)] max-md:border-transparent",
+        "aspect-square w-full rounded-[0.85rem] bg-muted/16 shadow-[0_12px_32px_rgba(0,0,0,0.26),0_0_0_1px_rgba(255,255,255,0.08)]",
         className,
       )}
       iconClassName="size-8"
@@ -250,12 +250,12 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "overflow-hidden rounded-[0.95rem] border border-border/24 bg-card/26 transition-colors hover:border-border/36 hover:bg-card/34 max-md:border-transparent max-md:bg-card/18 max-md:shadow-[0_16px_40px_rgba(0,0,0,0.18)] md:border-border/20 md:bg-card/22",
-        featured && "border-border/32 bg-card/34 max-md:border-transparent max-md:bg-card/22 md:border-border/28 md:bg-card/30",
+        "kocteau-review-card overflow-hidden rounded-[1.05rem]",
+        featured && "kocteau-review-card-featured",
         className,
       )}
     >
-      <div className="space-y-4 p-3.5 sm:p-4">
+      <div className="space-y-4 p-4 sm:p-[1.125rem]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
             {eyebrow ? (
@@ -297,7 +297,7 @@ export default function ReviewCard({
           {showRatingBadge || headerActions ? (
             <div className="flex shrink-0 items-center gap-2">
               {showRatingBadge ? (
-                <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/24 bg-background/24 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground/92 max-md:border-transparent max-md:bg-background/18 md:border-border/18 md:bg-background/18">
+                <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-background/38 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] md:bg-background/30">
                   <Star className="size-3.5 fill-current text-amber-300" />
                   {review.rating.toFixed(1)}
                 </div>
@@ -324,7 +324,7 @@ export default function ReviewCard({
               {hasTitle ? (
                 <h3
                   className={cn(
-                    "text-foreground/86",
+                    "text-foreground/92",
                     usesBalancedCopy
                       ? "text-[0.92rem] font-medium leading-6 sm:text-[0.97rem]"
                       : "text-[0.96rem] font-medium leading-6 sm:text-[1rem]",
@@ -337,7 +337,7 @@ export default function ReviewCard({
               {review.body ? (
                 <p
                   className={cn(
-                    "font-serif text-pretty text-foreground/82",
+                    "font-serif text-pretty text-foreground/86",
                     usesBalancedCopy
                       ? "text-[15px] leading-[1.76] sm:text-[15.45px]"
                       : "text-[15.2px] leading-[1.7] sm:text-[15.55px]",
@@ -383,7 +383,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="flex items-center justify-between gap-3 border-t border-border/16 pt-2.5 max-md:border-transparent md:border-border/12"
+            className="flex items-center justify-between gap-3 pt-1.5"
           >
             {footer}
           </div>

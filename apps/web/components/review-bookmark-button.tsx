@@ -53,7 +53,7 @@ export default function ReviewBookmarkButton({
     pulseTimeoutRef.current = window.setTimeout(() => {
       setAnimatePulse(false);
       pulseTimeoutRef.current = null;
-    }, 280);
+    }, 180);
   }
 
   async function handleClick() {
@@ -81,7 +81,7 @@ export default function ReviewBookmarkButton({
       aria-busy={isPending}
       aria-label={state.bookmarked ? "Remove from saved reviews" : "Save this review"}
       className={cn(
-        "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-colors duration-150 hover:bg-muted/34 hover:text-foreground active:scale-[0.98] disabled:pointer-events-none",
+        "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-muted/34 hover:text-foreground active:scale-[0.96] disabled:pointer-events-none",
         state.bookmarked && "text-foreground",
         animatePulse && "bg-muted/60",
         isPending && "opacity-80",
