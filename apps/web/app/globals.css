@@ -188,6 +188,25 @@
       -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
     }
 
+    .mobile-liquid-footer {
+      @apply backdrop-blur-xl backdrop-saturate-150;
+      border: 0 !important;
+      background:
+        linear-gradient(
+          0deg,
+          color-mix(in oklch, var(--background) 54%, transparent) 0%,
+          color-mix(in oklch, var(--background) 28%, transparent) 42%,
+          color-mix(in oklch, var(--background) 8%, transparent) 72%,
+          transparent 100%
+        ) !important;
+      box-shadow:
+        0 -14px 34px rgba(0, 0, 0, 0.16) !important;
+      backdrop-filter: blur(24px) saturate(135%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(135%) !important;
+      mask-image: linear-gradient(0deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
+      -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
+    }
+
     .mobile-liquid-button {
       @apply backdrop-blur-2xl backdrop-saturate-150;
       border: 0 !important;
@@ -268,6 +287,19 @@
         ) !important;
       box-shadow:
         0 14px 34px rgba(0, 0, 0, 0.24) !important;
+    }
+
+    .dark .mobile-liquid-footer {
+      background:
+        linear-gradient(
+          0deg,
+          rgba(9, 9, 10, 0.54) 0%,
+          rgba(9, 9, 10, 0.3) 42%,
+          rgba(9, 9, 10, 0.1) 72%,
+          rgba(9, 9, 10, 0) 100%
+        ) !important;
+      box-shadow:
+        0 -14px 34px rgba(0, 0, 0, 0.24) !important;
     }
 
     .dark .mobile-liquid-logo {

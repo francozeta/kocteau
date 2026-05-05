@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Bookmark, Home, Plus, Search, UserRound } from "lucide-react";
+import { Bell, Bookmark, Home, Search, UserRound } from "lucide-react";
+import { MdReviews } from "react-icons/md";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { cn } from "@/lib/utils";
 
@@ -111,8 +112,13 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   return (
     <nav className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.85rem)] z-50 px-3 md:hidden">
-      <div className="mx-auto flex max-w-[23rem] justify-center">
-        <div className="mobile-liquid-bar flex items-center gap-0.5 rounded-full p-1">
+      <div
+        className="mobile-liquid-footer pointer-events-none absolute bottom-[-0.85rem] left-1/2 h-[5.25rem] w-screen -translate-x-1/2"
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 mx-auto flex w-full max-w-[24rem] justify-center">
+        <div className="mobile-liquid-bar grid w-full grid-cols-[auto_auto_auto_auto_1px_auto] items-center justify-between rounded-full p-1">
           {leftItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
@@ -126,9 +132,9 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               <button
                 type="button"
                 aria-label="New review"
-                className="flex size-10.5 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition-[transform,background-color,box-shadow] duration-150 ease-out hover:bg-foreground/92 active:scale-[0.96]"
+                className="flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-[0_8px_20px_rgba(0,0,0,0.24)] transition-[transform,background-color,box-shadow] duration-150 ease-out hover:bg-foreground/92 active:scale-[0.96]"
               >
-                <Plus className="size-[1.15rem]" />
+                <MdReviews className="size-[1.08rem]" />
                 <span className="sr-only">New review</span>
               </button>
             }
