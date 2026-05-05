@@ -62,7 +62,7 @@ Install dependencies and start the web app:
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev:web
 ```
 
 Then open [http://localhost:3000](http://localhost:3000).
@@ -70,8 +70,7 @@ Then open [http://localhost:3000](http://localhost:3000).
 Useful checks:
 
 ```bash
-pnpm --filter web lint
-pnpm --filter web build
+pnpm check
 ```
 
 Email preview:
@@ -173,7 +172,14 @@ The goal is product feedback, not surveillance. Events avoid emails, IPs, user a
 - MVP and product baseline: [docs/mvp.md](./docs/mvp.md)
 - Web roadmap: [docs/web-roadmap.md](./docs/web-roadmap.md)
 - Operational notes: [docs/operations.md](./docs/operations.md)
+- Release checklist: [docs/maintainers/release.md](./docs/maintainers/release.md)
 - Email templates: [apps/web/emails/README.md](./apps/web/emails/README.md)
+
+## Contributing
+
+Kocteau is open to public contributions, with a web-first focus for now. Good first contributions include docs, copy, accessibility, loading states, empty states, and small web UI polish.
+
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR. Contributors do not need to edit `CHANGELOG.md`; maintainers generate it automatically from PR titles and squash commits during release.
 
 ## Current Product Direction
 
