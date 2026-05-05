@@ -173,7 +173,7 @@ export default function Header({
       shouldUseContextualHeader && "max-md:hidden",
     )}>
       <div
-        className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[6.5rem] w-screen -translate-x-1/2 md:hidden"
+        className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[4.5rem] w-screen -translate-x-1/2 md:hidden"
         aria-hidden="true"
       />
 
