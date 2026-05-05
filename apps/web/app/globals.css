@@ -169,6 +169,17 @@
 
 @layer components {
   @media (max-width: 767px) {
+    .mobile-liquid-header {
+      @apply backdrop-blur-3xl backdrop-saturate-200;
+      border: 0 !important;
+      background: color-mix(in oklch, var(--background) 46%, transparent) !important;
+      box-shadow:
+        0 18px 52px rgba(0, 0, 0, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+      backdrop-filter: blur(46px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(46px) saturate(180%) !important;
+    }
+
     .mobile-liquid-button {
       @apply backdrop-blur-2xl backdrop-saturate-150;
       border: 0 !important;
@@ -236,6 +247,13 @@
 
     .dark .mobile-liquid-button:hover {
       background: rgba(20, 20, 23, 0.72) !important;
+    }
+
+    .dark .mobile-liquid-header {
+      background: rgba(12, 12, 14, 0.5) !important;
+      box-shadow:
+        0 18px 52px rgba(0, 0, 0, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
     }
 
     .dark .mobile-liquid-logo {

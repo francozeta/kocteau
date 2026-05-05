@@ -173,7 +173,12 @@ export default function Header({
       shouldUseContextualHeader && "max-md:hidden",
     )}>
       <div className="relative flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
-        <div className="flex items-center gap-2">
+        <div
+          className="mobile-liquid-header pointer-events-none absolute inset-x-0 top-[calc(50%+0.2rem)] h-[3.25rem] -translate-y-1/2 rounded-[1.4rem] md:hidden"
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 flex items-center gap-2">
           <Button
             type="button"
             variant="ghost"
@@ -196,7 +201,7 @@ export default function Header({
           </Button>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-14 flex min-w-0 justify-center md:hidden">
+        <div className="pointer-events-none absolute inset-x-14 z-10 flex min-w-0 justify-center md:hidden">
           {renderMobileLogoMark(standardHeaderTitle)}
         </div>
 
@@ -208,7 +213,7 @@ export default function Header({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="relative z-10 flex items-center gap-2">
           {profile ? (
             <NotificationsButton
               userId={profile.id}
@@ -237,22 +242,27 @@ export default function Header({
       <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
           <div className="relative flex h-11 items-center justify-between gap-3">
+            <div
+              className="mobile-liquid-header pointer-events-none absolute inset-x-0 top-[calc(50%+0.2rem)] h-[3.25rem] -translate-y-1/2 rounded-[1.4rem]"
+              aria-hidden="true"
+            />
+
             <Button
               type="button"
               variant="ghost"
               size="icon-lg"
               onClick={handleDetailBack}
-              className="mobile-liquid-button pointer-events-auto size-10 rounded-full text-foreground"
+              className="mobile-liquid-button pointer-events-auto relative z-10 size-10 rounded-full text-foreground"
               aria-label="Go back"
             >
               <ChevronLeft className="size-[1.1rem]" />
             </Button>
 
-            <div className="pointer-events-none absolute inset-x-16 flex min-w-0 justify-center">
+            <div className="pointer-events-none absolute inset-x-16 z-10 flex min-w-0 justify-center">
               {renderMobileLogoMark(standardHeaderTitle)}
             </div>
 
-            <div className="pointer-events-auto inline-flex items-center rounded-full">
+            <div className="pointer-events-auto relative z-10 inline-flex items-center rounded-full">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
