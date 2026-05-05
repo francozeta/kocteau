@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.2.0](https://github.com/francozeta/kocteau/compare/v0.1.3...v0.2.0) (2026-05-05)
+
+
+### Features
+
+* add feed view tabs component and integrate with navigation ([90d78df](https://github.com/francozeta/kocteau/commit/90d78df701cdf45af0716fcfef95799fd99d43ab))
+* Add loading skeleton components for feed and who-to-follow rail ([12d9b5b](https://github.com/francozeta/kocteau/commit/12d9b5b71ad359e99f7c62d09b59b155f1864f8d))
+* Enhance image handling and loading skeletons across components with new variants and optimizations ([3b78cfb](https://github.com/francozeta/kocteau/commit/3b78cfbbaedb2514e6fc0db2fdabd23d646cb2a8))
+* enhance UI components with improved animations, layout adjustments, and styling consistency ([95358a1](https://github.com/francozeta/kocteau/commit/95358a1a1f31c7fe8142fcf7114f147d0a17fbdd))
+* establish Kocteau Agent Rules and enhance motion guidelines for UI components ([b6e1641](https://github.com/francozeta/kocteau/commit/b6e1641e727ad8258238b9ff58d96bf0f7636b3c))
+* Implement loading skeletons for track and profile pages, and refactor loading components ([0f3b072](https://github.com/francozeta/kocteau/commit/0f3b07253abe74620263af42118bbcf42412552b))
+* Refactor UI components for improved layout and styling consistency across saved reviews and follow suggestions ([e80f528](https://github.com/francozeta/kocteau/commit/e80f528678e56cfed1e350afe53018ffa0b41d76))
+* update font usage and logo references across components for consistency ([aa5af3a](https://github.com/francozeta/kocteau/commit/aa5af3a152cbb0cc88991731098d82ffd57a621c))
+* update trigger label in NewReviewDialog and adjust FeedViewTabs labels for clarity ([64adc78](https://github.com/francozeta/kocteau/commit/64adc787bf366832909d06defafd747cdf3dc8bd))
+
+
+### Documentation
+
+* add public contribution backlog ([efbdf00](https://github.com/francozeta/kocteau/commit/efbdf00779b8223413d68fff78cca52dd67568ca))
+* add public maintainer automation design ([8268357](https://github.com/francozeta/kocteau/commit/826835749971effde9241458b06f88f4a4e9438e))
+* document release automation permissions ([1bf1764](https://github.com/francozeta/kocteau/commit/1bf17640829a2b462572ff6cc118be136881d3a0))
+
+
+### Continuous Integration
+
+* provide public env placeholders for verify ([851d65a](https://github.com/francozeta/kocteau/commit/851d65a3e5c5e68da865f6f5e9a68c9c299bb487))
+
 ## [0.1.3](https://github.com/francozeta/kocteau/compare/v0.1.2...v0.1.3) (2026-04-20)
 
 ### Features
