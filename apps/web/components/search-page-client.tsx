@@ -256,7 +256,7 @@ export default function SearchPageClient({
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
             placeholder="Search tracks or artists…"
-            className="h-12 rounded-[1.35rem] border-border/34 bg-card/26 pl-12 text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20"
+            className="mobile-liquid-panel h-12 rounded-[1.35rem] border-border/34 bg-card/26 pl-12 text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20"
             autoFocus={!isMobile}
             maxLength={80}
           />
@@ -298,7 +298,7 @@ export default function SearchPageClient({
                       variant="outline"
                       size="sm"
                       onClick={() => handleSearchSuggestionSelect(item.query)}
-                      className="rounded-full border-border/34 bg-card/24 hover:border-border/50 md:border-border/25 md:bg-card/18"
+                      className="rounded-full border-border/34 bg-card/24 max-md:border-transparent max-md:bg-card/18 hover:border-border/50 md:border-border/25 md:bg-card/18"
                     >
                       {item.label}
                     </Button>
@@ -321,7 +321,7 @@ export default function SearchPageClient({
                     variant="outline"
                     size="sm"
                     onClick={() => handleSearchSuggestionSelect(suggestion)}
-                    className="rounded-full border-border/34 bg-card/24 hover:border-border/50 md:border-border/25 md:bg-card/18"
+                    className="rounded-full border-border/34 bg-card/24 max-md:border-transparent max-md:bg-card/18 hover:border-border/50 md:border-border/25 md:bg-card/18"
                   >
                     {suggestion}
                   </Button>

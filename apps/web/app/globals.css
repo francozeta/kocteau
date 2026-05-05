@@ -167,6 +167,97 @@
   }
 }
 
+@layer components {
+  @media (max-width: 767px) {
+    .mobile-liquid-button {
+      @apply backdrop-blur-2xl backdrop-saturate-150;
+      border: 0 !important;
+      background: color-mix(in oklch, var(--background) 62%, transparent) !important;
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+      backdrop-filter: blur(24px) saturate(165%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(165%) !important;
+      transition-duration: 160ms;
+      transition-property: transform, color, background-color, box-shadow;
+      transition-timing-function: ease-out;
+    }
+
+    .mobile-liquid-button:hover {
+      background: color-mix(in oklch, var(--background) 72%, transparent) !important;
+      box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09) !important;
+    }
+
+    .mobile-liquid-button:active {
+      transform: scale(0.96);
+    }
+
+    .mobile-liquid-logo {
+      @apply backdrop-blur-2xl backdrop-saturate-150;
+      border: 0 !important;
+      background: color-mix(in oklch, var(--background) 48%, transparent) !important;
+      box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+      backdrop-filter: blur(26px) saturate(170%) !important;
+      -webkit-backdrop-filter: blur(26px) saturate(170%) !important;
+    }
+
+    .mobile-liquid-bar {
+      @apply backdrop-blur-3xl backdrop-saturate-200;
+      border: 0 !important;
+      background: color-mix(in oklch, var(--background) 58%, transparent) !important;
+      box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.36),
+        inset 0 1px 0 rgba(255, 255, 255, 0.075) !important;
+      backdrop-filter: blur(30px) saturate(170%) !important;
+      -webkit-backdrop-filter: blur(30px) saturate(170%) !important;
+    }
+
+    .mobile-liquid-panel {
+      @apply backdrop-blur-xl backdrop-saturate-150;
+      border: 0 !important;
+      background: color-mix(in oklch, var(--card) 54%, transparent) !important;
+      box-shadow:
+        0 16px 42px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+      backdrop-filter: blur(22px) saturate(150%) !important;
+      -webkit-backdrop-filter: blur(22px) saturate(150%) !important;
+    }
+
+    .dark .mobile-liquid-button {
+      background: rgba(14, 14, 16, 0.64) !important;
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .dark .mobile-liquid-button:hover {
+      background: rgba(20, 20, 23, 0.72) !important;
+    }
+
+    .dark .mobile-liquid-logo {
+      background: rgba(12, 12, 14, 0.5) !important;
+      box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.075) !important;
+    }
+
+    .dark .mobile-liquid-bar {
+      background: rgba(12, 12, 14, 0.66) !important;
+      box-shadow:
+        0 18px 48px rgba(0, 0, 0, 0.46),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .dark .mobile-liquid-panel {
+      background: rgba(15, 15, 17, 0.6) !important;
+    }
+  }
+}
+
 @keyframes kocteau-like-pop {
   0% {
     transform: scale(1);

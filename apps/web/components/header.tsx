@@ -116,19 +116,16 @@ export default function Header({
       .join(" ");
   })();
 
-  function renderMobileRouteMark(label: string) {
+  function renderMobileLogoMark(label: string) {
     return (
       <PrefetchLink
         href="/"
         queryWarmup={{ kind: "feed" }}
-        className="pointer-events-auto inline-flex min-w-0 max-w-[min(66vw,18rem)] items-center gap-2 rounded-full px-2 py-1"
+        className="mobile-liquid-logo pointer-events-auto inline-flex size-11 items-center justify-center rounded-full"
         aria-label={`Go to feed. Current route: ${label}`}
       >
-        <BrandLogo iconClassName="h-[1.25rem] w-[1.25rem] shrink-0" />
-        <span className="shrink-0 text-sm font-medium text-muted-foreground/45">/</span>
-        <span className="min-w-0 truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
-          {label}
-        </span>
+        <BrandLogo iconClassName="h-[1.35rem] w-[1.35rem] shrink-0" />
+        <span className="sr-only">{label}</span>
       </PrefetchLink>
     );
   }
@@ -171,18 +168,18 @@ export default function Header({
 
   const standardHeader = (
     <header className={cn(
-      "fixed inset-x-0 top-0 z-30 bg-background/72 backdrop-blur-xl md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
+      "pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:pointer-events-auto md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
     )}>
-      <div className="relative flex h-15 items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
+      <div className="relative flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
         <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="ghost"
             size="icon-lg"
             onClick={toggleSidebar}
-            className="size-10 rounded-full border border-border/40 bg-background/65 text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground md:hidden"
+            className="mobile-liquid-button pointer-events-auto size-10 rounded-full text-muted-foreground hover:text-foreground md:hidden"
             aria-label="Toggle navigation"
           >
             <HamburgerIcon className="size-[1.15rem]" />
@@ -200,7 +197,7 @@ export default function Header({
         </div>
 
         <div className="pointer-events-none absolute inset-x-14 flex min-w-0 justify-center md:hidden">
-          {renderMobileRouteMark(standardHeaderTitle)}
+          {renderMobileLogoMark(standardHeaderTitle)}
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 hidden justify-center md:flex">
@@ -217,13 +214,14 @@ export default function Header({
               userId={profile.id}
               initialUnreadCount={initialUnreadCount}
               initialNotifications={initialNotifications}
+              triggerClassName="mobile-liquid-button pointer-events-auto size-10 text-muted-foreground hover:text-foreground"
             />
           ) : (
             <Link href="/login">
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full border-border/30 px-4 text-foreground"
+                className="mobile-liquid-button pointer-events-auto h-10 rounded-full px-4 text-foreground md:border-border/30"
               >
                 Log in
               </Button>
@@ -237,40 +235,40 @@ export default function Header({
   if (shouldUseContextualHeader) {
     return (
       <>
-        <header className="fixed inset-x-0 top-0 z-30 bg-background/72 backdrop-blur-xl md:hidden">
-          <div className="flex h-15 items-center justify-between gap-3 px-4">
+        <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
+          <div className="relative flex h-11 items-center justify-between gap-3">
             <Button
               type="button"
               variant="ghost"
               size="icon-lg"
               onClick={handleDetailBack}
-              className="size-10 rounded-full border border-border/32 bg-background/58 text-foreground shadow-none hover:bg-muted/30"
+              className="mobile-liquid-button pointer-events-auto size-10 rounded-full text-foreground"
               aria-label="Go back"
             >
               <ChevronLeft className="size-[1.1rem]" />
             </Button>
 
             <div className="pointer-events-none absolute inset-x-16 flex min-w-0 justify-center">
-              {renderMobileRouteMark(standardHeaderTitle)}
+              {renderMobileLogoMark(standardHeaderTitle)}
             </div>
 
-            <div className="inline-flex items-center rounded-full border border-border/32 bg-background/58 p-1 shadow-none">
+            <div className="pointer-events-auto inline-flex items-center rounded-full">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon-sm"
-                    className="rounded-full text-muted-foreground hover:bg-muted/24 hover:text-foreground"
+                    size="icon-lg"
+                    className="mobile-liquid-button size-10 rounded-full text-muted-foreground hover:text-foreground"
                     aria-label={isProfileDetailRoute ? "Profile actions" : "Track actions"}
                   >
-                    <MoreHorizontal className="size-4" />
+                    <MoreHorizontal className="size-[1.1rem]" />
                   </Button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
                   align="end"
-                  className="w-48 rounded-2xl border-border/30 bg-popover/96 p-1.5 shadow-xl"
+                  className="w-48 rounded-2xl border-transparent bg-popover/82 p-1.5 shadow-2xl shadow-black/30 backdrop-blur-2xl"
                 >
                   <DropdownMenuItem onSelect={() => void handleShareDetail()}>
                     <Share2 className="size-4" />

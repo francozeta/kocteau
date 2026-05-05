@@ -41,10 +41,10 @@ function NavTab({
       href={item.href}
       aria-label={item.label}
       className={cn(
-        "group flex size-10.5 items-center justify-center rounded-[1rem] border border-transparent text-muted-foreground transition-all duration-200",
+        "group flex size-10.5 items-center justify-center rounded-full text-muted-foreground transition-[transform,color,background-color] duration-150 ease-out active:scale-[0.96]",
         active
-          ? "border-border/18 bg-muted/34 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-          : "hover:bg-muted/16 hover:text-foreground",
+          ? "bg-foreground/10 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.055)]"
+          : "hover:bg-foreground/6 hover:text-foreground",
       )}
     >
       <Icon className={cn("size-[1.08rem]", active && "text-foreground")} />
@@ -105,9 +105,9 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-4 z-50 px-3 md:hidden">
+    <nav className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.85rem)] z-50 px-3 md:hidden">
       <div className="mx-auto max-w-[22rem]">
-        <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-center gap-1.5 rounded-[1.7rem] border border-border/22 bg-background/88 px-2 py-2 shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+        <div className="mobile-liquid-bar grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-center gap-1.5 rounded-[1.7rem] px-2 py-2">
           {leftItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
@@ -120,7 +120,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               <button
                 type="button"
                 aria-label="New review"
-                className="flex size-11 items-center justify-center rounded-[1.05rem] bg-foreground text-background shadow-none transition-transform duration-200 hover:bg-foreground/92 active:scale-[0.98]"
+                className="flex size-11 items-center justify-center rounded-full bg-foreground text-background shadow-[0_10px_26px_rgba(0,0,0,0.28)] transition-[transform,background-color] duration-150 ease-out hover:bg-foreground/92 active:scale-[0.96]"
               >
                 <Plus className="size-[1.15rem]" />
                 <span className="sr-only">New review</span>

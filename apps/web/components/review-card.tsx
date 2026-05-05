@@ -143,7 +143,7 @@ export function ReviewCardEntitySummary({
     return (
       <div
         className={cn(
-          "inline-flex max-w-full items-center gap-2 rounded-lg border border-border/42 bg-card/42 px-2.5 py-1.5 text-sm text-muted-foreground md:border-border/34 md:bg-card/28",
+          "inline-flex max-w-full items-center gap-2 rounded-lg border border-border/42 bg-card/42 px-2.5 py-1.5 text-sm text-muted-foreground max-md:border-transparent max-md:bg-card/24 md:border-border/34 md:bg-card/28",
           interactive && "transition-colors hover:bg-muted/26 hover:text-foreground active:bg-muted/32 md:hover:bg-muted/18 md:active:bg-muted/24",
           className,
         )}
@@ -154,7 +154,7 @@ export function ReviewCardEntitySummary({
           sizes="24px"
           priority={priority}
           quality={56}
-          className="h-6 w-6 shrink-0 rounded-full bg-muted"
+        className="h-6 w-6 shrink-0 rounded-full bg-muted"
           iconClassName="size-3"
         />
         <span className="truncate font-serif text-[15px] font-medium text-foreground">{entity.title}</span>
@@ -176,7 +176,7 @@ export function ReviewCardEntitySummary({
         alt={entity.title}
         sizes="44px"
         priority={priority}
-        className="h-11 w-11 shrink-0 rounded-md border border-border/34 bg-muted/42 md:border-border/28 md:bg-muted/34"
+        className="h-11 w-11 shrink-0 rounded-md border border-border/34 bg-muted/42 max-md:border-transparent md:border-border/28 md:bg-muted/34"
         iconClassName="size-4"
       />
 
@@ -212,7 +212,7 @@ export function ReviewCardEntityCover({
       quality={86}
       variant="card"
       className={cn(
-        "aspect-square w-full rounded-[0.85rem] border border-border/18 bg-muted/16 shadow-[0_10px_28px_rgba(0,0,0,0.24)]",
+        "aspect-square w-full rounded-[0.85rem] border border-border/18 bg-muted/16 shadow-[0_10px_28px_rgba(0,0,0,0.24)] max-md:border-transparent",
         className,
       )}
       iconClassName="size-8"
@@ -250,8 +250,8 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "overflow-hidden rounded-[0.95rem] border border-border/24 bg-card/26 transition-colors hover:border-border/36 hover:bg-card/34 md:border-border/20 md:bg-card/22",
-        featured && "border-border/32 bg-card/34 md:border-border/28 md:bg-card/30",
+        "overflow-hidden rounded-[0.95rem] border border-border/24 bg-card/26 transition-colors hover:border-border/36 hover:bg-card/34 max-md:border-transparent max-md:bg-card/18 max-md:shadow-[0_16px_40px_rgba(0,0,0,0.18)] md:border-border/20 md:bg-card/22",
+        featured && "border-border/32 bg-card/34 max-md:border-transparent max-md:bg-card/22 md:border-border/28 md:bg-card/30",
         className,
       )}
     >
@@ -297,7 +297,7 @@ export default function ReviewCard({
           {showRatingBadge || headerActions ? (
             <div className="flex shrink-0 items-center gap-2">
               {showRatingBadge ? (
-                <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/24 bg-background/24 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground/92 md:border-border/18 md:bg-background/18">
+                <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/24 bg-background/24 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground/92 max-md:border-transparent max-md:bg-background/18 md:border-border/18 md:bg-background/18">
                   <Star className="size-3.5 fill-current text-amber-300" />
                   {review.rating.toFixed(1)}
                 </div>
@@ -383,7 +383,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="flex items-center justify-between gap-3 border-t border-border/16 pt-2.5 md:border-border/12"
+            className="flex items-center justify-between gap-3 border-t border-border/16 pt-2.5 max-md:border-transparent md:border-border/12"
           >
             {footer}
           </div>
