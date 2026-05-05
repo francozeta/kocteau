@@ -24,15 +24,42 @@ updates:
       day: monday
       time: "10:00"
       timezone: America/Lima
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     labels:
       - "area:dependencies"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
     groups:
-      production-dependencies:
+      web-and-shared-runtime:
         dependency-type: production
+        update-types:
+          - minor
+          - patch
         patterns:
           - "*"
-      development-dependencies:
+        exclude-patterns:
+          - "@expo/*"
+          - "@react-navigation/*"
+          - "expo"
+          - "expo-*"
+          - "react-native"
+          - "react-native-*"
+      mobile-runtime-patches:
+        dependency-type: production
+        update-types:
+          - patch
+        patterns:
+          - "@expo/*"
+          - "@react-navigation/*"
+          - "expo"
+          - "expo-*"
+          - "react-native"
+          - "react-native-*"
+      development-tooling-patches:
         dependency-type: development
+        update-types:
+          - patch
         patterns:
           - "*"
