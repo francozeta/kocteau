@@ -50,7 +50,7 @@ Use surface color shifts plus soft layered shadows. Avoid heavy borders.
 ## Typography
 
 - Use serif type to give reviews and track identity editorial weight.
-- Use Instrument Serif for small editorial labels; avoid decorative script for product labels.
+- Use Geist for small metadata and editorial labels; keep them compact enough that track identity stays dominant.
 - Use sans type for navigation, controls, and metadata.
 - Apply `text-pretty` to review copy and `text-balance` where headings can wrap awkwardly.
 - Use `tabular-nums` for ratings and counters.

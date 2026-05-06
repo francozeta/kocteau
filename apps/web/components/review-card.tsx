@@ -259,7 +259,7 @@ export default function ReviewCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
             {eyebrow ? (
-              <p className="font-editorial text-[0.98rem] font-normal italic leading-none text-muted-foreground/78">
+              <p className="text-[12px] font-medium leading-none text-muted-foreground/70">
                 {eyebrow}
               </p>
             ) : null}

@@ -45,7 +45,7 @@ export default function WhoToFollowRail({
   return (
     <aside className="hidden lg:block" aria-label="Fresh voices">
       <div className="sticky top-1 space-y-3 pt-1">
-        <p className="px-1 font-editorial text-[1.02rem] font-normal italic leading-none text-muted-foreground/74">
+        <p className="px-1 text-[12px] font-medium leading-none text-muted-foreground/70">
           Fresh voices
         </p>
 

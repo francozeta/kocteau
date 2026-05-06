@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, ExternalLink, MessageSquare, MoreHorizontal, Share2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, MoreHorizontal, Share2 } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NotificationsButton from "@/components/notifications-button";
 import PrefetchLink from "@/components/prefetch-link";
@@ -30,8 +30,6 @@ type HeaderProfile = {
   apple_music_url: string | null;
   deezer_url: string | null;
 };
-
-const FEEDBACK_URL = "https://github.com/francozeta/kocteau/issues/new";
 
 function HamburgerIcon({ className }: { className?: string }) {
   return (
@@ -158,14 +156,6 @@ export default function Header({
     });
   }, [detailHeader, isProfileDetailRoute, pathname]);
 
-  const handleGiveFeedback = useCallback(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    window.open(FEEDBACK_URL, "_blank", "noopener,noreferrer");
-  }, []);
-
   const standardHeader = (
     <header className={cn(
       "pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:pointer-events-auto md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
@@ -188,16 +178,6 @@ export default function Header({
             aria-label="Toggle navigation"
           >
             <HamburgerIcon className="size-[1.15rem]" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleGiveFeedback}
-            className="hidden h-9 rounded-[0.85rem] border border-border/22 bg-transparent px-3 text-muted-foreground/88 hover:bg-card/20 hover:text-foreground md:inline-flex"
-          >
-            <MessageSquare className="size-4" />
-            <span>Feedback</span>
           </Button>
         </div>
 

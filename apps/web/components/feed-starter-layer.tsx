@@ -91,7 +91,7 @@ export default function FeedStarterLayer({
       <section className="space-y-3">
         <div className="flex items-start justify-between gap-3 px-0.5">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 font-editorial text-[0.98rem] font-normal italic leading-none text-muted-foreground/76">
+            <div className="flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/74">
               <Sparkles className="size-3.5" />
               Starter picks
             </div>
@@ -117,7 +117,7 @@ export default function FeedStarterLayer({
     <section className="space-y-3">
       <div className="flex items-end justify-between gap-3 px-0.5">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 font-editorial text-[1rem] font-normal italic leading-none text-muted-foreground/78">
+          <div className="flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/74">
             <Sparkles className="size-3.5" />
             Starter picks
           </div>
@@ -168,7 +168,7 @@ export default function FeedStarterLayer({
 
           <div className="flex min-w-0 flex-col justify-between gap-3.5 p-4">
             <div className="min-w-0">
-              <div className="mb-2 flex items-center gap-2 font-editorial text-[0.96rem] font-normal italic leading-none text-muted-foreground/74">
+              <div className="mb-2 flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/70">
                 <Sparkles className="size-3" />
                 Editorial starter
               </div>
@@ -240,7 +240,7 @@ export default function FeedStarterLayer({
 
           {upcomingTracks.length > 0 ? (
             <div className="hidden min-w-0 border-l border-border/16 lg:block">
-              <div className="border-b border-border/16 px-3 py-2 font-editorial text-[0.94rem] font-normal italic leading-none text-muted-foreground/74">
+              <div className="border-b border-border/16 px-3 py-2 text-[12px] font-medium leading-none text-muted-foreground/70">
                 Up next
               </div>
               <div className="divide-y divide-border/12">

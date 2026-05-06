@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import { Bell, Bookmark, Compass, Plus, Search } from "lucide-react";
+import { Bell, Bookmark, Compass, MessageSquare, Plus, Search } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { NavOwnedReviews } from "@/components/nav-owned-reviews";
@@ -24,6 +24,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
+const FEEDBACK_URL = "https://github.com/francozeta/kocteau/issues/new";
 
 type AppSidebarProfile = {
   id: string;
@@ -109,6 +111,12 @@ export default function AppSidebar({
       icon: Search,
       isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
     },
+    {
+      title: "Feedback",
+      url: FEEDBACK_URL,
+      icon: MessageSquare,
+      external: true,
+    },
   ];
 
   const secondaryItems = profile
@@ -155,13 +163,13 @@ export default function AppSidebar({
               trigger={
                 <button
                   type="button"
-                  className="flex h-9 w-full items-center justify-between rounded-xl bg-sidebar-primary px-2.5 text-[13px] text-sidebar-primary-foreground shadow-none transition-[color,background-color,transform] hover:bg-sidebar-primary/95 active:scale-[0.96]"
+                  className="flex h-9 w-full items-center justify-between rounded-[0.7rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] px-2.5 text-[13px] font-medium text-sidebar-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[color,background-color,transform] hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
                 >
                   <span className="inline-flex items-center gap-2">
                     <Plus className="size-4" />
                     <span>New review</span>
                   </span>
-                  <Kbd className="border border-sidebar-primary-foreground/12 bg-sidebar-primary-foreground/10 px-1.5 text-[0.6rem] text-sidebar-primary-foreground/78">
+                  <Kbd className="border border-sidebar-border/80 bg-foreground/[0.06] px-1.5 text-[0.6rem] text-muted-foreground">
                     N
                   </Kbd>
                 </button>
@@ -176,7 +184,7 @@ export default function AppSidebar({
                 <button
                   type="button"
                   aria-label="New review"
-                  className="mx-auto flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground transition-[color,background-color,transform] hover:bg-sidebar-primary/95 active:scale-[0.96]"
+                  className="mx-auto flex size-9 items-center justify-center rounded-[0.7rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-sidebar-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[color,background-color,transform] hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
                 >
                   <Plus className="size-4" />
                 </button>

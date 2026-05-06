@@ -18,6 +18,7 @@ type NavMainItem = {
   icon: LucideIcon;
   isActive?: boolean;
   badge?: number | null;
+  external?: boolean;
 };
 
 export function NavMain({
@@ -41,10 +42,17 @@ export function NavMain({
                 size="lg"
                 className="h-10 rounded-xl text-[13px] font-medium transition-[color,background-color] data-[active=true]:bg-sidebar-accent/82 data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-none data-[active=true]:[&_svg]:text-sidebar-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
-                <Link href={item.url} onClick={onNavigate}>
-                  <item.icon />
-                  <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
-                </Link>
+                {item.external ? (
+                  <a href={item.url} target="_blank" rel="noreferrer" onClick={onNavigate}>
+                    <item.icon />
+                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                  </a>
+                ) : (
+                  <Link href={item.url} onClick={onNavigate}>
+                    <item.icon />
+                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                  </Link>
+                )}
               </SidebarMenuButton>
               {item.badge && item.badge > 0 ? (
                 <SidebarMenuBadge>{item.badge > 99 ? "99+" : item.badge}</SidebarMenuBadge>
