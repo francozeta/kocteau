@@ -26,12 +26,14 @@ type NotificationsButtonProps = {
   userId: string;
   initialUnreadCount: number;
   initialNotifications: NotificationItem[];
+  triggerClassName?: string;
 };
 
 export default function NotificationsButton({
   userId,
   initialUnreadCount,
   initialNotifications,
+  triggerClassName,
 }: NotificationsButtonProps) {
   const [open, setOpen] = useState(false);
   const hasAutoMarkedRef = useRef(false);
@@ -90,6 +92,7 @@ export default function NotificationsButton({
           size="icon"
           className={cn(
             "relative h-9 w-9 rounded-full border border-border/46 bg-card/18 text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-muted/40 hover:text-foreground md:border-border/40 md:bg-background/65",
+            triggerClassName,
             unreadCount > 0 && "text-foreground",
           )}
           aria-label={

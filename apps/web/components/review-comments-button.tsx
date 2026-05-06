@@ -82,7 +82,7 @@ export default function ReviewCommentsButton({
       aria-label={open ? "Close comments" : "Open comments"}
       aria-expanded={open}
       className={cn(
-        "inline-flex min-h-8 items-center gap-1 rounded-full border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-colors duration-150 hover:bg-muted/34 hover:text-foreground active:scale-[0.98]",
+        "inline-flex min-h-8 items-center gap-1 rounded-md border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-foreground/[0.055] hover:text-foreground active:scale-[0.96]",
         open && "text-foreground",
       )}
     >

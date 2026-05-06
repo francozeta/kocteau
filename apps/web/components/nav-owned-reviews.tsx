@@ -47,7 +47,7 @@ function OwnedReviewRailItem({
 
   return (
     <SidebarMenuItem>
-      <div className="flex items-start gap-1 rounded-[1.05rem] border border-sidebar-border/46 bg-sidebar-accent/22 px-2 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-sidebar-border/30 md:bg-sidebar-accent/10">
+      <div className="kocteau-sidebar-note flex items-start gap-1 rounded-[0.95rem] px-2 py-2">
         <PrefetchLink
           href={`/track/${item.entity.entity_id}#review-${item.id}`}
           queryWarmup={{ kind: "track", id: item.entity.entity_id }}
@@ -83,7 +83,7 @@ function OwnedReviewRailItem({
 
               <div className="mt-1 flex min-w-0 items-center gap-1.5">
                 {item.is_pinned ? (
-                  <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground/90">
+                  <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground/90">
                     <Pin className="size-3" />
                     Pinned
                   </span>

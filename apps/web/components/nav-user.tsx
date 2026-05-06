@@ -65,7 +65,7 @@ export function NavUser({
 
   if (!profile) {
     return (
-      <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/55 p-3 text-[13px] leading-5 text-muted-foreground group-data-[collapsible=icon]:hidden">
+      <div className="kocteau-sidebar-note rounded-[0.95rem] p-3 text-[13px] leading-5 text-muted-foreground group-data-[collapsible=icon]:hidden">
         <div className="mb-1.5 flex items-center gap-2 text-sidebar-foreground">
           <Sparkles className="size-3.5" />
           <span className="font-medium">Sign in to participate</span>
@@ -94,7 +94,7 @@ export function NavUser({
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                className="h-12 rounded-xl data-[state=open]:bg-black data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
+                className="h-12 rounded-xl transition-[color,background-color] data-[state=open]:bg-sidebar-accent/82 data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
               >
                 <UserAvatar
                   avatarUrl={profile.avatar_url}

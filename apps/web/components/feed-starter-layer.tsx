@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, PenLine, Sparkles, X } from "lucide-react";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { StarterTrack } from "@/lib/starter";
@@ -91,7 +92,7 @@ export default function FeedStarterLayer({
       <section className="space-y-3">
         <div className="flex items-start justify-between gap-3 px-0.5">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 font-editorial text-[1.35rem] font-normal leading-none text-muted-foreground/76">
+            <div className="flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/74">
               <Sparkles className="size-3.5" />
               Starter picks
             </div>
@@ -117,11 +118,11 @@ export default function FeedStarterLayer({
     <section className="space-y-3">
       <div className="flex items-end justify-between gap-3 px-0.5">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 font-editorial text-[1.45rem] font-normal leading-none text-muted-foreground/78">
+          <div className="flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/74">
             <Sparkles className="size-3.5" />
             Starter picks
           </div>
-          <h2 className="mt-1 font-serif text-[1.35rem] font-semibold leading-tight text-foreground sm:text-2xl">
+          <h2 className="mt-1 font-serif text-[1.26rem] font-semibold leading-tight text-foreground sm:text-[1.55rem]">
             Pick your next review
           </h2>
         </div>
@@ -148,37 +149,37 @@ export default function FeedStarterLayer({
 
       <motion.article
         key={activeTrack.id}
-        className="overflow-hidden rounded-[0.95rem] border border-border/20 bg-card/22"
+        className="kocteau-review-card overflow-hidden rounded-[var(--kocteau-radius-card)]"
         initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
       >
-        <div className="grid gap-0 md:grid-cols-[9rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)_12.25rem]">
-          <div className="border-b border-border/24 p-3 md:border-r md:border-b-0">
+        <div className="grid gap-0 md:grid-cols-[8.25rem_minmax(0,1fr)] lg:grid-cols-[8.75rem_minmax(0,1fr)_11.75rem]">
+          <div className="border-b border-border/18 p-3 md:border-r md:border-b-0">
             <EntityCoverImage
               src={activeTrack.cover_url}
               alt={`${activeTrack.title} cover`}
               sizes="168px"
               quality={88}
               variant="card"
-              className="aspect-square w-full rounded-[0.85rem] border border-border/18 bg-muted/20"
+              className="aspect-square w-full rounded-[0.78rem] bg-muted/20 shadow-[0_12px_30px_rgba(0,0,0,0.24),0_0_0_1px_rgba(255,255,255,0.055)]"
               iconClassName="size-7"
             />
           </div>
 
-          <div className="flex min-w-0 flex-col justify-between gap-4 p-4">
+          <div className="flex min-w-0 flex-col justify-between gap-3.5 p-4">
             <div className="min-w-0">
-              <div className="mb-2 flex items-center gap-2 font-editorial text-[1.35rem] font-normal leading-none text-muted-foreground/74">
+              <div className="mb-2 flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/70">
                 <Sparkles className="size-3" />
                 Editorial starter
               </div>
-              <h3 className="line-clamp-2 font-serif text-[1.65rem] font-semibold leading-[1.03] text-pretty text-foreground sm:text-[1.85rem]">
+              <h3 className="line-clamp-2 font-serif text-[1.42rem] font-semibold leading-[1.06] text-pretty text-foreground sm:text-[1.62rem]">
                 {activeTrack.title}
               </h3>
-              <p className="mt-2 truncate text-sm text-muted-foreground">
+              <p className="mt-2 truncate text-[13.5px] text-muted-foreground">
                 {activeTrack.artist_name ?? "Unknown artist"}
               </p>
-              <p className="mt-4 line-clamp-3 max-w-xl text-sm leading-6 text-muted-foreground/90">
+              <p className="mt-3 line-clamp-3 max-w-xl text-[13.5px] leading-6 text-muted-foreground/88">
                 {getStarterPrompt(activeTrack)}
               </p>
             </div>
@@ -192,7 +193,7 @@ export default function FeedStarterLayer({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-full border border-border/20 bg-background/16 px-3 text-xs"
+                  className="h-8 gap-1.5 rounded-md border border-border/16 bg-background/16 px-3 text-xs"
                   onClick={() => handlePass(activeTrack)}
                 >
                   <X className="size-3" />
@@ -216,7 +217,7 @@ export default function FeedStarterLayer({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5 rounded-full border-border/30 bg-background/22 px-3 text-xs"
+                      className="h-8 gap-1.5 rounded-md border-border/28 bg-[var(--kocteau-surface-control)] px-3 text-xs text-foreground hover:bg-[var(--kocteau-surface-control-hover)]"
                       onClick={() => {
                         trackAnalyticsEvent({
                           eventType: "for_you_review_action",
@@ -229,7 +230,7 @@ export default function FeedStarterLayer({
                         });
                       }}
                     >
-                      <PenLine className="size-3" />
+                      <ReviewGlyphIcon className="size-3.5" />
                       Review
                     </Button>
                   }
@@ -239,23 +240,23 @@ export default function FeedStarterLayer({
           </div>
 
           {upcomingTracks.length > 0 ? (
-            <div className="hidden min-w-0 border-l border-border/18 lg:block">
-              <div className="border-b border-border/18 px-3 py-2 font-editorial text-[1.25rem] font-normal leading-none text-muted-foreground/74">
+            <div className="hidden min-w-0 border-l border-border/16 lg:block">
+              <div className="border-b border-border/16 px-3 py-2 text-[12px] font-medium leading-none text-muted-foreground/70">
                 Up next
               </div>
-              <div className="divide-y divide-border/14">
+              <div className="divide-y divide-border/12">
                 {upcomingTracks.map((track) => (
                   <button
                     key={track.id}
                     type="button"
-                    className="grid min-h-[4.75rem] w-full grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-2 p-2.5 text-left transition-colors hover:bg-background/24"
+                    className="grid min-h-[4.25rem] w-full grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 p-2.5 text-left transition-colors hover:bg-background/24"
                     onClick={() => handlePass(activeTrack)}
                   >
                     <EntityCoverImage
                       src={track.cover_url}
                       alt={`${track.title} cover`}
                       sizes="48px"
-                      className="size-12 rounded-md border border-border/20 bg-muted/20"
+                      className="size-11 rounded-md bg-muted/20 shadow-[0_0_0_1px_rgba(255,255,255,0.045)]"
                       iconClassName="size-4"
                     />
                     <span className="min-w-0">

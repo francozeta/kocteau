@@ -4,6 +4,7 @@ import { ExternalLink, Share2 } from "lucide-react";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import type { EntityTasteTag } from "@/lib/queries/entities";
@@ -31,10 +32,10 @@ type TrackPageHeroProps = {
 };
 
 const primaryActionClassName =
-  "inline-flex h-10 min-w-[10.5rem] items-center justify-center rounded-full bg-foreground px-4 text-sm font-medium text-background transition hover:bg-foreground/92 sm:h-11 sm:min-w-[11.5rem]";
+  "inline-flex h-10 min-w-[10.5rem] items-center justify-center gap-2 rounded-[0.9rem] border border-border/28 bg-[var(--kocteau-surface-control)] px-4 text-sm font-medium text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] transition hover:bg-[var(--kocteau-surface-control-hover)] max-md:shadow-[0_14px_32px_rgba(0,0,0,0.24)] sm:h-11 sm:min-w-[11.5rem]";
 
 const sideActionClassName =
-  "size-10 rounded-full border border-border/28 bg-card/18 text-muted-foreground shadow-none hover:bg-card/30 hover:text-foreground sm:size-11";
+  "size-10 rounded-full border border-border/28 bg-card/18 text-muted-foreground shadow-none hover:bg-card/30 hover:text-foreground max-md:border-transparent max-md:bg-card/20 max-md:shadow-[0_12px_28px_rgba(0,0,0,0.22)] max-md:backdrop-blur-xl max-md:backdrop-saturate-150 sm:size-11";
 
 export default function TrackPageHero({
   entity,
@@ -109,7 +110,7 @@ export default function TrackPageHero({
   }
 
   return (
-    <section className="border-b border-border/32 pb-4 md:border-border/24 md:pb-5">
+    <section className="border-b border-border/32 pb-4 max-md:border-transparent md:border-border/24 md:pb-5">
       <div className="grid gap-4 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center lg:grid-cols-[11.5rem_minmax(0,1fr)] lg:gap-5">
         <EntityCoverImage
           src={entity.cover_url}
@@ -118,7 +119,7 @@ export default function TrackPageHero({
           priority
           quality={90}
           variant="hero"
-          className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted/16 shadow-[0_12px_32px_rgba(0,0,0,0.24)] md:mx-0 md:size-[10rem] lg:size-[11.5rem]"
+          className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted/16 shadow-[0_12px_32px_rgba(0,0,0,0.24)] max-md:border-transparent md:mx-0 md:size-[10rem] lg:size-[11.5rem]"
           iconClassName="size-10"
         />
 
@@ -152,6 +153,7 @@ export default function TrackPageHero({
                 dismissSearchParam="editReview"
                 trigger={
                   <button type="button" className={primaryActionClassName}>
+                    <ReviewGlyphIcon className="size-4" />
                     Edit review
                   </button>
                 }
@@ -168,6 +170,7 @@ export default function TrackPageHero({
                 initialSelection={createSelection}
                 trigger={
                   <button type="button" className={primaryActionClassName}>
+                    <ReviewGlyphIcon className="size-4" />
                     Create review
                   </button>
                 }
@@ -198,20 +201,20 @@ export default function TrackPageHero({
           </div>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[0.66rem] font-medium uppercase tracking-[0.16em] text-muted-foreground md:justify-start">
-            <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1">
+            <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150">
               Notes
             </span>
             {visibleTags.map((tag) => (
               <span
                 key={tag.id}
-                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 text-foreground/78"
+                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 text-foreground/78 max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150"
                 title={`Taste signal: ${tag.kind}`}
               >
                 {tag.label}
               </span>
             ))}
             {remainingTagCount > 0 ? (
-              <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1">
+              <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150">
                 +{remainingTagCount}
               </span>
             ) : null}
@@ -220,7 +223,7 @@ export default function TrackPageHero({
                 href={deezerLink.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 transition hover:border-border/45 hover:bg-card/30 hover:text-foreground"
+                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 transition hover:border-border/45 hover:bg-card/30 hover:text-foreground max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150"
               >
                 {deezerLink.label}
               </a>

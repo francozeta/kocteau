@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { motion, useReducedMotion } from "motion/react";
 import FeedStarterLayer from "@/components/feed-starter-layer";
 import { Music2, Sparkles, UsersRound } from "lucide-react";
 import { FeedReviewCard } from "@/components/review-route-cards";
@@ -39,19 +38,22 @@ const recommendationReasonLabels = {
   following: "From your follows",
   familiar_entity: "Related pick",
   author_affinity: "Similar listener",
-  own_review: "Your contribution",
   popular_recent: "Popular now",
-} satisfies Record<
+} satisfies Partial<Record<
   NonNullable<FeedBundleReview["recommendation_reason"]>,
   string
->;
+>>;
 
 function getRecommendationEyebrow(review: FeedBundleReview, view: FeedView) {
   if (view !== "for-you" || !review.recommendation_reason) {
     return null;
   }
 
-  return recommendationReasonLabels[review.recommendation_reason];
+  if (review.recommendation_reason === "own_review") {
+    return null;
+  }
+
+  return recommendationReasonLabels[review.recommendation_reason] ?? null;
 }
 
 function FeedEmptyState({
@@ -135,7 +137,6 @@ export default function FeedReviewList({
 }: FeedReviewListProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const trackedPageKeysRef = useRef(new Set<string>());
-  const prefersReducedMotion = useReducedMotion();
   const feedQuery = useInfiniteQuery({
     ...feedInfiniteQueryOptions(view),
     initialData: {
@@ -269,29 +270,15 @@ export default function FeedReviewList({
 
   return (
     <div className="space-y-3.5">
-      {reviews.map((review, index) => {
+      {reviews.map((review) => {
         const author = review.author;
 
         return (
-          <motion.div
-            key={review.id}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={
-              prefersReducedMotion
-                ? { duration: 0 }
-                : {
-                    duration: 0.18,
-                    ease: "easeOut",
-                    delay: Math.min(index * 0.018, 0.06),
-                  }
-            }
-          >
+          <div key={review.id}>
             <FeedReviewCard
               review={review}
               entity={review.entities}
               author={author}
-              featured={index === 0}
               showInteractionBar={isAuthenticated}
               isAuthenticated={isAuthenticated}
               canManage={Boolean(viewer?.id && author?.id === viewer.id)}
@@ -299,7 +286,7 @@ export default function FeedReviewList({
               analyticsSource={view === "for-you" ? "feed:for-you" : null}
               viewer={viewer}
             />
-          </motion.div>
+          </div>
         );
       })}
 

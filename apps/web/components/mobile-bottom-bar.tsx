@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Bookmark, Home, Plus, Search, UserRound } from "lucide-react";
+import { Bell, Bookmark, Home, Search, UserRound } from "lucide-react";
 import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { cn } from "@/lib/utils";
 
 type MobileBottomBarProps = {
@@ -41,13 +42,18 @@ function NavTab({
       href={item.href}
       aria-label={item.label}
       className={cn(
-        "group flex size-10.5 items-center justify-center rounded-[1rem] border border-transparent text-muted-foreground transition-all duration-200",
+        "group flex h-10.5 min-w-10.5 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-[transform,color,background-color,border-color,box-shadow] duration-150 ease-out active:scale-[0.96]",
         active
-          ? "border-border/18 bg-muted/34 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-          : "hover:bg-muted/16 hover:text-foreground",
+          ? "gap-1.5 border-foreground/10 bg-foreground/10 px-3 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+          : "px-0 hover:border-foreground/10 hover:bg-foreground/7 hover:text-foreground",
       )}
     >
-      <Icon className={cn("size-[1.08rem]", active && "text-foreground")} />
+      <Icon className={cn("size-[1.04rem] shrink-0", active && "text-foreground")} />
+      {active ? (
+        <span aria-hidden="true" className="whitespace-nowrap text-[0.68rem] font-medium leading-none">
+          {item.label}
+        </span>
+      ) : null}
       <span className="sr-only">{item.label}</span>
     </Link>
   );
@@ -105,24 +111,30 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-4 z-50 px-3 md:hidden">
-      <div className="mx-auto max-w-[22rem]">
-        <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-center gap-1.5 rounded-[1.7rem] border border-border/22 bg-background/88 px-2 py-2 shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+    <nav className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.85rem)] z-50 px-3 md:hidden">
+      <div
+        className="mobile-liquid-footer pointer-events-none absolute bottom-[-0.85rem] left-1/2 h-[5.25rem] w-screen -translate-x-1/2"
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 mx-auto flex w-full max-w-[24rem] justify-center">
+        <div className="mobile-liquid-bar grid w-full grid-cols-[auto_auto_auto_auto_1px_auto] items-center justify-between rounded-full p-1">
           {leftItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
           {rightItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
+          <span className="mx-1 h-7 w-px shrink-0 bg-foreground/10" aria-hidden="true" />
           <NewReviewDialog
             isAuthenticated={Boolean(profile)}
             trigger={
               <button
                 type="button"
                 aria-label="New review"
-                className="flex size-11 items-center justify-center rounded-[1.05rem] bg-foreground text-background shadow-none transition-transform duration-200 hover:bg-foreground/92 active:scale-[0.98]"
+                className="flex size-10 items-center justify-center rounded-[0.9rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_8px_20px_rgba(0,0,0,0.28)] transition-[transform,background-color,box-shadow] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
               >
-                <Plus className="size-[1.15rem]" />
+                <ReviewGlyphIcon className="size-[1.05rem]" />
                 <span className="sr-only">New review</span>
               </button>
             }

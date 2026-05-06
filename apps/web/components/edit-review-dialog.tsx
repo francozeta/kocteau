@@ -22,6 +22,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import NewReviewForm from "@/components/new-review-form";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
@@ -127,9 +128,12 @@ export default function EditReviewDialog({
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/34 p-2 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
-          <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
-            <DrawerTitle className="font-serif text-2xl">Edit review</DrawerTitle>
+        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/24 bg-[var(--kocteau-surface)] p-2 before:rounded-t-[1rem] before:border-border/24 before:bg-[var(--kocteau-surface)] data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
+          <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
+            <DrawerTitle className="flex items-center gap-2 text-sm font-semibold">
+              <ReviewGlyphIcon className="size-4" />
+              Edit review
+            </DrawerTitle>
             <DrawerDescription className="sr-only">Edit your review.</DrawerDescription>
           </DrawerHeader>
 
@@ -157,11 +161,14 @@ export default function EditReviewDialog({
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
-      <DialogContent showCloseButton={false} className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-sidebar p-0">
-        <DialogHeader className="border-b border-border/30 bg-sidebar px-6 py-4">
+      <DialogContent showCloseButton={false} className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-[0_24px_72px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.045)]">
+        <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="font-serif text-2xl">Edit review</DialogTitle>
-            <Kbd className="rounded-md border border-border/42 bg-card/42 px-2 text-[0.625rem] text-muted-foreground">
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+              <ReviewGlyphIcon className="size-4" />
+              Edit review
+            </DialogTitle>
+            <Kbd className="rounded-md border border-border/30 bg-foreground/[0.055] px-2 text-[0.625rem] text-muted-foreground">
               Esc
             </Kbd>
           </div>

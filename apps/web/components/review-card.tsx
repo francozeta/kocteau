@@ -113,16 +113,16 @@ export function ReviewCardEntitySummary({
     return (
       <div
         className={cn(
-          "min-w-0 space-y-1.5 text-pretty",
+          "min-w-0 space-y-1 text-pretty",
           className,
         )}
       >
         <p
           className={cn(
-            "line-clamp-2 font-serif font-semibold text-foreground",
+            "line-clamp-2 font-serif font-semibold tracking-normal text-foreground",
             tone === "balanced"
-              ? "text-[1.18rem] leading-[1.08] sm:text-[1.34rem]"
-              : "text-[1.26rem] leading-[1.06] sm:text-[1.46rem]",
+              ? "text-[1.12rem] leading-[1.1] sm:text-[1.28rem]"
+              : "text-[1.2rem] leading-[1.08] sm:text-[1.38rem]",
           )}
         >
           {entity.title}
@@ -130,7 +130,7 @@ export function ReviewCardEntitySummary({
         <p
           className={cn(
             "line-clamp-1 text-muted-foreground/88",
-            tone === "balanced" ? "text-[14px] sm:text-[14.5px]" : "text-[14.5px] sm:text-[15px]",
+            tone === "balanced" ? "text-[13.5px] sm:text-[14px]" : "text-[14px] sm:text-[14.5px]",
           )}
         >
           {entity.artist_name ?? "Unknown artist"}
@@ -143,8 +143,8 @@ export function ReviewCardEntitySummary({
     return (
       <div
         className={cn(
-          "inline-flex max-w-full items-center gap-2 rounded-lg border border-border/42 bg-card/42 px-2.5 py-1.5 text-sm text-muted-foreground md:border-border/34 md:bg-card/28",
-          interactive && "transition-colors hover:bg-muted/26 hover:text-foreground active:bg-muted/32 md:hover:bg-muted/18 md:active:bg-muted/24",
+          "inline-flex max-w-full items-center gap-2 rounded-lg bg-background/30 px-2.5 py-1.5 text-sm text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] md:bg-background/24",
+          interactive && "transition-colors hover:bg-muted/22 hover:text-foreground active:bg-muted/28 md:hover:bg-muted/16 md:active:bg-muted/22",
           className,
         )}
       >
@@ -154,7 +154,7 @@ export function ReviewCardEntitySummary({
           sizes="24px"
           priority={priority}
           quality={56}
-          className="h-6 w-6 shrink-0 rounded-full bg-muted"
+        className="h-6 w-6 shrink-0 rounded-full bg-muted"
           iconClassName="size-3"
         />
         <span className="truncate font-serif text-[15px] font-medium text-foreground">{entity.title}</span>
@@ -176,7 +176,7 @@ export function ReviewCardEntitySummary({
         alt={entity.title}
         sizes="44px"
         priority={priority}
-        className="h-11 w-11 shrink-0 rounded-md border border-border/34 bg-muted/42 md:border-border/28 md:bg-muted/34"
+        className="h-11 w-11 shrink-0 rounded-md border border-border/34 bg-muted/42 max-md:border-transparent md:border-border/28 md:bg-muted/34"
         iconClassName="size-4"
       />
 
@@ -212,7 +212,7 @@ export function ReviewCardEntityCover({
       quality={86}
       variant="card"
       className={cn(
-        "aspect-square w-full rounded-[0.85rem] border border-border/18 bg-muted/16 shadow-[0_10px_28px_rgba(0,0,0,0.24)]",
+        "aspect-square w-full rounded-[0.78rem] bg-muted/16 shadow-[0_12px_30px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.055)]",
         className,
       )}
       iconClassName="size-8"
@@ -250,21 +250,21 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "overflow-hidden rounded-[0.95rem] border border-border/24 bg-card/26 transition-colors hover:border-border/36 hover:bg-card/34 md:border-border/20 md:bg-card/22",
-        featured && "border-border/32 bg-card/34 md:border-border/28 md:bg-card/30",
+        "kocteau-review-card overflow-hidden rounded-[var(--kocteau-radius-card)]",
+        featured && "kocteau-review-card-featured",
         className,
       )}
     >
-      <div className="space-y-4 p-3.5 sm:p-4">
+      <div className="space-y-3.5 p-3.5 sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
             {eyebrow ? (
-              <p className="font-editorial text-[1.45rem] font-normal leading-none text-muted-foreground/82">
+              <p className="text-[12px] font-medium leading-none text-muted-foreground/70">
                 {eyebrow}
               </p>
             ) : null}
 
-            <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
               {showAuthor ? (
                 <>
                   <UserAvatar
@@ -278,16 +278,16 @@ export default function ReviewCard({
                   />
 
                   {slots?.authorName ?? (
-                    <span className="text-xs font-medium text-foreground sm:text-sm">{authorLabel}</span>
+                    <span className="text-[13px] font-medium text-foreground">{authorLabel}</span>
                   )}
 
                   <span className="text-muted-foreground/50">•</span>
                 </>
               ) : null}
 
-              <span className="text-xs sm:text-sm">{formatDate(review.created_at)}</span>
+              <span>{formatDate(review.created_at)}</span>
               {review.is_pinned ? (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="h-5 rounded-md border-border/40 px-1.5 text-[10px]">
                   Pinned
                 </Badge>
               ) : null}
@@ -297,7 +297,7 @@ export default function ReviewCard({
           {showRatingBadge || headerActions ? (
             <div className="flex shrink-0 items-center gap-2">
               {showRatingBadge ? (
-                <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/24 bg-background/24 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground/92 md:border-border/18 md:bg-background/18">
+                <div className="inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full bg-background/38 px-2 text-[11px] font-medium tabular-nums text-foreground/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] md:bg-background/28">
                   <Star className="size-3.5 fill-current text-amber-300" />
                   {review.rating.toFixed(1)}
                 </div>
@@ -310,24 +310,24 @@ export default function ReviewCard({
         {isCoverLedEntity ? (
           <div
             className={cn(
-              "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.75rem_minmax(0,1fr)] lg:gap-4.5",
-              featured && "grid-cols-[6.75rem_minmax(0,1fr)] sm:grid-cols-[8.75rem_minmax(0,1fr)] lg:grid-cols-[9.75rem_minmax(0,1fr)] lg:gap-5",
+              "grid grid-cols-[5.75rem_minmax(0,1fr)] items-start gap-3.5 sm:grid-cols-[7.25rem_minmax(0,1fr)] lg:grid-cols-[7.75rem_minmax(0,1fr)] lg:gap-4",
+              featured && "grid-cols-[6.25rem_minmax(0,1fr)] sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.5rem_minmax(0,1fr)]",
             )}
           >
             <div className="min-w-0">
               {slots?.entityCover ?? <ReviewCardEntityCover entity={entity} priority={featured} />}
             </div>
 
-            <div className={cn("min-w-0 self-start", usesBalancedCopy ? "space-y-3" : "space-y-3.5")}>
+            <div className={cn("min-w-0 self-start", usesBalancedCopy ? "space-y-2.5" : "space-y-3")}>
               {slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode="cover" tone={copyTone} />}
 
               {hasTitle ? (
                 <h3
                   className={cn(
-                    "text-foreground/86",
+                    "text-foreground/92",
                     usesBalancedCopy
-                      ? "text-[0.92rem] font-medium leading-6 sm:text-[0.97rem]"
-                      : "text-[0.96rem] font-medium leading-6 sm:text-[1rem]",
+                      ? "text-[0.9rem] font-medium leading-5 sm:text-[0.95rem]"
+                      : "text-[0.94rem] font-medium leading-5 sm:text-[0.98rem]",
                   )}
                 >
                   {review.title}
@@ -337,10 +337,10 @@ export default function ReviewCard({
               {review.body ? (
                 <p
                   className={cn(
-                    "font-serif text-pretty text-foreground/82",
+                    "font-serif text-pretty text-foreground/86",
                     usesBalancedCopy
-                      ? "text-[15px] leading-[1.76] sm:text-[15.45px]"
-                      : "text-[15.2px] leading-[1.7] sm:text-[15.55px]",
+                      ? "text-[14.5px] leading-[1.68] sm:text-[14.95px]"
+                      : "text-[14.8px] leading-[1.64] sm:text-[15.1px]",
                     bodyClampLines === 3 && "line-clamp-3",
                     bodyClampLines === 4 && "line-clamp-4",
                     bodyClampLines === 5 && "line-clamp-5",
@@ -349,7 +349,7 @@ export default function ReviewCard({
                   {review.body}
                 </p>
               ) : (
-                <p className="text-[15px] italic text-muted-foreground">Only a rating was left for this track.</p>
+                <p className="text-[13.5px] leading-6 text-muted-foreground/78">Only a rating was left for this track.</p>
               )}
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function ReviewCard({
             {showEntity ? slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode={entityMode} /> : null}
 
             {hasTitle ? (
-              <h3 className="font-serif text-[1.15rem] font-semibold text-pretty text-foreground sm:text-[1.22rem]">
+              <h3 className="font-serif text-[1.08rem] font-semibold text-pretty text-foreground sm:text-[1.18rem]">
                 {review.title}
               </h3>
             ) : null}
@@ -366,7 +366,7 @@ export default function ReviewCard({
             {review.body ? (
               <p
                 className={cn(
-                  "font-serif text-[15.5px] leading-[1.66] text-pretty text-foreground/84",
+                  "font-serif text-[14.95px] leading-[1.64] text-pretty text-foreground/84",
                   bodyClampLines === 3 && "line-clamp-3",
                   bodyClampLines === 4 && "line-clamp-4",
                   bodyClampLines === 5 && "line-clamp-5",
@@ -375,7 +375,7 @@ export default function ReviewCard({
                 {review.body}
               </p>
             ) : (
-              <p className="text-sm italic text-muted-foreground">Only a rating was left for this track.</p>
+              <p className="text-sm text-muted-foreground/78">Only a rating was left for this track.</p>
             )}
           </>
         )}
@@ -383,7 +383,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="flex items-center justify-between gap-3 border-t border-border/16 pt-2.5 md:border-border/12"
+            className="flex items-center justify-between gap-3 pt-0.5"
           >
             {footer}
           </div>

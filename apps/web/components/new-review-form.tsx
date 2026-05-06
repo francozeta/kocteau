@@ -3,7 +3,7 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, LoaderCircle, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Disc3, LoaderCircle, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -463,11 +463,11 @@ export default function NewReviewForm({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-sidebar">
+    <div className="flex h-full min-h-0 flex-col bg-[var(--kocteau-surface)]">
       {step === "search" ? (
-        <div className="flex min-h-0 flex-1 flex-col px-6 py-4">
+        <div className="flex min-h-0 flex-1 flex-col px-4 py-4 md:px-5">
           <div className="relative mb-3 shrink-0">
-            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground/80" />
             <Input
               value={query}
               onChange={(event) => {
@@ -475,10 +475,10 @@ export default function NewReviewForm({
                 setFieldErrors((current) => ({ ...current, selected: undefined }));
               }}
               onKeyDown={handleSearchKeyDown}
-              placeholder="Search tracks or artists..."
+              placeholder="Search tracks to review..."
               disabled={saving}
               autoFocus
-              className="h-11 shrink-0 rounded-lg border-border/42 bg-card/44 pl-10 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
+              className="h-10 shrink-0 rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
               maxLength={80}
             />
           </div>
@@ -498,7 +498,7 @@ export default function NewReviewForm({
           ) : null}
           <FieldError>{fieldErrors.selected}</FieldError>
 
-          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
+          <ScrollArea className="min-h-0 flex-1 rounded-[0.85rem] border border-border/24 bg-[var(--kocteau-surface-raised)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
             <div className="space-y-0">
               {isFetching && results.length === 0 ? (
                 <div className="space-y-3 px-4 py-4">
@@ -523,20 +523,22 @@ export default function NewReviewForm({
 
               {!isFetching && !normalizedQuery ? (
                 <>
-                  <div className="border-b px-4 py-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="border-b border-border/18 px-4 py-2.5">
+                    <p className="text-[11px] font-medium text-muted-foreground/72">
                       Suggested
                     </p>
                   </div>
-                  <div className="divide-y">
+                  <div className="divide-y divide-border/16">
                     {suggestedSearches.map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
                         onClick={() => setQuery(suggestion)}
-                        className="w-full px-4 py-3 text-left text-sm transition hover:bg-muted/46"
+                        className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-left text-[13px] transition hover:bg-foreground/[0.045]"
                       >
-                        {suggestion}
+                        <Search className="size-3.5 shrink-0 text-muted-foreground/68" />
+                        <span className="min-w-0 flex-1 truncate">{suggestion}</span>
+                        <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/54" />
                       </button>
                     ))}
                   </div>
@@ -558,7 +560,7 @@ export default function NewReviewForm({
               ) : null}
 
               {results.length > 0 ? (
-                <div className="divide-y">
+                <div className="divide-y divide-border/16">
                   {results.map((result, index) => (
                     <button
                       key={result.provider_id}
@@ -574,7 +576,7 @@ export default function NewReviewForm({
 
                         handleResultSelect(result);
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-muted/46 data-[active=true]:bg-muted/54"
+                      className="group flex min-h-[4.5rem] w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-foreground/[0.045] data-[active=true]:bg-foreground/[0.06]"
                       data-active={activeResultIndex === index}
                     >
                       <EntityCoverImage
@@ -582,16 +584,21 @@ export default function NewReviewForm({
                         alt={result.title}
                         sizes="40px"
                         quality={56}
-                        className="h-10 w-10 shrink-0 rounded-lg bg-muted"
+                        className="h-10 w-10 shrink-0 rounded-[0.65rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
                         iconClassName="size-4"
                       />
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{result.title}</p>
-                        <p className="truncate text-xs text-muted-foreground">
+                        <p className="truncate text-[13px] font-medium text-foreground">{result.title}</p>
+                        <p className="truncate text-xs text-muted-foreground/82">
                           {result.artist_name ?? "Unknown artist"}
                         </p>
+                        <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground/64">
+                          <Disc3 className="size-3" />
+                          Track
+                        </span>
                       </div>
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground/48 transition group-hover:text-muted-foreground/78" />
                     </button>
                   ))}
                 </div>
@@ -600,7 +607,7 @@ export default function NewReviewForm({
           </ScrollArea>
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col px-6 py-4">
+        <div className="flex min-h-0 flex-1 flex-col px-4 py-4 md:px-5">
           <div className="mb-5 flex items-center gap-3 shrink-0">
             {!isEditMode ? (
               <Button
@@ -608,28 +615,32 @@ export default function NewReviewForm({
                 variant="ghost"
                 size="icon"
                 onClick={goBackToSearch}
-                className="shrink-0 rounded-lg"
+                className="shrink-0 rounded-[0.7rem] text-muted-foreground hover:bg-foreground/[0.055] hover:text-foreground"
               >
                 <ArrowLeft className="size-4" />
                 <span className="sr-only">Back to search</span>
               </Button>
             ) : null}
 
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-border/40 bg-card/34 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/28">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.85rem] border border-border/24 bg-[var(--kocteau-surface-raised)] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
               <EntityCoverImage
                 src={selected?.cover_url}
                 alt={selected?.title ?? "Selected track"}
                 sizes="48px"
                 quality={56}
-                className="h-12 w-12 shrink-0 rounded-lg bg-muted"
+                className="h-12 w-12 shrink-0 rounded-[0.7rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
                 iconClassName="size-5"
               />
 
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-sm">{selected?.title}</p>
-                <p className="truncate text-xs text-muted-foreground">
+                <p className="truncate text-sm font-semibold">{selected?.title}</p>
+                <p className="truncate text-xs text-muted-foreground/82">
                   {selected?.artist_name ?? "Unknown artist"}
                 </p>
+                <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground/64">
+                  <Disc3 className="size-3" />
+                  Track
+                </span>
               </div>
 
               {selected?.deezer_url ? (
@@ -650,11 +661,11 @@ export default function NewReviewForm({
             </Alert>
           ) : null}
 
-          <ScrollArea className="min-h-0 flex-1 rounded-lg border border-border/40 bg-card/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/24">
-            <div className="p-5">
-              <div className="space-y-6">
+          <ScrollArea className="min-h-0 flex-1 rounded-[0.85rem] border border-border/24 bg-[var(--kocteau-surface-raised)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+            <div className="p-4 md:p-5">
+              <div className="space-y-5">
                 <section>
-                  <p className="text-sm font-medium mb-3">Rating</p>
+                  <p className="mb-3 text-[12px] font-medium text-muted-foreground/82">Rating</p>
                   <RatingStars
                     value={rating}
                     onChange={(nextRating) => {
@@ -679,7 +690,7 @@ export default function NewReviewForm({
                     }}
                     placeholder="Give it a headline"
                     disabled={saving}
-                    className="h-11 rounded-lg border-border/42 bg-card/44 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
+                    className="h-10 rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
                     maxLength={120}
                     aria-invalid={Boolean(fieldErrors.review_title)}
                   />
@@ -698,7 +709,7 @@ export default function NewReviewForm({
                       setFieldErrors((current) => ({ ...current, review_body: undefined }));
                     }}
                     placeholder="What did this track make you feel?"
-                    className="min-h-24 resize-none rounded-lg border-border/42 bg-card/44 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/34 md:bg-card/36"
+                    className="min-h-28 resize-none rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] text-[13px] leading-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
                     disabled={saving}
                     maxLength={2000}
                     aria-invalid={Boolean(fieldErrors.review_body)}
@@ -712,32 +723,32 @@ export default function NewReviewForm({
       )}
 
       {!isSearchIntent ? (
-        <div className="shrink-0 border-t border-border/30 bg-sidebar px-6 py-4">
-        <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
-          {showCancelAction ? (
+        <div className="shrink-0 border-t border-border/20 bg-[var(--kocteau-surface)] px-4 py-3 md:px-5">
+          <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
+            {showCancelAction ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={saving}
+                className="min-w-22 rounded-[0.7rem] border-border/28 bg-transparent px-4 text-foreground hover:bg-foreground/[0.055]"
+              >
+                Cancel
+              </Button>
+            ) : null}
+
             <Button
               type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={saving}
-              className="min-w-22 rounded-lg border-border/42 bg-transparent px-4 text-foreground hover:bg-accent"
+              onClick={handleContinue}
+              disabled={!canContinue}
+              className={cn(
+                "min-w-24 rounded-[0.7rem] bg-foreground px-4 text-background hover:bg-foreground/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
+                primaryActionFullWidth && "w-full",
+              )}
             >
-              Cancel
+              {continueLabel}
             </Button>
-          ) : null}
-
-          <Button
-            type="button"
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className={cn(
-              "min-w-24 rounded-lg bg-white px-4 text-black hover:bg-white/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
-              primaryActionFullWidth && "w-full",
-            )}
-          >
-            {continueLabel}
-          </Button>
-        </div>
+          </div>
         </div>
       ) : null}
     </div>
