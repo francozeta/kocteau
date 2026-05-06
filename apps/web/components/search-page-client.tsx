@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowUpRight, LoaderCircle, Music2, Search } from "lucide-react";
+import { ChevronRight, Clock, Disc3, LoaderCircle, Music2, Search } from "lucide-react";
 import EntityCoverImage from "@/components/entity-cover-image";
+import { Kbd } from "@/components/ui/kbd";
 import PrefetchLink from "@/components/prefetch-link";
 import TrackContextMenu from "@/components/track-context-menu";
-import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,6 +75,38 @@ function highlightMatch(text: string, query: string) {
     ) : (
       <span key={`${part}-${index}`}>{part}</span>
     ),
+  );
+}
+
+function SearchSectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-medium text-muted-foreground/72">
+      {children}
+    </p>
+  );
+}
+
+function SuggestionRow({
+  children,
+  icon,
+  onClick,
+}: {
+  children: React.ReactNode;
+  icon: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-left text-[13px] transition hover:bg-foreground/[0.045]"
+    >
+      <span className="inline-flex size-5 shrink-0 items-center justify-center text-muted-foreground/68">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-foreground/90">{children}</span>
+      <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/48 transition group-hover:text-muted-foreground/78" />
+    </button>
   );
 }
 
@@ -246,116 +278,108 @@ export default function SearchPageClient({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
-      <div className="space-y-4">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            data-global-search-input="true"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Search tracks or artists…"
-            className="mobile-liquid-panel h-12 rounded-[1.35rem] border-border/34 bg-card/26 pl-12 text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20"
-            autoFocus={!isMobile}
-            maxLength={80}
-          />
-        </div>
-
-        {resultCountLabel ? (
-          <div className="flex items-center gap-2 px-1 text-sm text-muted-foreground">
-            <span>{resultCountLabel}</span>
-            {isFetching ? (
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <LoaderCircle className="size-3.5 animate-spin" />
-                Updating…
+    <div className="mx-auto flex w-full max-w-[52rem] flex-col gap-5 sm:gap-6">
+      <section className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-[0_18px_52px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.035)]">
+        <div className="border-b border-border/18 p-3 md:p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 text-[12px] font-medium text-muted-foreground/82">
+              <Search className="size-3.5" />
+              Explore catalog
+            </div>
+            {hasQuery && resultCountLabel ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/72">
+                {isFetching ? <LoaderCircle className="size-3 animate-spin" /> : null}
+                {isFetching ? "Updating" : resultCountLabel}
               </span>
             ) : null}
           </div>
-        ) : null}
 
-        {!hasQuery && (
-          <div className="space-y-4 pt-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground/78" />
+            <Input
+              data-global-search-input="true"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={handleInputKeyDown}
+              placeholder="Search tracks to explore…"
+              className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
+              autoFocus={!isMobile}
+              maxLength={80}
+            />
+          </div>
+
+          {error ? <p className="mt-3 text-sm text-destructive">{error.message}</p> : null}
+        </div>
+
+        {!hasQuery ? (
+          <div className="divide-y divide-border/16">
             {recentSearches.length > 0 ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                    Recent
-                  </p>
+              <div>
+                <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                  <SearchSectionLabel>Recent</SearchSectionLabel>
                   <button
                     type="button"
                     onClick={clearRecentSearches}
-                    className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    className="text-[12px] text-muted-foreground transition-colors hover:text-foreground"
                   >
                     Clear
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="divide-y divide-border/16">
                   {recentSearches.map((item) => (
-                    <Button
+                    <SuggestionRow
                       key={item.query}
-                      type="button"
-                      variant="outline"
-                      size="sm"
+                      icon={<Clock className="size-3.5" />}
                       onClick={() => handleSearchSuggestionSelect(item.query)}
-                      className="rounded-full border-border/34 bg-card/24 max-md:border-transparent max-md:bg-card/18 hover:border-border/50 md:border-border/25 md:bg-card/18"
                     >
                       {item.label}
-                    </Button>
+                    </SuggestionRow>
                   ))}
                 </div>
               </div>
             ) : null}
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Suggested
-                </p>
+            <div>
+              <div className="px-4 py-2.5">
+                <SearchSectionLabel>Starting points</SearchSectionLabel>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="divide-y divide-border/16">
                 {suggestedSearches.map((suggestion) => (
-                  <Button
+                  <SuggestionRow
                     key={suggestion}
-                    type="button"
-                    variant="outline"
-                    size="sm"
+                    icon={<Search className="size-3.5" />}
                     onClick={() => handleSearchSuggestionSelect(suggestion)}
-                    className="rounded-full border-border/34 bg-card/24 max-md:border-transparent max-md:bg-card/18 hover:border-border/50 md:border-border/25 md:bg-card/18"
                   >
                     {suggestion}
-                  </Button>
+                  </SuggestionRow>
                 ))}
               </div>
             </div>
           </div>
-        )}
-
-        {error && <p className="text-sm text-destructive">{error.message}</p>}
-      </div>
+        ) : null}
+      </section>
 
       {hasQuery ? (
-        <div className="space-y-3">
+        <section className="space-y-3">
           {showSkeletonResults ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 rounded-[1.4rem] px-2 py-2.5"
-                >
-                  <Skeleton className="h-[4.5rem] w-[4.5rem] rounded-[1.2rem]" />
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <Skeleton className="h-3 w-18" />
-                    <Skeleton className="h-[1.125rem] w-2/5" />
-                    <Skeleton className="h-3.5 w-1/3" />
+            <div className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+              <div className="space-y-0 divide-y divide-border/16">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="flex items-center gap-3 px-3 py-3">
+                    <Skeleton className="size-14 rounded-[0.75rem] bg-foreground/[0.07]" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-3 w-16 bg-foreground/[0.055]" />
+                      <Skeleton className="h-4 w-2/5 bg-foreground/[0.075]" />
+                      <Skeleton className="h-3.5 w-1/3 bg-foreground/[0.055]" />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : null}
 
           {!showSkeletonResults && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
-            <Empty className="rounded-[1.6rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
+            <Empty className="rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Search className="size-4" />
@@ -369,7 +393,7 @@ export default function SearchPageClient({
           ) : null}
 
           {!showSkeletonResults && normalizedQuery.length >= 2 && results.length === 0 ? (
-            <Empty className="rounded-[1.6rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
+            <Empty className="rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Search className="size-4" />
@@ -383,90 +407,89 @@ export default function SearchPageClient({
           ) : null}
 
           {results.length > 0 ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3 px-1">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Matches
-                </p>
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Use ↑ ↓ to move, Enter to open
-                </p>
+            <div className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+              <div className="flex items-center justify-between gap-3 border-b border-border/18 px-4 py-2.5">
+                <SearchSectionLabel>Matches</SearchSectionLabel>
+                <div className="hidden items-center gap-1.5 text-[11px] text-muted-foreground/64 sm:flex">
+                  <Kbd className="h-5 rounded-md border-border/28 bg-foreground/[0.055] px-1.5 text-[0.625rem]">
+                    ↑
+                  </Kbd>
+                  <Kbd className="h-5 rounded-md border-border/28 bg-foreground/[0.055] px-1.5 text-[0.625rem]">
+                    ↓
+                  </Kbd>
+                  <span>Enter to open</span>
+                </div>
               </div>
-              {results.map((result, index) => (
-                <TrackContextMenu
-                  key={`${result.provider}-${result.provider_id}`}
-                  href={getResultHref(result)}
-                  title={result.title}
-                  artistName={result.artist_name}
-                >
-                  <PrefetchLink
+              <div className="divide-y divide-border/16">
+                {results.map((result, index) => (
+                  <TrackContextMenu
+                    key={`${result.provider}-${result.provider_id}`}
                     href={getResultHref(result)}
-                    queryWarmup={
-                      result.entity_id
-                        ? { kind: "track", id: result.entity_id }
-                        : undefined
-                    }
-                    onClick={() => persistRecentSearch(result.title)}
-                    ref={(node) => {
-                      resultRefs.current[index] = node;
-                    }}
-                    className="group block"
+                    title={result.title}
+                    artistName={result.artist_name}
                   >
-                    <div
-                      className={cn(
-                        "flex items-center gap-4 rounded-[1.4rem] px-2 py-2.5 transition-colors hover:bg-card/20 md:hover:bg-card/18",
-                        activeIndex === index && "bg-card/24 md:bg-card/22",
-                      )}
+                    <PrefetchLink
+                      href={getResultHref(result)}
+                      queryWarmup={
+                        result.entity_id
+                          ? { kind: "track", id: result.entity_id }
+                          : undefined
+                      }
+                      onClick={() => persistRecentSearch(result.title)}
+                      ref={(node) => {
+                        resultRefs.current[index] = node;
+                      }}
+                      className="group block"
                     >
-                      <EntityCoverImage
-                        src={result.cover_url}
-                        alt={result.title}
-                        sizes="72px"
-                        quality={84}
-                        variant="card"
-                        className="h-[4.5rem] w-[4.5rem] shrink-0 rounded-[1.2rem] bg-muted/50"
-                        imageClassName="transition-transform group-hover:scale-105"
-                        iconClassName="size-6"
-                      />
-
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/78">
-                          <span>{result.entity_id ? "In library" : "Deezer"}</span>
-                        </div>
-                        <h3 className="line-clamp-1 font-serif text-[1.02rem] font-semibold tracking-tight text-foreground">
-                          {highlightMatch(result.title, normalizedQuery)}
-                        </h3>
-                        <p className="line-clamp-1 text-[14px] text-muted-foreground/88">
-                          {highlightMatch(result.artist_name ?? "Unknown artist", normalizedQuery)}
-                        </p>
-                      </div>
-
-                      <div className="hidden sm:block">
-                        {activeIndex === index ? (
-                          <span className="inline-flex rounded-full bg-card/26 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                            Enter
-                          </span>
-                        ) : (
-                          <ArrowUpRight className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+                      <div
+                        className={cn(
+                          "flex min-h-[4.75rem] items-center gap-3 px-3 py-3 transition-colors hover:bg-foreground/[0.045]",
+                          activeIndex === index && "bg-foreground/[0.06]",
                         )}
+                      >
+                        <EntityCoverImage
+                          src={result.cover_url}
+                          alt={result.title}
+                          sizes="56px"
+                          quality={78}
+                          variant="card"
+                          className="size-14 shrink-0 rounded-[0.75rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
+                          imageClassName="transition-transform duration-300 group-hover:scale-[1.035]"
+                          iconClassName="size-5"
+                        />
+
+                        <div className="min-w-0 flex-1">
+                          <h3 className="line-clamp-1 text-[14px] font-semibold text-foreground">
+                            {highlightMatch(result.title, normalizedQuery)}
+                          </h3>
+                          <p className="line-clamp-1 text-[13px] text-muted-foreground/84">
+                            {highlightMatch(result.artist_name ?? "Unknown artist", normalizedQuery)}
+                          </p>
+                          <div className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/62">
+                            <Disc3 className="size-3" />
+                            <span>Track</span>
+                            <span aria-hidden="true">·</span>
+                            <span>{result.entity_id ? "In library" : "Deezer"}</span>
+                          </div>
+                        </div>
+
+                        <ChevronRight className="size-4 shrink-0 text-muted-foreground/48 transition group-hover:text-muted-foreground/78" />
                       </div>
-                    </div>
-                  </PrefetchLink>
-                </TrackContextMenu>
-              ))}
+                    </PrefetchLink>
+                  </TrackContextMenu>
+                ))}
+              </div>
             </div>
           ) : null}
-        </div>
+        </section>
       ) : (
-        <section className="space-y-6">
-          <div className="flex items-end justify-between">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              Active tracks
-            </h2>
+        <section className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <SearchSectionLabel>Recently discussed</SearchSectionLabel>
           </div>
 
           {highlights.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {highlights.map((track) => (
                 <TrackContextMenu
                   key={track.entityId}
@@ -477,28 +500,29 @@ export default function SearchPageClient({
                   <PrefetchLink
                     href={`/track/${track.entityId}`}
                     queryWarmup={{ kind: "track", id: track.entityId }}
-                    className="group block rounded-[1.5rem] p-2 transition-colors hover:bg-card/16"
+                    className="group block overflow-hidden rounded-[1rem] border border-border/22 bg-[var(--kocteau-surface)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] transition-[background-color,transform] hover:bg-[var(--kocteau-surface-raised)] active:scale-[0.99]"
                   >
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                       <EntityCoverImage
                         src={track.coverUrl}
                         alt={track.title}
                         sizes="(max-width: 639px) 46vw, (max-width: 1023px) 30vw, 220px"
-                        quality={86}
+                        quality={82}
                         variant="card"
-                        className="aspect-square w-full rounded-[1.15rem] bg-muted/50"
+                        className="aspect-square w-full rounded-[0.8rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
                         imageClassName="transition-transform duration-300 group-hover:scale-[1.025]"
                         iconClassName="size-6"
                       />
 
-                      <div className="min-w-0 space-y-1 px-0.5">
-                        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground/72">
-                          {formatDate(track.latestReviewAt)}
-                        </p>
-                        <h3 className="line-clamp-1 font-serif text-[1.08rem] font-semibold tracking-tight text-foreground">
+                      <div className="min-w-0 px-0.5 pb-0.5">
+                        <div className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/62">
+                          <Disc3 className="size-3" />
+                          <span>{formatDate(track.latestReviewAt)}</span>
+                        </div>
+                        <h3 className="line-clamp-1 text-[14px] font-semibold text-foreground">
                           {track.title}
                         </h3>
-                        <p className="line-clamp-1 text-[14px] text-muted-foreground/88">
+                        <p className="line-clamp-1 text-[13px] text-muted-foreground/84">
                           {track.artistName ?? "Unknown artist"}
                         </p>
                       </div>
@@ -508,7 +532,7 @@ export default function SearchPageClient({
               ))}
             </div>
           ) : (
-            <Empty className="rounded-[1.6rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
+            <Empty className="rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <Music2 className="size-4" />
