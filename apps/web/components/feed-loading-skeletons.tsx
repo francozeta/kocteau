@@ -216,7 +216,7 @@ export function WhoToFollowRailSkeleton({
 export function FeedReviewStackSkeleton() {
   return (
     <div className="flex flex-col gap-3.5">
-      <ReviewCardSkeleton featured showEyebrow />
+      <ReviewCardSkeleton />
       <ReviewCardSkeleton />
       <ReviewCardSkeleton />
     </div>

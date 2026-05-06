@@ -349,7 +349,7 @@ export default function ReviewCard({
                   {review.body}
                 </p>
               ) : (
-                <p className="text-[14px] italic leading-6 text-muted-foreground/88">Only a rating was left for this track.</p>
+                <p className="text-[13.5px] leading-6 text-muted-foreground/78">Only a rating was left for this track.</p>
               )}
             </div>
           </div>
@@ -375,7 +375,7 @@ export default function ReviewCard({
                 {review.body}
               </p>
             ) : (
-              <p className="text-sm italic text-muted-foreground/88">Only a rating was left for this track.</p>
+              <p className="text-sm text-muted-foreground/78">Only a rating was left for this track.</p>
             )}
           </>
         )}

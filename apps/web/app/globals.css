@@ -175,8 +175,8 @@
   --kocteau-canvas: var(--kocteau-gray-1);
   --kocteau-shell: color-mix(in oklch, var(--kocteau-gray-2) 34%, var(--kocteau-gray-1));
   --kocteau-surface: color-mix(in oklch, var(--kocteau-gray-2) 76%, var(--kocteau-gray-1));
-  --kocteau-surface-raised: color-mix(in oklch, var(--kocteau-gray-2) 86%, var(--kocteau-gray-1));
-  --kocteau-surface-raised-hover: color-mix(in oklch, var(--kocteau-gray-3) 24%, var(--kocteau-gray-2));
+  --kocteau-surface-raised: color-mix(in oklch, var(--kocteau-gray-2) 80%, var(--kocteau-gray-3));
+  --kocteau-surface-raised-hover: color-mix(in oklch, var(--kocteau-gray-2) 74%, var(--kocteau-gray-3));
   --kocteau-surface-featured: color-mix(in oklch, var(--kocteau-gray-3) 42%, var(--kocteau-gray-2));
   --kocteau-surface-featured-hover: color-mix(in oklch, var(--kocteau-gray-3) 54%, var(--kocteau-gray-2));
   --kocteau-surface-control: color-mix(in oklch, var(--kocteau-gray-2) 58%, var(--kocteau-gray-1));
@@ -187,9 +187,11 @@
   --kocteau-text: var(--kocteau-gray-12);
   --kocteau-text-soft: color-mix(in oklch, var(--kocteau-gray-12) 68%, transparent);
   --kocteau-shadow-card:
+    0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 4.5%, transparent),
     0 18px 46px rgba(0, 0, 0, 0.34),
     inset 0 1px 0 var(--kocteau-topline);
   --kocteau-shadow-card-hover:
+    0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 5.5%, transparent),
     0 22px 58px rgba(0, 0, 0, 0.38),
     inset 0 1px 0 color-mix(in oklch, var(--kocteau-gray-12) 6.5%, transparent);
   --kocteau-shadow-control:

@@ -38,19 +38,22 @@ const recommendationReasonLabels = {
   following: "From your follows",
   familiar_entity: "Related pick",
   author_affinity: "Similar listener",
-  own_review: "Your contribution",
   popular_recent: "Popular now",
-} satisfies Record<
+} satisfies Partial<Record<
   NonNullable<FeedBundleReview["recommendation_reason"]>,
   string
->;
+>>;
 
 function getRecommendationEyebrow(review: FeedBundleReview, view: FeedView) {
   if (view !== "for-you" || !review.recommendation_reason) {
     return null;
   }
 
-  return recommendationReasonLabels[review.recommendation_reason];
+  if (review.recommendation_reason === "own_review") {
+    return null;
+  }
+
+  return recommendationReasonLabels[review.recommendation_reason] ?? null;
 }
 
 function FeedEmptyState({
@@ -267,7 +270,7 @@ export default function FeedReviewList({
 
   return (
     <div className="space-y-3.5">
-      {reviews.map((review, index) => {
+      {reviews.map((review) => {
         const author = review.author;
 
         return (
@@ -276,7 +279,6 @@ export default function FeedReviewList({
               review={review}
               entity={review.entities}
               author={author}
-              featured={index === 0}
               showInteractionBar={isAuthenticated}
               isAuthenticated={isAuthenticated}
               canManage={Boolean(viewer?.id && author?.id === viewer.id)}

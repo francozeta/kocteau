@@ -58,6 +58,8 @@ Use surface color shifts plus soft layered shadows. Avoid heavy borders.
 ## Component Patterns
 
 - Review cards should prioritize track identity, cover art, reviewer, rating, written take, then lightweight actions.
+- Feed review cards should keep equal visual weight; do not make the first item larger or label a viewer's own review as "Your contribution."
+- Rating-only reviews should read as intentional quiet copy, not an italic error or empty-state warning.
 - Feed tabs should be compact, stable, monochrome, and visually connected to the launcher.
 - The global review/search launcher should feel like part of the feed controls, not a separate dashboard module.
 - Sidebar active states should be readable but quiet: monochrome background lift, no strong inset border.
