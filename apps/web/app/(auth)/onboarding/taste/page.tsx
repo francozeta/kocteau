@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import AuthFormShell from "@/components/auth/auth-form-shell";
+import { OnboardingProgress } from "@/components/auth/onboarding-progress";
 import { TasteOnboardingForm } from "@/components/auth/taste-onboarding-form";
 import { createPageMetadata } from "@/lib/metadata";
 import { isProfileOnboarded } from "@/lib/profile";
@@ -63,10 +64,12 @@ export default async function TasteOnboardingPage() {
 
   return (
     <AuthFormShell
-      title="Choose 3 signals"
-      description="Start with a few sounds, moods, or scenes. Kocteau will tune itself as you review, save, and follow."
-      widthClassName="max-w-xl"
+      title="Tune your For You"
+      description="Start with a few sounds, moods, or scenes. Kocteau will keep learning as you review."
+      panelClassName="border-border/18 bg-[var(--kocteau-surface)] p-4 shadow-[var(--kocteau-shadow-card)] sm:p-5"
+      widthClassName="max-w-2xl"
     >
+      <OnboardingProgress currentStep="taste" />
       <TasteOnboardingForm
         tags={(tags ?? []) as PreferenceTag[]}
         initialSelectedTagIds={(selectedTags ?? []).map((tag) => tag.tag_id)}

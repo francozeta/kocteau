@@ -4,7 +4,6 @@ import { AlertCircle, Check, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -116,28 +115,32 @@ export function TasteOnboardingForm({
 
   return (
     <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-      <FieldGroup className="gap-3">
+      <FieldGroup className="gap-3 rounded-[var(--kocteau-radius-control)] bg-[var(--kocteau-surface-control)] p-3 shadow-[var(--kocteau-shadow-control)]">
         <div className="flex items-center justify-between gap-3">
-          <FieldDescription>
-            {selectedCount}/{tasteOnboardingMaxTags} selected
-          </FieldDescription>
-          <Badge
-            variant={selectedCount >= tasteOnboardingMinTags ? "default" : "outline"}
-          >
-            {missingCount > 0 ? `${missingCount} left` : "Ready"}
-          </Badge>
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">Primary signals</p>
+            <FieldDescription>
+              {missingCount > 0 ? `${missingCount} left` : "Ready for your feed"}
+            </FieldDescription>
+          </div>
+          <span className="font-mono text-xs text-muted-foreground tabular-nums">
+            {selectedCount}/{tasteOnboardingMaxTags}
+          </span>
         </div>
-        <Progress value={progressValue} />
+        <Progress
+          value={progressValue}
+          className="bg-background/60 [&_[data-slot=progress-indicator]]:bg-foreground"
+        />
       </FieldGroup>
 
       <Field>
         <div className="flex items-center justify-between gap-3">
-          <FieldLabel>Primary signals</FieldLabel>
+          <FieldLabel>Sounds, moods, scenes</FieldLabel>
           <FieldDescription>
             Choose at least {tasteOnboardingMinTags}
           </FieldDescription>
         </div>
-        <div className="rounded-xl border border-border/35 bg-background/35 p-3">
+        <div className="rounded-[var(--kocteau-radius-control)] bg-[var(--kocteau-surface-raised)] p-3">
           {tags.length > 0 ? (
             <div className="flex max-h-[18rem] flex-wrap gap-2 overflow-y-auto pr-1">
               {tags.map((tag) => {
@@ -150,10 +153,10 @@ export function TasteOnboardingForm({
                     aria-pressed={isSelected}
                     onClick={() => toggleTag(tag.id)}
                     className={cn(
-                      "inline-flex h-8 max-w-full items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-all focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
+                      "inline-flex h-8 max-w-full items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-[color,background-color,border-color,transform] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none active:translate-y-px",
                       isSelected
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border/60 bg-muted/20 text-foreground hover:border-foreground/25 hover:bg-muted/55",
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-transparent bg-[var(--kocteau-surface-control)] text-foreground hover:bg-[var(--kocteau-surface-control-hover)]",
                     )}
                   >
                     <span className="truncate">{tag.label}</span>

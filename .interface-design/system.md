@@ -62,6 +62,7 @@ Use surface color shifts plus soft layered shadows. Avoid heavy borders.
 - Rating-only reviews should read as intentional quiet copy, not an italic error or empty-state warning.
 - Feed tabs should be compact, stable, monochrome, and visually connected to the launcher.
 - The global review/search launcher should feel like part of the feed controls, not a separate dashboard module.
+- Onboarding uses the local shadcn registry Stepper as structure, not decoration. The global onboarding stepper is `Profile -> Taste`; the profile form stepper is `Disc -> Identity`. Keep it compact, monochrome, and Geist-led.
 - Sidebar active states should be readable but quiet: monochrome background lift, no strong inset border.
 - Right rail modules should feel editorial. Use labels like "Fresh voices" or "Writers to notice" instead of generic growth widgets.
 - Like, save, and comment controls are monochrome. The heart can fill, but it should not introduce red or social-network color.

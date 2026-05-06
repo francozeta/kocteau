@@ -2,7 +2,7 @@
 
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Disc3, LoaderCircle, UserRound } from "lucide-react";
 import AvatarUploadTrigger from "@/components/avatar-upload-trigger";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";
@@ -12,6 +12,17 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Stepper,
+  StepperContent,
+  StepperDescription,
+  StepperIndicator,
+  StepperItem,
+  StepperLabel,
+  StepperList,
+  StepperSeparator,
+  StepperTrigger,
+} from "@/components/ui/stepper";
 import { Textarea } from "@/components/ui/textarea";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import {
@@ -355,6 +366,19 @@ export default function ProfileEditorForm({
   const showAvatarSettingsSection = !isOnboarding && (settingsSection === "all" || settingsSection === "avatar");
   const showProfileSettingsSection = isOnboarding || settingsSection === "all" || settingsSection === "profile";
   const showLinksSettingsSection = mode === "settings" && (settingsSection === "all" || settingsSection === "links");
+  const onboardingStepperValue = step === 1 ? "disc" : "identity";
+
+  function handleOnboardingStepChange(value: string) {
+    if (value === "identity") {
+      if (canAdvanceOnboarding) {
+        setStep(2);
+      }
+
+      return;
+    }
+
+    setStep(1);
+  }
 
   function renderAvatarSelection() {
     const previewUrl = avatarPreview ?? createAvatarPresetDataUrl(avatarPresets[0].id, 640);
@@ -364,10 +388,10 @@ export default function ProfileEditorForm({
         <div className="space-y-4">
           <div className="space-y-1 text-center lg:text-left">
             <h2 className="text-xl font-semibold tracking-tight text-foreground">
-              Choose an avatar
+              Choose your disc
             </h2>
             <p className="text-sm text-muted-foreground">
-              Pick a default disc or drop in a photo. We&apos;ll let you crop it before saving.
+              Pick a default disc or drop in a photo. We&apos;ll crop it before saving.
             </p>
           </div>
 
@@ -450,7 +474,7 @@ export default function ProfileEditorForm({
               disabled={!canAdvanceOnboarding}
               className="gap-2"
             >
-              Next
+              Continue
               <ArrowRight className="size-4" />
             </Button>
           </div>
@@ -469,10 +493,10 @@ export default function ProfileEditorForm({
         {isOnboarding ? (
           <div className="space-y-1">
             <h2 className="text-xl font-semibold tracking-tight text-foreground">
-              Choose your profile
+              Set your profile
             </h2>
             <p className="text-sm text-muted-foreground">
-              Set the name people will see across Kocteau.
+              Give Kocteau the identity people will see beside your reviews.
             </p>
           </div>
         ) : null}
@@ -696,7 +720,7 @@ export default function ProfileEditorForm({
                 Saving...
               </>
             ) : mode === "onboarding" ? (
-              "Enter Kocteau"
+              "Continue to taste"
             ) : (
               "Save changes"
             )}
@@ -731,24 +755,62 @@ export default function ProfileEditorForm({
       ) : null}
 
       {isOnboarding ? (
-        <>
-          <div className="flex items-center justify-center gap-2">
-            {[1, 2].map((stepIndex) => {
-              const active = step === stepIndex;
+        <Stepper
+          value={onboardingStepperValue}
+          onValueChange={handleOnboardingStepChange}
+          className="gap-5"
+        >
+          <StepperList className="gap-2 overflow-visible pb-0">
+            <StepperItem
+              value="disc"
+              completed={step === 2}
+              className="min-w-0 [--stepper-indicator-size:2rem] data-[orientation=horizontal]:min-w-0"
+            >
+              <StepperTrigger className="h-auto min-h-0 w-full flex-row items-center rounded-[var(--kocteau-radius-control)] bg-[var(--kocteau-surface-control)] px-3 py-2 text-left shadow-[var(--kocteau-shadow-control)] hover:bg-[var(--kocteau-surface-control-hover)] data-[state=active]:text-foreground">
+                <StepperIndicator className="rounded-md border-0 shadow-none">
+                  <Disc3 className="size-3.5" />
+                </StepperIndicator>
+                <span className="min-w-0">
+                  <StepperLabel className="block max-w-none truncate text-[0.78rem] font-semibold leading-4">
+                    Disc
+                  </StepperLabel>
+                  <StepperDescription className="hidden truncate text-[0.68rem] leading-4 sm:block">
+                    Avatar signal
+                  </StepperDescription>
+                </span>
+              </StepperTrigger>
+              <StepperSeparator className="hidden" />
+            </StepperItem>
 
-              return (
-                <span
-                  key={stepIndex}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all",
-                    active ? "w-8 bg-foreground" : "w-4 bg-border",
-                  )}
-                />
-              );
-            })}
-          </div>
-          {step === 1 ? renderAvatarSelection() : renderIdentityFields()}
-        </>
+            <StepperItem
+              value="identity"
+              disabled={!canAdvanceOnboarding && step === 1}
+              className="min-w-0 [--stepper-indicator-size:2rem] data-[orientation=horizontal]:min-w-0"
+            >
+              <StepperTrigger className="h-auto min-h-0 w-full flex-row items-center rounded-[var(--kocteau-radius-control)] bg-[var(--kocteau-surface-control)] px-3 py-2 text-left shadow-[var(--kocteau-shadow-control)] hover:bg-[var(--kocteau-surface-control-hover)] data-[state=active]:text-foreground">
+                <StepperIndicator className="rounded-md border-0 shadow-none">
+                  <UserRound className="size-3.5" />
+                </StepperIndicator>
+                <span className="min-w-0">
+                  <StepperLabel className="block max-w-none truncate text-[0.78rem] font-semibold leading-4">
+                    Identity
+                  </StepperLabel>
+                  <StepperDescription className="hidden truncate text-[0.68rem] leading-4 sm:block">
+                    Name and note
+                  </StepperDescription>
+                </span>
+              </StepperTrigger>
+              <StepperSeparator className="hidden" />
+            </StepperItem>
+          </StepperList>
+
+          <StepperContent value="disc" className="border-0 bg-transparent p-0 shadow-none">
+            {renderAvatarSelection()}
+          </StepperContent>
+          <StepperContent value="identity" className="border-0 bg-transparent p-0 shadow-none">
+            {renderIdentityFields()}
+          </StepperContent>
+        </Stepper>
       ) : (
         renderIdentityFields()
       )}

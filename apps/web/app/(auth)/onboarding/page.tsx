@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import AuthFormShell from "@/components/auth/auth-form-shell";
+import { OnboardingProgress } from "@/components/auth/onboarding-progress";
 import ProfileEditorForm from "@/components/profile-editor-form";
 import { createPageMetadata } from "@/lib/metadata";
 import { isProfileOnboarded } from "@/lib/profile";
@@ -63,10 +64,12 @@ export default async function OnboardingPage() {
 
   return (
     <AuthFormShell
-      title="Set up your profile"
-      description="Choose a default disc or upload, crop, and save a profile photo, then set the identity people will see across Kocteau."
+      title="Shape your Kocteau"
+      description="Choose a disc, set your name, and give the feed enough signal to feel like yours."
+      panelClassName="border-border/18 bg-[var(--kocteau-surface)] p-4 shadow-[var(--kocteau-shadow-card)] sm:p-5"
       widthClassName="max-w-4xl"
     >
+      <OnboardingProgress currentStep="profile" />
       <ProfileEditorForm mode="onboarding" initialProfile={profile ?? undefined} />
     </AuthFormShell>
   );

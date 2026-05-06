@@ -14,6 +14,8 @@ type AuthFormShellProps = {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  panelClassName?: string;
+  headerClassName?: string;
   widthClassName?: string;
 };
 
@@ -26,14 +28,21 @@ export default function AuthFormShell({
   children,
   footer,
   className,
+  panelClassName,
+  headerClassName,
   widthClassName,
 }: AuthFormShellProps) {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
       <div className={cn("w-full max-w-sm", widthClassName)}>
         <div className={cn("flex flex-col gap-6", className)}>
-          <FieldGroup className="rounded-[1.75rem] border border-border/25 bg-card/18 p-5 shadow-none">
-            <div className="flex flex-col items-center gap-2 text-center">
+          <FieldGroup
+            className={cn(
+              "rounded-[1.75rem] border border-border/25 bg-card/18 p-5 shadow-none",
+              panelClassName,
+            )}
+          >
+            <div className={cn("flex flex-col items-center gap-2 text-center", headerClassName)}>
               <Link
                 href="/"
                 className="flex flex-col items-center gap-2 font-medium transition-opacity hover:opacity-80"
