@@ -4,6 +4,7 @@ import { ExternalLink, Share2 } from "lucide-react";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import type { EntityTasteTag } from "@/lib/queries/entities";
@@ -31,7 +32,7 @@ type TrackPageHeroProps = {
 };
 
 const primaryActionClassName =
-  "inline-flex h-10 min-w-[10.5rem] items-center justify-center rounded-full bg-foreground px-4 text-sm font-medium text-background shadow-none transition hover:bg-foreground/92 max-md:shadow-[0_14px_32px_rgba(0,0,0,0.24)] sm:h-11 sm:min-w-[11.5rem]";
+  "inline-flex h-10 min-w-[10.5rem] items-center justify-center gap-2 rounded-[0.9rem] border border-border/28 bg-[var(--kocteau-surface-control)] px-4 text-sm font-medium text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] transition hover:bg-[var(--kocteau-surface-control-hover)] max-md:shadow-[0_14px_32px_rgba(0,0,0,0.24)] sm:h-11 sm:min-w-[11.5rem]";
 
 const sideActionClassName =
   "size-10 rounded-full border border-border/28 bg-card/18 text-muted-foreground shadow-none hover:bg-card/30 hover:text-foreground max-md:border-transparent max-md:bg-card/20 max-md:shadow-[0_12px_28px_rgba(0,0,0,0.22)] max-md:backdrop-blur-xl max-md:backdrop-saturate-150 sm:size-11";
@@ -152,6 +153,7 @@ export default function TrackPageHero({
                 dismissSearchParam="editReview"
                 trigger={
                   <button type="button" className={primaryActionClassName}>
+                    <ReviewGlyphIcon className="size-4" />
                     Edit review
                   </button>
                 }
@@ -168,6 +170,7 @@ export default function TrackPageHero({
                 initialSelection={createSelection}
                 trigger={
                   <button type="button" className={primaryActionClassName}>
+                    <ReviewGlyphIcon className="size-4" />
                     Create review
                   </button>
                 }

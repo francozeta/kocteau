@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Bookmark, Home, Search, UserRound } from "lucide-react";
-import { MdReviews } from "react-icons/md";
 import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { cn } from "@/lib/utils";
 
 type MobileBottomBarProps = {
@@ -132,9 +132,9 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               <button
                 type="button"
                 aria-label="New review"
-                className="flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-foreground text-background shadow-[0_8px_20px_rgba(0,0,0,0.24)] transition-[transform,background-color,box-shadow] duration-150 ease-out hover:bg-foreground/92 active:scale-[0.96]"
+                className="flex size-10 items-center justify-center rounded-[0.9rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_8px_20px_rgba(0,0,0,0.28)] transition-[transform,background-color,box-shadow] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
               >
-                <MdReviews className="size-[1.08rem]" />
+                <ReviewGlyphIcon className="size-[1.05rem]" />
                 <span className="sr-only">New review</span>
               </button>
             }

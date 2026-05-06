@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, PenLine, Sparkles, X } from "lucide-react";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { StarterTrack } from "@/lib/starter";
@@ -216,7 +217,7 @@ export default function FeedStarterLayer({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5 rounded-md border-border/24 bg-background/22 px-3 text-xs"
+                      className="h-8 gap-1.5 rounded-md border-border/28 bg-[var(--kocteau-surface-control)] px-3 text-xs text-foreground hover:bg-[var(--kocteau-surface-control-hover)]"
                       onClick={() => {
                         trackAnalyticsEvent({
                           eventType: "for_you_review_action",
@@ -229,7 +230,7 @@ export default function FeedStarterLayer({
                         });
                       }}
                     >
-                      <PenLine className="size-3" />
+                      <ReviewGlyphIcon className="size-3.5" />
                       Review
                     </Button>
                   }

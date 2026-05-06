@@ -29,9 +29,10 @@ import { Kbd } from "@/components/ui/kbd";
 import type { NewReviewFormProps, NewReviewFormStep } from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 
 const NewReviewForm = dynamic<NewReviewFormProps>(
   () => import("@/components/new-review-form"),
@@ -197,8 +198,8 @@ export default function NewReviewDialog({
             <span
               key={index}
               className={cn(
-                "block size-2 rounded-full bg-white/18 transition-colors",
-                isActive && "bg-white",
+                "block size-1.5 rounded-full bg-foreground/18 transition-colors",
+                isActive && "w-4 bg-foreground/82",
               )}
             />
           );
@@ -257,7 +258,7 @@ export default function NewReviewDialog({
           triggerClassName,
         )}
       >
-        <Plus className="w-4 h-4" />
+        <ReviewGlyphIcon className="size-4" />
         <span className={cn("hidden sm:inline", triggerLabelClassName)}>
           {triggerLabel ?? "New review"}
         </span>
@@ -294,16 +295,19 @@ export default function NewReviewDialog({
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/34 p-2 before:rounded-t-[1rem] before:border-border/34 before:bg-sidebar data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
+        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/24 bg-[var(--kocteau-surface)] p-2 before:rounded-t-[1rem] before:border-border/24 before:bg-[var(--kocteau-surface)] data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
           <motion.div
             className="flex h-full min-h-0 flex-col"
             initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={surfaceMotionTransition}
           >
-            <DrawerHeader className="shrink-0 border-b border-border/30 px-4 py-3 text-left">
+            <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
               <div className="flex items-center justify-between gap-3">
-                <DrawerTitle className="font-serif text-2xl">{dialogTitle}</DrawerTitle>
+                <DrawerTitle className="flex items-center gap-2 text-sm font-semibold">
+                  <ReviewGlyphIcon className="size-4" />
+                  {dialogTitle}
+                </DrawerTitle>
                 {!isSearchIntent ? renderStepDots() : null}
               </div>
               <DrawerDescription className="sr-only">
@@ -340,7 +344,7 @@ export default function NewReviewDialog({
 
       <DialogContent
         showCloseButton={false}
-        className="flex h-[min(90vh,56rem)] w-[min(100vw-1.5rem,52rem)] flex-col overflow-hidden border-border/34 bg-sidebar p-0"
+        className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-[0_24px_72px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.045)]"
       >
         <motion.div
           className="flex h-full min-h-0 flex-col"
@@ -348,10 +352,13 @@ export default function NewReviewDialog({
           animate={{ opacity: 1, y: 0 }}
           transition={surfaceMotionTransition}
         >
-          <DialogHeader className="border-b border-border/30 bg-sidebar px-6 py-4">
+          <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
             <div className="flex items-center justify-between gap-3">
-              <DialogTitle className="font-serif text-2xl">{dialogTitle}</DialogTitle>
-              <Kbd className="rounded-md border border-border/42 bg-card/42 px-2 text-[0.625rem] text-muted-foreground">
+              <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
+                <ReviewGlyphIcon className="size-4" />
+                {dialogTitle}
+              </DialogTitle>
+              <Kbd className="rounded-md border border-border/30 bg-foreground/[0.055] px-2 text-[0.625rem] text-muted-foreground">
                 Esc
               </Kbd>
             </div>
