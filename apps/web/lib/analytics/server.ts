@@ -1,7 +1,9 @@
 import "server-only";
 
+import { after } from "next/server";
 import type { Json } from "@/lib/supabase/database.types";
 import type { supabaseServer } from "@/lib/supabase/server";
+import { trackOpenPanelServerEvent } from "@/lib/analytics/openpanel-server";
 import type { AnalyticsEventInput } from "@/lib/validation/schemas";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof supabaseServer>>;
@@ -36,4 +38,13 @@ export async function trackServerAnalyticsEvent(
       message: error.message ?? null,
     });
   }
+
+  after(() =>
+    trackOpenPanelServerEvent({
+      profileId: userId,
+      eventType,
+      source,
+      metadata,
+    }),
+  );
 }
