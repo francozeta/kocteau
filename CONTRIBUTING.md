@@ -42,6 +42,13 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 ```
 
+Optional OpenPanel analytics variables:
+
+```env
+NEXT_PUBLIC_OPENPANEL_CLIENT_ID=...
+OPENPANEL_CLIENT_SECRET=...
+```
+
 ## Checks
 
 Before opening a web PR, run:

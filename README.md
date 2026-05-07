@@ -50,6 +50,15 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
 ```
 
+Optional OpenPanel analytics variables:
+
+```env
+NEXT_PUBLIC_OPENPANEL_CLIENT_ID=...
+OPENPANEL_CLIENT_SECRET=...
+```
+
+`NEXT_PUBLIC_OPENPANEL_CLIENT_ID` enables client-side screen view tracking through the first-party `/api/op` proxy. `OPENPANEL_CLIENT_SECRET` also mirrors Kocteau's existing first-party product events to OpenPanel from the server. Session replay is not enabled by default.
+
 Optional production services are configured outside the app:
 
 - Supabase Auth SMTP points to Resend.
@@ -166,6 +175,8 @@ Kocteau uses a small first-party analytics table in Supabase. Events currently t
 - `for_you_fallback`
 
 The goal is product feedback, not surveillance. Events avoid emails, IPs, user agents, and long free-form payloads.
+
+OpenPanel can be enabled for Vercel-friendly analytics by setting `NEXT_PUBLIC_OPENPANEL_CLIENT_ID`. If `OPENPANEL_CLIENT_SECRET` is also set, the same product events are mirrored server-side without adding emails, user agents, or free-form profile fields.
 
 ## Documentation
 
