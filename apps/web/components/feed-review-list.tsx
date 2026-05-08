@@ -270,7 +270,7 @@ export default function FeedReviewList({
 
   return (
     <div className="space-y-3.5">
-      {reviews.map((review) => {
+      {reviews.map((review, index) => {
         const author = review.author;
 
         return (
@@ -283,6 +283,7 @@ export default function FeedReviewList({
               isAuthenticated={isAuthenticated}
               canManage={Boolean(viewer?.id && author?.id === viewer.id)}
               recommendationEyebrow={getRecommendationEyebrow(review, view)}
+              imagePriority={index === 0}
               analyticsSource={view === "for-you" ? "feed:for-you" : null}
               viewer={viewer}
             />

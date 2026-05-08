@@ -75,8 +75,9 @@ export default function EntityCoverImage({
           fill
           sizes={sizes}
           quality={resolvedQuality}
-          priority={priority}
-          loading={priority ? undefined : "lazy"}
+          preload={priority}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
           className={cn("object-cover", imageClassName)}
         />
       ) : (

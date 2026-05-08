@@ -192,7 +192,7 @@ export default function ReviewCommentsPanel({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-40 min-w-40 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-xl shadow-black/30 md:border-border/30 md:bg-popover/96"
+                    className="w-40 min-w-40 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-none md:border-border/30 md:bg-popover/96"
                     sideOffset={8}
                   >
                     <DropdownMenuItem

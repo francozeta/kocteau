@@ -381,7 +381,7 @@ export default function SearchPageClient({
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={handleInputKeyDown}
                 placeholder="Search tracks to explore…"
-                className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
+                className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/72"
                 autoFocus={!isMobile}
                 maxLength={80}
               />
@@ -393,7 +393,7 @@ export default function SearchPageClient({
           {error ? <p className="mt-3 text-sm text-destructive">{error.message}</p> : null}
 
           {!hasQuery ? (
-            <section className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-[0_18px_52px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.035)]">
+            <section className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-none">
               <div className="divide-y divide-border/16">
                 {recentSearches.length > 0 ? (
                   <div>

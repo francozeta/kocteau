@@ -161,7 +161,7 @@ export default function EditReviewDialog({
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
-      <DialogContent showCloseButton={false} className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-[0_24px_72px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.045)]">
+      <DialogContent showCloseButton={false} className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none">
         <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold">

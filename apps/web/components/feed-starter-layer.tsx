@@ -162,7 +162,8 @@ export default function FeedStarterLayer({
               sizes="168px"
               quality={88}
               variant="card"
-              className="aspect-square w-full rounded-[0.78rem] bg-muted/20 shadow-[0_12px_30px_rgba(0,0,0,0.24),0_0_0_1px_rgba(255,255,255,0.055)]"
+              priority
+              className="aspect-square w-full rounded-[0.78rem] border border-white/[0.055] bg-muted/20 shadow-none"
               iconClassName="size-7"
             />
           </div>

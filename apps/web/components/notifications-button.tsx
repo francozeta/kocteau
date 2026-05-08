@@ -112,7 +112,7 @@ export default function NotificationsButton({
 
       <PopoverContent
         align="end"
-        className="w-[23rem] gap-0 rounded-[1.8rem] border-border/44 bg-popover/98 p-0 shadow-2xl shadow-black/30 sm:w-[25rem] md:border-border/35 md:bg-popover/96"
+        className="w-[23rem] gap-0 rounded-[1.8rem] border-border/44 bg-popover/98 p-0 shadow-none sm:w-[25rem] md:border-border/35 md:bg-popover/96"
         sideOffset={12}
       >
         <PopoverHeader className="border-b border-border/32 px-4 py-3 md:border-border/25">

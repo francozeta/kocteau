@@ -45,6 +45,7 @@ export type ReviewCardDisplayOptions = {
   entityMode?: "full" | "inline" | "cover";
   eyebrow?: string;
   featured?: boolean;
+  imagePriority?: boolean;
   bodyClampLines?: 3 | 4 | 5;
 };
 
@@ -212,7 +213,7 @@ export function ReviewCardEntityCover({
       quality={86}
       variant="card"
       className={cn(
-        "aspect-square w-full rounded-[0.78rem] bg-muted/16 shadow-[0_12px_30px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.055)]",
+        "aspect-square w-full rounded-[0.78rem] border border-white/[0.055] bg-muted/16 shadow-none",
         className,
       )}
       iconClassName="size-8"

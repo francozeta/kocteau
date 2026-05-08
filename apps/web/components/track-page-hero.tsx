@@ -32,10 +32,10 @@ type TrackPageHeroProps = {
 };
 
 const primaryActionClassName =
-  "inline-flex h-10 min-w-[10.5rem] items-center justify-center gap-2 rounded-[0.9rem] border border-border/28 bg-[var(--kocteau-surface-control)] px-4 text-sm font-medium text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] transition hover:bg-[var(--kocteau-surface-control-hover)] max-md:shadow-[0_14px_32px_rgba(0,0,0,0.24)] sm:h-11 sm:min-w-[11.5rem]";
+  "inline-flex h-10 min-w-[10.5rem] items-center justify-center gap-2 rounded-[0.9rem] border border-border/28 bg-[var(--kocteau-surface-control)] px-4 text-sm font-medium text-foreground shadow-none transition hover:bg-[var(--kocteau-surface-control-hover)] sm:h-11 sm:min-w-[11.5rem]";
 
 const sideActionClassName =
-  "size-10 rounded-full border border-border/28 bg-card/18 text-muted-foreground shadow-none hover:bg-card/30 hover:text-foreground max-md:border-transparent max-md:bg-card/20 max-md:shadow-[0_12px_28px_rgba(0,0,0,0.22)] max-md:backdrop-blur-xl max-md:backdrop-saturate-150 sm:size-11";
+  "size-10 rounded-full border border-border/28 bg-card/18 text-muted-foreground shadow-none hover:bg-card/30 hover:text-foreground max-md:bg-card/20 max-md:backdrop-blur-md max-md:backdrop-saturate-100 sm:size-11";
 
 export default function TrackPageHero({
   entity,
@@ -119,7 +119,7 @@ export default function TrackPageHero({
           priority
           quality={90}
           variant="hero"
-          className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted/16 shadow-[0_12px_32px_rgba(0,0,0,0.24)] max-md:border-transparent md:mx-0 md:size-[10rem] lg:size-[11.5rem]"
+          className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted/16 shadow-none md:mx-0 md:size-[10rem] lg:size-[11.5rem]"
           iconClassName="size-10"
         />
 

@@ -118,14 +118,11 @@
   --kocteau-text: #171717;
   --kocteau-text-soft: rgba(23, 23, 23, 0.68);
   --kocteau-shadow-card:
-    0 18px 48px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 var(--kocteau-topline);
+    0 0 0 1px var(--kocteau-line-soft);
   --kocteau-shadow-card-hover:
-    0 22px 58px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    0 0 0 1px var(--kocteau-line);
   --kocteau-shadow-control:
-    0 10px 26px rgba(0, 0, 0, 0.055),
-    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    0 0 0 1px var(--kocteau-line-soft);
   --kocteau-radius-card: 1.05rem;
   --kocteau-radius-control: 0.95rem;
   --kocteau-ease: cubic-bezier(0.2, 0, 0, 1);
@@ -187,16 +184,11 @@
   --kocteau-text: var(--kocteau-gray-12);
   --kocteau-text-soft: color-mix(in oklch, var(--kocteau-gray-12) 68%, transparent);
   --kocteau-shadow-card:
-    0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 4.5%, transparent),
-    0 18px 46px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 var(--kocteau-topline);
+    0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 5%, transparent);
   --kocteau-shadow-card-hover:
-    0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 5.5%, transparent),
-    0 22px 58px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 color-mix(in oklch, var(--kocteau-gray-12) 6.5%, transparent);
+    0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 7%, transparent);
   --kocteau-shadow-control:
-    0 12px 32px rgba(0, 0, 0, 0.26),
-    inset 0 1px 0 color-mix(in oklch, var(--kocteau-gray-12) 4.5%, transparent);
+    0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 5.5%, transparent);
   --kocteau-radius-card: 0.95rem;
   --kocteau-radius-control: 0.78rem;
   background-image: none;
@@ -243,7 +235,7 @@
     background: var(--kocteau-surface-control);
     box-shadow: var(--kocteau-shadow-control);
     transition-duration: 160ms;
-    transition-property: color, background-color, box-shadow, transform;
+    transition-property: color, background-color, box-shadow;
     transition-timing-function: var(--kocteau-ease);
   }
 
@@ -252,17 +244,18 @@
   }
 
   .kocteau-control-surface:active {
-    transform: scale(0.995);
+    background: color-mix(in oklch, var(--foreground) 5%, var(--kocteau-surface-control));
   }
 
   .kocteau-feed-tabs {
+    border: 1px solid var(--kocteau-line-soft);
     background: var(--kocteau-surface-control);
-    box-shadow: var(--kocteau-shadow-control);
+    box-shadow: none;
   }
 
   .kocteau-feed-tab-active {
     background: color-mix(in oklch, var(--foreground) 8%, var(--kocteau-surface-control));
-    box-shadow: inset 0 1px 0 var(--kocteau-topline);
+    box-shadow: none;
   }
 
   .kocteau-rail-row {
@@ -278,21 +271,21 @@
 
   .kocteau-sidebar-note {
     background: color-mix(in oklch, var(--foreground) 5%, transparent);
-    box-shadow: inset 0 1px 0 var(--kocteau-line-soft);
+    box-shadow: none;
   }
 
   .kocteau-review-card {
-    border: 0;
+    border: 1px solid var(--kocteau-line-soft);
     background: var(--kocteau-surface-raised);
-    box-shadow: var(--kocteau-shadow-card);
+    box-shadow: none;
     transition-duration: 200ms;
-    transition-property: background-color, box-shadow, transform;
+    transition-property: background-color, border-color;
     transition-timing-function: var(--kocteau-ease);
   }
 
   .kocteau-review-card:hover {
+    border-color: var(--kocteau-line);
     background: var(--kocteau-surface-raised-hover);
-    box-shadow: var(--kocteau-shadow-card-hover);
   }
 
   .kocteau-review-card-featured {
@@ -306,68 +299,62 @@
   @media (min-width: 1024px) {
     .kocteau-app-frame {
       background: var(--kocteau-shell);
-      box-shadow: inset 0 0 0 1px var(--kocteau-line-soft);
+      box-shadow: none;
     }
   }
 
   @media (max-width: 767px) {
     .mobile-liquid-header {
-      @apply backdrop-blur-xl backdrop-saturate-150;
+      @apply backdrop-blur-md backdrop-saturate-100;
       border: 0 !important;
       background:
         linear-gradient(
           180deg,
-          color-mix(in oklch, var(--background) 54%, transparent) 0%,
-          color-mix(in oklch, var(--background) 28%, transparent) 42%,
-          color-mix(in oklch, var(--background) 8%, transparent) 72%,
+          color-mix(in oklch, var(--background) 78%, transparent) 0%,
+          color-mix(in oklch, var(--background) 54%, transparent) 48%,
+          color-mix(in oklch, var(--background) 18%, transparent) 76%,
           transparent 100%
         ) !important;
-      box-shadow:
-        0 14px 34px rgba(0, 0, 0, 0.16) !important;
-      backdrop-filter: blur(24px) saturate(135%) !important;
-      -webkit-backdrop-filter: blur(24px) saturate(135%) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(14px) saturate(110%) !important;
+      -webkit-backdrop-filter: blur(14px) saturate(110%) !important;
       mask-image: linear-gradient(180deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
       -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
     }
 
     .mobile-liquid-footer {
-      @apply backdrop-blur-xl backdrop-saturate-150;
+      @apply backdrop-blur-md backdrop-saturate-100;
       border: 0 !important;
       background:
         linear-gradient(
           0deg,
-          color-mix(in oklch, var(--background) 54%, transparent) 0%,
-          color-mix(in oklch, var(--background) 28%, transparent) 42%,
-          color-mix(in oklch, var(--background) 8%, transparent) 72%,
+          color-mix(in oklch, var(--background) 78%, transparent) 0%,
+          color-mix(in oklch, var(--background) 54%, transparent) 48%,
+          color-mix(in oklch, var(--background) 18%, transparent) 76%,
           transparent 100%
         ) !important;
-      box-shadow:
-        0 -14px 34px rgba(0, 0, 0, 0.16) !important;
-      backdrop-filter: blur(24px) saturate(135%) !important;
-      -webkit-backdrop-filter: blur(24px) saturate(135%) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(14px) saturate(110%) !important;
+      -webkit-backdrop-filter: blur(14px) saturate(110%) !important;
       mask-image: linear-gradient(0deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
       -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
     }
 
     .mobile-liquid-button {
-      @apply backdrop-blur-2xl backdrop-saturate-150;
-      border: 0 !important;
-      background: color-mix(in oklch, var(--background) 62%, transparent) !important;
-      box-shadow:
-        0 14px 34px rgba(0, 0, 0, 0.28),
-        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
-      backdrop-filter: blur(24px) saturate(165%) !important;
-      -webkit-backdrop-filter: blur(24px) saturate(165%) !important;
+      @apply backdrop-blur-md backdrop-saturate-100;
+      border: 1px solid var(--kocteau-line-soft) !important;
+      background: color-mix(in oklch, var(--background) 84%, transparent) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(14px) saturate(108%) !important;
+      -webkit-backdrop-filter: blur(14px) saturate(108%) !important;
       transition-duration: 160ms;
-      transition-property: transform, color, background-color, box-shadow;
+      transition-property: transform, color, background-color, border-color;
       transition-timing-function: ease-out;
     }
 
     .mobile-liquid-button:hover {
-      background: color-mix(in oklch, var(--background) 72%, transparent) !important;
-      box-shadow:
-        0 16px 38px rgba(0, 0, 0, 0.32),
-        inset 0 1px 0 rgba(255, 255, 255, 0.09) !important;
+      border-color: var(--kocteau-line) !important;
+      background: color-mix(in oklch, var(--background) 90%, transparent) !important;
     }
 
     .mobile-liquid-button:active {
@@ -375,92 +362,78 @@
     }
 
     .mobile-liquid-logo {
-      @apply backdrop-blur-2xl backdrop-saturate-150;
-      border: 0 !important;
-      background: color-mix(in oklch, var(--background) 48%, transparent) !important;
-      box-shadow:
-        0 16px 36px rgba(0, 0, 0, 0.24),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-      backdrop-filter: blur(26px) saturate(170%) !important;
-      -webkit-backdrop-filter: blur(26px) saturate(170%) !important;
+      @apply backdrop-blur-md backdrop-saturate-100;
+      border: 1px solid var(--kocteau-line-soft) !important;
+      background: color-mix(in oklch, var(--background) 78%, transparent) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(14px) saturate(108%) !important;
+      -webkit-backdrop-filter: blur(14px) saturate(108%) !important;
     }
 
     .mobile-liquid-bar {
-      @apply backdrop-blur-2xl backdrop-saturate-150;
-      border: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent) !important;
-      background: color-mix(in oklch, var(--background) 52%, transparent) !important;
-      box-shadow:
-        0 16px 44px rgba(0, 0, 0, 0.28),
-        inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
-      backdrop-filter: blur(24px) saturate(150%) !important;
-      -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+      @apply backdrop-blur-md backdrop-saturate-100;
+      border: 1px solid var(--kocteau-line) !important;
+      background: color-mix(in oklch, var(--background) 84%, transparent) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(14px) saturate(108%) !important;
+      -webkit-backdrop-filter: blur(14px) saturate(108%) !important;
     }
 
     .mobile-liquid-panel {
-      @apply backdrop-blur-xl backdrop-saturate-150;
-      border: 0 !important;
-      background: color-mix(in oklch, var(--card) 54%, transparent) !important;
-      box-shadow:
-        0 16px 42px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
-      backdrop-filter: blur(22px) saturate(150%) !important;
-      -webkit-backdrop-filter: blur(22px) saturate(150%) !important;
+      @apply backdrop-blur-md backdrop-saturate-100;
+      border: 1px solid var(--kocteau-line-soft) !important;
+      background: color-mix(in oklch, var(--card) 86%, transparent) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(14px) saturate(108%) !important;
+      -webkit-backdrop-filter: blur(14px) saturate(108%) !important;
     }
 
     .dark .mobile-liquid-button {
-      background: rgba(14, 14, 16, 0.64) !important;
-      box-shadow:
-        0 14px 34px rgba(0, 0, 0, 0.42),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+      background: rgba(14, 14, 16, 0.86) !important;
+      box-shadow: none !important;
     }
 
     .dark .mobile-liquid-button:hover {
-      background: rgba(20, 20, 23, 0.72) !important;
+      background: rgba(20, 20, 23, 0.92) !important;
     }
 
     .dark .mobile-liquid-header {
       background:
         linear-gradient(
           180deg,
-          rgba(9, 9, 10, 0.54) 0%,
-          rgba(9, 9, 10, 0.3) 42%,
-          rgba(9, 9, 10, 0.1) 72%,
+          rgba(9, 9, 10, 0.82) 0%,
+          rgba(9, 9, 10, 0.58) 48%,
+          rgba(9, 9, 10, 0.2) 76%,
           rgba(9, 9, 10, 0) 100%
         ) !important;
-      box-shadow:
-        0 14px 34px rgba(0, 0, 0, 0.24) !important;
+      box-shadow: none !important;
     }
 
     .dark .mobile-liquid-footer {
       background:
         linear-gradient(
           0deg,
-          rgba(9, 9, 10, 0.54) 0%,
-          rgba(9, 9, 10, 0.3) 42%,
-          rgba(9, 9, 10, 0.1) 72%,
+          rgba(9, 9, 10, 0.82) 0%,
+          rgba(9, 9, 10, 0.58) 48%,
+          rgba(9, 9, 10, 0.2) 76%,
           rgba(9, 9, 10, 0) 100%
         ) !important;
-      box-shadow:
-        0 -14px 34px rgba(0, 0, 0, 0.24) !important;
+      box-shadow: none !important;
     }
 
     .dark .mobile-liquid-logo {
-      background: rgba(12, 12, 14, 0.5) !important;
-      box-shadow:
-        0 16px 36px rgba(0, 0, 0, 0.38),
-        inset 0 1px 0 rgba(255, 255, 255, 0.075) !important;
+      background: rgba(12, 12, 14, 0.82) !important;
+      box-shadow: none !important;
     }
 
     .dark .mobile-liquid-bar {
       border-color: rgba(255, 255, 255, 0.1) !important;
-      background: rgba(10, 10, 12, 0.58) !important;
-      box-shadow:
-        0 16px 44px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+      background: rgba(10, 10, 12, 0.88) !important;
+      box-shadow: none !important;
     }
 
     .dark .mobile-liquid-panel {
-      background: rgba(15, 15, 17, 0.6) !important;
+      background: rgba(15, 15, 17, 0.88) !important;
     }
   }
 }

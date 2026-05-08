@@ -4,7 +4,6 @@ import Header from "@/components/header";
 import AppSidebar from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
-import { OpenPanelIdentify } from "@/components/openpanel-analytics";
 import { RouteHeaderProvider } from "@/components/route-header-context";
 import { getCurrentOnboardingState, getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
@@ -29,7 +28,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <ReactQueryProvider>
-      {safeProfile ? <OpenPanelIdentify profileId={safeProfile.id} /> : null}
       <SidebarProvider
         defaultOpen={true}
         style={

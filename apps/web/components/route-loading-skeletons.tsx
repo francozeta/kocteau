@@ -24,7 +24,7 @@ export function TrackPageHeroSkeleton() {
       className="border-b border-border/32 pb-4 md:border-border/24 md:pb-5"
     >
       <div className="grid gap-4 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center lg:grid-cols-[11.5rem_minmax(0,1fr)] lg:gap-5">
-        <Skeleton className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted-foreground/[0.1] shadow-[0_12px_32px_rgba(0,0,0,0.18)] md:mx-0 md:size-[10rem] lg:size-[11.5rem]" />
+        <Skeleton className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted-foreground/[0.1] shadow-none md:mx-0 md:size-[10rem] lg:size-[11.5rem]" />
 
         <div className="min-w-0 text-center md:text-left">
           <SkeletonLine className="mx-auto h-2.5 w-14 bg-muted-foreground/[0.08] md:mx-0" />

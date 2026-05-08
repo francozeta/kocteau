@@ -74,7 +74,7 @@ export default function ReviewCardContextMenu({
 
   return (
     <>
-      <ContextMenuContent className="w-48 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-xl shadow-black/30 md:border-border/30 md:bg-popover/96">
+      <ContextMenuContent className="w-48 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-none md:border-border/30 md:bg-popover/96">
         <ContextMenuLabel>Review</ContextMenuLabel>
         {canOpenTrack ? (
           <ContextMenuItem onSelect={openTrack}>

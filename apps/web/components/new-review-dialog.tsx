@@ -344,7 +344,7 @@ export default function NewReviewDialog({
 
       <DialogContent
         showCloseButton={false}
-        className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-[0_24px_72px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.045)]"
+        className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
       >
         <motion.div
           className="flex h-full min-h-0 flex-col"

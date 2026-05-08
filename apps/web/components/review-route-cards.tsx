@@ -57,6 +57,7 @@ type ReviewCardRouteProps = {
 
 type FeedReviewCardProps = ReviewCardRouteProps & {
   featured?: boolean;
+  imagePriority?: boolean;
   showInteractionBar?: boolean;
   recommendationEyebrow?: string | null;
   analyticsSource?: string | null;
@@ -69,9 +70,11 @@ type ProfileReviewCardProps = ReviewCardRouteProps & {
 function buildFeedReviewCardDisplay(
   featured = false,
   eyebrow?: string | null,
+  imagePriority = false,
 ): ReviewCardDisplayOptions {
   return {
     featured,
+    imagePriority,
     bodyClampLines: 4,
     entityMode: "cover",
     eyebrow: eyebrow ?? undefined,
@@ -181,7 +184,7 @@ function RoutedReviewCard({
   viewer = null,
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
-  const entityPriority = Boolean(display?.featured);
+  const entityPriority = Boolean(display?.featured || display?.imagePriority);
   const copyTone = getReviewCardCopyTone(review);
   const {
     showHeaderActions = true,
@@ -292,6 +295,7 @@ export function FeedReviewCard({
   isAuthenticated = false,
   canManage = false,
   featured = false,
+  imagePriority = false,
   showInteractionBar = true,
   recommendationEyebrow = null,
   analyticsSource = null,
@@ -302,7 +306,7 @@ export function FeedReviewCard({
       review={review}
       entity={entity}
       author={author}
-      display={buildFeedReviewCardDisplay(featured, recommendationEyebrow)}
+      display={buildFeedReviewCardDisplay(featured, recommendationEyebrow, imagePriority)}
       behavior={{ showInteractionBar }}
       permissions={{ isAuthenticated, canManage }}
       analyticsSource={analyticsSource}

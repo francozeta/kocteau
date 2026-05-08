@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist, Merriweather } from "next/font/google";
 import "./globals.css";
 import JsonLd from "@/components/json-ld";
-import OpenPanelAnalytics from "@/components/openpanel-analytics";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { getMetadataBase } from "@/lib/metadata";
@@ -61,8 +62,9 @@ export default function RootLayout({
         className={`${geist.className} antialiased dark`}
       >
         <JsonLd data={buildSiteGraphJsonLd()} id="site-structured-data" />
-        <OpenPanelAnalytics />
         {children}
+        <Analytics />
+        <SpeedInsights />
         <Toaster position="bottom-right" richColors />
       </body>
     </html>

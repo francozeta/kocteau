@@ -258,7 +258,7 @@ export default function Header({
 
                 <DropdownMenuContent
                   align="end"
-                  className="w-48 rounded-2xl border-transparent bg-popover/82 p-1.5 shadow-2xl shadow-black/30 backdrop-blur-2xl"
+                  className="w-48 rounded-2xl border-border/30 bg-popover/96 p-1.5 shadow-none backdrop-blur-md"
                 >
                   <DropdownMenuItem onSelect={() => void handleShareDetail()}>
                     <Share2 className="size-4" />

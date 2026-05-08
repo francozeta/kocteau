@@ -1,9 +1,10 @@
 import "server-only";
 
+import { track } from "@vercel/analytics/server";
 import { after } from "next/server";
 import type { Json } from "@/lib/supabase/database.types";
 import type { supabaseServer } from "@/lib/supabase/server";
-import { trackOpenPanelServerEvent } from "@/lib/analytics/openpanel-server";
+import { buildVercelAnalyticsProperties } from "@/lib/analytics/vercel";
 import type { AnalyticsEventInput } from "@/lib/validation/schemas";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof supabaseServer>>;
@@ -39,12 +40,19 @@ export async function trackServerAnalyticsEvent(
     });
   }
 
-  after(() =>
-    trackOpenPanelServerEvent({
-      profileId: userId,
+  after(() => {
+    const event = {
       eventType,
       source,
       metadata,
-    }),
-  );
+    };
+
+    return track(eventType, buildVercelAnalyticsProperties(event)).catch((error) => {
+      console.warn("[analytics.trackVercelServerEvent] skipped", {
+        eventType,
+        source,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    });
+  });
 }

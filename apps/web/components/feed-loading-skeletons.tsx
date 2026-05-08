@@ -112,7 +112,7 @@ export function ReviewCardSkeleton({
             featured && "grid-cols-[6.25rem_minmax(0,1fr)] sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.5rem_minmax(0,1fr)]",
           )}
         >
-          <Skeleton className="aspect-square w-full rounded-[0.78rem] bg-muted-foreground/[0.1] shadow-[0_12px_30px_rgba(0,0,0,0.24),0_0_0_1px_rgba(255,255,255,0.055)]" />
+          <Skeleton className="aspect-square w-full rounded-[0.78rem] border border-white/[0.055] bg-muted-foreground/[0.1] shadow-none" />
 
           <div className="flex min-w-0 flex-col justify-center gap-2.5 self-stretch">
             <SkeletonLine className="h-6 w-[min(16rem,86%)] bg-muted-foreground/[0.16] sm:h-7" />

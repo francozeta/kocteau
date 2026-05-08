@@ -180,7 +180,7 @@ async function RoutedReviewCardServer({
   permissions,
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
-  const entityPriority = Boolean(display?.featured);
+  const entityPriority = Boolean(display?.featured || display?.imagePriority);
   const copyTone = getReviewCardCopyTone(review);
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
   const canUseReviewMenus = isAuthenticated || canManage;
