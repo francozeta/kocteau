@@ -25,7 +25,7 @@
     "check": "pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
-    "turbo": "2.9.2"
+    "turbo": "2.9.10"
   },
   "pnpm": {
     "overrides": {
