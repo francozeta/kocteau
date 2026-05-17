@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import AuthFormShell from "@/components/auth/auth-form-shell";
 import { TasteOnboardingForm } from "@/components/auth/taste-onboarding-form";
+import { OnboardingWelcomeDialog } from "@/components/auth/onboarding-welcome-dialog";
 import { createPageMetadata } from "@/lib/metadata";
 import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -62,15 +63,18 @@ export default async function TasteOnboardingPage() {
   ]);
 
   return (
-    <AuthFormShell
-      title="Choose 3 signals"
-      description="Start with a few sounds, moods, or scenes. Kocteau will tune itself as you review, save, and follow."
-      widthClassName="max-w-xl"
-    >
-      <TasteOnboardingForm
-        tags={(tags ?? []) as PreferenceTag[]}
-        initialSelectedTagIds={(selectedTags ?? []).map((tag) => tag.tag_id)}
-      />
-    </AuthFormShell>
+    <>
+      <OnboardingWelcomeDialog />
+      <AuthFormShell
+        title="Choose 3 signals"
+        description="Start with a few sounds, moods, or scenes. Kocteau will tune itself as you review, save, and follow."
+        widthClassName="max-w-xl"
+      >
+        <TasteOnboardingForm
+          tags={(tags ?? []) as PreferenceTag[]}
+          initialSelectedTagIds={(selectedTags ?? []).map((tag) => tag.tag_id)}
+        />
+      </AuthFormShell>
+    </>
   );
 }
