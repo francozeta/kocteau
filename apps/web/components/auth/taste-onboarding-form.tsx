@@ -167,7 +167,7 @@ export function TasteOnboardingForm({
           onToggle={toggleTag}
         />
       ) : (
-        <ReviewStarterControl onComplete={finishOnboarding} />
+        <ReviewStarterControl redirectTo={redirectTo} />
       )}
     </OnboardingStepFrame>
   );
@@ -226,11 +226,12 @@ function TasteSignalCloud({
   );
 }
 
-function ReviewStarterControl({ onComplete }: { onComplete: () => void }) {
+function ReviewStarterControl({ redirectTo }: { redirectTo: string }) {
   return (
     <div className="mx-auto flex w-full max-w-[21rem] flex-col items-center gap-3">
       <NewReviewDialog
         isAuthenticated
+        redirectToOnSuccess={redirectTo}
         trigger={
           <PrimaryGrowButton
             type="button"
@@ -245,7 +246,6 @@ function ReviewStarterControl({ onComplete }: { onComplete: () => void }) {
             <ReviewGlyphIcon className="relative size-[1.1rem]" />
           </PrimaryGrowButton>
         }
-        onSuccess={() => onComplete()}
       />
       <p className="text-center text-xs leading-4 text-muted-foreground">
         Optional. You can skip and review later.
