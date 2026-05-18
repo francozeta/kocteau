@@ -23,13 +23,17 @@ export default function FeedReviewCta({
   isAuthenticated,
   className,
 }: FeedReviewCtaProps) {
+  const primaryLabel = isAuthenticated ? "Review a track" : "Find a track";
+  const helper = isAuthenticated
+    ? "Search a track and leave a signal for your feed."
+    : "Browse freely. Log in only when you publish.";
   const trigger = (
     <button
       type="button"
       className="inline-flex h-9 min-w-0 items-center justify-center gap-2 rounded-[0.56rem] bg-foreground px-3.5 text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 active:scale-[0.96]"
     >
       <ReviewGlyphIcon className="size-3.5 shrink-0" />
-      <span>Review a track</span>
+      <span>{primaryLabel}</span>
     </button>
   );
 
@@ -68,13 +72,14 @@ export default function FeedReviewCta({
             Find something to review.
           </h2>
           <p className="max-w-[22rem] text-pretty text-[13px] leading-5 text-muted-foreground/82 sm:text-[13.5px]">
-            Search a track and leave a signal for your feed.
+            {helper}
           </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           <NewReviewDialog
             isAuthenticated={isAuthenticated}
+            intent={isAuthenticated ? "review" : "search"}
             trigger={trigger}
           />
           <Link

@@ -132,18 +132,36 @@ function SearchTypeTabs({
   activeType: SearchEntityType;
   query: string;
 }) {
-  return (
-    <div className="kocteau-feed-tabs mobile-liquid-panel relative grid min-w-0 grid-cols-3 gap-0.5 overflow-hidden rounded-[var(--kocteau-radius-control)] p-0.5 max-lg:w-full lg:w-[17.25rem]">
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute left-1/3 top-1/2 h-5 w-px -translate-x-1/2 -translate-y-1/2 rounded-full bg-border/42"
-      />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute left-2/3 top-1/2 h-5 w-px -translate-x-1/2 -translate-y-1/2 rounded-full bg-border/42"
-      />
+  const visibleTabs = searchEntityTabs.filter((tab) => tab.enabled);
 
-      {searchEntityTabs.map((tab) => {
+  if (visibleTabs.length <= 1) {
+    return null;
+  }
+
+  const isThreeColumn = visibleTabs.length >= 3;
+
+  return (
+    <div
+      className={cn(
+        "kocteau-feed-tabs mobile-liquid-panel relative grid min-w-0 gap-0.5 overflow-hidden rounded-[var(--kocteau-radius-control)] p-0.5 max-lg:w-full lg:w-[17.25rem]",
+        isThreeColumn ? "grid-cols-3" : "grid-cols-2",
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute top-1/2 h-5 w-px -translate-x-1/2 -translate-y-1/2 rounded-full bg-border/42",
+          isThreeColumn ? "left-1/3" : "left-1/2",
+        )}
+      />
+      {isThreeColumn ? (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-2/3 top-1/2 h-5 w-px -translate-x-1/2 -translate-y-1/2 rounded-full bg-border/42"
+        />
+      ) : null}
+
+      {visibleTabs.map((tab) => {
         const isActive = activeType === tab.value;
         const className = cn(
           "relative z-10 inline-flex h-8 min-w-0 items-center justify-center rounded-[0.62rem] px-2 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-0",
@@ -393,7 +411,7 @@ export default function SearchPageClient({
           {error ? <p className="mt-3 text-sm text-destructive">{error.message}</p> : null}
 
           {!hasQuery ? (
-            <section className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-none">
+            <section className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-none">
               <div className="divide-y divide-border/16">
                 {recentSearches.length > 0 ? (
                   <div>
@@ -442,11 +460,11 @@ export default function SearchPageClient({
           {hasQuery ? (
             <section className="space-y-3">
               {showSkeletonResults ? (
-                <div className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+                <div className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                   <div className="space-y-0 divide-y divide-border/16">
                     {Array.from({ length: 5 }).map((_, index) => (
                       <div key={index} className="flex items-center gap-3 px-3 py-3">
-                        <Skeleton className="size-14 rounded-[0.75rem] bg-foreground/[0.07]" />
+                        <Skeleton className="size-14 rounded-[0.68rem] bg-foreground/[0.07]" />
                         <div className="min-w-0 flex-1 space-y-2">
                           <Skeleton className="h-3 w-16 bg-foreground/[0.055]" />
                           <Skeleton className="h-4 w-2/5 bg-foreground/[0.075]" />
@@ -459,7 +477,7 @@ export default function SearchPageClient({
               ) : null}
 
               {!showSkeletonResults && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
-                <Empty className="rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+                <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
                       <Search className="size-4" />
@@ -473,7 +491,7 @@ export default function SearchPageClient({
               ) : null}
 
               {!showSkeletonResults && normalizedQuery.length >= 2 && results.length === 0 ? (
-                <Empty className="rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+                <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
                       <Search className="size-4" />
@@ -487,7 +505,7 @@ export default function SearchPageClient({
               ) : null}
 
               {results.length > 0 ? (
-                <div className="overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+                <div className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                   <div className="flex items-center justify-between gap-3 border-b border-border/18 px-4 py-2.5">
                     <SearchSectionLabel>{resultCountLabel ?? "Matches"}</SearchSectionLabel>
                     <div className="hidden items-center gap-1.5 text-[11px] text-muted-foreground/64 sm:flex">
@@ -542,7 +560,7 @@ export default function SearchPageClient({
                               sizes="56px"
                               quality={78}
                               variant="card"
-                              className="size-14 shrink-0 rounded-[0.75rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
+                              className="size-14 shrink-0 rounded-[0.68rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
                               iconClassName="size-5"
                             />
 
@@ -586,7 +604,7 @@ export default function SearchPageClient({
                       <PrefetchLink
                         href={`/track/${track.entityId}`}
                         queryWarmup={{ kind: "track", id: track.entityId }}
-                        className="block overflow-hidden rounded-[1rem] border border-border/22 bg-[var(--kocteau-surface)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] hover:bg-[var(--kocteau-surface-raised)]"
+                        className="block overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/22 bg-[var(--kocteau-surface)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] hover:bg-[var(--kocteau-surface-raised)]"
                       >
                         <div className="space-y-2.5">
                           <EntityCoverImage
@@ -595,7 +613,7 @@ export default function SearchPageClient({
                             sizes="(max-width: 639px) 46vw, (max-width: 1023px) 30vw, 220px"
                             quality={82}
                             variant="card"
-                            className="aspect-square w-full rounded-[0.8rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
+                            className="aspect-square w-full rounded-[0.68rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
                             iconClassName="size-6"
                           />
 
@@ -617,7 +635,7 @@ export default function SearchPageClient({
                   ))}
                 </div>
               ) : (
-                <Empty className="rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+                <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
                       <Music2 className="size-4" />

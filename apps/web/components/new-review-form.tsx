@@ -423,7 +423,7 @@ export default function NewReviewForm({
           reviewError.message ||
             (isEditMode
               ? "We couldn't update this review right now."
-              : "Ocurrió un error al crear la reseña. Intenta nuevamente."),
+              : "We couldn't publish this review right now."),
         );
       }
     } finally {
@@ -475,7 +475,7 @@ export default function NewReviewForm({
                 setFieldErrors((current) => ({ ...current, selected: undefined }));
               }}
               onKeyDown={handleSearchKeyDown}
-              placeholder="Search tracks to review..."
+              placeholder="Search tracks to review…"
               disabled={saving}
               autoFocus
               className="h-10 shrink-0 rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
@@ -517,7 +517,7 @@ export default function NewReviewForm({
               {isFetching && results.length > 0 ? (
                 <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
                   <LoaderCircle className="size-3.5 animate-spin" />
-                  Updating results...
+                  Updating results…
                 </div>
               ) : null}
 
