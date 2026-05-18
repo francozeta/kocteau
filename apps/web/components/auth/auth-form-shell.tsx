@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { ChevronLeft } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
 type AuthFormShellProps = {
   title: string;
-  description?: React.ReactNode;
+  description?: ReactNode;
   alternateLabel?: string;
   alternateHref?: string;
   alternateCta?: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
   className?: string;
   widthClassName?: string;
 };
@@ -29,42 +31,62 @@ export default function AuthFormShell({
   widthClassName,
 }: AuthFormShellProps) {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-      <div className={cn("w-full max-w-sm", widthClassName)}>
-        <div className={cn("flex flex-col gap-6", className)}>
-          <FieldGroup className="rounded-[1.75rem] border border-border/25 bg-card/18 p-5 shadow-none">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <Link
-                href="/"
-                className="flex flex-col items-center gap-2 font-medium transition-opacity hover:opacity-80"
-              >
-                <div className="flex size-9 items-center justify-center rounded-xl border border-border/25 bg-background/55">
-                  <BrandLogo priority iconClassName="h-5 w-5" />
-                </div>
-                <span className="sr-only">Kocteau</span>
-              </Link>
-              <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-              {description ? (
-                <FieldDescription className="text-center">{description}</FieldDescription>
-              ) : null}
-              {alternateLabel && alternateHref && alternateCta ? (
-                <FieldDescription className="text-center">
-                  {alternateLabel}{" "}
-                  <Link href={alternateHref}>{alternateCta}</Link>
-                </FieldDescription>
-              ) : null}
-            </div>
+    <main className="kocteau-auth-background relative isolate flex overflow-hidden bg-background text-foreground">
+      <Link
+        href="/"
+        className="absolute left-4 top-4 z-10 inline-flex h-9 items-center gap-1.5 rounded-[0.45rem] px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-white/[0.055] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 sm:left-6 sm:top-6"
+      >
+        <ChevronLeft className="size-3.5" />
+        Home
+      </Link>
 
-            {children}
-          </FieldGroup>
+      <div className="relative z-[1] mx-auto flex min-h-full w-full items-center justify-center px-5 py-16 sm:px-8">
+        <div className={cn("w-full max-w-[25.75rem]", widthClassName)}>
+          <div className={cn("flex flex-col gap-6", className)}>
+            <FieldGroup className="gap-6">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <Link
+                  href="/"
+                  className="mb-3 flex size-10 items-center justify-center rounded-[0.55rem] border border-white/10 bg-white/[0.035] shadow-[0_0_0_1px_rgba(0,0,0,0.32),0_16px_48px_rgba(0,0,0,0.28)] transition-[background-color,transform] duration-150 ease-out hover:bg-white/[0.055] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+                  aria-label="Kocteau home"
+                >
+                  <BrandLogo priority iconClassName="h-[1.35rem] w-[1.35rem]" />
+                </Link>
 
-          {footer ? (
-            <FieldDescription className="px-6 text-center">
-              {footer}
-            </FieldDescription>
-          ) : null}
+                <h1 className="text-balance text-xl font-semibold leading-tight tracking-tight text-foreground sm:text-[1.38rem]">
+                  {title}
+                </h1>
+
+                {description ? (
+                  <FieldDescription className="max-w-[20rem] text-center text-sm leading-5 text-muted-foreground">
+                    {description}
+                  </FieldDescription>
+                ) : null}
+
+                {alternateLabel && alternateHref && alternateCta ? (
+                  <FieldDescription className="text-center text-sm text-muted-foreground">
+                    {alternateLabel}{" "}
+                    <Link
+                      href={alternateHref}
+                      className="font-medium text-foreground underline-offset-4 hover:underline"
+                    >
+                      {alternateCta}
+                    </Link>
+                  </FieldDescription>
+                ) : null}
+              </div>
+
+              {children}
+            </FieldGroup>
+          </div>
         </div>
       </div>
+
+      {footer ? (
+        <footer className="absolute inset-x-0 bottom-5 z-10 flex justify-center px-5 text-center text-xs text-muted-foreground">
+          {footer}
+        </footer>
+      ) : null}
     </main>
   );
 }

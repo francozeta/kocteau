@@ -141,5 +141,5 @@ export async function POST(req: Request) {
   revalidatePath("/");
   revalidatePath("/onboarding/taste");
 
-  return NextResponse.json({ ok: true, redirectTo: "/" });
+  return NextResponse.json({ ok: true, redirectTo: "/?welcome=kocteau" });
 }

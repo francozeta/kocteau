@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import AuthFormShell from "@/components/auth/auth-form-shell";
+import ReactQueryProvider from "@/app/providers/react-query-provider";
 import { TasteOnboardingForm } from "@/components/auth/taste-onboarding-form";
 import { createPageMetadata } from "@/lib/metadata";
 import { isProfileOnboarded } from "@/lib/profile";
@@ -62,15 +62,11 @@ export default async function TasteOnboardingPage() {
   ]);
 
   return (
-    <AuthFormShell
-      title="Choose 3 signals"
-      description="Start with a few sounds, moods, or scenes. Kocteau will tune itself as you review, save, and follow."
-      widthClassName="max-w-xl"
-    >
+    <ReactQueryProvider>
       <TasteOnboardingForm
         tags={(tags ?? []) as PreferenceTag[]}
         initialSelectedTagIds={(selectedTags ?? []).map((tag) => tag.tag_id)}
       />
-    </AuthFormShell>
+    </ReactQueryProvider>
   );
 }

@@ -492,6 +492,64 @@
   animation: kocteau-save-pop 180ms ease-out;
 }
 
+@keyframes kocteau-review-glow {
+  0% {
+    transform: translateX(-130%) rotate(14deg);
+  }
+
+  52%,
+  100% {
+    transform: translateX(320%) rotate(14deg);
+  }
+}
+
+.kocteau-review-glow {
+  animation: kocteau-review-glow 2.8s var(--kocteau-ease) infinite;
+}
+
+.kocteau-auth-background {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 48% 50%, rgba(255, 255, 255, 0.055), transparent 30rem),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.52)),
+    url("/background-auth.webp") center / cover no-repeat,
+    var(--background);
+}
+
+.kocteau-auth-background::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.58), transparent 42%, rgba(0, 0, 0, 0.24)),
+    radial-gradient(circle at 50% 52%, transparent 0 13rem, rgba(0, 0, 0, 0.22) 31rem);
+}
+
+.kocteau-auth-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kocteau-review-glow {
+    animation: none;
+    opacity: 0.24;
+    transform: translateX(110%) rotate(14deg);
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

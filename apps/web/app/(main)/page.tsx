@@ -3,6 +3,7 @@ import FeedViewTabs from "@/components/feed-view-tabs";
 import FeedReviewList from "@/components/feed-review-list";
 import JsonLd from "@/components/json-ld";
 import NewReviewDialog from "@/components/new-review-dialog";
+import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
@@ -26,7 +27,7 @@ export const metadata = createPageMetadata({
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; welcome?: string }>;
 }) {
   const params = await searchParams;
   const requestedView =
@@ -123,6 +124,7 @@ export default async function HomePage({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <JsonLd data={feedStructuredData} id="home-structured-data" />
+      {params.welcome === "kocteau" ? <OnboardingWelcomeFromUrl /> : null}
       <div className="flex h-full min-h-0 flex-col">
         <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:hidden">
           <div className="flex flex-col gap-2.5">
