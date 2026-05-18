@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CircleAlert, MailCheck } from "lucide-react";
+import Link from "next/link";
 import AuthFormShell from "@/components/auth/auth-form-shell";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -45,22 +44,22 @@ const copyByMode: Record<
   }
 > = {
   login: {
-    title: "Log in with email",
-    description: "We'll send a one-time code to your inbox.",
-    alternateLabel: "New to Kocteau?",
+    title: "Log in to Kocteau",
+    description: "",
+    alternateLabel: "New here?",
     alternateHref: "/signup",
-    alternateCta: "Create an account",
-    submitEmail: "Send code",
-    sendingEmail: "Sending code...",
+    alternateCta: "Sign up",
+    submitEmail: "Continue",
+    sendingEmail: "Sending",
   },
   signup: {
-    title: "Create your account",
-    description: "Confirm your email with a secure one-time code.",
+    title: "Join Kocteau",
+    description: "",
     alternateLabel: "Already have an account?",
     alternateHref: "/login",
     alternateCta: "Log in",
-    submitEmail: "Send code",
-    sendingEmail: "Sending code...",
+    submitEmail: "Continue",
+    sendingEmail: "Sending",
   },
 };
 
@@ -108,14 +107,26 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
       setMessageTone("error");
       setMessage(
         errorCode === "otp_expired"
-          ? "That email link is invalid or expired. Enter the latest code from your inbox, or request a fresh one."
-          : "We could not open that email link. Enter the code from your inbox, or request a fresh one.",
+          ? "That link expired. Request a fresh code."
+          : "We could not open that link. Enter the latest code.",
       );
     }, 0);
     window.history.replaceState(null, "", window.location.pathname);
 
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (step !== "code") {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      document.getElementById("auth-code")?.focus();
+    }, 40);
+
+    return () => window.clearTimeout(timer);
+  }, [step]);
 
   const getPostAuthRedirect = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -215,11 +226,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
     setStep("code");
     setResendIn(resendCooldownSeconds);
     setMessageTone("info");
-    setMessage(
-      isResend
-        ? "We sent a fresh code to your email."
-        : "Check your inbox for your 6-digit code.",
-    );
+    setMessage(isResend ? "Fresh code sent." : null);
     setSending(false);
   }
 
@@ -244,7 +251,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
       setMessage(
         parsedEmail.success
         ? codeError
-          : "Enter a valid email address.",
+          : "Enter a valid email.",
       );
       return;
     }
@@ -261,7 +268,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
 
     if (error) {
       setMessageTone("error");
-      setMessage("That code is invalid or expired. Request a fresh one if needed.");
+      setMessage("Invalid or expired code.");
       setVerifying(false);
       return;
     }
@@ -271,7 +278,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
     if (!redirected) {
       setVerifying(false);
       setMessageTone("error");
-      setMessage("We verified the code, but could not open your session. Try again in a moment.");
+      setMessage("Code verified, but the session did not open.");
     }
   }
 
@@ -282,13 +289,34 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
     setFieldErrors({});
   }
 
+  const shellTitle = step === "code" ? "Enter the code" : copy.title;
+  const shellDescription =
+    step === "code" ? (
+      <>
+        Sent to <span className="font-medium text-foreground">{email}</span>
+      </>
+    ) : undefined;
+
   return (
     <AuthFormShell
-      title={copy.title}
-      description={copy.description}
-      alternateLabel={copy.alternateLabel}
-      alternateHref={copy.alternateHref}
-      alternateCta={copy.alternateCta}
+      title={shellTitle}
+      description={shellDescription}
+      alternateLabel={step === "email" ? copy.alternateLabel : undefined}
+      alternateHref={step === "email" ? copy.alternateHref : undefined}
+      alternateCta={step === "email" ? copy.alternateCta : undefined}
+      footer={
+        <span className="inline-flex items-center gap-1">
+          <span>created by</span>
+          <Link
+            href="https://francozeta.vercel.app/"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-foreground underline underline-offset-4"
+          >
+            francozeta
+          </Link>
+        </span>
+      }
     >
       {step === "email" ? (
         <form
@@ -297,47 +325,38 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
             void sendOtp();
           }}
         >
-          <FieldGroup>
+          <FieldGroup className="gap-3">
             <Field>
-              <FieldLabel htmlFor="auth-email">Email</FieldLabel>
+              <FieldLabel htmlFor="auth-email" className="text-xs text-muted-foreground">
+                Email
+              </FieldLabel>
               <Input
                 id="auth-email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(event) => {
                   setEmail(event.target.value);
                   setFieldErrors((current) => ({ ...current, email: undefined }));
+                  setMessage(null);
                 }}
-                className="h-10 rounded-xl border-border/25 bg-background/60"
+                className="h-11 rounded-[0.52rem] border-white/10 bg-white/[0.055] px-4 text-sm shadow-[0_0_0_1px_rgba(0,0,0,0.24)] placeholder:text-muted-foreground/58 focus-visible:border-white/24 focus-visible:bg-white/[0.075] focus-visible:ring-white/18"
                 aria-invalid={Boolean(fieldErrors.email)}
                 autoComplete="email"
+                autoFocus
                 required
               />
               <FieldError>{fieldErrors.email}</FieldError>
             </Field>
 
-            <Field>
-              {message ? (
-                <Alert
-                  variant={messageTone === "error" ? "destructive" : "default"}
-                  className="rounded-xl px-3 py-2.5"
-                >
-                  {messageTone === "error" ? (
-                    <CircleAlert className="size-4" />
-                  ) : (
-                    <MailCheck className="size-4" />
-                  )}
-                  <AlertTitle>
-                    {messageTone === "error" ? "Could not send code" : "Code sent"}
-                  </AlertTitle>
-                  <AlertDescription>{message}</AlertDescription>
-                </Alert>
-              ) : null}
-            </Field>
+            <AuthMessage message={message} tone={messageTone} />
 
             <Field>
-              <Button type="submit" className="h-10 w-full rounded-xl" disabled={sending || redirecting}>
+              <Button
+                type="submit"
+                className="h-11 w-full rounded-[0.52rem] bg-foreground text-background hover:bg-foreground/90"
+                disabled={sending || redirecting}
+              >
                 {sending ? copy.sendingEmail : copy.submitEmail}
               </Button>
             </Field>
@@ -350,12 +369,11 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
             void verifyCode();
           }}
         >
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field className="items-center text-center">
-              <FieldLabel htmlFor="auth-code">Enter your code</FieldLabel>
-              <p className="text-sm text-muted-foreground">
-                We sent it to <span className="font-medium text-foreground">{email}</span>.
-              </p>
+              <FieldLabel htmlFor="auth-code" className="sr-only">
+                One-time code
+              </FieldLabel>
               <InputOTP
                 id="auth-code"
                 maxLength={otpLength}
@@ -363,19 +381,21 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
                 onChange={(value) => {
                   setCode(value.replace(/\D/g, "").slice(0, otpLength));
                   setFieldErrors((current) => ({ ...current, code: undefined }));
+                  setMessage(null);
                 }}
                 autoComplete="one-time-code"
-                containerClassName="justify-center"
+                autoFocus
+                containerClassName="mx-auto w-full max-w-[18rem] justify-center"
                 inputMode="numeric"
                 disabled={verifying || redirecting}
                 aria-invalid={Boolean(fieldErrors.code)}
               >
-                <InputOTPGroup className="gap-2 rounded-none">
+                <InputOTPGroup className="w-full gap-2 rounded-none">
                   {Array.from({ length: otpLength }).map((_, index) => (
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className="h-12 w-10 rounded-xl border border-border/25 bg-background/60 text-base font-semibold"
+                      className="h-11 min-w-0 flex-1 !rounded-[0.48rem] !border border-white/10 bg-white/[0.035] text-lg font-medium shadow-[0_0_0_1px_rgba(0,0,0,0.2)] first:!rounded-[0.48rem] last:!rounded-[0.48rem] data-[active=true]:border-white/55 data-[active=true]:bg-white/[0.06] data-[active=true]:ring-2 data-[active=true]:ring-white/16 sm:h-12"
                     />
                   ))}
                 </InputOTPGroup>
@@ -383,58 +403,63 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
               <FieldError>{fieldErrors.code}</FieldError>
             </Field>
 
-            <Field>
-              {message ? (
-                <Alert
-                  variant={messageTone === "error" ? "destructive" : "default"}
-                  className="rounded-xl px-3 py-2.5"
-                >
-                  {messageTone === "error" ? (
-                    <CircleAlert className="size-4" />
-                  ) : (
-                    <MailCheck className="size-4" />
-                  )}
-                  <AlertTitle>
-                    {messageTone === "error" ? "Could not verify code" : "Check your inbox"}
-                  </AlertTitle>
-                  <AlertDescription>{message}</AlertDescription>
-                </Alert>
-              ) : null}
-            </Field>
+            <AuthMessage message={message} tone={messageTone} />
 
             <Field>
               <Button
                 type="submit"
-                className="h-10 w-full rounded-xl"
+                className="mx-auto h-11 w-full max-w-[18rem] rounded-[0.52rem] bg-foreground text-background hover:bg-foreground/90"
                 disabled={verifying || redirecting || code.length < otpLength}
               >
-                {redirecting ? "Opening Kocteau..." : verifying ? "Verifying..." : "Continue"}
+                {redirecting ? "Opening" : verifying ? "Verifying" : "Continue"}
               </Button>
             </Field>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Button
+            <div className="flex flex-col items-center gap-2 pt-1">
+              <button
                 type="button"
-                variant="ghost"
-                className="h-10 rounded-xl"
+                className="min-h-9 rounded-[0.45rem] px-3 text-sm font-medium text-muted-foreground transition-[color,background-color,transform] duration-150 ease-out hover:bg-white/[0.055] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
                 disabled={sending || verifying || redirecting}
                 onClick={resetEmailStep}
               >
-                Change email
-              </Button>
-              <Button
+                Use a different email
+              </button>
+              <button
                 type="button"
-                variant="outline"
-                className="h-10 rounded-xl"
+                className="min-h-8 rounded-[0.45rem] px-3 text-xs font-medium text-muted-foreground/80 transition-[color,background-color,transform] duration-150 ease-out hover:bg-white/[0.045] hover:text-foreground active:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
                 disabled={sending || verifying || redirecting || resendIn > 0}
                 onClick={() => void sendOtp(true)}
               >
                 {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
-              </Button>
+              </button>
             </div>
           </FieldGroup>
         </form>
       )}
     </AuthFormShell>
+  );
+}
+
+function AuthMessage({
+  message,
+  tone,
+}: {
+  message: string | null;
+  tone: "error" | "info";
+}) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <p
+      className={
+        tone === "error"
+          ? "text-center text-xs font-medium text-destructive"
+          : "text-center text-xs font-medium text-muted-foreground"
+      }
+    >
+      {message}
+    </p>
   );
 }
