@@ -133,7 +133,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               <button
                 type="button"
                 aria-label={reviewEntryLabel}
-                className="flex size-10 items-center justify-center rounded-[0.9rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-foreground shadow-none transition-[transform,background-color,border-color] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
+                className="flex size-10 items-center justify-center rounded-full border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-foreground shadow-none transition-[transform,background-color,border-color] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
               >
                 <ReviewGlyphIcon className="size-[1.05rem]" />
                 <span className="sr-only">{reviewEntryLabel}</span>
