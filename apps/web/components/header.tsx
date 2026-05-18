@@ -206,7 +206,7 @@ export default function Header({
               <Button
                 variant="outline"
                 size="sm"
-                className="mobile-liquid-button pointer-events-auto h-10 rounded-full px-4 text-foreground md:border-border/30"
+                className="mobile-liquid-button pointer-events-auto h-10 rounded-full px-4 text-foreground md:h-8 md:rounded-[0.62rem] md:border-border/30 md:px-3 md:text-xs"
               >
                 Log in
               </Button>

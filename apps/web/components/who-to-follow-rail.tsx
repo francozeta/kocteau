@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, useReducedMotion } from "motion/react";
 import FollowProfileButton from "@/components/follow-profile-button";
 import { WhoToFollowRailSkeleton } from "@/components/feed-loading-skeletons";
 import PrefetchLink from "@/components/prefetch-link";
@@ -35,7 +34,6 @@ export default function WhoToFollowRail({
   isAuthenticated,
 }: WhoToFollowRailProps) {
   const isDesktop = useDesktopRail();
-  const prefersReducedMotion = useReducedMotion();
   const { data, isLoading } = useQuery({
     ...activeProfilesQueryOptions(4),
     enabled: isDesktop,
@@ -53,24 +51,13 @@ export default function WhoToFollowRail({
           <WhoToFollowRailSkeleton showHeading={false} />
         ) : profiles.length > 0 ? (
           <div className="border-t border-border/32">
-            {profiles.map((profile, index) => {
+            {profiles.map((profile) => {
               const primaryLabel = profile.display_name ?? `@${profile.username}`;
 
               return (
-                <motion.div
+                <div
                   key={profile.id}
                   className="kocteau-rail-row border-b border-border/24 px-1 py-3"
-                  initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={
-                    prefersReducedMotion
-                      ? { duration: 0 }
-                      : {
-                          duration: 0.16,
-                          ease: "easeOut",
-                          delay: Math.min(index * 0.02, 0.06),
-                        }
-                  }
                 >
                   <div className="flex items-start gap-2.5">
                     <PrefetchLink
@@ -108,7 +95,7 @@ export default function WhoToFollowRail({
                       />
                     ) : null}
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>

@@ -2,7 +2,6 @@ import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import FeedViewTabs from "@/components/feed-view-tabs";
 import FeedReviewList from "@/components/feed-review-list";
 import JsonLd from "@/components/json-ld";
-import NewReviewDialog from "@/components/new-review-dialog";
 import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
@@ -110,28 +109,13 @@ export default async function HomePage({
     }).slice(0, 10),
   );
 
-  function renderFeedSearchTrigger() {
-    return (
-      <NewReviewDialog
-        isAuthenticated={Boolean(user)}
-        triggerVariant="search"
-        triggerLabel="Find a track to review..."
-      />
-    );
-  }
-
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <JsonLd data={feedStructuredData} id="home-structured-data" />
       {params.welcome === "kocteau" ? <OnboardingWelcomeFromUrl /> : null}
       <div className="flex h-full min-h-0 flex-col">
         <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:hidden">
-          <div className="flex flex-col gap-2.5">
-            <div className="min-w-0">
-              {renderFeedSearchTrigger()}
-            </div>
-            <FeedViewTabs activeView={tabActiveView} fullWidth />
-          </div>
+          {user ? <FeedViewTabs activeView={tabActiveView} fullWidth /> : null}
 
           <div className="space-y-4">
             <FeedReviewList
@@ -150,14 +134,11 @@ export default async function HomePage({
               className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-center xl:gap-6"
             >
               <div className="min-w-0 space-y-4">
-                <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                  <div className="min-w-0">
-                    {renderFeedSearchTrigger()}
-                  </div>
-                  <div className="justify-self-start xl:justify-self-end">
+                {user ? (
+                  <div className="flex justify-start">
                     <FeedViewTabs activeView={tabActiveView} />
                   </div>
-                </div>
+                ) : null}
 
                 <FeedReviewList
                   view={activeView}
