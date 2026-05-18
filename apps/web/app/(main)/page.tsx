@@ -18,9 +18,8 @@ import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { feedKeys, type FeedInfiniteQueryData } from "@/queries/feed";
 
 export const metadata = createPageMetadata({
-  title: "Music Reviews, Ratings, and Discovery",
-  description:
-    "Read recent music reviews, ratings, and listening notes, discover active tracks, and explore public profiles on Kocteau.",
+  title: "Kocteau",
+  description: "Music reviews by real listeners.",
   path: "/",
 });
 

@@ -25,8 +25,7 @@ export const metadata: Metadata = {
     default: "Kocteau",
     template: "%s | Kocteau",
   },
-  description:
-    "Music reviews, ratings, discovery, and public taste profiles on Kocteau.",
+  description: "Music reviews by real listeners.",
   openGraph: {
     siteName: "Kocteau",
     type: "website",

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 
 const SITE_NAME = "Kocteau";
 const DEFAULT_DESCRIPTION =
-  "A modern music social app for reviews, notes, and curated discovery.";
-const DEFAULT_OPEN_GRAPH_IMAGE = "/api/og/site";
-const DEFAULT_TWITTER_IMAGE = "/api/og/site";
+  "Music reviews by real listeners.";
+const DEFAULT_OPEN_GRAPH_IMAGE = "/og/kocteau.webp";
+const DEFAULT_TWITTER_IMAGE = "/og/kocteau.webp";
 
 function resolveSiteUrl() {
   const envUrl =
@@ -47,6 +47,20 @@ function normalizeImage(image?: string | null) {
   return normalizePath(image);
 }
 
+function getImageContentType(image: string) {
+  const pathname = image.split("?")[0]?.toLowerCase() ?? "";
+
+  if (pathname.endsWith(".webp")) {
+    return "image/webp";
+  }
+
+  if (pathname.endsWith(".jpg") || pathname.endsWith(".jpeg")) {
+    return "image/jpeg";
+  }
+
+  return "image/png";
+}
+
 function buildImageDescriptor(image: string, title: string) {
   const alt = `${withSiteName(title)} preview`;
 
@@ -55,7 +69,7 @@ function buildImageDescriptor(image: string, title: string) {
     alt,
     width: 1200,
     height: 630,
-    type: "image/png",
+    type: getImageContentType(image),
   };
 }
 
