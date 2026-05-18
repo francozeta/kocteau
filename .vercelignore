@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+
+.next
+**/.next
+
+.turbo
+**/.turbo
+
+.vercel
+**/.vercel
+
+Workspace
+*.log
+*.tsbuildinfo
+**/*.tsbuildinfo
