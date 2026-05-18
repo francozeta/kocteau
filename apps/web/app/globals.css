@@ -492,6 +492,29 @@
   animation: kocteau-save-pop 180ms ease-out;
 }
 
+@keyframes kocteau-review-glow {
+  0% {
+    transform: translateX(-130%) rotate(14deg);
+  }
+
+  52%,
+  100% {
+    transform: translateX(320%) rotate(14deg);
+  }
+}
+
+.kocteau-review-glow {
+  animation: kocteau-review-glow 2.8s var(--kocteau-ease) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kocteau-review-glow {
+    animation: none;
+    opacity: 0.24;
+    transform: translateX(110%) rotate(14deg);
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import AuthFormShell from "@/components/auth/auth-form-shell";
-import ProfileEditorForm from "@/components/profile-editor-form";
+import ProfileOnboardingFlow from "@/components/auth/profile-onboarding-flow";
 import { createPageMetadata } from "@/lib/metadata";
 import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -61,13 +60,5 @@ export default async function OnboardingPage() {
     redirect("/");
   }
 
-  return (
-    <AuthFormShell
-      title="Set up your profile"
-      description="Choose a default disc or upload, crop, and save a profile photo, then set the identity people will see across Kocteau."
-      widthClassName="max-w-4xl"
-    >
-      <ProfileEditorForm mode="onboarding" initialProfile={profile ?? undefined} />
-    </AuthFormShell>
-  );
+  return <ProfileOnboardingFlow initialProfile={profile ?? undefined} />;
 }

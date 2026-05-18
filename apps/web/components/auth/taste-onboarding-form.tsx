@@ -1,19 +1,12 @@
 "use client";
 
-import { AlertCircle, Check, LoaderCircle } from "lucide-react";
-import { useState } from "react";
+import { startTransition, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Progress } from "@/components/ui/progress";
+import { ArrowRight, Check } from "lucide-react";
+import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
+import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
+import { PrimaryGrowButton } from "@/components/ui/grow-button";
 import {
   tasteOnboardingMaxTags,
   tasteOnboardingMinTags,
@@ -31,30 +24,44 @@ type SaveTasteResponse = {
   redirectTo?: string;
 };
 
+const tasteSteps = [
+  {
+    id: "signals",
+    section: "Taste",
+    title: "Choose your first signals.",
+    description: "Pick at least three. Kocteau can tune the rest later.",
+  },
+  {
+    id: "review",
+    section: "Review",
+    title: "Start with a track to review.",
+    description: "Review now, or skip and start with your feed.",
+  },
+] as const;
+
 export function TasteOnboardingForm({
   tags,
   initialSelectedTagIds = [],
 }: TasteOnboardingFormProps) {
   const router = useRouter();
-  const visibleTagIds = new Set(tags.map((tag) => tag.id));
+  const visibleTagIds = useMemo(() => new Set(tags.map((tag) => tag.id)), [tags]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedIds, setSelectedIds] = useState(
     () =>
       new Set(initialSelectedTagIds.filter((tagId) => visibleTagIds.has(tagId))),
   );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [redirectTo, setRedirectTo] = useState("/?welcome=kocteau");
+  const currentStep = tasteSteps[currentStepIndex];
   const selectedCount = selectedIds.size;
-  const progressValue = Math.min(
-    100,
-    Math.round((selectedCount / tasteOnboardingMinTags) * 100),
-  );
-  const canSubmit =
-    selectedCount >= tasteOnboardingMinTags &&
-    selectedCount <= tasteOnboardingMaxTags &&
-    !isSaving;
   const missingCount = Math.max(tasteOnboardingMinTags - selectedCount, 0);
-  const readyLabel = "Build my feed";
+  const submitLabel =
+    currentStep.id === "review"
+      ? "Skip for now"
+      : isSaving
+        ? "Saving"
+        : "Continue";
 
   function toggleTag(tagId: string) {
     setError(null);
@@ -67,7 +74,7 @@ export function TasteOnboardingForm({
       }
 
       if (next.size >= tasteOnboardingMaxTags) {
-        setError(`Choose ${tasteOnboardingMaxTags} taste tags or fewer.`);
+        setError(`Choose ${tasteOnboardingMaxTags} signals or fewer.`);
         return current;
       }
 
@@ -76,12 +83,18 @@ export function TasteOnboardingForm({
     });
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function finishOnboarding() {
+    startTransition(() => {
+      router.replace(redirectTo);
+      router.refresh();
+    });
+  }
+
+  async function saveTasteProfile() {
     setError(null);
 
     if (selectedCount < tasteOnboardingMinTags) {
-      setError(`Choose at least ${tasteOnboardingMinTags} taste tags.`);
+      setError(`Choose ${missingCount} more to continue.`);
       return;
     }
 
@@ -101,8 +114,8 @@ export function TasteOnboardingForm({
         throw new Error(data.error || "We could not save your taste profile.");
       }
 
-      router.replace(data.redirectTo || "/");
-      router.refresh();
+      setRedirectTo(data.redirectTo || "/?welcome=kocteau");
+      setCurrentStepIndex(1);
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -114,83 +127,129 @@ export function TasteOnboardingForm({
     }
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (currentStep.id === "review") {
+      finishOnboarding();
+      return;
+    }
+
+    void saveTasteProfile();
+  }
+
   return (
-    <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-      <FieldGroup className="gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <FieldDescription>
-            {selectedCount}/{tasteOnboardingMaxTags} selected
-          </FieldDescription>
-          <Badge
-            variant={selectedCount >= tasteOnboardingMinTags ? "default" : "outline"}
-          >
-            {missingCount > 0 ? `${missingCount} left` : "Ready"}
-          </Badge>
-        </div>
-        <Progress value={progressValue} />
-      </FieldGroup>
-
-      <Field>
-        <div className="flex items-center justify-between gap-3">
-          <FieldLabel>Primary signals</FieldLabel>
-          <FieldDescription>
-            Choose at least {tasteOnboardingMinTags}
-          </FieldDescription>
-        </div>
-        <div className="rounded-xl border border-border/35 bg-background/35 p-3">
-          {tags.length > 0 ? (
-            <div className="flex max-h-[18rem] flex-wrap gap-2 overflow-y-auto pr-1">
-              {tags.map((tag) => {
-                const isSelected = selectedIds.has(tag.id);
-
-                return (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={() => toggleTag(tag.id)}
-                    className={cn(
-                      "inline-flex h-8 max-w-full items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-all focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
-                      isSelected
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border/60 bg-muted/20 text-foreground hover:border-foreground/25 hover:bg-muted/55",
-                    )}
-                  >
-                    <span className="truncate">{tag.label}</span>
-                    {isSelected ? <Check className="size-3" /> : null}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <FieldDescription>
-              Taste signals are not available yet. Run the Supabase migration and refresh this page.
-            </FieldDescription>
-          )}
-        </div>
-        <FieldDescription>
-          Your reviews, saves, and follows will tune this over time.
-        </FieldDescription>
-      </Field>
-
-      {error ? (
-        <Alert variant="destructive">
-          <AlertCircle className="size-3.5" />
-          <AlertTitle>Could not save preferences</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+    <OnboardingStepFrame
+      section={currentStep.section}
+      currentStep={currentStepIndex + 1}
+      totalSteps={tasteSteps.length}
+      title={currentStep.title}
+      description={currentStep.description}
+      error={error}
+      onSubmit={handleSubmit}
+      onBack={() => {
+        setError(null);
+        setCurrentStepIndex((index) => Math.max(index - 1, 0));
+      }}
+      submitLabel={submitLabel}
+      submitDisabled={tags.length === 0}
+      submitLoading={isSaving}
+      submitIcon={currentStep.id === "signals" ? <ArrowRight className="size-4" /> : null}
+      controlClassName={currentStep.id === "signals" ? "max-w-[30rem]" : undefined}
+      liveMessage={`${currentStep.section}, step ${currentStepIndex + 1} of ${tasteSteps.length}.`}
+    >
+      {currentStep.id === "signals" ? (
+        <TasteSignalCloud
+          tags={tags}
+          selectedIds={selectedIds}
+          selectedCount={selectedCount}
+          missingCount={missingCount}
+          onToggle={toggleTag}
+        />
       ) : (
-        <FieldError>
-          {selectedCount < tasteOnboardingMinTags
-            ? `Choose ${missingCount} more to continue.`
-            : null}
-        </FieldError>
+        <ReviewStarterControl onComplete={finishOnboarding} />
       )}
+    </OnboardingStepFrame>
+  );
+}
 
-      <Button type="submit" size="lg" disabled={!canSubmit}>
-        {isSaving ? <LoaderCircle className="animate-spin" /> : null}
-        {isSaving ? "Building feed..." : missingCount > 0 ? `Select ${missingCount} more` : readyLabel}
-      </Button>
-    </form>
+function TasteSignalCloud({
+  tags,
+  selectedIds,
+  selectedCount,
+  missingCount,
+  onToggle,
+}: {
+  tags: PreferenceTag[];
+  selectedIds: Set<string>;
+  selectedCount: number;
+  missingCount: number;
+  onToggle: (tagId: string) => void;
+}) {
+  if (tags.length === 0) {
+    return (
+      <p className="max-w-[22rem] text-center text-sm leading-5 text-muted-foreground">
+        Taste signals are not available yet.
+      </p>
+    );
+  }
+
+  return (
+    <div className="w-full space-y-3">
+      <div className="flex justify-end text-xs tabular-nums text-muted-foreground">
+        {selectedCount} / {tasteOnboardingMaxTags}
+        {missingCount > 0 ? ` - ${missingCount} left` : " - ready"}
+      </div>
+      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+        {tags.map((tag) => {
+          const isSelected = selectedIds.has(tag.id);
+
+          return (
+            <button
+              key={tag.id}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => onToggle(tag.id)}
+              className={cn(
+                "min-h-9 rounded-full bg-[var(--kocteau-surface-control)] px-3 text-sm text-muted-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 sm:min-h-10 sm:px-3.5",
+                isSelected &&
+                  "bg-foreground text-background shadow-none hover:bg-foreground hover:text-background",
+              )}
+            >
+              <span>{tag.label}</span>
+              {isSelected ? <Check className="ml-1 inline size-3" /> : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ReviewStarterControl({ onComplete }: { onComplete: () => void }) {
+  return (
+    <div className="mx-auto flex w-full max-w-[21rem] flex-col items-center gap-3">
+      <NewReviewDialog
+        isAuthenticated
+        trigger={
+          <PrimaryGrowButton
+            type="button"
+            size="icon-lg"
+            aria-label="Start a track review"
+            className="relative isolate size-14 overflow-hidden rounded-[1rem] p-0 text-background"
+          >
+            <span
+              aria-hidden="true"
+              className="kocteau-review-glow pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent)] opacity-70 blur-[1px]"
+            />
+            <ReviewGlyphIcon className="relative size-[1.1rem]" />
+          </PrimaryGrowButton>
+        }
+        onSuccess={() => onComplete()}
+      />
+      <p className="text-center text-xs leading-4 text-muted-foreground">
+        Optional. You can skip and review later.
+      </p>
+    </div>
   );
 }

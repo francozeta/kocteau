@@ -3,13 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowLeft, ArrowRight, Camera, Check, Disc3 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Disc3 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { PrimaryGrowButton } from "@/components/ui/grow-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { OnboardingWelcomeDialog } from "@/components/auth/onboarding-welcome-dialog";
+import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import {
   avatarPresets,
   createAvatarPresetDataUrl,
@@ -60,13 +63,13 @@ const steps = [
     id: "avatar",
     section: "Profile",
     question: "Choose a profile image.",
-    helper: "Upload a photo or choose a disc.",
+    helper: "Use a photo or a Kocteau disc.",
   },
   {
     id: "bio",
     section: "Profile",
     question: "Write a short taste note.",
-    helper: "One line is enough. Make it sound like you.",
+    helper: "Optional. Add one line now, or leave it for later.",
   },
   {
     id: "signals",
@@ -180,6 +183,7 @@ export function OnboardingFlowPreview() {
   const [previewComplete, setPreviewComplete] = useState(false);
 
   const currentStep = steps[currentStepIndex];
+  const currentStepHelper = "helper" in currentStep ? currentStep.helper : undefined;
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
   const selectedTrack = useMemo(
     () => starterTracks.find((track) => track.id === draft.starterTrack) ?? null,
@@ -237,7 +241,7 @@ export function OnboardingFlowPreview() {
             className="inline-flex h-8 w-8 items-center justify-center text-foreground transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
             aria-label="Go to Kocteau home"
           >
-            <KocteauOnboardingLogo className="h-7 w-7" />
+            <BrandLogo priority iconClassName="h-[1.35rem] w-[1.35rem]" />
           </Link>
         </div>
 
@@ -273,12 +277,12 @@ export function OnboardingFlowPreview() {
               className="flex h-full max-h-[32rem] min-h-[25rem] w-full max-w-[32rem] flex-col justify-center gap-3"
             >
               <div className="mx-auto max-w-[24rem] space-y-1.5 text-center">
-                <h1 className="text-balance font-heading text-[1.65rem] font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
+                <h1 className="text-balance font-heading text-[1.55rem] font-bold leading-tight tracking-tight text-foreground sm:text-[1.65rem]">
                   {currentStep.question}
                 </h1>
-                {currentStep.helper ? (
+                {currentStepHelper ? (
                   <p className="text-pretty text-sm leading-5 text-muted-foreground">
-                    {currentStep.helper}
+                    {currentStepHelper}
                   </p>
                 ) : null}
               </div>
@@ -343,10 +347,6 @@ function getStepError(stepId: PreviewStep["id"], draft: PreviewDraft) {
 
   if (stepId === "handle" && draft.username.trim().length < 3) {
     return "Choose a handle with at least three characters.";
-  }
-
-  if (stepId === "bio" && draft.bio.trim().length < 10) {
-    return "Write a little more so the profile does not feel empty.";
   }
 
   if (stepId === "signals" && draft.signals.length < 3) {
@@ -436,13 +436,23 @@ function renderStepControl(
 
   if (stepId === "track") {
     return (
-      <div className="mx-auto w-full max-w-[21rem] space-y-2">
+      <div className="mx-auto flex w-full max-w-[21rem] flex-col items-center gap-3">
         <NewReviewDialog
           isAuthenticated
-          triggerVariant="search"
-          triggerLabel="Find a track to review..."
-          triggerShortcut={null}
-          triggerClassName="h-11 rounded-[var(--kocteau-radius-control)]"
+          trigger={
+            <PrimaryGrowButton
+              type="button"
+              size="icon-lg"
+              aria-label="Start a track review"
+              className="relative isolate size-14 overflow-hidden rounded-[1rem] p-0 text-background"
+            >
+              <span
+                aria-hidden="true"
+                className="kocteau-review-glow pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent)] opacity-70 blur-[1px]"
+              />
+              <ReviewGlyphIcon className="relative size-[1.1rem]" />
+            </PrimaryGrowButton>
+          }
           onSuccess={() => updateDraft({ starterTrack: starterTracks[0].id })}
         />
         <p className="text-center text-xs leading-4 text-muted-foreground">
@@ -463,15 +473,9 @@ function AvatarStepControl({
   updateDraft: (draft: Partial<PreviewDraft>) => void;
 }) {
   const [isDiscPickerOpen, setIsDiscPickerOpen] = useState(false);
-  const selectedPreset = avatarPresets.find((preset) => preset.id === draft.avatarPresetId);
   const avatarPreviewUrl =
     draft.uploadedAvatarUrl ??
     createAvatarPresetDataUrl(draft.avatarPresetId ?? "silver-haze", 180);
-  const previewTitle = draft.uploadedAvatarUrl
-    ? "Photo selected"
-    : selectedPreset
-      ? selectedPreset.label
-      : "Upload your photo";
 
   function handleAvatarFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
@@ -489,30 +493,25 @@ function AvatarStepControl({
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-[20rem]">
-      <div className="flex items-stretch gap-2">
+    <div className="relative mx-auto flex w-full max-w-[20rem] justify-center">
+      <div className="relative">
         <label
-          className="flex h-12 min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-[0.8rem] bg-[var(--kocteau-surface-control)] px-3 text-left shadow-[var(--kocteau-shadow-control)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-within:ring-2 focus-within:ring-ring/30"
+          aria-label="Upload profile image"
+          className="group relative flex size-28 cursor-pointer items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] p-1.5 shadow-[var(--kocteau-shadow-control),0_14px_42px_rgba(0,0,0,0.22)] transition-[box-shadow,transform,background-color] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:shadow-[var(--kocteau-shadow-card-hover),0_18px_52px_rgba(0,0,0,0.28)] active:scale-[0.96] focus-within:ring-2 focus-within:ring-ring/35"
         >
-          <span className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-background text-foreground outline outline-1 outline-white/10">
+          <span className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-background outline outline-1 outline-white/10">
             <Image
               src={avatarPreviewUrl}
               alt=""
-              width={32}
-              height={32}
+              width={112}
+              height={112}
               unoptimized
-              className="size-8 rounded-full object-cover"
+              className="size-full rounded-full object-cover"
             />
-          </span>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-            {previewTitle}
-          </span>
-          <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-            {draft.uploadedAvatarUrl ? (
-              <Check className="size-3.5" />
-            ) : (
-              <Camera className="size-3.5" />
-            )}
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full bg-black/0 transition-colors duration-150 ease-out group-hover:bg-black/12"
+            />
           </span>
           <input
             type="file"
@@ -528,19 +527,16 @@ function AvatarStepControl({
           aria-expanded={isDiscPickerOpen}
           onClick={() => setIsDiscPickerOpen((open) => !open)}
           className={cn(
-            "flex size-12 shrink-0 items-center justify-center rounded-[0.8rem] bg-[var(--kocteau-surface-control)] text-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-            isDiscPickerOpen &&
-              "bg-[var(--kocteau-surface-featured)] shadow-[var(--kocteau-shadow-card-hover)]",
+            "absolute -right-1 bottom-1 flex size-9 items-center justify-center rounded-full bg-background text-foreground shadow-[0_0_0_3px_var(--background),var(--kocteau-shadow-card-hover)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+            isDiscPickerOpen && "bg-foreground text-background",
           )}
         >
-          <span className="flex size-7 items-center justify-center">
-            <Disc3
-              className={cn(
-                "size-4 transition-transform duration-150 ease-out",
-                isDiscPickerOpen ? "rotate-45 scale-[0.96]" : "rotate-0 scale-100",
-              )}
-            />
-          </span>
+          <Disc3
+            className={cn(
+              "size-4 transition-transform duration-150 ease-out",
+              isDiscPickerOpen ? "rotate-45 scale-[0.96]" : "rotate-0 scale-100",
+            )}
+          />
         </button>
       </div>
 
@@ -552,7 +548,7 @@ function AvatarStepControl({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.14, ease: "easeOut" }}
-            className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-10 rounded-[1.05rem] bg-[var(--kocteau-surface)] p-2 shadow-[var(--kocteau-shadow-card-hover)]"
+            className="absolute left-1/2 top-[calc(100%+0.75rem)] z-10 w-[17rem] -translate-x-1/2 rounded-[1.05rem] bg-[var(--kocteau-surface)] p-2 shadow-[var(--kocteau-shadow-card-hover)]"
           >
             <div className="grid grid-cols-3 gap-2">
               {avatarPresets.map((preset) => {
@@ -571,7 +567,7 @@ function AvatarStepControl({
                       setIsDiscPickerOpen(false);
                     }}
                     className={cn(
-                      "group relative flex aspect-square min-h-[4.5rem] items-center justify-center rounded-[0.85rem] bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      "group relative flex aspect-square min-h-[4rem] items-center justify-center rounded-[0.85rem] bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                       isSelected &&
                         "bg-[var(--kocteau-surface-featured)] shadow-[var(--kocteau-shadow-card-hover)]",
                     )}
@@ -579,8 +575,8 @@ function AvatarStepControl({
                     <Image
                       src={createAvatarPresetDataUrl(preset.id, 160)}
                       alt={preset.label}
-                      width={56}
-                      height={56}
+                      width={52}
+                      height={52}
                       unoptimized
                       className="size-12 rounded-full object-cover outline outline-1 outline-white/10"
                     />
@@ -640,22 +636,6 @@ function ChoiceCloud({
   );
 }
 
-function KocteauOnboardingLogo({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 936.28 953.67"
-      className={className}
-      fill="currentColor"
-    >
-      <path d="M936.28,5.38c-47.64,96.32-97.78,189.02-164.48,271.66-61.13,75.75-132.42,139.56-219.99,183.52-22.62,11.36-46.49,20.21-70.39,30.47,11.51,3.71,23.23,7.22,34.77,11.24,80.77,28.11,151.18,72.69,211.94,132.83,70.47,69.74,120.36,153.19,161.95,242.18,10.53,22.53,20.2,45.46,30.22,68.23,1.02,2.33,1.8,4.76,3.01,8.02-13.71,0-26.56,0-39.4,0-68.76-.01-137.52-.15-206.28.15-6.58.03-9.11-2.25-11.27-7.92-22.18-58.19-48.92-114.18-84.18-165.65-74.57-108.85-175.11-182.98-300.92-222.7-47.58-15.02-96.27-25.09-146.06-28.38-41.85-2.76-83.81-3.75-125.72-5.49-2.88-.12-5.78-.02-9.26-.02v-38.86c13.56-1.06,27.19-2.18,40.83-3.19,141.94-10.57,271.99-54.24,387.03-139.39,63.19-46.78,115.32-104.14,159.54-168.87,33.98-49.74,62.31-102.61,85.87-158.01,3.21-7.55,7.27-10.04,15.54-10,79.04.34,158.09.19,237.14.18,2.88,0,5.76,0,10.11,0Z" />
-      <path d="M.43.27c68.46-1.77,134.64,4.37,195.17,39.26,76.23,43.94,122.94,109.35,142.48,194.7,7.39,32.26,8.63,65.07,8.21,97.96-.05,3.66-4.01,8.11-7.3,10.77-41.48,33.44-88.98,54.59-140.28,67.81-8.4,2.16-16.87,4.03-26.28,6.26,0-16.85.49-32.38-.11-47.87-.98-24.87.26-50.32-4.67-74.45-11.78-57.69-55.36-96.93-113.94-105.93-17.32-2.66-34.94-3.43-53.29-5.15V.27Z" />
-      <path d="M.2,653.1v-92.2c14.54,0,28.58-.76,42.51.14,48.58,3.14,96.68,10.07,143.2,24.6,140.53,43.89,243.61,132.23,307.97,264.53,14.61,30.03,24.03,62.59,35.75,94.02.99,2.66,1.3,5.58,2.05,8.93h-174.6C318.98,756.93,198.58,658.98.2,653.1Z" />
-      <path d="M0,952.87v-256.18c58.83-.6,111.98,14.35,157.19,52.58,63.38,53.59,77.4,124.71,70.51,203.61H0Z" />
-    </svg>
-  );
-}
-
 function PreviewSummary({ draft }: { draft: PreviewDraft }) {
   const selectedTrack =
     starterTracks.find((track) => track.id === draft.starterTrack) ?? null;
@@ -682,7 +662,9 @@ function PreviewSummary({ draft }: { draft: PreviewDraft }) {
         </div>
       </div>
 
-      <p className="text-pretty text-sm leading-6 text-muted-foreground">{draft.bio}</p>
+      <p className="text-pretty text-sm leading-6 text-muted-foreground">
+        {draft.bio.trim() || "Taste note can come later."}
+      </p>
 
       <div className="flex flex-wrap gap-1.5">
         {[...draft.signals, ...draft.scenes].slice(0, 8).map((item) => (
