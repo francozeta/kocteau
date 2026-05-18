@@ -128,7 +128,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           <span className="mx-1 h-7 w-px shrink-0 bg-foreground/10" aria-hidden="true" />
           <NewReviewDialog
             isAuthenticated={Boolean(profile)}
-            intent={profile ? "review" : "search"}
+            intent="review"
             trigger={
               <button
                 type="button"

@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 type TasteOnboardingFormProps = {
   tags: PreferenceTag[];
   initialSelectedTagIds?: string[];
+  nextPath?: string | null;
 };
 
 type SaveTasteResponse = {
@@ -42,6 +43,7 @@ const tasteSteps = [
 export function TasteOnboardingForm({
   tags,
   initialSelectedTagIds = [],
+  nextPath = null,
 }: TasteOnboardingFormProps) {
   const router = useRouter();
   const visibleTagIds = useMemo(() => new Set(tags.map((tag) => tag.id)), [tags]);
@@ -52,7 +54,7 @@ export function TasteOnboardingForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [redirectTo, setRedirectTo] = useState("/?welcome=kocteau");
+  const [redirectTo, setRedirectTo] = useState(nextPath ?? "/?welcome=kocteau");
   const currentStep = tasteSteps[currentStepIndex];
   const selectedCount = selectedIds.size;
   const missingCount = Math.max(tasteOnboardingMinTags - selectedCount, 0);
@@ -114,7 +116,7 @@ export function TasteOnboardingForm({
         throw new Error(data.error || "We could not save your taste profile.");
       }
 
-      setRedirectTo(data.redirectTo || "/?welcome=kocteau");
+      setRedirectTo(nextPath ?? data.redirectTo ?? "/?welcome=kocteau");
       setCurrentStepIndex(1);
     } catch (submitError) {
       setError(

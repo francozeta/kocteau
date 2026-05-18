@@ -140,7 +140,6 @@ export default function AppSidebar({
 
   const canShowOwnedReviews = Boolean(profile) && sidebarReviews.length > 0;
   const reviewEntryLabel = profile ? "New review" : "Find a track";
-  const reviewEntryIntent = profile ? "review" : "search";
 
   return (
     <TooltipProvider delayDuration={80}>
@@ -163,7 +162,7 @@ export default function AppSidebar({
           <div className="group-data-[collapsible=icon]:hidden">
             <NewReviewDialog
               isAuthenticated={Boolean(profile)}
-              intent={reviewEntryIntent}
+              intent="review"
               trigger={
                 <button
                   type="button"
@@ -184,7 +183,7 @@ export default function AppSidebar({
           <div className="hidden group-data-[collapsible=icon]:block">
             <NewReviewDialog
               isAuthenticated={Boolean(profile)}
-              intent={reviewEntryIntent}
+              intent="review"
               trigger={
                 <button
                   type="button"

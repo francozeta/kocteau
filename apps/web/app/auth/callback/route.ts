@@ -1,14 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPostAuthRedirect } from "@/lib/auth/post-auth-redirect";
+import { safeInternalPath } from "@/lib/internal-path";
 import { supabaseServer } from "@/lib/supabase/server";
-
-function safeInternalPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) {
-    return null;
-  }
-
-  return value;
-}
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -25,7 +18,9 @@ export async function GET(request: NextRequest) {
       return null;
     }
 
-    const redirectTo = explicitNext ?? (await getPostAuthRedirect(supabase, data.user.id));
+    const redirectTo = await getPostAuthRedirect(supabase, data.user.id, {
+      next: explicitNext,
+    });
     return NextResponse.redirect(new URL(redirectTo, url.origin));
   }
 
@@ -46,6 +41,10 @@ export async function GET(request: NextRequest) {
       loginUrl.searchParams.set("error_code", callbackErrorCode);
     }
 
+    if (explicitNext) {
+      loginUrl.searchParams.set("next", explicitNext);
+    }
+
     return NextResponse.redirect(loginUrl);
   }
 
@@ -60,10 +59,15 @@ export async function GET(request: NextRequest) {
 
     const loginUrl = new URL("/login", url.origin);
     loginUrl.searchParams.set("error", "auth_callback_failed");
+    if (explicitNext) {
+      loginUrl.searchParams.set("next", explicitNext);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
-  const redirectTo = explicitNext ?? (await getPostAuthRedirect(supabase, data.user.id));
+  const redirectTo = await getPostAuthRedirect(supabase, data.user.id, {
+    next: explicitNext,
+  });
 
   return NextResponse.redirect(new URL(redirectTo, url.origin));
 }

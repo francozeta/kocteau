@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import ReactQueryProvider from "@/app/providers/react-query-provider";
 import { TasteOnboardingForm } from "@/components/auth/taste-onboarding-form";
+import { appendInternalNext, safeInternalPath } from "@/lib/internal-path";
 import { createPageMetadata } from "@/lib/metadata";
 import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -16,14 +17,20 @@ export const metadata = createPageMetadata({
   noIndex: true,
 });
 
-export default async function TasteOnboardingPage() {
+export default async function TasteOnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const params = await searchParams;
+  const nextPath = safeInternalPath(params.next);
   const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect(appendInternalNext("/login", nextPath));
   }
 
   const profileQuery = await supabase
@@ -39,11 +46,11 @@ export default async function TasteOnboardingPage() {
   const profile = profileQuery.data;
 
   if (!isProfileOnboarded(profile)) {
-    redirect("/onboarding");
+    redirect(appendInternalNext("/onboarding", nextPath));
   }
 
   if (profile?.taste_onboarded) {
-    redirect("/");
+    redirect(nextPath ?? "/");
   }
 
   const [{ data: tags }, { data: selectedTags }] = await Promise.all([
@@ -66,6 +73,7 @@ export default async function TasteOnboardingPage() {
       <TasteOnboardingForm
         tags={(tags ?? []) as PreferenceTag[]}
         initialSelectedTagIds={(selectedTags ?? []).map((tag) => tag.tag_id)}
+        nextPath={nextPath}
       />
     </ReactQueryProvider>
   );

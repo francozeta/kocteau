@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import ProfileOnboardingFlow from "@/components/auth/profile-onboarding-flow";
+import { appendInternalNext, safeInternalPath } from "@/lib/internal-path";
 import { createPageMetadata } from "@/lib/metadata";
 import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -23,14 +24,20 @@ export const metadata = createPageMetadata({
   noIndex: true,
 });
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const params = await searchParams;
+  const nextPath = safeInternalPath(params.next);
   const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect(appendInternalNext("/login", nextPath));
   }
 
   const profileQuery = await supabase
@@ -54,11 +61,11 @@ export default async function OnboardingPage() {
 
   if (isProfileOnboarded(profile)) {
     if (profile?.taste_onboarded === false) {
-      redirect("/onboarding/taste");
+      redirect(appendInternalNext("/onboarding/taste", nextPath));
     }
 
-    redirect("/");
+    redirect(nextPath ?? "/");
   }
 
-  return <ProfileOnboardingFlow initialProfile={profile ?? undefined} />;
+  return <ProfileOnboardingFlow initialProfile={profile ?? undefined} nextPath={nextPath} />;
 }

@@ -79,7 +79,7 @@ export default function FeedReviewCta({
         <div className="flex shrink-0 items-center gap-2">
           <NewReviewDialog
             isAuthenticated={isAuthenticated}
-            intent={isAuthenticated ? "review" : "search"}
+            intent="review"
             trigger={trigger}
           />
           <Link

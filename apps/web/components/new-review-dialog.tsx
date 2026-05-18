@@ -1,15 +1,11 @@
 "use client";
 
 import {
-  cloneElement,
-  isValidElement,
   startTransition,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  type MouseEvent as ReactMouseEvent,
-  type ReactElement,
   type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
@@ -30,7 +26,7 @@ import type { NewReviewFormProps, NewReviewFormStep } from "@/components/new-rev
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Search } from "lucide-react";
-import { toastAuthRequired } from "@/lib/feedback";
+import { readPendingReviewDraft, type StoredPendingReviewDraft } from "@/lib/pending-review-draft";
 import { cn } from "@/lib/utils";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 
@@ -70,6 +66,7 @@ export default function NewReviewDialog({
   triggerVariant = "default",
   trigger,
   showTrigger = true,
+  listenToComposeUrl = !showTrigger,
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
@@ -85,8 +82,9 @@ export default function NewReviewDialog({
   triggerLabel?: string;
   triggerShortcut?: ReactNode;
   triggerVariant?: NewReviewDialogTriggerVariant;
-  trigger?: React.ReactNode;
+  trigger?: ReactNode;
   showTrigger?: boolean;
+  listenToComposeUrl?: boolean;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -102,10 +100,10 @@ export default function NewReviewDialog({
   const searchParams = useSearchParams();
   const prefersReducedMotion = useReducedMotion();
   const isSearchIntent = intent === "search";
-  const canOpenDialog = isAuthenticated || isSearchIntent;
   const usesUrlComposeState =
-    !isSearchIntent && initialQuery === undefined && initialSelection === undefined;
+    listenToComposeUrl && !isSearchIntent && initialQuery === undefined && initialSelection === undefined;
   const shouldOpenFromUrl = usesUrlComposeState && searchParams.get("compose") === "1";
+  const shouldRestoreDraftFromUrl = shouldOpenFromUrl && searchParams.get("draft") === "review";
   const initialQueryFromUrl = useMemo(() => searchParams.get("reviewQuery")?.trim() ?? "", [searchParams]);
   const initialSelectionFromUrl = useMemo(() => {
     const provider = searchParams.get("composeProvider");
@@ -127,8 +125,13 @@ export default function NewReviewDialog({
       entity_id: null,
     } satisfies InitialSelection;
   }, [searchParams]);
+  const [restoredDraft, setRestoredDraft] = useState<StoredPendingReviewDraft | null>(null);
   const resolvedInitialQuery = initialQuery ?? initialQueryFromUrl;
-  const resolvedInitialSelection = initialSelection ?? initialSelectionFromUrl;
+  const resolvedInitialSelection =
+    initialSelection ?? initialSelectionFromUrl ?? restoredDraft?.selection ?? null;
+  const resolvedInitialRating = restoredDraft?.rating ?? null;
+  const resolvedInitialTitle = restoredDraft?.title ?? "";
+  const resolvedInitialBody = restoredDraft?.body ?? "";
   const [formStep, setFormStep] = useState<NewReviewFormStep>(
     isSearchIntent ? "search" : resolvedInitialSelection ? "compose" : "search",
   );
@@ -152,6 +155,7 @@ export default function NewReviewDialog({
     next.delete("composeArtist");
     next.delete("composeCover");
     next.delete("composeDeezer");
+    next.delete("draft");
 
     startTransition(() => {
       router.replace(next.toString() ? `${pathname}?${next.toString()}` : pathname, {
@@ -177,15 +181,14 @@ export default function NewReviewDialog({
   }
 
   useEffect(() => {
-    if (!shouldOpenFromUrl || isAuthenticated) {
-      return;
-    }
+    const timer = window.setTimeout(() => {
+      setRestoredDraft(shouldRestoreDraftFromUrl ? readPendingReviewDraft() : null);
+    }, 0);
 
-    toastAuthRequired("create-review");
-    clearComposeParams();
-  }, [clearComposeParams, isAuthenticated, shouldOpenFromUrl]);
+    return () => window.clearTimeout(timer);
+  }, [shouldRestoreDraftFromUrl]);
 
-  const resolvedOpen = canOpenDialog && (controlledOpen ?? (shouldOpenFromUrl || internalOpen));
+  const resolvedOpen = shouldOpenFromUrl || (controlledOpen ?? internalOpen);
 
   function renderStepDots() {
     return (
@@ -266,29 +269,7 @@ export default function NewReviewDialog({
     )
   );
 
-  const resolvedTrigger = !canOpenDialog && isValidElement(baseTrigger)
-    ? cloneElement(
-        baseTrigger as ReactElement<{
-          onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
-        }>,
-        {
-          onClick: (event: ReactMouseEvent<HTMLElement>) => {
-            const originalOnClick = (
-              baseTrigger.props as { onClick?: (event: ReactMouseEvent<HTMLElement>) => void }
-            ).onClick;
-            originalOnClick?.(event);
-
-            if (!event.defaultPrevented) {
-              toastAuthRequired("create-review");
-            }
-          },
-        },
-      )
-    : baseTrigger;
-
-  if (!canOpenDialog) {
-    return showTrigger ? <>{resolvedTrigger}</> : null;
-  }
+  const resolvedTrigger = baseTrigger;
 
   if (isMobile) {
     return (
@@ -318,11 +299,15 @@ export default function NewReviewDialog({
             <div className="min-h-0 flex-1 overflow-hidden">
               <NewReviewForm
                 intent={intent}
+                isAuthenticated={isAuthenticated}
                 onStepChange={setFormStep}
                 showCancelAction={false}
                 primaryActionFullWidth
                 initialQuery={resolvedInitialQuery}
                 initialSelection={resolvedInitialSelection}
+                initialRating={resolvedInitialRating}
+                initialTitle={resolvedInitialTitle}
+                initialBody={resolvedInitialBody}
                 redirectToOnSuccess={redirectToOnSuccess}
                 onSearchResultOpen={() => handleOpenChange(false)}
                 onCancel={() => handleOpenChange(false)}
@@ -370,10 +355,14 @@ export default function NewReviewDialog({
           <div className="min-h-0 flex-1 overflow-hidden">
             <NewReviewForm
               intent={intent}
+              isAuthenticated={isAuthenticated}
               onStepChange={setFormStep}
               showCancelAction={false}
               initialQuery={resolvedInitialQuery}
               initialSelection={resolvedInitialSelection}
+              initialRating={resolvedInitialRating}
+              initialTitle={resolvedInitialTitle}
+              initialBody={resolvedInitialBody}
               redirectToOnSuccess={redirectToOnSuccess}
               onSearchResultOpen={() => handleOpenChange(false)}
               onCancel={() => handleOpenChange(false)}

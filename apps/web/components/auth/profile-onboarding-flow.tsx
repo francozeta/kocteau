@@ -22,6 +22,7 @@ import {
   createAvatarPresetSvg,
   type AvatarPresetId,
 } from "@/lib/avatar-presets";
+import { appendInternalNext } from "@/lib/internal-path";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { getFirstFieldError } from "@/lib/validation/errors";
 import { profileEditorSchema } from "@/lib/validation/schemas";
@@ -127,8 +128,10 @@ function getProfileStepError({
 
 export default function ProfileOnboardingFlow({
   initialProfile,
+  nextPath = null,
 }: {
   initialProfile?: Partial<ProfileDraft>;
+  nextPath?: string | null;
 }) {
   const router = useRouter();
   const supabase = supabaseBrowser();
@@ -356,7 +359,7 @@ export default function ProfileOnboardingFlow({
     if (authError || !user) {
       setMessage("You are not signed in. Please log in again.");
       setSaving(false);
-      router.replace("/login");
+      router.replace(appendInternalNext("/login", nextPath));
       return;
     }
 
@@ -390,7 +393,7 @@ export default function ProfileOnboardingFlow({
 
       startTransition(() => {
         router.refresh();
-        router.replace("/onboarding/taste");
+        router.replace(appendInternalNext("/onboarding/taste", nextPath));
       });
     } catch (error) {
       const profileError = error as Error & { code?: string };
