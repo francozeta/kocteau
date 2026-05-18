@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { OnboardingWelcomeDialog } from "@/components/auth/onboarding-welcome-dialog";
+import NewReviewDialog from "@/components/new-review-dialog";
 import {
   avatarPresets,
   createAvatarPresetDataUrl,
@@ -24,7 +25,7 @@ type PreviewDraft = {
   bio: string;
   signals: string[];
   scenes: string[];
-  starterTrack: string;
+  starterTrack: string | null;
 };
 
 type PreviewStep = {
@@ -83,7 +84,7 @@ const steps = [
     id: "track",
     section: "Review",
     question: "Start with a track to review.",
-    helper: "This gives the For You feed a human first signal.",
+    helper: "Review now, or skip and start with your feed.",
   },
   {
     id: "finish",
@@ -148,7 +149,7 @@ const initialDraft: PreviewDraft = {
   bio: "",
   signals: [],
   scenes: [],
-  starterTrack: starterTracks[0].id,
+  starterTrack: null,
 };
 
 function normalizeUsername(value: string) {
@@ -181,7 +182,7 @@ export function OnboardingFlowPreview() {
   const currentStep = steps[currentStepIndex];
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
   const selectedTrack = useMemo(
-    () => starterTracks.find((track) => track.id === draft.starterTrack) ?? starterTracks[0],
+    () => starterTracks.find((track) => track.id === draft.starterTrack) ?? null,
     [draft.starterTrack],
   );
 
@@ -313,15 +314,17 @@ export function OnboardingFlowPreview() {
             size="lg"
             className="h-10 min-w-[8.75rem] rounded-full px-5 text-sm transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.96]"
           >
-            {isLastStep ? "Finish preview" : "Continue"}
-            {!isLastStep ? <ArrowRight className="size-4" /> : null}
+            {isLastStep ? "Finish preview" : currentStep.id === "track" ? "Skip for now" : "Continue"}
+            {!isLastStep && currentStep.id !== "track" ? <ArrowRight className="size-4" /> : null}
           </Button>
         </footer>
       </form>
 
       <span className="sr-only" aria-live="polite">
         {previewComplete
-          ? `Preview complete for ${draft.displayName || "this listener"} reviewing ${selectedTrack.title}.`
+          ? `Preview complete for ${draft.displayName || "this listener"}${
+              selectedTrack ? ` reviewing ${selectedTrack.title}` : ""
+            }.`
           : `${currentStep.section}, step ${currentStepIndex + 1} of ${steps.length}.`}
       </span>
 
@@ -352,10 +355,6 @@ function getStepError(stepId: PreviewStep["id"], draft: PreviewDraft) {
 
   if (stepId === "rooms" && draft.scenes.length < 2) {
     return "Choose at least two listening rooms.";
-  }
-
-  if (stepId === "track" && !draft.starterTrack) {
-    return "Choose one starter track.";
   }
 
   return null;
@@ -438,39 +437,17 @@ function renderStepControl(
   if (stepId === "track") {
     return (
       <div className="mx-auto w-full max-w-[21rem] space-y-2">
-        {starterTracks.map((track, index) => {
-          const isSelected = draft.starterTrack === track.id;
-
-          return (
-            <button
-              key={track.id}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => updateDraft({ starterTrack: track.id })}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-[var(--kocteau-radius-control)] bg-[var(--kocteau-surface-control)] p-2 text-left shadow-[var(--kocteau-shadow-control)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                isSelected && "bg-[var(--kocteau-surface-featured)] shadow-[var(--kocteau-shadow-card-hover)]",
-              )}
-            >
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-[0.65rem] bg-background text-xs tabular-nums text-muted-foreground outline outline-1 outline-white/10">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-foreground">
-                  {track.title}
-                </span>
-                <span className="block truncate text-xs text-muted-foreground">
-                  {track.artist}
-                </span>
-              </span>
-              {isSelected ? (
-                <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-                  <Check className="size-3.5" />
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
+        <NewReviewDialog
+          isAuthenticated
+          triggerVariant="search"
+          triggerLabel="Find a track to review..."
+          triggerShortcut={null}
+          triggerClassName="h-11 rounded-[var(--kocteau-radius-control)]"
+          onSuccess={() => updateDraft({ starterTrack: starterTracks[0].id })}
+        />
+        <p className="text-center text-xs leading-4 text-muted-foreground">
+          Optional. You can skip and review later.
+        </p>
       </div>
     );
   }
@@ -681,7 +658,7 @@ function KocteauOnboardingLogo({ className }: { className?: string }) {
 
 function PreviewSummary({ draft }: { draft: PreviewDraft }) {
   const selectedTrack =
-    starterTracks.find((track) => track.id === draft.starterTrack) ?? starterTracks[0];
+    starterTracks.find((track) => track.id === draft.starterTrack) ?? null;
 
   return (
     <div className="space-y-4 rounded-[1.15rem] bg-[var(--kocteau-surface-control)] p-4 shadow-[var(--kocteau-shadow-control)]">
@@ -724,10 +701,10 @@ function PreviewSummary({ draft }: { draft: PreviewDraft }) {
         </span>
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-foreground">
-            {selectedTrack.title}
+            {selectedTrack ? selectedTrack.title : "First review"}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            first review prompt - {selectedTrack.artist}
+            {selectedTrack ? `first review prompt - ${selectedTrack.artist}` : "optional after onboarding"}
           </p>
         </div>
       </div>

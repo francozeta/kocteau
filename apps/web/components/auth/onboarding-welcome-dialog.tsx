@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import BrandLogo from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,8 +57,8 @@ export function OnboardingWelcomeDialog({
           </DialogHeader>
 
           <p className="text-pretty text-sm leading-5 text-foreground">
-            Start with a few taste signals. Your For You feed will learn from
-            reviews, saves, and follows.
+            Your For You feed is ready. Reviews, saves, and follows will keep
+            shaping what it brings back.
           </p>
 
           <DialogFooter className="block">
@@ -73,4 +74,32 @@ export function OnboardingWelcomeDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+export function OnboardingWelcomeFromUrl() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const shouldOpen = searchParams.get("welcome") === "kocteau";
+  const [open, setOpen] = useState(shouldOpen);
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+
+    if (nextOpen || !shouldOpen) {
+      return;
+    }
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("welcome");
+    router.replace(next.toString() ? `${pathname}?${next.toString()}` : pathname, {
+      scroll: false,
+    });
+  }
+
+  if (!shouldOpen && !open) {
+    return null;
+  }
+
+  return <OnboardingWelcomeDialog open={open} onOpenChange={handleOpenChange} />;
 }
