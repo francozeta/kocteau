@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import EntityCoverImage from "@/components/entity-cover-image";
+import ReviewCardBody from "@/components/review-card-body";
 import UserAvatar from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 
@@ -336,19 +337,16 @@ export default function ReviewCard({
               ) : null}
 
               {review.body ? (
-                <p
+                <ReviewCardBody
+                  body={review.body}
+                  clampLines={bodyClampLines}
                   className={cn(
                     "font-serif text-pretty text-foreground/86",
                     usesBalancedCopy
                       ? "text-[14.5px] leading-[1.68] sm:text-[14.95px]"
                       : "text-[14.8px] leading-[1.64] sm:text-[15.1px]",
-                    bodyClampLines === 3 && "line-clamp-3",
-                    bodyClampLines === 4 && "line-clamp-4",
-                    bodyClampLines === 5 && "line-clamp-5",
                   )}
-                >
-                  {review.body}
-                </p>
+                />
               ) : (
                 <p className="text-[13.5px] leading-6 text-muted-foreground/78">Only a rating was left for this track.</p>
               )}
@@ -365,16 +363,11 @@ export default function ReviewCard({
             ) : null}
 
             {review.body ? (
-              <p
-                className={cn(
-                  "font-serif text-[14.95px] leading-[1.64] text-pretty text-foreground/84",
-                  bodyClampLines === 3 && "line-clamp-3",
-                  bodyClampLines === 4 && "line-clamp-4",
-                  bodyClampLines === 5 && "line-clamp-5",
-                )}
-              >
-                {review.body}
-              </p>
+              <ReviewCardBody
+                body={review.body}
+                clampLines={bodyClampLines}
+                className="font-serif text-[14.95px] leading-[1.64] text-pretty text-foreground/84"
+              />
             ) : (
               <p className="text-sm text-muted-foreground/78">Only a rating was left for this track.</p>
             )}

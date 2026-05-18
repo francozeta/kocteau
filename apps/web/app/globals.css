@@ -51,7 +51,7 @@
 
 :root {
   color-scheme: light;
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --kocteau-gray-1: oklch(0.162 0 0);
   --kocteau-gray-2: oklch(0.195 0 0);
   --kocteau-gray-3: oklch(0.254 0 0);
@@ -123,8 +123,8 @@
     0 0 0 1px var(--kocteau-line);
   --kocteau-shadow-control:
     0 0 0 1px var(--kocteau-line-soft);
-  --kocteau-radius-card: 1.05rem;
-  --kocteau-radius-control: 0.95rem;
+  --kocteau-radius-card: 0.82rem;
+  --kocteau-radius-control: 0.68rem;
   --kocteau-ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -189,8 +189,8 @@
     0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 7%, transparent);
   --kocteau-shadow-control:
     0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 5.5%, transparent);
-  --kocteau-radius-card: 0.95rem;
-  --kocteau-radius-control: 0.78rem;
+  --kocteau-radius-card: 0.74rem;
+  --kocteau-radius-control: 0.62rem;
   background-image: none;
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import FeedReviewCta from "@/components/feed-review-cta";
 import FeedStarterLayer from "@/components/feed-starter-layer";
 import { Music2, Sparkles, UsersRound } from "lucide-react";
 import { FeedReviewCard } from "@/components/review-route-cards";
@@ -254,6 +255,7 @@ export default function FeedReviewList({
     isAuthenticated &&
     visibleStarterTracks.length > 0 &&
     reviews.length < 4;
+  const showReviewCta = view === "for-you" || view === "latest";
 
   if (reviews.length === 0) {
     if (showStarterLayer) {
@@ -270,6 +272,10 @@ export default function FeedReviewList({
 
   return (
     <div className="space-y-3.5">
+      {showReviewCta ? (
+        <FeedReviewCta isAuthenticated={isAuthenticated} />
+      ) : null}
+
       {reviews.map((review, index) => {
         const author = review.author;
 
