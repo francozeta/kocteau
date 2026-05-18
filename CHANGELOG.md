@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.3.0](https://github.com/francozeta/kocteau/compare/v0.2.0...v0.3.0) (2026-05-18)
+
+
+### Features
+
+* **web:** add mobile header blur backdrop ([01011e3](https://github.com/francozeta/kocteau/commit/01011e3ec389f92a877533451034ed0cb6e203cf))
+* **web:** adjust mobile liquid header height and backdrop styles ([1bb6dd7](https://github.com/francozeta/kocteau/commit/1bb6dd7e9468fdbc4dbdee758544a23e93960b36))
+* **web:** align mobile bottom chrome ([3544daf](https://github.com/francozeta/kocteau/commit/3544dafcdd9806590ff0648bc957e183001a0717))
+* **web:** constrain mobile header backdrop ([e02c9e1](https://github.com/francozeta/kocteau/commit/e02c9e1d04b0ca03bfd28a7f6ecc867109a065a3))
+* **web:** experiment with mobile liquid chrome ([a6eb57a](https://github.com/francozeta/kocteau/commit/a6eb57a845cdd806cb3d97bb32163dc2abff8c85))
+* **web:** make mobile header backdrop full bleed ([141bbef](https://github.com/francozeta/kocteau/commit/141bbefdb67d5fa3a433e2892ee9871250aab776))
+* **web:** redesign onboarding and auth flows ([cbb3a37](https://github.com/francozeta/kocteau/commit/cbb3a378a51677ca1099a99a3fcd766a8c66d4ec))
+* **web:** restyle mobile bottom bar ([c7f9b91](https://github.com/francozeta/kocteau/commit/c7f9b91988914d63f5ae2a8a918c70c0744ffa3c))
+* **web:** soften mobile header backdrop ([e41c3a1](https://github.com/francozeta/kocteau/commit/e41c3a19e65ac981718811bb47d9c13c9761aeff))
+
+
+### Bug Fixes
+
+* **web:** polish editorial review and explore UI ([16e8565](https://github.com/francozeta/kocteau/commit/16e8565e231eddb2544dddfa16a1a066a9c61aa6))
+
+
+### Performance
+
+* **web:** optimize covers and switch analytics ([ecf9baa](https://github.com/francozeta/kocteau/commit/ecf9baaf299f9c24878512c6379c0d22e250fde5))
+
 ## [0.2.0](https://github.com/francozeta/kocteau/compare/v0.1.3...v0.2.0) (2026-05-05)
 
 
