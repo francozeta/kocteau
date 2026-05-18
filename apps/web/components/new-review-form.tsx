@@ -16,6 +16,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import { toastActionSuccess } from "@/lib/feedback";
+import {
+  clearPendingReviewDraft,
+  getPendingReviewDraftLoginPath,
+  readPendingReviewDraft,
+  savePendingReviewDraft,
+} from "@/lib/pending-review-draft";
 import { cn } from "@/lib/utils";
 import { ApiError, createApiError, getFirstFieldError } from "@/lib/validation/errors";
 import { createReviewSchema, updateReviewSchema } from "@/lib/validation/schemas";
@@ -52,6 +58,7 @@ export type PublishReviewResponse = {
 export type NewReviewFormProps = {
   mode?: "create" | "edit";
   intent?: "review" | "search";
+  isAuthenticated?: boolean;
   reviewId?: string | null;
   onSuccess?: (payload: PublishReviewResponse) => void;
   onCancel?: () => void;
@@ -73,6 +80,7 @@ export type NewReviewFormStep = "search" | "compose";
 export default function NewReviewForm({
   mode = "create",
   intent = "review",
+  isAuthenticated = true,
   reviewId = null,
   onSuccess,
   onCancel,
@@ -315,6 +323,23 @@ export default function NewReviewForm({
       return;
     }
 
+    if (!isAuthenticated && !isEditMode) {
+      const draftSaved = savePendingReviewDraft({
+        selection: selected,
+        rating,
+        title,
+        body,
+      });
+
+      if (!draftSaved) {
+        setErrorMsg("We couldn't keep this draft. Please copy it before logging in.");
+        return;
+      }
+
+      window.location.assign(getPendingReviewDraftLoginPath());
+      return;
+    }
+
     const optimisticSnapshot =
       isEditMode && reviewId ? getReviewCacheSnapshot(queryClient) : null;
 
@@ -360,6 +385,16 @@ export default function NewReviewForm({
         selected?.entity_id !== payload.entityId;
 
       toastActionSuccess(isEditMode ? "Review updated." : "Review published.");
+      if (!isEditMode) {
+        const pendingDraft = readPendingReviewDraft();
+
+        if (
+          pendingDraft?.selection.provider === selected.provider &&
+          pendingDraft.selection.provider_id === selected.provider_id
+        ) {
+          clearPendingReviewDraft();
+        }
+      }
       void queryClient.invalidateQueries({ queryKey: feedKeys.all });
       onSuccess?.(payload);
       resetAll();
@@ -423,7 +458,7 @@ export default function NewReviewForm({
           reviewError.message ||
             (isEditMode
               ? "We couldn't update this review right now."
-              : "Ocurrió un error al crear la reseña. Intenta nuevamente."),
+              : "We couldn't publish this review right now."),
         );
       }
     } finally {
@@ -475,7 +510,7 @@ export default function NewReviewForm({
                 setFieldErrors((current) => ({ ...current, selected: undefined }));
               }}
               onKeyDown={handleSearchKeyDown}
-              placeholder="Search tracks to review..."
+              placeholder="Search tracks to review…"
               disabled={saving}
               autoFocus
               className="h-10 shrink-0 rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
@@ -517,7 +552,7 @@ export default function NewReviewForm({
               {isFetching && results.length > 0 ? (
                 <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
                   <LoaderCircle className="size-3.5 animate-spin" />
-                  Updating results...
+                  Updating results…
                 </div>
               ) : null}
 

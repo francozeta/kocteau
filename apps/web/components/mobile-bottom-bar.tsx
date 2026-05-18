@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Bookmark, Home, Search, UserRound } from "lucide-react";
+import { Bell, Home, Search, UserRound } from "lucide-react";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { cn } from "@/lib/utils";
@@ -62,7 +62,7 @@ function NavTab({
 export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
 
-  const leftItems: NavItem[] = [
+  const primaryItems: NavItem[] = [
     {
       href: "/",
       label: "Feed",
@@ -77,7 +77,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
     },
   ];
 
-  const rightItems: NavItem[] = [
+  const secondaryItems: NavItem[] = [
     ...(profile
       ? [
           {
@@ -95,12 +95,6 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
         ]
       : [
           {
-            href: "/saved",
-            label: "Saved",
-            icon: Bookmark,
-            active: (current: string) => current.startsWith("/saved"),
-          },
-          {
             href: "/login",
             label: "Log in",
             icon: UserRound,
@@ -109,6 +103,8 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           },
         ]),
   ];
+  const navItems = [...primaryItems, ...secondaryItems];
+  const reviewEntryLabel = profile ? "New review" : "Find a track";
 
   return (
     <nav className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.85rem)] z-50 px-3 md:hidden">
@@ -118,24 +114,29 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       />
 
       <div className="relative z-10 mx-auto flex w-full max-w-[24rem] justify-center">
-        <div className="mobile-liquid-bar grid w-full grid-cols-[auto_auto_auto_auto_1px_auto] items-center justify-between rounded-full p-1">
-          {leftItems.map((item) => (
-            <NavTab key={item.href} item={item} pathname={pathname} />
-          ))}
-          {rightItems.map((item) => (
+        <div
+          className={cn(
+            "mobile-liquid-bar grid w-full items-center justify-between rounded-full p-1",
+            profile
+              ? "grid-cols-[auto_auto_auto_auto_1px_auto]"
+              : "grid-cols-[auto_auto_auto_1px_auto]",
+          )}
+        >
+          {navItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
           <span className="mx-1 h-7 w-px shrink-0 bg-foreground/10" aria-hidden="true" />
           <NewReviewDialog
             isAuthenticated={Boolean(profile)}
+            intent="review"
             trigger={
               <button
                 type="button"
-                aria-label="New review"
-                className="flex size-10 items-center justify-center rounded-[0.9rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-foreground shadow-none transition-[transform,background-color,border-color] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
+                aria-label={reviewEntryLabel}
+                className="flex size-10 items-center justify-center rounded-full border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-foreground shadow-none transition-[transform,background-color,border-color] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
               >
                 <ReviewGlyphIcon className="size-[1.05rem]" />
-                <span className="sr-only">New review</span>
+                <span className="sr-only">{reviewEntryLabel}</span>
               </button>
             }
             triggerLabelClassName="sr-only"

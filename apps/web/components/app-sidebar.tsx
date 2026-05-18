@@ -139,6 +139,7 @@ export default function AppSidebar({
     : [];
 
   const canShowOwnedReviews = Boolean(profile) && sidebarReviews.length > 0;
+  const reviewEntryLabel = profile ? "New review" : "Find a track";
 
   return (
     <TooltipProvider delayDuration={80}>
@@ -161,6 +162,7 @@ export default function AppSidebar({
           <div className="group-data-[collapsible=icon]:hidden">
             <NewReviewDialog
               isAuthenticated={Boolean(profile)}
+              intent="review"
               trigger={
                 <button
                   type="button"
@@ -168,7 +170,7 @@ export default function AppSidebar({
                 >
                   <span className="inline-flex items-center gap-2">
                     <ReviewGlyphIcon className="size-4" />
-                    <span>New review</span>
+                    <span>{reviewEntryLabel}</span>
                   </span>
                   <Kbd className="border border-sidebar-border/80 bg-foreground/[0.06] px-1.5 text-[0.6rem] text-muted-foreground">
                     N
@@ -181,10 +183,11 @@ export default function AppSidebar({
           <div className="hidden group-data-[collapsible=icon]:block">
             <NewReviewDialog
               isAuthenticated={Boolean(profile)}
+              intent="review"
               trigger={
                 <button
                   type="button"
-                  aria-label="New review"
+                  aria-label={reviewEntryLabel}
                   className="mx-auto flex size-9 items-center justify-center rounded-[0.7rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] text-sidebar-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[color,background-color,transform] hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]"
                 >
                   <ReviewGlyphIcon className="size-4" />

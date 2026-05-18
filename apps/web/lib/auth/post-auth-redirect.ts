@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { appendInternalNext, safeInternalPath } from "@/lib/internal-path";
 import { isProfileOnboarded } from "@/lib/profile";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -13,7 +14,11 @@ export type PostAuthProfile = {
 export async function getPostAuthRedirect(
   supabase: SupabaseClient<Database>,
   userId: string,
+  options?: {
+    next?: string | null;
+  },
 ) {
+  const nextPath = safeInternalPath(options?.next);
   const profileQuery = await supabase
     .from("profiles")
     .select("username, onboarded, taste_onboarded")
@@ -38,12 +43,12 @@ export async function getPostAuthRedirect(
     !needsOnboarding && profile?.taste_onboarded === false;
 
   if (needsOnboarding) {
-    return "/onboarding";
+    return appendInternalNext("/onboarding", nextPath);
   }
 
   if (needsTasteOnboarding) {
-    return "/onboarding/taste";
+    return appendInternalNext("/onboarding/taste", nextPath);
   }
 
-  return "/";
+  return nextPath ?? "/";
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { appendInternalNext, safeInternalPath } from "@/lib/internal-path";
 import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { getFirstFieldError } from "@/lib/validation/errors";
@@ -27,8 +28,23 @@ type ClientPostAuthProfile = {
 const resendCooldownSeconds = 60;
 const otpLength = 6;
 
-function getEmailRedirectTo() {
-  return `${window.location.origin}/auth/callback`;
+function getRequestedNextPath() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return safeInternalPath(new URLSearchParams(window.location.search).get("next"));
+}
+
+function getEmailRedirectTo(nextPath?: string | null) {
+  const callbackUrl = new URL("/auth/callback", window.location.origin);
+  const safeNextPath = safeInternalPath(nextPath);
+
+  if (safeNextPath) {
+    callbackUrl.searchParams.set("next", safeNextPath);
+  }
+
+  return callbackUrl.toString();
 }
 
 const copyByMode: Record<
@@ -80,6 +96,15 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
   const [verifying, setVerifying] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  const [requestedNextPath, setRequestedNextPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setRequestedNextPath(getRequestedNextPath());
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (resendIn <= 0) {
@@ -98,6 +123,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const errorCode = query.get("error_code") ?? hash.get("error_code");
     const hasAuthError = Boolean(errorCode || query.get("error") || hash.get("error"));
+    const nextPath = safeInternalPath(query.get("next"));
 
     if (!hasAuthError) {
       return;
@@ -111,7 +137,19 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
           : "We could not open that link. Enter the latest code.",
       );
     }, 0);
-    window.history.replaceState(null, "", window.location.pathname);
+    const cleanSearch = new URLSearchParams();
+
+    if (nextPath) {
+      cleanSearch.set("next", nextPath);
+    }
+
+    window.history.replaceState(
+      null,
+      "",
+      cleanSearch.toString()
+        ? `${window.location.pathname}?${cleanSearch.toString()}`
+        : window.location.pathname,
+    );
 
     return () => window.clearTimeout(timer);
   }, []);
@@ -130,6 +168,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
 
   const getPostAuthRedirect = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
+    const nextPath = getRequestedNextPath();
 
     if (!auth.user) {
       return null;
@@ -155,14 +194,14 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
       : profileQuery.data;
 
     if (!isProfileOnboarded(profile)) {
-      return "/onboarding";
+      return appendInternalNext("/onboarding", nextPath);
     }
 
     if (profile?.taste_onboarded === false) {
-      return "/onboarding/taste";
+      return appendInternalNext("/onboarding/taste", nextPath);
     }
 
-    return "/";
+    return nextPath ?? "/";
   }, [supabase]);
 
   const redirectAfterAuth = useCallback(async (options?: { retry?: boolean }) => {
@@ -209,7 +248,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
     const { error } = await supabase.auth.signInWithOtp({
       email: parsed.data.email,
       options: {
-        emailRedirectTo: getEmailRedirectTo(),
+        emailRedirectTo: getEmailRedirectTo(getRequestedNextPath()),
         shouldCreateUser: true,
       },
     });
@@ -302,7 +341,11 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
       title={shellTitle}
       description={shellDescription}
       alternateLabel={step === "email" ? copy.alternateLabel : undefined}
-      alternateHref={step === "email" ? copy.alternateHref : undefined}
+      alternateHref={
+        step === "email"
+          ? appendInternalNext(copy.alternateHref, requestedNextPath)
+          : undefined
+      }
       alternateCta={step === "email" ? copy.alternateCta : undefined}
       footer={
         <span className="inline-flex items-center gap-1">

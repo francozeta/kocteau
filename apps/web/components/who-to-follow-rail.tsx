@@ -41,10 +41,10 @@ export default function WhoToFollowRail({
   const profiles = data?.profiles ?? [];
 
   return (
-    <aside className="hidden lg:block" aria-label="Fresh voices">
+    <aside className="hidden lg:block" aria-label="Writers to notice">
       <div className="sticky top-1 space-y-3 pt-1">
         <p className="px-1 text-[12px] font-medium leading-none text-muted-foreground/70">
-          Fresh voices
+          Writers to notice
         </p>
 
         {isLoading ? (
@@ -79,7 +79,7 @@ export default function WhoToFollowRail({
                             {primaryLabel}
                           </p>
                           <p className="truncate text-[12px] text-muted-foreground/78">
-                            @{profile.username}
+                            Reviewing lately
                           </p>
                         </div>
                       </div>
@@ -101,7 +101,7 @@ export default function WhoToFollowRail({
           </div>
         ) : (
           <div className="border-t border-border/28 px-1 py-3 text-[13px] text-muted-foreground/78">
-            No fresh voices yet.
+            No writers to notice yet.
           </div>
         )}
       </div>
