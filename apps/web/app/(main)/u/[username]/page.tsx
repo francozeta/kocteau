@@ -10,7 +10,9 @@ import type { ReviewCardAuthor } from "@/components/review-card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ProfileReviewCard } from "@/components/review-route-cards-server";
 import { getCurrentUser } from "@/lib/auth/server";
+import { getV0ReferralUrl } from "@/lib/creator-perks";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
+import { getPublicCreatorPerk } from "@/lib/queries/creator-perks";
 import {
   getProfilePublicBundle,
   getProfileViewerState,
@@ -90,9 +92,11 @@ export default async function UserProfilePage({
     user?.id && !isOwnProfile
       ? getViewerFollowsProfile(user.id, profile.id)
       : Promise.resolve(false);
-  const [{ likedReviewIds, bookmarkedReviewIds }, isFollowing] = await Promise.all([
+  const creatorPerkPromise = getPublicCreatorPerk(profile.id);
+  const [{ likedReviewIds, bookmarkedReviewIds }, isFollowing, creatorPerk] = await Promise.all([
     viewerStatePromise,
     followingPromise,
+    creatorPerkPromise,
   ]);
   const hydratedPinnedReview = pinnedReview
     ? applyViewerStateToReview(pinnedReview, likedReviewIds, bookmarkedReviewIds)
@@ -140,6 +144,14 @@ export default async function UserProfilePage({
         isOwnProfile={isOwnProfile}
         isFollowing={isFollowing}
         isAuthenticated={Boolean(user)}
+        creatorPerk={
+          creatorPerk
+            ? {
+                unlockedAt: creatorPerk.unlocked_at,
+                v0ReferralUrl: isOwnProfile ? getV0ReferralUrl() : null,
+              }
+            : null
+        }
       />
 
       <div className="space-y-5">

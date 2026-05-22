@@ -30,6 +30,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     <ReactQueryProvider>
       <SidebarProvider
         defaultOpen={true}
+        className="bg-[var(--kocteau-canvas)]"
         style={
           {
             "--sidebar-width": "17rem",
@@ -42,10 +43,10 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           ownedReviews={ownedReviews}
           unreadCount={initialUnreadCount}
         />
-        <SidebarInset className="min-h-svh bg-background lg:h-dvh lg:overflow-hidden lg:p-2.5">
+        <SidebarInset className="min-h-svh bg-[var(--kocteau-canvas)] lg:h-dvh lg:overflow-hidden lg:p-2.5">
           <RouteHeaderProvider>
             <GlobalShortcuts isAuthenticated={Boolean(safeProfile)} />
-            <div className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.9rem]">
+            <div className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]">
               <Header
                 profile={safeProfile}
                 initialUnreadCount={initialUnreadCount}

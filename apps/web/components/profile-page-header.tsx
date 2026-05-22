@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink } from "lucide-react";
+import CreatorPerksCard from "@/components/creator-perks-card";
 import FollowProfileButton from "@/components/follow-profile-button";
 import ProfileHeroAvatar from "@/components/profile-hero-avatar";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
@@ -31,6 +32,10 @@ type ProfilePageHeaderProps = {
   isOwnProfile: boolean;
   isFollowing: boolean;
   isAuthenticated: boolean;
+  creatorPerk?: {
+    unlockedAt: string;
+    v0ReferralUrl: string | null;
+  } | null;
 };
 
 export default function ProfilePageHeader({
@@ -40,6 +45,7 @@ export default function ProfilePageHeader({
   isOwnProfile,
   isFollowing,
   isAuthenticated,
+  creatorPerk = null,
 }: ProfilePageHeaderProps) {
   const [localProfile, setLocalProfile] = useState(profile);
   const { setDetailHeader } = useRouteHeader();
@@ -112,11 +118,17 @@ export default function ProfilePageHeader({
   }
 
   const actionButtonClassName =
-    "h-9 w-full rounded-xl border-border/34 bg-card/16 px-4 text-sm md:border-border/25 md:bg-transparent";
+    "h-9 w-full rounded-[var(--kocteau-radius-control)] border-border/42 bg-[var(--kocteau-surface-control)] px-4 text-sm text-foreground shadow-[0_0_0_1px_var(--kocteau-line-soft)] hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground md:border-border/34";
   const reviewLabel = totalReviews === 1 ? "review" : "reviews";
+  const actionGridClassName = cn(
+    "grid gap-2.5 sm:max-w-[30rem]",
+    creatorPerk
+      ? "grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.25rem]"
+      : "grid-cols-2 sm:max-w-[28rem]",
+  );
 
   return (
-    <section className="border-b border-border/34 pb-4 md:border-border/30 md:pb-5">
+    <section className="pb-4 md:pb-5">
       <div className="space-y-4">
         <div className="flex items-start gap-4 md:gap-5">
           <ProfileHeroAvatar
@@ -188,7 +200,7 @@ export default function ProfilePageHeader({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 sm:max-w-[28rem]">
+        <div className={actionGridClassName}>
           {isOwnProfile ? (
             <ProfileSettingsDialog
               profile={localProfile}
@@ -213,7 +225,7 @@ export default function ProfilePageHeader({
               initialFollowing={isFollowing}
               isAuthenticated={isAuthenticated}
               size="default"
-              className="h-9 w-full justify-center rounded-xl px-4 text-sm"
+              className="h-9 w-full justify-center rounded-[var(--kocteau-radius-control)] px-4 text-sm shadow-[0_0_0_1px_var(--kocteau-line-soft)]"
             />
           )}
 
@@ -226,6 +238,15 @@ export default function ProfilePageHeader({
           >
             Share profile
           </Button>
+
+          {creatorPerk ? (
+            <CreatorPerksCard
+              unlockedAt={creatorPerk.unlockedAt}
+              v0ReferralUrl={creatorPerk.v0ReferralUrl}
+              canOpenReferral={isOwnProfile}
+              isAuthenticated={isAuthenticated}
+            />
+          ) : null}
         </div>
       </div>
     </section>

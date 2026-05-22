@@ -817,6 +817,45 @@ export type Database = {
           },
         ]
       }
+      user_creator_perks: {
+        Row: {
+          created_at: string
+          first_review_id: string | null
+          perk_key: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_review_id?: string | null
+          perk_key?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_review_id?: string | null
+          perk_key?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_creator_perks_first_review_id_fkey"
+            columns: ["first_review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_creator_perks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preference_tags: {
         Row: {
           created_at: string
