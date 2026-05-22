@@ -70,6 +70,7 @@ Use the existing stack and patterns:
 Prefer existing project conventions over new abstractions.
 
 For motion-specific decisions, use [docs/ai/motion-rules.md](./docs/ai/motion-rules.md).
+For interface craft, visual polish, color, typography, and gesture decisions, use [docs/ai/interface-craft-rules.md](./docs/ai/interface-craft-rules.md).
 
 ---
 

@@ -53,6 +53,7 @@ export type PublishReviewResponse = {
   reviewId?: string | null;
   entityId?: string | null;
   authorUsername?: string | null;
+  creatorPerkUnlocked?: boolean;
 };
 
 export type NewReviewFormProps = {
@@ -385,6 +386,19 @@ export default function NewReviewForm({
         selected?.entity_id !== payload.entityId;
 
       toastActionSuccess(isEditMode ? "Review updated." : "Review published.");
+      if (!isEditMode && payload.creatorPerkUnlocked) {
+        toast("First Reviewer added", {
+          description: "The v0 Builder badge is now tucked into your profile.",
+          action: payload.authorUsername
+            ? {
+                label: "View profile",
+                onClick: () => {
+                  router.push(`/u/${payload.authorUsername}`);
+                },
+              }
+            : undefined,
+        });
+      }
       if (!isEditMode) {
         const pendingDraft = readPendingReviewDraft();
 

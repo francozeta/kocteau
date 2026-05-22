@@ -55,6 +55,14 @@ Kocteau motion should feel:
 - the user should never wait for an animation to finish before understanding state
 - shared-layout transitions should stay readable even if interrupted halfway
 
+## Review Guidance
+
+- Review meaningful motion slowly when practical; speed can hide visual flaws.
+- Check whether elements jump, resize, fade out of order, or move from an unclear origin.
+- Fix issues visible at slow speed; the full-speed interaction will feel more polished.
+- Prefer contextual icon swaps that animate opacity, scale, and subtle blur instead of hard toggles.
+- Keep exit animations softer than entrance animations.
+
 ## Good Places to Use Motion in Kocteau
 
 - search/review launcher open and close
@@ -71,4 +79,3 @@ Kocteau motion should feel:
 - full-page decorative fades
 - large rail modules moving only for flair
 - background textures or chrome that compete with covers and reviews
-

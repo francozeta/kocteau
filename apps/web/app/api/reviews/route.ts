@@ -1,5 +1,9 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import {
+  CREATOR_PERK_KEY,
+  didUnlockCreatorPerkOnReview,
+} from "@/lib/creator-perks";
 import { findEntityByProvider } from "@/lib/queries/entities";
 import { getViewerReview } from "@/lib/queries/reviews";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
@@ -34,6 +38,28 @@ function logReviewCreationError(
   });
 }
 
+function logCreatorPerkReadError(
+  error: {
+    code?: string | null;
+    message?: string | null;
+    details?: string | null;
+    hint?: string | null;
+  },
+  context: {
+    stage: "before-create" | "after-create";
+    userId: string;
+    reviewId?: string | null;
+  },
+) {
+  console.error("[reviews.create.creator-perk] failed", {
+    code: error.code ?? null,
+    message: error.message ?? null,
+    details: error.details ?? null,
+    hint: error.hint ?? null,
+    context,
+  });
+}
+
 export async function POST(req: Request) {
   const supabase = await supabaseServer();
   const { data: auth } = await supabase.auth.getUser();
@@ -59,6 +85,23 @@ export async function POST(req: Request) {
   }
 
   const review = parsed.data;
+
+  const { data: existingCreatorPerk, error: existingCreatorPerkError } =
+    await supabase
+      .from("user_creator_perks")
+      .select("first_review_id")
+      .eq("user_id", auth.user.id)
+      .eq("perk_key", CREATOR_PERK_KEY)
+      .maybeSingle<{ first_review_id: string | null }>();
+
+  if (existingCreatorPerkError) {
+    logCreatorPerkReadError(existingCreatorPerkError, {
+      stage: "before-create",
+      userId: auth.user.id,
+    });
+  }
+
+  const hadCreatorPerkBefore = Boolean(existingCreatorPerk);
 
   const { data, error } = await supabase.rpc("create_review_with_entity", {
     p_provider: review.provider,
@@ -122,6 +165,7 @@ export async function POST(req: Request) {
   const result = Array.isArray(data) ? data[0] : data;
   const reviewId = result?.review_id ?? null;
   const entityId = result?.entity_id ?? null;
+  let creatorPerkUnlocked = false;
 
   await syncEntityPreferenceTagsFromStarterTrack(supabase, {
     entityId,
@@ -137,6 +181,30 @@ export async function POST(req: Request) {
     context: "reviews.create",
   });
 
+  if (reviewId) {
+    const { data: persistedCreatorPerk, error: persistedCreatorPerkError } =
+      await supabase
+        .from("user_creator_perks")
+        .select("first_review_id")
+        .eq("user_id", auth.user.id)
+        .eq("perk_key", CREATOR_PERK_KEY)
+        .maybeSingle<{ first_review_id: string | null }>();
+
+    if (persistedCreatorPerkError) {
+      logCreatorPerkReadError(persistedCreatorPerkError, {
+        stage: "after-create",
+        userId: auth.user.id,
+        reviewId,
+      });
+    } else {
+      creatorPerkUnlocked = didUnlockCreatorPerkOnReview({
+        hadPerkBefore: hadCreatorPerkBefore,
+        reviewId,
+        persistedFirstReviewId: persistedCreatorPerk?.first_review_id ?? null,
+      });
+    }
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("username")
@@ -148,6 +216,7 @@ export async function POST(req: Request) {
   revalidateTag("profiles", "max");
   revalidateTag("entities", "max");
   revalidateTag(`profile:${auth.user.id}:reviews`, "max");
+  revalidateTag(`creator-perks:${auth.user.id}`, "max");
 
   if (entityId) {
     revalidateTag(`entity:${entityId}`, "max");
@@ -173,5 +242,6 @@ export async function POST(req: Request) {
     reviewId,
     entityId,
     authorUsername: profile?.username ?? null,
+    creatorPerkUnlocked,
   });
 }

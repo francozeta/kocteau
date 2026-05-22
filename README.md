@@ -59,6 +59,14 @@ OPENPANEL_CLIENT_SECRET=...
 
 `NEXT_PUBLIC_OPENPANEL_CLIENT_ID` enables client-side screen view tracking through the first-party `/api/op` proxy. `OPENPANEL_CLIENT_SECRET` also mirrors Kocteau's existing first-party product events to OpenPanel from the server. Session replay is not enabled by default.
 
+Optional creator perks variable:
+
+```env
+V0_REFERRAL_URL=https://v0.app/ref/5APE6X
+```
+
+`V0_REFERRAL_URL` is the single admin-provided v0 referral link shown after a user unlocks Creator Perks with their first review. Kocteau does not generate per-user referral URLs.
+
 Optional production services are configured outside the app:
 
 - Supabase Auth SMTP points to Resend.
