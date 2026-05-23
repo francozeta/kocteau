@@ -9,12 +9,12 @@ import {
   ChatCircleTextIcon,
   HouseIcon,
   MagnifyingGlassIcon,
-  NotePencilIcon,
 } from "@phosphor-icons/react";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { NavOwnedReviews } from "@/components/nav-owned-reviews";
 import PrefetchLink from "@/components/prefetch-link";
+import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { Kbd } from "@/components/ui/kbd";
@@ -175,10 +175,10 @@ export default function AppSidebar({
                 className="flex h-9 w-full items-center justify-start gap-2 overflow-hidden rounded-[0.7rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] px-2.5 text-[13px] font-medium text-sidebar-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[width,height,padding,gap,color,background-color,transform,box-shadow] duration-[180ms] ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-surface-control-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.24)] active:scale-[0.96] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0"
               >
                 <span className="inline-flex min-w-0 items-center justify-center gap-2 transition-[gap] duration-[180ms] ease-[var(--kocteau-ease)] group-data-[collapsible=icon]:gap-0">
-                  <NotePencilIcon className="size-4 shrink-0" weight="regular" />
+                  <ReviewGlyphIcon className="size-4 shrink-0" />
                   <span className="kocteau-sidebar-label">{reviewEntryLabel}</span>
                 </span>
-                <span className="kocteau-sidebar-shortcut ml-auto">
+                <span className="kocteau-sidebar-shortcut">
                   <Kbd className="border border-sidebar-border/80 bg-foreground/[0.06] px-1.5 text-[0.6rem] text-muted-foreground">
                     N
                   </Kbd>
