@@ -6,19 +6,12 @@ import FollowProfileButton from "@/components/follow-profile-button";
 import { WhoToFollowRailSkeleton } from "@/components/feed-loading-skeletons";
 import PrefetchLink from "@/components/prefetch-link";
 import UserAvatar from "@/components/user-avatar";
+import { helpFooterLinks } from "@/lib/help";
 import { activeProfilesQueryOptions } from "@/queries/profiles";
 
 type WhoToFollowRailProps = {
   isAuthenticated: boolean;
 };
-
-const footerLinks = [
-  "Terms",
-  "Privacy",
-  "Cookies",
-  "Accessibility",
-  "More",
-];
 
 function useDesktopRail() {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -115,10 +108,14 @@ export default function WhoToFollowRail({
 
         <footer className="px-1 pt-2 text-[11px] leading-5 text-muted-foreground/52">
           <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-            {footerLinks.map((label) => (
-              <a key={label} href="#" className="transition-colors hover:text-muted-foreground">
-                {label}
-              </a>
+            {helpFooterLinks.map((link) => (
+              <PrefetchLink
+                key={link.href}
+                href={link.href}
+                className="transition-colors hover:text-muted-foreground"
+              >
+                {link.label}
+              </PrefetchLink>
             ))}
           </div>
           <p>© 2026 Kocteau</p>

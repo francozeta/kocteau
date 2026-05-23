@@ -1,7 +1,11 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
+const withMDX = createMDX({});
+
 const nextConfig: NextConfig = {
+  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   images: {
     formats: ["image/avif", "image/webp"],
     imageSizes: [24, 32, 40, 44, 48, 56, 64, 80, 96, 112, 128, 160, 192, 256],
@@ -28,7 +32,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.40:3000"],
 };
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withMDX(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
