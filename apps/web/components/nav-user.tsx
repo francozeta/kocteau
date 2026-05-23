@@ -114,7 +114,7 @@ export function NavUser({
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-[15rem] min-w-0 rounded-[0.9rem] border-sidebar-border/70 bg-[var(--kocteau-surface-control)] p-1.5 shadow-none ring-sidebar-border/60"
+                className="w-[16.25rem] max-w-[calc(100vw-1rem)] min-w-0 rounded-[0.76rem] border-sidebar-border/70 bg-sidebar p-1.5 shadow-none ring-sidebar-border/60"
                 side="top"
                 align="start"
                 sideOffset={8}
@@ -180,7 +180,7 @@ export function NavUser({
               contentSide="top"
               contentAlign="end"
               contentSideOffset={7}
-              contentClassName="!w-[16rem] max-w-[calc(100vw-1rem)] rounded-[0.76rem] border-sidebar-border/70 bg-sidebar p-0 sm:!w-[16rem] md:bg-sidebar"
+              contentClassName="!w-[16.25rem] max-w-[calc(100vw-1rem)] rounded-[0.76rem] border-sidebar-border/70 bg-sidebar p-0 sm:!w-[16.25rem] md:bg-sidebar"
               triggerClassName="kocteau-sidebar-trailing size-8 rounded-full border-sidebar-border/55 bg-transparent text-sidebar-foreground/52 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground md:border-sidebar-border/55 md:bg-transparent"
             />
           </div>

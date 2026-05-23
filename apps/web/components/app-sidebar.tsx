@@ -178,7 +178,7 @@ export default function AppSidebar({
                   <ReviewGlyphIcon className="size-4 shrink-0" />
                   <span className="kocteau-sidebar-label">{reviewEntryLabel}</span>
                 </span>
-                <span className="kocteau-sidebar-shortcut">
+                <span className="kocteau-sidebar-shortcut ml-auto group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:max-w-0">
                   <Kbd className="border border-sidebar-border/80 bg-foreground/[0.06] px-1.5 text-[0.6rem] text-muted-foreground">
                     N
                   </Kbd>

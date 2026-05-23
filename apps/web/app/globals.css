@@ -282,7 +282,7 @@
     overflow: hidden;
     transform-origin: left center;
     transition-duration: 180ms;
-    transition-property: max-width, opacity, transform, filter, margin;
+    transition-property: width, max-width, opacity, transform, filter, margin;
     transition-timing-function: var(--kocteau-ease);
   }
 
@@ -296,10 +296,6 @@
   .kocteau-sidebar-trailing {
     display: inline-flex;
     max-width: 3rem;
-  }
-
-  .kocteau-sidebar-shortcut {
-    margin-left: auto;
   }
 
   .kocteau-sidebar-avatar {

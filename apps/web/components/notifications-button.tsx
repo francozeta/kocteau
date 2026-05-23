@@ -149,14 +149,14 @@ export default function NotificationsButton({
           </div>
         </PopoverHeader>
 
-        <ScrollArea className="max-h-[24rem]">
+        <ScrollArea className="min-h-40 max-h-[24rem]">
           <div>
             {isLoadingNotifications ? (
-              <div className="flex justify-center px-3 py-7">
+              <div className="flex min-h-40 items-center justify-center px-3 py-7">
                 <Spinner className="size-4 text-muted-foreground/70" />
               </div>
             ) : isFetchingNotifications && notifications.length === 0 ? (
-              <div className="flex justify-center px-3 py-7">
+              <div className="flex min-h-40 items-center justify-center px-3 py-7">
                 <Spinner className="size-4 text-muted-foreground/70" />
               </div>
             ) : isNotificationsError ? (
