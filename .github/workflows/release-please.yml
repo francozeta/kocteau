@@ -44,8 +44,8 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: automation/public-changelog-${{ steps.release-please.outputs.tag_name }}
-          commit-message: docs(web): draft public changelog for ${{ steps.release-please.outputs.tag_name }}
-          title: docs(web): draft public changelog for ${{ steps.release-please.outputs.tag_name }}
+          commit-message: "docs(web): draft public changelog for ${{ steps.release-please.outputs.tag_name }}"
+          title: "docs(web): draft public changelog for ${{ steps.release-please.outputs.tag_name }}"
           body: |
             This PR drafts the public Kocteau changelog note for `${{ steps.release-please.outputs.tag_name }}` from the technical Release Please changelog.
 
