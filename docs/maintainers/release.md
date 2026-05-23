@@ -57,26 +57,27 @@ After deploy:
 
 ## Public App Changelog
 
-The public `/help/changelog` page should not be a raw commit feed. It should read like short editorial release notes for listeners and writers.
+The root `CHANGELOG.md` is the technical release history. The public `/help/changelog` page is separate and renders curated MDX notes from `apps/web/content/changelog`.
 
-Use GitHub Releases and tags as the source of truth:
+Use Release Please, GitHub Releases, and tags as the technical source of truth:
 
 1. Merge the product work to `main`.
 2. Let Release Please create the release PR.
-3. Review the generated release notes before merging.
+3. Review the generated `CHANGELOG.md` section before merging.
 4. Merge the release PR so Release Please creates the tag and GitHub Release.
-5. Draft or update the app-facing MDX changelog from that release note.
-6. Commit the MDX update directly or through a small follow-up PR.
+5. The release workflow drafts a public MDX changelog note in `apps/web/content/changelog`.
+6. The workflow opens a follow-up PR and asks Vercel Agent for an editorial pass.
+7. Review the generated note, add screenshots or edits if useful, and merge when it is ready to publish.
 
-The current manual helper is:
+The automation should save writing time, not remove maintainer taste. Public notes should describe what changed for listeners and writers; they should not expose raw commit language, implementation details, or internal maintenance work.
+
+To draft the latest public note locally:
 
 ```bash
 pnpm --filter web changelog:draft
 ```
 
-Use it only as raw material. The maintainer edits `apps/web/content/help/changelog.mdx` before publishing so Kocteau keeps a consistent product voice.
-
-Future automation should stay deterministic: GitHub Releases/tags provide the canonical history, a script converts release notes into MDX, and any AI summary step remains optional and human-reviewed.
+Vercel Agent must be enabled for the project before the automated `@vercel` PR comment can help refine the note.
 
 ## What Is Intentionally Not Automated Yet
 

@@ -87,11 +87,11 @@ export const helpDocuments = [
     label: "Changelog",
     title: "Changelog",
     description: "What's new on kocteau.com.",
-    summary: "Product notes, shipped polish, and release context for Kocteau.",
+    summary: "Public product notes for listeners, writers, and the reading experience.",
     section: "Product",
     headings: [
-      { id: "may-23-2026", label: "May 23, 2026" },
-      { id: "earlier-groundwork", label: "Earlier groundwork" },
+      { id: "latest-note", label: "Latest note" },
+      { id: "release-archive", label: "Release archive" },
     ],
   },
 ] as const;
