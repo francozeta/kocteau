@@ -75,7 +75,7 @@ export default function NotificationList({
   return (
     <div
       className={cn(
-        compact ? "" : "divide-y divide-border/25 overflow-hidden rounded-[1.55rem] border border-border/30 bg-card/18",
+        compact ? "space-y-0.5 p-1.5" : "divide-y divide-border/25 overflow-hidden rounded-[1.55rem] border border-border/30 bg-card/18",
       )}
     >
       {entries.map((entry) => {
@@ -93,7 +93,7 @@ export default function NotificationList({
             <Link
               key={entry.kind === "single" ? notification.id : entry.id}
               href={href}
-              className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-sidebar-border/52 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-sidebar-accent/52"
+              className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-2.5 rounded-[0.56rem] px-2 py-2.5 text-left transition-colors hover:bg-sidebar-accent/58"
             >
               <UserAvatar
                 avatarUrl={notification.actor?.avatar_url}

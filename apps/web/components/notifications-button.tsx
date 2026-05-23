@@ -90,6 +90,8 @@ export default function NotificationsButton({
     }
   }
 
+  const showViewAll = notifications.length >= 5 || unreadCount > notifications.length;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -128,24 +130,26 @@ export default function NotificationsButton({
       >
         <PopoverHeader className="border-b border-sidebar-border/60 px-3 py-2.5">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 space-y-0.5">
+            <div className="min-w-0">
               <PopoverTitle className="text-[13px] font-medium text-sidebar-foreground">Activity</PopoverTitle>
-              <PopoverDescription className="truncate text-[11px] text-sidebar-foreground/58">
-                {unreadCount > 0
-                  ? `${unreadCount} unread right now`
-                  : "You’re all caught up"}
-              </PopoverDescription>
+              {unreadCount > 0 ? (
+                <PopoverDescription className="truncate text-[11px] text-sidebar-foreground/58">
+                  {unreadCount} unread
+                </PopoverDescription>
+              ) : null}
             </div>
-            <Link
-              href="/notifications"
-              className="shrink-0 pt-0.5 text-[11px] font-medium text-sidebar-foreground/58 transition-colors hover:text-sidebar-foreground"
-            >
-              View all
-            </Link>
+            {showViewAll ? (
+              <Link
+                href="/notifications"
+                className="shrink-0 pt-0.5 text-[11px] font-medium text-sidebar-foreground/58 transition-colors hover:text-sidebar-foreground"
+              >
+                View all
+              </Link>
+            ) : null}
           </div>
         </PopoverHeader>
 
-        <ScrollArea className="max-h-[18rem]">
+        <ScrollArea className="max-h-[24rem]">
           <div>
             {isLoadingNotifications ? (
               <div className="flex justify-center px-3 py-7">
@@ -172,7 +176,7 @@ export default function NotificationsButton({
                 onMarkAsRead={handleMarkAsRead}
               />
             ) : (
-              <div className="flex min-h-32 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
+              <div className="flex min-h-40 flex-col items-center justify-center gap-3 px-4 py-9 text-center">
                 <span className="flex size-8 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-foreground/62">
                   <BellSimpleIcon className="size-4" />
                 </span>

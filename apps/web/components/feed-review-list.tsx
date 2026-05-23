@@ -312,7 +312,15 @@ export default function FeedReviewList({
         </div>
       ) : (
         <p className="py-3 text-center text-xs text-muted-foreground">
-          You are all caught up.
+          created by{" "}
+          <Link
+            href="https://francozeta.vercel.app/"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-foreground underline underline-offset-4"
+          >
+            francozeta
+          </Link>
         </p>
       )}
     </div>
