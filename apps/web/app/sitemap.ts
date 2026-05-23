@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { helpRoutes } from "@/lib/help";
 import { getMetadataBase } from "@/lib/metadata";
 import { supabasePublic } from "@/lib/supabase/public";
 
@@ -42,6 +43,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.7,
     },
+    ...helpRoutes.map((route) => ({
+      url: new URL(route.href, metadataBase).toString(),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: route.href === "/help" ? 0.45 : 0.35,
+    })),
   ];
 
   const profileRoutes: MetadataRoute.Sitemap = profiles

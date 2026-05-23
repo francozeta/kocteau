@@ -55,6 +55,29 @@ After deploy:
 6. Check login/signup OTP flow only if auth changed.
 7. Check Supabase recommendation/starter health only if data logic changed.
 
+## Public App Changelog
+
+The public `/help/changelog` page should not be a raw commit feed. It should read like short editorial release notes for listeners and writers.
+
+Use GitHub Releases and tags as the source of truth:
+
+1. Merge the product work to `main`.
+2. Let Release Please create the release PR.
+3. Review the generated release notes before merging.
+4. Merge the release PR so Release Please creates the tag and GitHub Release.
+5. Draft or update the app-facing MDX changelog from that release note.
+6. Commit the MDX update directly or through a small follow-up PR.
+
+The current manual helper is:
+
+```bash
+pnpm --filter web changelog:draft
+```
+
+Use it only as raw material. The maintainer edits `apps/web/content/help/changelog.mdx` before publishing so Kocteau keeps a consistent product voice.
+
+Future automation should stay deterministic: GitHub Releases/tags provide the canonical history, a script converts release notes into MDX, and any AI summary step remains optional and human-reviewed.
+
 ## What Is Intentionally Not Automated Yet
 
 - npm publishing
