@@ -8,7 +8,7 @@
     "email:dev": "email dev --dir emails --port 3001",
     "email:export": "email export --dir emails --outDir emails/out",
     "start": "next start",
-    "changelog:draft": "node scripts/changelog-draft.mjs",
+    "changelog:draft": "node scripts/create-public-changelog-draft.mjs",
     "lint": "eslint app components hooks lib queries instrumentation-client.ts instrumentation.ts next.config.ts proxy.ts sentry.edge.config.ts sentry.server.config.ts --max-warnings=0"
   },
   "dependencies": {

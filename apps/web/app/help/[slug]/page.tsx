@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import HelpChangelog from "@/components/help/help-changelog";
 import HelpNav from "@/components/help/help-nav";
 import HelpOnThisPage from "@/components/help/help-on-this-page";
 import {
@@ -9,7 +11,7 @@ import {
   HELP_LAST_UPDATED,
   isHelpDocumentSlug,
 } from "@/lib/help";
-import { loadHelpDocument } from "@/lib/help-content";
+import { isMdxHelpDocumentSlug, loadHelpDocument } from "@/lib/help-content";
 import { createPageMetadata } from "@/lib/metadata";
 
 type HelpArticlePageProps = {
@@ -61,7 +63,14 @@ export default async function HelpArticlePage({ params }: HelpArticlePageProps) 
     notFound();
   }
 
-  const { default: Content } = await loadHelpDocument(slug);
+  let content: ReactNode;
+
+  if (isMdxHelpDocumentSlug(slug)) {
+    const { default: Content } = await loadHelpDocument(slug);
+    content = <Content />;
+  } else {
+    content = <HelpChangelog />;
+  }
 
   return (
     <div className="grid min-w-0 gap-8 lg:grid-cols-[10.5rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[10.5rem_minmax(0,44rem)_13rem]">
@@ -89,9 +98,7 @@ export default async function HelpArticlePage({ params }: HelpArticlePageProps) 
           Last reviewed {HELP_LAST_UPDATED}
         </p>
 
-        <div className="mt-10">
-          <Content />
-        </div>
+        <div className="mt-10">{content}</div>
 
         <footer className="mt-14">
           <Link
