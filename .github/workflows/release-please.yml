@@ -49,21 +49,7 @@ jobs:
           body: |
             This PR drafts the public Kocteau changelog note for `${{ steps.release-please.outputs.tag_name }}` from the technical Release Please changelog.
 
-            @vercel Please refine the new MDX changelog draft in `apps/web/content/changelog/` for Kocteau's public product voice. Keep it concise, editorial, music-native, and focused on what changed for listeners and writers. Avoid raw commit language, implementation details, hype, or claims that are not supported by the release notes.
-
             The maintainer should review tone, add screenshots if useful, and merge when the note is ready to publish.
           labels: |
             docs
             area:web
-
-      - name: Ask Vercel Agent for an editorial pass
-        if: ${{ steps.public-changelog-pr.outputs.pull-request-number != '' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: Number("${{ steps.public-changelog-pr.outputs.pull-request-number }}"),
-              body: "@vercel Please rewrite the generated public changelog draft with Kocteau's editorial voice. Focus on listener/writer impact, keep the note minimal, and preserve only claims supported by the technical release notes."
-            });

@@ -142,7 +142,7 @@ This release should describe what changed for Kocteau listeners and writers, not
 
 function hiddenAgentPrompt(release, technicalSource) {
   return `{/*
-Vercel Agent prompt:
+Editorial prompt:
 Please rewrite this generated public changelog draft for Kocteau ${release.version}.
 Audience: listeners, writers, early users.
 Tone: premium, editorial, minimal, human, music-native.
