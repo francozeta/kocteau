@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Bell, Bookmark, LogOut, Settings, UserRound } from "lucide-react";
+import {
+  BellSimpleIcon,
+  BookmarkSimpleIcon,
+  GearSixIcon,
+  SignOutIcon,
+  UserCircleIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react";
 import UserAvatar from "@/components/user-avatar";
 import {
   AlertDialog,
@@ -86,24 +93,24 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => router.push(`/u/${username}`)}>
-            <UserRound className="size-4" />
+            <UserCircleIcon className="size-4" />
             Profile
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push("/saved")}>
-            <Bookmark className="size-4" />
+            <BookmarkSimpleIcon className="size-4" />
             Saved reviews
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push("/notifications")}>
-            <Bell className="size-4" />
+            <BellSimpleIcon className="size-4" />
             Notifications
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
-            <Settings className="size-4" />
+            <GearSixIcon className="size-4" />
             Edit profile
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setLogoutOpen(true)}>
-            <LogOut className="size-4" />
+            <SignOutIcon className="size-4" />
             Log out
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -119,7 +126,7 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogMedia>
-              <AlertCircle className="size-4" />
+              <WarningCircleIcon className="size-4" />
             </AlertDialogMedia>
             <AlertDialogTitle>Log out?</AlertDialogTitle>
             <AlertDialogDescription>

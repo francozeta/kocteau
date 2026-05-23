@@ -275,6 +275,80 @@
     box-shadow: none;
   }
 
+  .kocteau-sidebar-label,
+  .kocteau-sidebar-shortcut,
+  .kocteau-sidebar-avatar,
+  .kocteau-sidebar-trailing {
+    overflow: hidden;
+    transform-origin: left center;
+    transition-duration: 180ms;
+    transition-property: max-width, opacity, transform, filter, margin;
+    transition-timing-function: var(--kocteau-ease);
+  }
+
+  .kocteau-sidebar-label {
+    display: inline-block;
+    max-width: 11rem;
+    white-space: nowrap;
+  }
+
+  .kocteau-sidebar-shortcut,
+  .kocteau-sidebar-trailing {
+    display: inline-flex;
+    max-width: 3rem;
+  }
+
+  .kocteau-sidebar-avatar {
+    display: inline-flex;
+    max-width: 2rem;
+    transition-duration: 120ms, 160ms, 160ms, 180ms, 180ms;
+    transition-property: opacity, transform, filter, max-width, margin;
+    transition-delay: 0ms, 0ms, 0ms, 60ms, 60ms;
+  }
+
+  .kocteau-sidebar-expand-only {
+    max-height: 24rem;
+    transform-origin: top left;
+    transition-duration: 180ms;
+    transition-property: max-height, opacity, transform, filter, margin, padding;
+    transition-timing-function: var(--kocteau-ease);
+  }
+
+  [data-collapsible="icon"] .kocteau-sidebar-label,
+  [data-collapsible="icon"] .kocteau-sidebar-shortcut,
+  [data-collapsible="icon"] .kocteau-sidebar-avatar,
+  [data-collapsible="icon"] .kocteau-sidebar-trailing {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-0.25rem) scale(0.98);
+    filter: blur(5px);
+    pointer-events: none;
+  }
+
+  [data-collapsible="icon"] .kocteau-sidebar-shortcut,
+  [data-collapsible="icon"] .kocteau-sidebar-avatar,
+  [data-collapsible="icon"] .kocteau-sidebar-trailing {
+    margin-left: 0;
+    transform: translateX(-0.125rem) scale(0.86);
+  }
+
+  [data-collapsible="icon"] .kocteau-sidebar-avatar {
+    filter: blur(7px);
+    transition-delay: 0ms;
+  }
+
+  [data-collapsible="icon"] .kocteau-sidebar-expand-only {
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    filter: blur(5px);
+    pointer-events: none;
+  }
+
   .kocteau-review-card {
     border: 1px solid var(--kocteau-line-soft);
     background: var(--kocteau-surface-raised);
@@ -545,6 +619,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .kocteau-sidebar-label,
+  .kocteau-sidebar-shortcut,
+  .kocteau-sidebar-trailing,
+  .kocteau-sidebar-expand-only {
+    transition-duration: 1ms;
+    filter: none !important;
+    transform: none !important;
+  }
+
   .kocteau-review-glow {
     animation: none;
     opacity: 0.24;

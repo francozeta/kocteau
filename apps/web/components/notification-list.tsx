@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Check, ChevronRight, Heart, MessageCircle } from "lucide-react";
+import {
+  CheckIcon,
+  ChatCircleTextIcon,
+  HeartIcon,
+} from "@phosphor-icons/react";
 import {
   groupNotifications,
   notificationHref,
@@ -71,8 +75,7 @@ export default function NotificationList({
   return (
     <div
       className={cn(
-        "divide-y divide-border/25",
-        compact ? "" : "overflow-hidden rounded-[1.55rem] border border-border/30 bg-card/18",
+        compact ? "" : "divide-y divide-border/25 overflow-hidden rounded-[1.55rem] border border-border/30 bg-card/18",
       )}
     >
       {entries.map((entry) => {
@@ -83,13 +86,54 @@ export default function NotificationList({
           ? !notification.read_at
           : entry.notifications.some((item) => !item.read_at);
         const href = notificationHref(notification);
+        const body = getGroupedBody(entry);
+
+        if (compact) {
+          return (
+            <Link
+              key={entry.kind === "single" ? notification.id : entry.id}
+              href={href}
+              className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-2.5 border-b border-sidebar-border/52 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-sidebar-accent/52"
+            >
+              <UserAvatar
+                avatarUrl={notification.actor?.avatar_url}
+                displayName={notification.actor?.display_name ?? null}
+                username={notification.actor?.username ?? null}
+                size="sm"
+              />
+              <p className="min-w-0 truncate text-[12px] leading-5 text-sidebar-foreground/62">
+                {entry.kind === "single" ? (
+                  <>
+                    {unread ? (
+                      <span className="mr-1.5 inline-flex size-1.5 translate-y-[-1px] rounded-full bg-sidebar-foreground" />
+                    ) : null}
+                    <span className="font-medium text-sidebar-foreground/88">
+                      {actorLabel}
+                    </span>{" "}
+                    {body}
+                  </>
+                ) : (
+                  <>
+                    {unread ? (
+                      <span className="mr-1.5 inline-flex size-1.5 translate-y-[-1px] rounded-full bg-sidebar-foreground" />
+                    ) : null}
+                    {body}
+                  </>
+                )}
+              </p>
+              <span className="text-[11px] text-sidebar-foreground/42">
+                {timestamp}
+              </span>
+            </Link>
+          );
+        }
 
         return (
           <div
             key={entry.kind === "single" ? notification.id : entry.id}
             className={cn(
               "group relative flex gap-3 transition-colors hover:bg-muted/14",
-              compact ? "rounded-[1.15rem] px-3 py-3" : "px-4 py-4",
+              compact ? "rounded-[0.68rem] px-2.5 py-2.5" : "px-4 py-4",
             )}
           >
             <div className="pt-0.5">
@@ -104,7 +148,7 @@ export default function NotificationList({
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 space-y-1.5">
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-[13px]">
                     {unread ? (
                       <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
                     ) : null}
@@ -112,13 +156,13 @@ export default function NotificationList({
                       {actorLabel}
                     </span>
                     {notification.type === "review_liked" ? (
-                      <Heart className="size-3.5 shrink-0 text-muted-foreground" />
+                      <HeartIcon className="size-3.5 shrink-0 text-muted-foreground" />
                     ) : (
-                      <MessageCircle className="size-3.5 shrink-0 text-muted-foreground" />
+                      <ChatCircleTextIcon className="size-3.5 shrink-0 text-muted-foreground" />
                     )}
                   </div>
-                  <p className="line-clamp-2 text-sm leading-6 text-foreground/78">
-                    {getGroupedBody(entry)}
+                  <p className="line-clamp-2 text-[12.5px] leading-5 text-foreground/72">
+                    {body}
                   </p>
                 </div>
                 <span className="shrink-0 pt-0.5 text-[11px] text-muted-foreground">
@@ -126,11 +170,10 @@ export default function NotificationList({
                 </span>
               </div>
 
-              <div className="mt-2 flex flex-wrap items-center gap-1">
-                <Button asChild variant="ghost" size="sm" className="h-7 rounded-full px-2.5 text-xs text-muted-foreground hover:text-foreground">
+              <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                <Button asChild variant="ghost" size="sm" className="h-6 rounded-[0.46rem] px-2 text-[11px] text-muted-foreground hover:text-foreground">
                   <Link href={href}>
                     Open
-                    <ChevronRight className="size-3.5" />
                   </Link>
                 </Button>
 
@@ -139,7 +182,7 @@ export default function NotificationList({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-7 rounded-full px-2.5 text-xs text-muted-foreground hover:text-foreground"
+                    className="h-6 rounded-[0.46rem] px-2 text-[11px] text-muted-foreground hover:text-foreground"
                     disabled={isMarkingAsRead}
                     onClick={() => {
                       if (entry.kind === "single") {
@@ -150,7 +193,7 @@ export default function NotificationList({
                       entry.notifications.forEach((item) => onMarkAsRead(item.id));
                     }}
                   >
-                    <Check className="size-3.5" />
+                    <CheckIcon className="size-3.5" />
                     Mark read
                   </Button>
                 ) : null}
