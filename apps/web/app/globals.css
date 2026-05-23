@@ -298,6 +298,10 @@
     max-width: 3rem;
   }
 
+  .kocteau-sidebar-shortcut {
+    margin-left: auto;
+  }
+
   .kocteau-sidebar-avatar {
     display: inline-flex;
     max-width: 2rem;
@@ -318,6 +322,8 @@
   [data-collapsible="icon"] .kocteau-sidebar-shortcut,
   [data-collapsible="icon"] .kocteau-sidebar-avatar,
   [data-collapsible="icon"] .kocteau-sidebar-trailing {
+    width: 0;
+    margin-left: 0;
     max-width: 0;
     opacity: 0;
     transform: translateX(-0.25rem) scale(0.98);
@@ -328,7 +334,6 @@
   [data-collapsible="icon"] .kocteau-sidebar-shortcut,
   [data-collapsible="icon"] .kocteau-sidebar-avatar,
   [data-collapsible="icon"] .kocteau-sidebar-trailing {
-    margin-left: 0;
     transform: translateX(-0.125rem) scale(0.86);
   }
 
