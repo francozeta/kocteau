@@ -66,7 +66,7 @@ Use Release Please, GitHub Releases, and tags as the technical source of truth:
 3. Review the generated `CHANGELOG.md` section before merging.
 4. Merge the release PR so Release Please creates the tag and GitHub Release.
 5. The release workflow drafts a public MDX changelog note in `apps/web/content/changelog`.
-6. The workflow opens a follow-up PR and asks Vercel Agent for an editorial pass.
+6. The workflow opens a follow-up PR for the public changelog note.
 7. Review the generated note, add screenshots or edits if useful, and merge when it is ready to publish.
 
 The automation should save writing time, not remove maintainer taste. Public notes should describe what changed for listeners and writers; they should not expose raw commit language, implementation details, or internal maintenance work.
@@ -77,7 +77,7 @@ To draft the latest public note locally:
 pnpm --filter web changelog:draft
 ```
 
-Vercel Agent must be enabled for the project before the automated `@vercel` PR comment can help refine the note.
+The generated MDX includes an editorial prompt in a hidden comment so the note can be refined with any assistant later without making the app depend on a paid review bot.
 
 ## What Is Intentionally Not Automated Yet
 
