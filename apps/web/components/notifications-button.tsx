@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell } from "lucide-react";
+import { BellSimpleIcon } from "@phosphor-icons/react";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import {
   Popover,
   PopoverContent,
@@ -27,6 +26,10 @@ type NotificationsButtonProps = {
   initialUnreadCount: number;
   initialNotifications: NotificationItem[];
   triggerClassName?: string;
+  contentClassName?: string;
+  contentAlign?: "start" | "center" | "end";
+  contentSide?: "top" | "right" | "bottom" | "left";
+  contentSideOffset?: number;
 };
 
 export default function NotificationsButton({
@@ -34,6 +37,10 @@ export default function NotificationsButton({
   initialUnreadCount,
   initialNotifications,
   triggerClassName,
+  contentClassName,
+  contentAlign = "end",
+  contentSide,
+  contentSideOffset = 12,
 }: NotificationsButtonProps) {
   const [open, setOpen] = useState(false);
   const hasAutoMarkedRef = useRef(false);
@@ -91,7 +98,7 @@ export default function NotificationsButton({
           variant="ghost"
           size="icon"
           className={cn(
-            "relative h-9 w-9 rounded-full border border-border/46 bg-card/18 text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-muted/40 hover:text-foreground md:border-border/40 md:bg-background/65",
+            "relative h-9 w-9 rounded-[0.68rem] border border-border/46 bg-card/18 text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-muted/40 hover:text-foreground md:border-border/40 md:bg-background/65",
             triggerClassName,
             unreadCount > 0 && "text-foreground",
           )}
@@ -101,9 +108,9 @@ export default function NotificationsButton({
               : "Notifications"
           }
         >
-          <Bell className="size-4" />
+          <BellSimpleIcon className="size-4" weight={unreadCount > 0 ? "fill" : "regular"} />
           {unreadCount > 0 ? (
-            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 py-0.5 text-[10px] font-semibold leading-none text-background shadow-sm">
+            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-[0.45rem] bg-foreground px-1.5 py-0.5 text-[10px] font-semibold leading-none text-background shadow-sm">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           ) : null}
@@ -111,15 +118,19 @@ export default function NotificationsButton({
       </PopoverTrigger>
 
       <PopoverContent
-        align="end"
-        className="w-[23rem] gap-0 rounded-[1.8rem] border-border/44 bg-popover/98 p-0 shadow-none sm:w-[25rem] md:border-border/35 md:bg-popover/96"
-        sideOffset={12}
+        align={contentAlign}
+        side={contentSide}
+        className={cn(
+          "w-[23rem] gap-0 overflow-hidden rounded-[1rem] border-border/44 bg-popover p-0 shadow-none sm:w-[25rem] md:border-border/35 md:bg-popover",
+          contentClassName,
+        )}
+        sideOffset={contentSideOffset}
       >
-        <PopoverHeader className="border-b border-border/32 px-4 py-3 md:border-border/25">
-          <div className="flex items-center justify-between gap-3">
-            <div className="space-y-1">
-              <PopoverTitle className="text-sm font-medium">Activity</PopoverTitle>
-              <PopoverDescription className="text-xs">
+        <PopoverHeader className="border-b border-sidebar-border/60 px-3 py-2.5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-0.5">
+              <PopoverTitle className="text-[13px] font-medium text-sidebar-foreground">Activity</PopoverTitle>
+              <PopoverDescription className="truncate text-[11px] text-sidebar-foreground/58">
                 {unreadCount > 0
                   ? `${unreadCount} unread right now`
                   : "You’re all caught up"}
@@ -127,25 +138,25 @@ export default function NotificationsButton({
             </div>
             <Link
               href="/notifications"
-              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="shrink-0 pt-0.5 text-[11px] font-medium text-sidebar-foreground/58 transition-colors hover:text-sidebar-foreground"
             >
               View all
             </Link>
           </div>
         </PopoverHeader>
 
-        <ScrollArea className="max-h-[28rem]">
-          <div className="p-2.5">
+        <ScrollArea className="max-h-[18rem]">
+          <div>
             {isLoadingNotifications ? (
-              <div className="flex justify-center px-3 py-8">
+              <div className="flex justify-center px-3 py-7">
                 <Spinner className="size-4 text-muted-foreground/70" />
               </div>
             ) : isFetchingNotifications && notifications.length === 0 ? (
-              <div className="flex justify-center px-3 py-8">
+              <div className="flex justify-center px-3 py-7">
                 <Spinner className="size-4 text-muted-foreground/70" />
               </div>
             ) : isNotificationsError ? (
-              <Alert className="rounded-2xl border-border/46 bg-card/58 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/40 md:bg-card/50">
+              <Alert className="rounded-[0.64rem] border-border/46 bg-card p-3 shadow-none md:border-border/40 md:bg-card">
                 <AlertTitle>Notifications unavailable</AlertTitle>
                 <AlertDescription>
                   {notificationsError instanceof Error
@@ -161,14 +172,14 @@ export default function NotificationsButton({
                 onMarkAsRead={handleMarkAsRead}
               />
             ) : (
-              <Empty className="rounded-[1.5rem] border-border/34 bg-card/26 px-4 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <Bell className="size-4" />
-                  </EmptyMedia>
-                  <EmptyTitle>No notifications yet</EmptyTitle>
-                </EmptyHeader>
-              </Empty>
+              <div className="flex min-h-32 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
+                <span className="flex size-8 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-foreground/62">
+                  <BellSimpleIcon className="size-4" />
+                </span>
+                <p className="text-[13px] font-medium text-sidebar-foreground">
+                  No notifications yet
+                </p>
+              </div>
             )}
           </div>
         </ScrollArea>

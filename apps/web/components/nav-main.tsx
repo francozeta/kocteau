@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,11 +11,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { sidebarPrimaryNavButtonClassName } from "@/components/sidebar-nav-styles";
 
 type NavMainItem = {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: Icon;
   isActive?: boolean;
   badge?: number | null;
   external?: boolean;
@@ -40,17 +41,17 @@ export function NavMain({
                 isActive={item.isActive}
                 tooltip={item.title}
                 size="lg"
-                className="h-10 rounded-xl text-[13px] font-medium transition-[color,background-color] data-[active=true]:bg-sidebar-accent/82 data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-none data-[active=true]:[&_svg]:text-sidebar-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
+                className={sidebarPrimaryNavButtonClassName}
               >
                 {item.external ? (
                   <a href={item.url} target="_blank" rel="noreferrer" onClick={onNavigate}>
-                    <item.icon />
-                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                    <item.icon weight={item.isActive ? "fill" : "regular"} />
+                    <span className="kocteau-sidebar-label">{item.title}</span>
                   </a>
                 ) : (
                   <Link href={item.url} onClick={onNavigate}>
-                    <item.icon />
-                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                    <item.icon weight={item.isActive ? "fill" : "regular"} />
+                    <span className="kocteau-sidebar-label">{item.title}</span>
                   </Link>
                 )}
               </SidebarMenuButton>

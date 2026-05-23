@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ExternalLink, MoreHorizontal, Share2 } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
-import NotificationsButton from "@/components/notifications-button";
 import PrefetchLink from "@/components/prefetch-link";
 import { useRouteHeader } from "@/components/route-header-context";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import {
 import { shareUrl } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
-import type { NotificationItem } from "@/lib/notifications";
 
 type HeaderProfile = {
   id: string;
@@ -52,12 +50,8 @@ function HamburgerIcon({ className }: { className?: string }) {
 
 export default function Header({
   profile,
-  initialUnreadCount = 0,
-  initialNotifications = [],
 }: {
   profile: HeaderProfile | null;
-  initialUnreadCount?: number;
-  initialNotifications?: NotificationItem[];
 }) {
   const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
@@ -194,14 +188,7 @@ export default function Header({
         </div>
 
         <div className="relative z-10 flex items-center gap-2">
-          {profile ? (
-            <NotificationsButton
-              userId={profile.id}
-              initialUnreadCount={initialUnreadCount}
-              initialNotifications={initialNotifications}
-              triggerClassName="mobile-liquid-button pointer-events-auto size-10 text-muted-foreground hover:text-foreground"
-            />
-          ) : (
+          {profile ? null : (
             <Link href="/login">
               <Button
                 variant="outline"

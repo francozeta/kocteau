@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,11 +11,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { sidebarNavButtonClassName } from "@/components/sidebar-nav-styles";
 
 type NavSecondaryItem = {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: Icon;
   isActive?: boolean;
   badge?: number | null;
 };
@@ -40,11 +41,11 @@ export function NavSecondary({
                 asChild
                 isActive={item.isActive}
                 tooltip={item.title}
-                className="rounded-xl text-[13px] font-medium transition-[color,background-color] data-[active=true]:bg-sidebar-accent/82 data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-none data-[active=true]:[&_svg]:text-sidebar-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center"
+                className={sidebarNavButtonClassName}
               >
                 <Link href={item.url} onClick={onNavigate}>
-                  <item.icon />
-                  <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                  <item.icon weight={item.isActive ? "fill" : "regular"} />
+                  <span className="kocteau-sidebar-label">{item.title}</span>
                 </Link>
               </SidebarMenuButton>
               {item.badge && item.badge > 0 ? (

@@ -1,6 +1,11 @@
 "use client";
 
-import { ChevronRight, MoreHorizontal, Pin, Star } from "lucide-react";
+import {
+  CaretRightIcon,
+  DotsThreeIcon,
+  PushPinSimpleIcon,
+  StarIcon,
+} from "@phosphor-icons/react";
 import type { EditReviewSelection } from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
@@ -76,7 +81,7 @@ function OwnedReviewRailItem({
                 </div>
 
                 <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-medium text-muted-foreground">
-                  <Star className="size-3 fill-current text-amber-400" />
+                  <StarIcon className="size-3 text-amber-400" weight="fill" />
                   {item.rating.toFixed(1)}
                 </span>
               </div>
@@ -84,7 +89,7 @@ function OwnedReviewRailItem({
               <div className="mt-1 flex min-w-0 items-center gap-1.5">
                 {item.is_pinned ? (
                   <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-medium uppercase text-muted-foreground/90">
-                    <Pin className="size-3" />
+                    <PushPinSimpleIcon className="size-3" weight="fill" />
                     Pinned
                   </span>
                 ) : null}
@@ -116,7 +121,7 @@ function OwnedReviewRailItem({
               className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-sidebar-accent/42 hover:text-sidebar-foreground md:hover:bg-sidebar-accent/35"
               aria-label="Review options"
             >
-              <MoreHorizontal className="size-3.5" />
+              <DotsThreeIcon className="size-3.5" weight="bold" />
             </button>
           }
         />
@@ -138,7 +143,7 @@ export function NavOwnedReviews({
 
   return (
     <Collapsible defaultOpen className="group/collapsible">
-      <SidebarGroup className="px-0 group-data-[collapsible=icon]:hidden">
+      <SidebarGroup className="kocteau-sidebar-expand-only px-0">
         <SidebarGroupLabel asChild>
           <CollapsibleTrigger className="cursor-pointer">
             Recent Reviews
@@ -146,7 +151,7 @@ export function NavOwnedReviews({
         </SidebarGroupLabel>
         <SidebarGroupAction asChild className="top-2.5">
           <CollapsibleTrigger>
-            <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+            <CaretRightIcon className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             <span className="sr-only">Toggle recent reviews</span>
           </CollapsibleTrigger>
         </SidebarGroupAction>

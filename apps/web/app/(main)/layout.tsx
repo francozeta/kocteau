@@ -47,11 +47,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           <RouteHeaderProvider>
             <GlobalShortcuts isAuthenticated={Boolean(safeProfile)} />
             <div className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]">
-              <Header
-                profile={safeProfile}
-                initialUnreadCount={initialUnreadCount}
-                initialNotifications={[]}
-              />
+              <Header profile={safeProfile} />
               <main className="mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-y-auto lg:px-7 lg:pt-3 lg:pb-6 xl:px-8">
                 {children}
               </main>

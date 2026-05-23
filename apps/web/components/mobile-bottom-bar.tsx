@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Search, UserRound } from "lucide-react";
+import {
+  BellSimpleIcon,
+  HouseIcon,
+  type Icon,
+  MagnifyingGlassIcon,
+  UserCircleIcon,
+} from "@phosphor-icons/react";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { cn } from "@/lib/utils";
@@ -23,7 +29,7 @@ type MobileBottomBarProps = {
 type NavItem = {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: Icon;
   active: (pathname: string) => boolean;
 };
 
@@ -42,13 +48,16 @@ function NavTab({
       href={item.href}
       aria-label={item.label}
       className={cn(
-        "group flex h-10.5 min-w-10.5 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-[transform,color,background-color,border-color,box-shadow] duration-150 ease-out active:scale-[0.96]",
+        "group flex h-10.5 min-w-10.5 items-center justify-center rounded-full border border-transparent text-muted-foreground/70 transition-[transform,color,background-color,border-color,box-shadow] duration-150 ease-out active:scale-[0.96]",
         active
           ? "gap-1.5 border-foreground/10 bg-foreground/10 px-3 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-          : "px-0 hover:border-foreground/10 hover:bg-foreground/7 hover:text-foreground",
+          : "px-0 hover:border-foreground/10 hover:bg-foreground/7 hover:text-foreground/90",
       )}
     >
-      <Icon className={cn("size-[1.04rem] shrink-0", active && "text-foreground")} />
+      <Icon
+        className={cn("size-[1.04rem] shrink-0", active && "text-foreground")}
+        weight={active ? "fill" : "regular"}
+      />
       {active ? (
         <span aria-hidden="true" className="whitespace-nowrap text-[0.68rem] font-medium leading-none">
           {item.label}
@@ -66,13 +75,13 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
     {
       href: "/",
       label: "Feed",
-      icon: Home,
+      icon: HouseIcon,
       active: (current) => current === "/",
     },
     {
       href: "/search",
       label: "Explore",
-      icon: Search,
+      icon: MagnifyingGlassIcon,
       active: (current) => current.startsWith("/search") || current.startsWith("/track"),
     },
   ];
@@ -83,13 +92,13 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           {
             href: "/notifications",
             label: "Activity",
-            icon: Bell,
+            icon: BellSimpleIcon,
             active: (current: string) => current.startsWith("/notifications"),
           },
           {
             href: `/u/${profile.username}`,
             label: "Profile",
-            icon: UserRound,
+            icon: UserCircleIcon,
             active: (current: string) => current.startsWith(`/u/${profile.username}`),
           },
         ]
@@ -97,7 +106,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           {
             href: "/login",
             label: "Log in",
-            icon: UserRound,
+            icon: UserCircleIcon,
             active: (current: string) =>
               current.startsWith("/login") || current.startsWith("/signup"),
           },
