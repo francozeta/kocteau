@@ -12,6 +12,14 @@ type WhoToFollowRailProps = {
   isAuthenticated: boolean;
 };
 
+const footerLinks = [
+  "Terms",
+  "Privacy",
+  "Cookies",
+  "Accessibility",
+  "More",
+];
+
 function useDesktopRail() {
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -50,14 +58,14 @@ export default function WhoToFollowRail({
         {isLoading ? (
           <WhoToFollowRailSkeleton showHeading={false} />
         ) : profiles.length > 0 ? (
-          <div className="border-t border-border/32">
+          <div>
             {profiles.map((profile) => {
               const primaryLabel = profile.display_name ?? `@${profile.username}`;
 
               return (
                 <div
                   key={profile.id}
-                  className="kocteau-rail-row border-b border-border/24 px-1 py-3"
+                  className="kocteau-rail-row rounded-[0.62rem] px-1 py-3"
                 >
                   <div className="flex items-start gap-2.5">
                     <PrefetchLink
@@ -100,10 +108,21 @@ export default function WhoToFollowRail({
             })}
           </div>
         ) : (
-          <div className="border-t border-border/28 px-1 py-3 text-[13px] text-muted-foreground/78">
+          <div className="px-1 py-3 text-[13px] text-muted-foreground/78">
             No writers to notice yet.
           </div>
         )}
+
+        <footer className="px-1 pt-2 text-[11px] leading-5 text-muted-foreground/52">
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+            {footerLinks.map((label) => (
+              <a key={label} href="#" className="transition-colors hover:text-muted-foreground">
+                {label}
+              </a>
+            ))}
+          </div>
+          <p>© 2026 Kocteau</p>
+        </footer>
       </div>
     </aside>
   );

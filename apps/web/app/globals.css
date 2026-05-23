@@ -249,13 +249,13 @@
   }
 
   .kocteau-feed-tabs {
-    border: 1px solid var(--kocteau-line-soft);
-    background: var(--kocteau-surface-control);
+    border: 0;
+    background: transparent;
     box-shadow: none;
   }
 
   .kocteau-feed-tab-active {
-    background: color-mix(in oklch, var(--foreground) 8%, var(--kocteau-surface-control));
+    background: color-mix(in oklch, var(--foreground) 7%, transparent);
     box-shadow: none;
   }
 
@@ -591,7 +591,6 @@
   background:
     radial-gradient(circle at 48% 50%, rgba(255, 255, 255, 0.055), transparent 30rem),
     linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.52)),
-    url("/background-auth.webp") center / cover no-repeat,
     var(--background);
 }
 
@@ -599,7 +598,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.58), transparent 42%, rgba(0, 0, 0, 0.24)),
@@ -610,7 +609,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
   opacity: 0.2;
   mix-blend-mode: screen;

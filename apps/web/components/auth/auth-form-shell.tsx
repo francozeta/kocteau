@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { ChevronLeft } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
@@ -32,6 +33,16 @@ export default function AuthFormShell({
 }: AuthFormShellProps) {
   return (
     <main className="kocteau-auth-background relative isolate flex overflow-hidden bg-background text-foreground">
+      <Image
+        src="/background-auth.webp"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0 object-cover"
+      />
+
       <Link
         href="/"
         className="absolute left-4 top-4 z-10 inline-flex h-9 items-center gap-1.5 rounded-[0.45rem] px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-white/[0.055] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 sm:left-6 sm:top-6"
@@ -40,7 +51,7 @@ export default function AuthFormShell({
         Home
       </Link>
 
-      <div className="relative z-[1] mx-auto flex min-h-full w-full items-center justify-center px-5 py-16 sm:px-8">
+      <div className="relative z-[3] mx-auto flex min-h-full w-full items-center justify-center px-5 py-16 sm:px-8">
         <div className={cn("w-full max-w-[25.75rem]", widthClassName)}>
           <div className={cn("flex flex-col gap-6", className)}>
             <FieldGroup className="gap-6">

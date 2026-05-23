@@ -114,9 +114,9 @@ export function NavUser({
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-(--radix-dropdown-menu-trigger-width) min-w-60 rounded-[0.9rem] border-border bg-popover ring-border/70"
-                side="bottom"
-                align="end"
+                className="w-[15rem] min-w-0 rounded-[0.9rem] border-sidebar-border/70 bg-[var(--kocteau-surface-control)] p-1.5 shadow-none ring-sidebar-border/60"
+                side="top"
+                align="start"
                 sideOffset={8}
               >
                 <DropdownMenuLabel className="p-0 font-normal">
