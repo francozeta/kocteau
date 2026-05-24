@@ -3,7 +3,6 @@ import FeedViewTabs from "@/components/feed-view-tabs";
 import FeedReviewList from "@/components/feed-review-list";
 import JsonLd from "@/components/json-ld";
 import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
-import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
@@ -114,8 +113,17 @@ export default async function HomePage({
       <JsonLd data={feedStructuredData} id="home-structured-data" />
       {params.welcome === "kocteau" ? <OnboardingWelcomeFromUrl /> : null}
       <div className="flex h-full min-h-0 flex-col">
-        <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:hidden">
-          {user ? <FeedViewTabs activeView={tabActiveView} fullWidth /> : null}
+        <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:mx-0 lg:max-w-none lg:space-y-4">
+          {user ? (
+            <>
+              <div className="lg:hidden">
+                <FeedViewTabs activeView={tabActiveView} fullWidth />
+              </div>
+              <div className="hidden justify-start lg:flex">
+                <FeedViewTabs activeView={tabActiveView} />
+              </div>
+            </>
+          ) : null}
 
           <div className="space-y-4">
             <FeedReviewList
@@ -125,32 +133,6 @@ export default async function HomePage({
               viewer={viewerProfile}
               starterTracks={starterTracks}
             />
-          </div>
-        </section>
-
-        <section className="hidden lg:block">
-          <div className="mx-auto w-full max-w-[76rem]">
-            <div
-              className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-center xl:gap-6"
-            >
-              <div className="min-w-0 space-y-4">
-                {user ? (
-                  <div className="flex justify-start">
-                    <FeedViewTabs activeView={tabActiveView} />
-                  </div>
-                ) : null}
-
-                <FeedReviewList
-                  view={activeView}
-                  initialPage={feedData}
-                  isAuthenticated={Boolean(user)}
-                  viewer={viewerProfile}
-                  starterTracks={starterTracks}
-                />
-              </div>
-
-              <WhoToFollowRail isAuthenticated={Boolean(user)} />
-            </div>
           </div>
         </section>
       </div>

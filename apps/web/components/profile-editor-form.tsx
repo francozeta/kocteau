@@ -2,7 +2,13 @@
 
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, LoaderCircle } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  SpinnerGapIcon,
+  VinylRecordIcon,
+} from "@phosphor-icons/react";
 import AvatarUploadTrigger from "@/components/avatar-upload-trigger";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";
@@ -429,7 +435,7 @@ export default function ProfileEditorForm({
                     />
                     {selected ? (
                       <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background">
-                        <Check className="size-3" />
+                        <CheckIcon className="size-3" weight="bold" />
                       </span>
                     ) : null}
                     <span className="sr-only">{preset.label}</span>
@@ -451,10 +457,188 @@ export default function ProfileEditorForm({
               className="gap-2"
             >
               Next
-              <ArrowRight className="size-4" />
+              <ArrowRightIcon className="size-4" weight="bold" />
             </Button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  function renderSettingsFields() {
+    const previewUrl = avatarPreview ?? createAvatarPresetDataUrl(avatarPresets[0].id, 640);
+    const showSettingsAvatarSection = settingsSection === "all" || settingsSection === "avatar";
+    const showSettingsProfileSection = settingsSection === "all" || settingsSection === "profile";
+    const showSettingsLinksSection = settingsSection === "all" || settingsSection === "links";
+    const fieldClassName =
+      "h-9 rounded-[0.58rem] border-border/18 bg-black/22 px-3 text-[13px] shadow-none placeholder:text-muted-foreground/42 focus-visible:border-border/42 focus-visible:ring-2 focus-visible:ring-ring/24";
+    const textareaClassName =
+      "min-h-24 resize-none rounded-[0.58rem] border-border/18 bg-black/22 px-3 py-2.5 text-[13px] leading-5 shadow-none placeholder:text-muted-foreground/42 focus-visible:border-border/42 focus-visible:ring-2 focus-visible:ring-ring/24";
+    const labelClassName = "text-[12px] font-medium text-foreground/82";
+
+    return (
+      <div className="space-y-6">
+        {showSettingsAvatarSection ? (
+        <section className="space-y-3">
+          <Label className={cn("justify-center", labelClassName)}>Avatar</Label>
+          <ProfileSettingsAvatarControl
+            previewUrl={previewUrl}
+            selectedPresetId={selectedPresetId}
+            isDragging={isAvatarDragging}
+            onAvatarClick={openAvatarPicker}
+            onAvatarDragEnter={handleAvatarDragEnter}
+            onAvatarDragLeave={handleAvatarDragLeave}
+            onAvatarDragOver={handleAvatarDragOver}
+            onAvatarDrop={handleAvatarDrop}
+            onPresetSelect={handlePresetSelect}
+          />
+
+          {avatarUploadErrors[0] ? (
+            <p className="text-center text-xs text-destructive">{avatarUploadErrors[0]}</p>
+          ) : null}
+        </section>
+        ) : null}
+
+        {showSettingsProfileSection ? (
+        <section className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="display-name" className={labelClassName}>
+              Display name
+            </Label>
+            <Input
+              id="display-name"
+              value={displayName}
+              onChange={(event) => {
+                setDisplayName(event.target.value);
+                setFieldErrors((current) => ({ ...current, display_name: undefined }));
+              }}
+              placeholder="Fran Cocteau"
+              disabled={saving}
+              aria-invalid={Boolean(fieldErrors.display_name)}
+              className={fieldClassName}
+            />
+            <FieldError>{fieldErrors.display_name}</FieldError>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="username" className={labelClassName}>
+              Username
+            </Label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(event) => {
+                setUsername(event.target.value);
+                setFieldErrors((current) => ({ ...current, username: undefined }));
+              }}
+              placeholder="fran_cocteau"
+              disabled={saving}
+              aria-invalid={Boolean(fieldErrors.username)}
+              className={fieldClassName}
+            />
+            <FieldError>{fieldErrors.username}</FieldError>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bio" className={labelClassName}>
+              Bio
+            </Label>
+            <Textarea
+              id="bio"
+              value={bio}
+              onChange={(event) => {
+                setBio(event.target.value);
+                setFieldErrors((current) => ({ ...current, bio: undefined }));
+              }}
+              placeholder="Taste, mood, records in rotation."
+              disabled={saving}
+              maxLength={280}
+              aria-invalid={Boolean(fieldErrors.bio)}
+              className={textareaClassName}
+            />
+            <FieldError>{fieldErrors.bio}</FieldError>
+          </div>
+        </section>
+        ) : null}
+
+        {showSettingsLinksSection ? (
+        <section className="space-y-4">
+          <p className="text-[12px] font-medium text-foreground/82">Music links</p>
+
+          <div className="space-y-2">
+            <Label htmlFor="spotify-url" className={labelClassName}>
+              Spotify URL
+            </Label>
+            <Input
+              id="spotify-url"
+              value={spotifyUrl}
+              onChange={(event) => {
+                setSpotifyUrl(event.target.value);
+                setFieldErrors((current) => ({ ...current, spotify_url: undefined }));
+              }}
+              placeholder="open.spotify.com/..."
+              disabled={saving}
+              aria-invalid={Boolean(fieldErrors.spotify_url)}
+              className={fieldClassName}
+            />
+            <FieldError>{fieldErrors.spotify_url}</FieldError>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="apple-music-url" className={labelClassName}>
+              Apple Music URL
+            </Label>
+            <Input
+              id="apple-music-url"
+              value={appleMusicUrl}
+              onChange={(event) => {
+                setAppleMusicUrl(event.target.value);
+                setFieldErrors((current) => ({ ...current, apple_music_url: undefined }));
+              }}
+              placeholder="music.apple.com/..."
+              disabled={saving}
+              aria-invalid={Boolean(fieldErrors.apple_music_url)}
+              className={fieldClassName}
+            />
+            <FieldError>{fieldErrors.apple_music_url}</FieldError>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="deezer-url" className={labelClassName}>
+              Deezer URL
+            </Label>
+            <Input
+              id="deezer-url"
+              value={deezerUrl}
+              onChange={(event) => {
+                setDeezerUrl(event.target.value);
+                setFieldErrors((current) => ({ ...current, deezer_url: undefined }));
+              }}
+              placeholder="deezer.com/..."
+              disabled={saving}
+              aria-invalid={Boolean(fieldErrors.deezer_url)}
+              className={fieldClassName}
+            />
+            <FieldError>{fieldErrors.deezer_url}</FieldError>
+          </div>
+        </section>
+        ) : null}
+
+        <Button
+          type="button"
+          onClick={onSubmit}
+          disabled={saving}
+          className="h-9 w-full rounded-[0.58rem] text-[13px] font-semibold"
+        >
+          {saving ? (
+            <>
+              <SpinnerGapIcon className="size-4 animate-spin" />
+              Saving
+            </>
+          ) : (
+            "Save profile"
+          )}
+        </Button>
       </div>
     );
   }
@@ -541,7 +725,7 @@ export default function ProfileEditorForm({
                     />
                     {selected ? (
                       <span className="absolute right-1.5 top-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-background">
-                        <Check className="size-2.5" />
+                        <CheckIcon className="size-2.5" weight="bold" />
                       </span>
                     ) : null}
                     <span className="sr-only">{preset.label}</span>
@@ -684,7 +868,7 @@ export default function ProfileEditorForm({
               disabled={saving}
               className="gap-2"
             >
-              <ArrowLeft className="size-4" />
+              <ArrowLeftIcon className="size-4" weight="bold" />
               Back
             </Button>
           ) : null}
@@ -692,7 +876,7 @@ export default function ProfileEditorForm({
           <Button type="button" onClick={onSubmit} disabled={saving}>
             {saving ? (
               <>
-                <LoaderCircle className="size-4 animate-spin" />
+                <SpinnerGapIcon className="size-4 animate-spin" />
                 Saving...
               </>
             ) : mode === "onboarding" ? (
@@ -750,8 +934,123 @@ export default function ProfileEditorForm({
           {step === 1 ? renderAvatarSelection() : renderIdentityFields()}
         </>
       ) : (
-        renderIdentityFields()
+        renderSettingsFields()
       )}
+    </div>
+  );
+}
+
+function ProfileSettingsAvatarControl({
+  previewUrl,
+  selectedPresetId,
+  isDragging,
+  onAvatarClick,
+  onAvatarDragEnter,
+  onAvatarDragLeave,
+  onAvatarDragOver,
+  onAvatarDrop,
+  onPresetSelect,
+}: {
+  previewUrl: string;
+  selectedPresetId: AvatarPresetId | null;
+  isDragging: boolean;
+  onAvatarClick: () => void;
+  onAvatarDragEnter: React.DragEventHandler<HTMLButtonElement>;
+  onAvatarDragLeave: React.DragEventHandler<HTMLButtonElement>;
+  onAvatarDragOver: React.DragEventHandler<HTMLButtonElement>;
+  onAvatarDrop: React.DragEventHandler<HTMLButtonElement>;
+  onPresetSelect: (presetId: AvatarPresetId) => void;
+}) {
+  const [isDiscPickerOpen, setIsDiscPickerOpen] = useState(false);
+
+  return (
+    <div className="relative mx-auto flex w-full max-w-[17rem] justify-center pb-12">
+      <div className="relative">
+        <button
+          type="button"
+          aria-label="Upload profile image"
+          onClick={onAvatarClick}
+          onDragEnter={onAvatarDragEnter}
+          onDragLeave={onAvatarDragLeave}
+          onDragOver={onAvatarDragOver}
+          onDrop={onAvatarDrop}
+          className={cn(
+            "group relative flex size-32 items-center justify-center rounded-full bg-black/24 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_18px_52px_rgba(0,0,0,0.32)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-white/[0.055] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/28",
+            isDragging && "bg-white/[0.07] ring-2 ring-ring/24",
+          )}
+        >
+          <span className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-background outline outline-1 outline-white/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt=""
+              className="size-full rounded-full object-cover"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full bg-black/0 transition-colors duration-150 ease-out group-hover:bg-black/12"
+            />
+          </span>
+        </button>
+
+        <button
+          type="button"
+          aria-label="Choose a Kocteau disc"
+          aria-expanded={isDiscPickerOpen}
+          onClick={() => setIsDiscPickerOpen((open) => !open)}
+          className={cn(
+            "absolute bottom-1 right-1 flex size-9 items-center justify-center rounded-full bg-foreground text-background shadow-[0_0_0_3px_var(--kocteau-surface),0_12px_32px_rgba(0,0,0,0.36)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:scale-[1.04] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+            isDiscPickerOpen && "bg-background text-foreground shadow-[0_0_0_3px_var(--kocteau-surface),inset_0_0_0_1px_rgba(255,255,255,0.14)]",
+          )}
+        >
+          <VinylRecordIcon
+            className={cn(
+              "size-[1.15rem] transition-transform duration-150 ease-out",
+              isDiscPickerOpen && "rotate-45",
+            )}
+            weight="fill"
+          />
+        </button>
+      </div>
+
+      {isDiscPickerOpen ? (
+        <div className="absolute left-1/2 top-[calc(100%-2.3rem)] z-10 w-[15.5rem] -translate-x-1/2 rounded-[0.85rem] border border-border/24 bg-[var(--kocteau-surface)] p-2 shadow-[0_18px_54px_rgba(0,0,0,0.42)]">
+          <div className="grid grid-cols-6 gap-1.5">
+            {avatarPresets.map((preset) => {
+              const selected = selectedPresetId === preset.id;
+
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  aria-label={preset.label}
+                  aria-pressed={selected}
+                  onClick={() => {
+                    onPresetSelect(preset.id);
+                    setIsDiscPickerOpen(false);
+                  }}
+                  className={cn(
+                    "relative flex aspect-square items-center justify-center rounded-[0.58rem] bg-black/20 transition-[background-color,box-shadow,transform] hover:bg-white/[0.055] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/24",
+                    selected && "bg-white/[0.075] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)]",
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={createAvatarPresetDataUrl(preset.id, 160)}
+                    alt=""
+                    className="size-7 rounded-full object-cover outline outline-1 outline-white/10"
+                  />
+                  {selected ? (
+                    <span className="absolute right-0.5 top-0.5 inline-flex size-3.5 items-center justify-center rounded-full bg-foreground text-background">
+                      <CheckIcon className="size-2.5" weight="bold" />
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

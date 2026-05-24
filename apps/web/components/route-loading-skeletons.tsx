@@ -72,7 +72,7 @@ export function ProfileHeaderSkeleton() {
   return (
     <section
       aria-hidden="true"
-      className="border-b border-border/34 pb-4 md:border-border/30 md:pb-5"
+      className="pb-4 md:pb-5"
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-start gap-4 md:gap-5">
@@ -132,7 +132,7 @@ function RecentActivityTileSkeleton({ className }: { className?: string }) {
 export function ProfileRecentActivitySkeleton() {
   return (
     <section aria-hidden="true" className="flex flex-col gap-3">
-      <div className="border-b border-border/32 pb-3 md:border-border/25">
+      <div>
         <SkeletonLine className="h-5 w-36 bg-muted-foreground/[0.15]" />
       </div>
 
@@ -143,24 +143,6 @@ export function ProfileRecentActivitySkeleton() {
             className="basis-[72%] shrink-0 sm:basis-[42%] md:basis-[31%] lg:basis-[24%] xl:basis-[20%]"
           />
         ))}
-      </div>
-    </section>
-  );
-}
-
-export function SavedReviewsSectionSkeleton() {
-  return (
-    <section
-      aria-hidden="true"
-      className="flex flex-col gap-4 border-t border-border/34 pt-8 [contain-intrinsic-size:720px] [content-visibility:auto] md:border-border/30"
-    >
-      <div className="border-b border-border/32 pb-4 md:border-border/25">
-        <SkeletonLine className="h-3 w-14 bg-muted-foreground/[0.09]" />
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <ReviewCardSkeleton />
-        <ReviewCardSkeleton />
       </div>
     </section>
   );
@@ -177,7 +159,7 @@ export function ProfilePageLoadingSkeleton() {
       <div className="flex flex-col gap-5">
         <ProfileRecentActivitySkeleton />
         <section className="flex flex-col gap-4 pt-2">
-          <div className="border-b border-border/32 pb-3 md:border-border/25">
+          <div>
             <SkeletonLine className="h-5 w-20 bg-muted-foreground/[0.15]" />
           </div>
           <div className="flex flex-col gap-4">

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import ProfilePageHeader from "@/components/profile-page-header";
 import ProfileRecentReviewsSection from "@/components/profile-recent-reviews-section";
-import { SavedReviewsSectionSkeleton } from "@/components/route-loading-skeletons";
-import SavedReviewsList from "@/components/saved-reviews-list";
 import type { ReviewCardAuthor } from "@/components/review-card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ProfileReviewCard } from "@/components/review-route-cards-server";
@@ -20,7 +17,6 @@ import {
   type ProfileReview,
 } from "@/lib/queries/profiles";
 import { getViewerFollowsProfile } from "@/lib/queries/profile-follows";
-import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
 import { buildProfilePageJsonLd } from "@/lib/structured-data";
 
 function applyViewerStateToReview(
@@ -118,7 +114,7 @@ export default async function UserProfilePage({
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
+    <div className="w-full space-y-4 sm:space-y-5">
       <JsonLd
         data={buildProfilePageJsonLd({
           profile,
@@ -157,8 +153,8 @@ export default async function UserProfilePage({
       <div className="space-y-5">
         {hydratedPinnedReview ? (
           <section className="space-y-3">
-            <div className="border-b border-border/32 pb-3 md:border-border/25">
-              <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            <div>
+              <h2 className="text-sm font-semibold tracking-[-0.01em] text-foreground/92">
                 Pinned
               </h2>
             </div>
@@ -180,7 +176,7 @@ export default async function UserProfilePage({
             <ProfileRecentReviewsSection reviews={hydratedReviews} />
 
             <div className="space-y-4 pt-2">
-              <div className="border-b border-border/32 pb-3 md:border-border/25">
+              <div>
                 <h2 className="text-base font-semibold tracking-[-0.01em] text-foreground">
                   Reviews
                 </h2>
@@ -209,50 +205,7 @@ export default async function UserProfilePage({
               </EmptyHeader>
             </Empty>
         ) : null}
-
-        {isOwnProfile && user?.id ? (
-          <Suspense fallback={<SavedReviewsSectionFallback />}>
-            <SavedReviewsSection userId={user.id} isAuthenticated={Boolean(user)} />
-          </Suspense>
-        ) : null}
       </div>
     </div>
   );
-}
-
-async function SavedReviewsSection({
-  userId,
-  isAuthenticated,
-}: {
-  userId: string;
-  isAuthenticated: boolean;
-}) {
-  const { reviews: savedReviews } = await getViewerSavedReviewsBundle(userId);
-
-  return (
-    <section className="space-y-4 border-t border-border/34 pt-8 [contain-intrinsic-size:720px] [content-visibility:auto] md:border-border/30">
-      <div className="border-b border-border/32 pb-4 md:border-border/25">
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Saved
-        </h2>
-      </div>
-
-      <SavedReviewsList
-        initialReviews={savedReviews}
-        userId={userId}
-        isAuthenticated={isAuthenticated}
-        emptyState={
-        <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
-          <EmptyHeader>
-            <EmptyTitle>No saved reviews</EmptyTitle>
-          </EmptyHeader>
-        </Empty>
-        }
-      />
-    </section>
-  );
-}
-
-function SavedReviewsSectionFallback() {
-  return <SavedReviewsSectionSkeleton />;
 }

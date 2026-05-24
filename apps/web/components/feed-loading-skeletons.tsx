@@ -230,7 +230,7 @@ export default function FeedLoadingSkeleton() {
       aria-label="Loading feed"
       className="flex h-full min-h-0 flex-col"
     >
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6 lg:hidden">
+      <section className="mx-auto flex w-full max-w-5xl flex-col gap-5 sm:gap-6 lg:mx-0 lg:max-w-none lg:gap-4">
         <div className="flex flex-col gap-2.5">
           <div className="min-w-0">
             <FeedSearchSkeleton />
@@ -241,28 +241,6 @@ export default function FeedLoadingSkeleton() {
         <div className="flex flex-col gap-4">
           <FeedStarterLayerSkeleton />
           <FeedReviewStackSkeleton />
-        </div>
-      </section>
-
-      <section className="hidden lg:block">
-        <div className="mx-auto w-full max-w-[76rem]">
-          <div className="mx-auto grid w-full gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-center xl:gap-6">
-            <div className="flex min-w-0 flex-col gap-4">
-              <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                <div className="min-w-0">
-                  <FeedSearchSkeleton />
-                </div>
-                <div className="justify-self-start lg:justify-self-end">
-                  <FeedControlsSkeleton />
-                </div>
-              </div>
-
-              <FeedStarterLayerSkeleton />
-              <FeedReviewStackSkeleton />
-            </div>
-
-            <WhoToFollowRailSkeleton />
-          </div>
         </div>
       </section>
     </div>

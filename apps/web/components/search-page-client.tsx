@@ -387,9 +387,8 @@ export default function SearchPageClient({
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl lg:max-w-[76rem]">
-      <div className="grid w-full gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-center xl:gap-6">
-        <div className="min-w-0 space-y-5 sm:space-y-6">
+    <div className="mx-auto w-full max-w-5xl lg:mx-0 lg:max-w-none">
+      <div className="min-w-0 space-y-5 sm:space-y-6">
           <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div className="relative min-w-0">
               <Search className="pointer-events-none absolute top-1/2 left-3.5 z-10 size-4 -translate-y-1/2 text-muted-foreground/78" />
@@ -646,9 +645,6 @@ export default function SearchPageClient({
               )}
             </section>
           )}
-        </div>
-
-        <div className="hidden lg:block" aria-hidden="true" />
       </div>
     </div>
   );
