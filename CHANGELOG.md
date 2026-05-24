@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.3.1](https://github.com/francozeta/kocteau/compare/v0.3.0...v0.3.1) (2026-05-24)
+
+
+### Features
+
+* add v0 creator perks ([4ee3811](https://github.com/francozeta/kocteau/commit/4ee38116cefb5994491016b3b745cd69f72d6b7d))
+* **web:** add brand og image ([266f960](https://github.com/francozeta/kocteau/commit/266f96091e51ca0af550224b492a8a6cae5df845))
+* **web:** add help legal pages ([000878e](https://github.com/francozeta/kocteau/commit/000878ea481bce408c7e23116ceb51240197381e))
+* **web:** add help legal pages ([767164c](https://github.com/francozeta/kocteau/commit/767164c52a8a217ec4435950966e41f14f850c8e))
+* **web:** add help pages and public changelog automation ([a07dfc3](https://github.com/francozeta/kocteau/commit/a07dfc30f49db5e73d70da845952496b728a4124))
+* **web:** add public changelog automation ([2fd1524](https://github.com/francozeta/kocteau/commit/2fd152480f74dd4d3223a8ab48b26b84acebee5a))
+* **web:** add v0 creator perks ([cd2b44f](https://github.com/francozeta/kocteau/commit/cd2b44f89e5f2b67f6323f69176cd8e9a0613eb5))
+* **web:** experiment with feed review prompt ([cf67bcc](https://github.com/francozeta/kocteau/commit/cf67bccfebe1c7965018b01ce0615d5b91227077))
+* **web:** polish sidebar motion and icons ([459948f](https://github.com/francozeta/kocteau/commit/459948f5b2ab269279bb1e6611a63364cc255e87))
+* **web:** polish sidebar navigation ([72cc5c9](https://github.com/francozeta/kocteau/commit/72cc5c9f1a0f29ee1c67db1bd8c61fd9af5e028a))
+* **web:** preserve guest review drafts ([30e620f](https://github.com/francozeta/kocteau/commit/30e620f8fdba00a9a1085da573f2d472b8523d78))
+* **web:** preserve guest review drafts ([d5b1f5b](https://github.com/francozeta/kocteau/commit/d5b1f5bcf7a509526553c0fae53d1bb819bac9a1))
+* **web:** refine profile settings and main rail ([7eccce3](https://github.com/francozeta/kocteau/commit/7eccce3a72bf032eff00de662a9334405bc24137))
+* **web:** refine profile settings and main rail ([28a2243](https://github.com/francozeta/kocteau/commit/28a22432581ff7a7be2e8efa42947d9d7145e363))
+
+
+### Bug Fixes
+
+* **ci:** quote public changelog workflow labels ([f4dc8d5](https://github.com/francozeta/kocteau/commit/f4dc8d597df18321b3f7f81918e3c8c592265991))
+* **ci:** remove paid agent changelog prompt ([2302535](https://github.com/francozeta/kocteau/commit/2302535df35fd1dd30f92250d02659175b28fcbc))
+* **web:** center sidebar review action ([9366c82](https://github.com/francozeta/kocteau/commit/9366c826a065f55974c2032008dabf4d75973a79))
+* **web:** center sidebar review action ([8c393c8](https://github.com/francozeta/kocteau/commit/8c393c8596daffc2e6da67a830ec2866f47b8deb))
+* **web:** hide guest feed tabs ([f63d570](https://github.com/francozeta/kocteau/commit/f63d570e93db8b037b69c7577346e3f40aa314a6))
+* **web:** refine sidebar polish ([74ebf9f](https://github.com/francozeta/kocteau/commit/74ebf9f4c6108106498baf1f065c22928118e3fe))
+* **web:** remove duplicate feed review launcher ([10ee71a](https://github.com/francozeta/kocteau/commit/10ee71a2f1067b9eb6786f9ce948d34b071cfbb2))
+* **web:** round mobile review action ([dc2acff](https://github.com/francozeta/kocteau/commit/dc2acff83099545b244f6e9cdd6c8bec81510a21))
+* **web:** simplify guest discovery ([325a3b4](https://github.com/francozeta/kocteau/commit/325a3b4983b388470577e980fc240ebb2ed77dce))
+
 ## [0.3.0](https://github.com/francozeta/kocteau/compare/v0.2.0...v0.3.0) (2026-05-18)
 
 
