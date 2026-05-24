@@ -193,7 +193,7 @@ export default function UserAvatar({
           fetchPriority={fetchPriority}
           unoptimized={shouldBypassOptimization(resolvedAvatarUrl)}
           className={cn(
-            "relative z-[1] object-cover",
+            "z-[1] object-cover",
             shapeClasses.image,
             imageClassName,
           )}

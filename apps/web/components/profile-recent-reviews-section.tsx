@@ -1,16 +1,8 @@
 "use client";
 
 import { Star } from "lucide-react";
-import EntityCoverImage from "@/components/entity-cover-image";
-import PrefetchLink from "@/components/prefetch-link";
+import TrackTile from "@/components/track-tile";
 import type { ReviewCardData, ReviewCardEntity } from "@/components/review-card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 type ProfileRecentReview = ReviewCardData & {
   entities: ReviewCardEntity | null;
@@ -21,61 +13,25 @@ type ProfileRecentReviewsSectionProps = {
   variant?: "auto" | "carousel" | "cards";
 };
 
-function RecentReviewTile({
-  review,
-  compact = false,
-}: {
-  review: ProfileRecentReview;
-  compact?: boolean;
-}) {
+function RecentReviewTile({ review }: { review: ProfileRecentReview }) {
   const entity = review.entities;
   const entityId = entity?.id ?? null;
 
-  const tile = (
-    <article className="group min-w-0">
-      <div className="relative aspect-square overflow-hidden rounded-lg border border-border/34 bg-card/32 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] transition-colors group-hover:border-border/52 group-hover:bg-card/46 md:border-border/24 md:bg-card/24 md:group-hover:border-border/40 md:group-hover:bg-card/34">
-        <EntityCoverImage
-          src={entity?.cover_url}
-          alt={entity?.title ?? "Reviewed track"}
-          sizes={compact ? "45vw" : "(min-width: 1280px) 210px, (min-width: 768px) 28vw, 72vw"}
-          quality={84}
-          variant="card"
-          className="absolute inset-0 bg-muted"
-          imageClassName="transition-transform duration-500 group-hover:scale-[1.04]"
-          iconClassName="size-7"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/18 to-black/6" />
-        <div className="absolute top-2 right-2 inline-flex items-center gap-1.5 rounded-lg border border-white/12 bg-black/48 px-2 py-1 text-xs font-semibold text-white backdrop-blur-md">
+  return (
+    <TrackTile
+      href={entityId ? `/track/${entityId}` : undefined}
+      queryWarmup={entityId ? { kind: "track", id: entityId } : undefined}
+      title={entity?.title ?? "Untitled track"}
+      artistName={entity?.artist_name}
+      coverUrl={entity?.cover_url}
+      sizes="(min-width: 1280px) 148px, (min-width: 768px) 22vw, 45vw"
+      badge={
+        <>
           <Star className="size-3 fill-amber-400 text-amber-400" />
           {review.rating.toFixed(1)}
-        </div>
-      </div>
-
-      <div className="mt-2 min-w-0 space-y-0.5 px-0.5">
-        <p className="line-clamp-1 text-sm font-semibold text-foreground">
-          {entity?.title ?? "Untitled track"}
-        </p>
-        <p className="line-clamp-1 text-xs text-muted-foreground">
-          {entity?.artist_name ?? "Unknown artist"}
-        </p>
-      </div>
-    </article>
-  );
-
-  if (!entityId) {
-    return tile;
-  }
-
-  const href = `/track/${entityId}`;
-
-  return (
-    <PrefetchLink
-      href={href}
-      queryWarmup={{ kind: "track", id: entityId }}
-      className="block outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-    >
-      {tile}
-    </PrefetchLink>
+        </>
+      }
+    />
   );
 }
 
@@ -101,31 +57,22 @@ export default function ProfileRecentReviewsSection({
       {shouldUseCards ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {recentReviews.map((review) => (
-            <RecentReviewTile key={review.id} review={review} compact />
+            <RecentReviewTile key={review.id} review={review} />
           ))}
         </div>
       ) : (
-        <Carousel
-          opts={{
-            align: "start",
-            dragFree: true,
-            containScroll: "trimSnaps",
-          }}
-          className="group/profile-reviews"
-        >
-          <CarouselContent className="-ml-3 md:-ml-4">
+        <div className="-mx-1 overflow-hidden">
+          <div className="scroll-mask-r scroll-mask-r-from-[calc(100%-3rem)] no-scrollbar flex gap-4 overflow-x-auto overscroll-x-contain px-1 pb-1">
             {recentReviews.map((review) => (
-              <CarouselItem
+              <div
                 key={review.id}
-                className="basis-[72%] pl-3 sm:basis-[42%] md:basis-[31%] lg:basis-[24%] xl:basis-[20%] md:pl-4"
+                className="w-[8.5rem] shrink-0 sm:w-[9rem] lg:w-[8.35rem] xl:w-[8.6rem]"
               >
                 <RecentReviewTile review={review} />
-              </CarouselItem>
+              </div>
             ))}
-          </CarouselContent>
-          <CarouselPrevious className="hidden border-border/34 bg-background/88 text-foreground shadow-none backdrop-blur-md hover:bg-muted/40 disabled:opacity-0 md:inline-flex md:-left-4" />
-          <CarouselNext className="hidden border-border/34 bg-background/88 text-foreground shadow-none backdrop-blur-md hover:bg-muted/40 disabled:opacity-0 md:inline-flex md:-right-4" />
-        </Carousel>
+          </div>
+        </div>
       )}
     </section>
   );

@@ -198,8 +198,8 @@ export function WhoToFollowRailSkeleton({
       {showHeading ? (
         <SkeletonLine className="h-3 w-28 bg-muted-foreground/[0.09]" />
       ) : null}
-      <div className="border-t border-border/32">
-        {Array.from({ length: 4 }).map((_, index) => (
+      <div>
+        {Array.from({ length: 3 }).map((_, index) => (
           <RailProfileSkeleton key={`rail-profile-${index}`} index={index} />
         ))}
       </div>

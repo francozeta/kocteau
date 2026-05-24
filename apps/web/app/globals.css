@@ -4,6 +4,176 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@property --scroll-mask-t-from {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+@property --scroll-mask-b-from {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+@property --scroll-mask-l-from {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+@property --scroll-mask-r-from {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+@keyframes scroll-mask-y-scroll {
+  0% {
+    --scroll-mask-t-from: 100%;
+  }
+
+  10%,
+  100% {
+    --scroll-mask-t-from: var(--scroll-mask-fade-from-t, 100%);
+  }
+
+  0%,
+  90% {
+    --scroll-mask-b-from: var(--scroll-mask-fade-from-b, 100%);
+  }
+
+  100% {
+    --scroll-mask-b-from: 100%;
+  }
+}
+
+@keyframes scroll-mask-x-scroll {
+  0% {
+    --scroll-mask-l-from: 100%;
+  }
+
+  10%,
+  100% {
+    --scroll-mask-l-from: var(--scroll-mask-fade-from-l, 100%);
+  }
+
+  0%,
+  90% {
+    --scroll-mask-r-from: var(--scroll-mask-fade-from-r, 100%);
+  }
+
+  100% {
+    --scroll-mask-r-from: 100%;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  :where([class^="scroll-mask-"], [class*=" scroll-mask-"]) {
+    --scroll-mask-t: linear-gradient(
+      to top,
+      black,
+      black var(--scroll-mask-t-from),
+      transparent
+    );
+    --scroll-mask-b: linear-gradient(
+      to bottom,
+      black,
+      black var(--scroll-mask-b-from),
+      transparent
+    );
+    --scroll-mask-l: linear-gradient(
+      to left,
+      black,
+      black var(--scroll-mask-l-from),
+      transparent
+    );
+    --scroll-mask-r: linear-gradient(
+      to right,
+      black,
+      black var(--scroll-mask-r-from),
+      transparent
+    );
+    mask-image:
+      var(--scroll-mask-t), var(--scroll-mask-b), var(--scroll-mask-l),
+      var(--scroll-mask-r);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
+    animation:
+      scroll-mask-y-scroll linear,
+      scroll-mask-x-scroll linear;
+    animation-timeline: scroll(self block), scroll(self inline);
+  }
+}
+
+@utility scroll-mask-t {
+  --scroll-mask-fade-from-t: 80%;
+}
+
+@utility scroll-mask-t-from-* {
+  --scroll-mask-fade-from-t: --spacing(--value(integer));
+  --scroll-mask-fade-from-t: --value(percentage);
+  --scroll-mask-fade-from-t: --value([length], [percentage]);
+}
+
+@utility scroll-mask-b {
+  --scroll-mask-fade-from-b: 80%;
+}
+
+@utility scroll-mask-b-from-* {
+  --scroll-mask-fade-from-b: --spacing(--value(integer));
+  --scroll-mask-fade-from-b: --value(percentage);
+  --scroll-mask-fade-from-b: --value([length], [percentage]);
+}
+
+@utility scroll-mask-y {
+  --scroll-mask-fade-from-t: 80%;
+  --scroll-mask-fade-from-b: 80%;
+}
+
+@utility scroll-mask-y-from-* {
+  --scroll-mask-fade-from-t: --spacing(--value(integer));
+  --scroll-mask-fade-from-t: --value(percentage);
+  --scroll-mask-fade-from-t: --value([length], [percentage]);
+  --scroll-mask-fade-from-b: --spacing(--value(integer));
+  --scroll-mask-fade-from-b: --value(percentage);
+  --scroll-mask-fade-from-b: --value([length], [percentage]);
+}
+
+@utility scroll-mask-l {
+  --scroll-mask-fade-from-l: 80%;
+}
+
+@utility scroll-mask-l-from-* {
+  --scroll-mask-fade-from-l: --spacing(--value(integer));
+  --scroll-mask-fade-from-l: --value(percentage);
+  --scroll-mask-fade-from-l: --value([length], [percentage]);
+}
+
+@utility scroll-mask-r {
+  --scroll-mask-fade-from-r: 80%;
+}
+
+@utility scroll-mask-r-from-* {
+  --scroll-mask-fade-from-r: --spacing(--value(integer));
+  --scroll-mask-fade-from-r: --value(percentage);
+  --scroll-mask-fade-from-r: --value([length], [percentage]);
+}
+
+@utility scroll-mask-x {
+  --scroll-mask-fade-from-l: 80%;
+  --scroll-mask-fade-from-r: 80%;
+}
+
+@utility scroll-mask-x-from-* {
+  --scroll-mask-fade-from-l: --spacing(--value(integer));
+  --scroll-mask-fade-from-l: --value(percentage);
+  --scroll-mask-fade-from-l: --value([length], [percentage]);
+  --scroll-mask-fade-from-r: --spacing(--value(integer));
+  --scroll-mask-fade-from-r: --value(percentage);
+  --scroll-mask-fade-from-r: --value([length], [percentage]);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -225,6 +395,14 @@
 }
 
 @layer components {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   .kocteau-app-frame {
     border: 1px solid transparent;
     background: transparent;
@@ -593,10 +771,7 @@
   height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
-  background:
-    radial-gradient(circle at 48% 50%, rgba(255, 255, 255, 0.055), transparent 30rem),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.52)),
-    var(--background);
+  background: #050505;
 }
 
 .kocteau-auth-background::before {
@@ -606,8 +781,9 @@
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.58), transparent 42%, rgba(0, 0, 0, 0.24)),
-    radial-gradient(circle at 50% 52%, transparent 0 13rem, rgba(0, 0, 0, 0.22) 31rem);
+    radial-gradient(circle at 50% 47%, rgba(255, 255, 255, 0.075), transparent 18rem),
+    radial-gradient(circle at 50% 52%, transparent 0 12rem, rgba(0, 0, 0, 0.22) 31rem),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.48));
 }
 
 .kocteau-auth-background::after {
@@ -616,10 +792,9 @@
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.2;
-  mix-blend-mode: screen;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.55'/%3E%3C/svg%3E");
-  background-size: 140px 140px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 24%, rgba(0, 0, 0, 0.34)),
+    radial-gradient(circle at 50% 50%, transparent 0 18rem, rgba(0, 0, 0, 0.36) 42rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
