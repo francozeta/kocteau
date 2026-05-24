@@ -92,7 +92,7 @@ export default function ProfileRecentReviewsSection({
 
   return (
     <section className="space-y-3">
-      <div className="border-b border-border/32 pb-3 md:border-border/25">
+      <div>
         <h2 className="text-base font-semibold tracking-[-0.01em] text-foreground">
           Recent Activity
         </h2>

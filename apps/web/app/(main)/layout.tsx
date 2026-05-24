@@ -5,6 +5,7 @@ import AppSidebar from "@/components/app-sidebar";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/route-header-context";
+import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentOnboardingState, getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -49,7 +50,12 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             <div className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]">
               <Header profile={safeProfile} />
               <main className="mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-y-auto lg:px-7 lg:pt-3 lg:pb-6 xl:px-8">
-                {children}
+                <div className="mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:items-start lg:justify-center xl:gap-6">
+                  <div className="min-w-0">
+                    {children}
+                  </div>
+                  <WhoToFollowRail isAuthenticated={Boolean(safeProfile)} />
+                </div>
               </main>
             </div>
             <MobileBottomBar profile={safeProfile} />

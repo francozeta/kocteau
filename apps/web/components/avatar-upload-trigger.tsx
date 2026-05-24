@@ -1,7 +1,7 @@
 "use client";
 
 import type { DragEventHandler } from "react";
-import { Camera, CircleUserRoundIcon } from "lucide-react";
+import { CameraIcon, UserCircleIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 type AvatarUploadTriggerProps = {
@@ -55,9 +55,8 @@ export default function AvatarUploadTrigger({
       type="button"
       aria-label={previewUrl ? "Change image" : "Upload image"}
       className={cn(
-        "group relative inline-flex items-center justify-center overflow-hidden rounded-full border border-input border-dashed bg-background outline-none transition-colors hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
-        previewUrl && "border-transparent bg-transparent",
-        isDragging && "border-foreground/40 bg-accent/50",
+        "group relative inline-flex items-center justify-center overflow-hidden rounded-full border border-white/10 bg-black/24 p-1 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_16px_42px_rgba(0,0,0,0.24)] transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out hover:border-white/16 hover:bg-white/[0.055] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/28",
+        isDragging && "border-foreground/38 bg-white/[0.07] ring-2 ring-ring/24",
         scale.button,
       )}
       data-dragging={isDragging || undefined}
@@ -72,19 +71,22 @@ export default function AvatarUploadTrigger({
         <img
           src={previewUrl}
           alt={alt}
-          className="size-full object-cover"
+          className="size-full rounded-full object-cover"
         />
       ) : (
-        <CircleUserRoundIcon className={cn("text-muted-foreground/70", scale.icon)} />
+        <UserCircleIcon
+          className={cn("text-muted-foreground/70", scale.icon)}
+          weight="regular"
+        />
       )}
 
       <span
         className={cn(
-          "absolute right-0 bottom-0 inline-flex items-center justify-center rounded-full border border-background/80 bg-background/92 text-muted-foreground shadow-sm transition-colors group-hover:text-foreground",
+          "absolute bottom-0 right-0 inline-flex items-center justify-center rounded-full bg-foreground text-background shadow-[0_0_0_3px_var(--kocteau-surface),0_10px_28px_rgba(0,0,0,0.26)] transition-transform duration-150 ease-out group-hover:scale-[1.04]",
           scale.badge,
         )}
       >
-        <Camera className={scale.badgeIcon} />
+        <CameraIcon className={scale.badgeIcon} weight="bold" />
       </span>
     </button>
   );
