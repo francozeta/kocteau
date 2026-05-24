@@ -30,10 +30,6 @@ export async function getStarterTracks({
   viewerId: string | null | undefined;
   limit?: number;
 }): Promise<StarterTrack[]> {
-  if (!viewerId) {
-    return [];
-  }
-
   return measureServerTask(
     "getStarterTracks",
     async () => {
@@ -58,6 +54,10 @@ export async function getStarterTracks({
       );
 
       if (providerIds.length === 0) {
+        return tracks.slice(0, requestedLimit);
+      }
+
+      if (!viewerId) {
         return tracks.slice(0, requestedLimit);
       }
 

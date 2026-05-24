@@ -125,7 +125,7 @@ export default function ProfileHeroAvatar({
           priority={priority}
           unoptimized={isSvgAsset(resolvedAvatarUrl)}
           sizes="(max-width: 640px) 96px, 112px"
-          className={cn("relative z-[1] object-cover", imageClassName)}
+          className={cn("z-[1] object-cover", imageClassName)}
         />
       ) : null}
 

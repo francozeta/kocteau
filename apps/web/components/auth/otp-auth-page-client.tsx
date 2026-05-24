@@ -383,7 +383,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
                   setFieldErrors((current) => ({ ...current, email: undefined }));
                   setMessage(null);
                 }}
-                className="h-11 rounded-[0.52rem] border-white/10 bg-white/[0.055] px-4 text-sm shadow-[0_0_0_1px_rgba(0,0,0,0.24)] placeholder:text-muted-foreground/58 focus-visible:border-white/24 focus-visible:bg-white/[0.075] focus-visible:ring-white/18"
+                className="h-11 rounded-[0.52rem] border-white/12 bg-[var(--kocteau-surface)] px-4 text-sm shadow-[0_0_0_1px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,255,255,0.035)] placeholder:text-muted-foreground/52 focus-visible:border-white/26 focus-visible:bg-[var(--kocteau-surface-raised)] focus-visible:ring-white/16"
                 aria-invalid={Boolean(fieldErrors.email)}
                 autoComplete="email"
                 autoFocus
@@ -438,7 +438,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className="h-11 min-w-0 flex-1 !rounded-[0.48rem] !border border-white/10 bg-white/[0.035] text-lg font-medium shadow-[0_0_0_1px_rgba(0,0,0,0.2)] first:!rounded-[0.48rem] last:!rounded-[0.48rem] data-[active=true]:border-white/55 data-[active=true]:bg-white/[0.06] data-[active=true]:ring-2 data-[active=true]:ring-white/16 sm:h-12"
+                      className="h-11 min-w-0 flex-1 !rounded-[0.48rem] !border border-white/12 bg-[var(--kocteau-surface)] text-lg font-medium shadow-[0_0_0_1px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.03)] first:!rounded-[0.48rem] last:!rounded-[0.48rem] data-[active=true]:border-white/50 data-[active=true]:bg-[var(--kocteau-surface-raised)] data-[active=true]:ring-2 data-[active=true]:ring-white/16 sm:h-12"
                     />
                   ))}
                 </InputOTPGroup>

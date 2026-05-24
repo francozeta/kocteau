@@ -7,6 +7,7 @@ import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/route-header-context";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentOnboardingState, getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
+import { getStarterTracks } from "@/lib/queries/starter";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
@@ -26,6 +27,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   if (user && onboardingState && !onboardingState.tasteOnboarded) {
     redirect("/onboarding/taste");
   }
+
+  const starterTracks = await getStarterTracks({ viewerId: user?.id, limit: 6 });
 
   return (
     <ReactQueryProvider>
@@ -49,14 +52,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             <GlobalShortcuts isAuthenticated={Boolean(safeProfile)} />
             <div className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]">
               <Header profile={safeProfile} />
-              <main className="mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-y-auto lg:px-7 lg:pt-3 lg:pb-6 xl:px-8">
-                <div className="mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:grid-cols-[minmax(0,44rem)_16rem] lg:items-start lg:justify-center xl:gap-6">
-                  <div className="min-w-0">
+              <div className="mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-0 lg:py-0">
+                <div className="mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:h-full lg:grid-cols-[minmax(0,44rem)_16rem] lg:items-stretch lg:justify-center lg:px-7 xl:gap-6 xl:px-8">
+                  <main className="no-scrollbar min-w-0 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1">
                     {children}
-                  </div>
-                  <WhoToFollowRail isAuthenticated={Boolean(safeProfile)} />
+                  </main>
+                  <WhoToFollowRail
+                    isAuthenticated={Boolean(safeProfile)}
+                    starterTracks={starterTracks}
+                  />
                 </div>
-              </main>
+              </div>
             </div>
             <MobileBottomBar profile={safeProfile} />
           </RouteHeaderProvider>

@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import type { ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState, type ReactNode } from "react";
 import { ChevronLeft } from "lucide-react";
 import BrandLogo from "@/components/brand-logo";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+
+const DitheringShader = dynamic(
+  () => import("@paper-design/shaders-react").then((mod) => mod.Dithering),
+  {
+    ssr: false,
+  },
+);
 
 type AuthFormShellProps = {
   title: string;
@@ -19,6 +26,44 @@ type AuthFormShellProps = {
   className?: string;
   widthClassName?: string;
 };
+
+function AuthDitheringBackground() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPrefersReducedMotion(query.matches);
+
+    sync();
+    query.addEventListener("change", sync);
+
+    return () => {
+      query.removeEventListener("change", sync);
+    };
+  }, []);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-[#050505]">
+      <DitheringShader
+        aria-hidden="true"
+        colorBack="#050505"
+        colorFront="#2b2b2b"
+        fit="cover"
+        height="100%"
+        maxPixelCount={1_600_000}
+        minPixelRatio={1}
+        rotation={0}
+        scale={0.82}
+        shape="warp"
+        size={2}
+        speed={prefersReducedMotion ? 0 : 0.14}
+        style={{ height: "100%", width: "100%" }}
+        type="4x4"
+        width="100%"
+      />
+    </div>
+  );
+}
 
 export default function AuthFormShell({
   title,
@@ -33,15 +78,7 @@ export default function AuthFormShell({
 }: AuthFormShellProps) {
   return (
     <main className="kocteau-auth-background relative isolate flex overflow-hidden bg-background text-foreground">
-      <Image
-        src="/background-auth.webp"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 object-cover"
-      />
+      <AuthDitheringBackground />
 
       <Link
         href="/"
