@@ -30,7 +30,7 @@ jobs:
 
       - name: Checkout release contents
         if: ${{ steps.release-please.outputs.release_created == 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -41,7 +41,7 @@ jobs:
       - name: Open public changelog draft PR
         if: ${{ steps.release-please.outputs.release_created == 'true' }}
         id: public-changelog-pr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: automation/public-changelog-${{ steps.release-please.outputs.tag_name }}
           commit-message: "docs(web): draft public changelog for ${{ steps.release-please.outputs.tag_name }}"
