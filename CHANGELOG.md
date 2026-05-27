@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.2](https://github.com/francozeta/kocteau/compare/v0.3.1...v0.3.2) (2026-05-27)
+
+
+### Features
+
+* **web:** add block track carousels and icon aliases ([cd331e2](https://github.com/francozeta/kocteau/commit/cd331e2b644e17ed7e8ec576305dfb1b3091300d))
+* **web:** add block track carousels and icon aliases ([429fe74](https://github.com/francozeta/kocteau/commit/429fe74592ec7ef16e3aedfe4e3066f4e83dded1))
+* **web:** improve public review discoverability ([afb218a](https://github.com/francozeta/kocteau/commit/afb218afff2334bf51cdcf55495d472826157022))
+* **web:** improve public review discoverability ([7857a78](https://github.com/francozeta/kocteau/commit/7857a78a04e2a6c4aec7e6994dd4066b79147469))
+* **web:** polish auth backdrop and editorial rail ([ff9d282](https://github.com/francozeta/kocteau/commit/ff9d28265736bac59376c891126d07f62eb37239))
+* **web:** polish auth backdrop and editorial rail ([f5a368c](https://github.com/francozeta/kocteau/commit/f5a368cd974276c9f3f1a6e15c2dbde2db1143f1))
+
+
+### Bug Fixes
+
+* **web:** refine track carousel controls ([af27eb7](https://github.com/francozeta/kocteau/commit/af27eb71a9ec71fdbd8c47319a88efc0f3c8e931))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.1 ([529c959](https://github.com/francozeta/kocteau/commit/529c959d80e76a4a0a2d985135f7a4a8471b8eb6))
+* **web:** draft public changelog for v0.3.1 ([367e98d](https://github.com/francozeta/kocteau/commit/367e98d936992734b3ec68473ad333d0eb2c8fad))
+
 ## [0.3.1](https://github.com/francozeta/kocteau/compare/v0.3.0...v0.3.1) (2026-05-24)
 
 
