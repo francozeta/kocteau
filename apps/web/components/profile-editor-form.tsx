@@ -8,7 +8,7 @@ import {
   CheckIcon,
   SpinnerGapIcon,
   VinylRecordIcon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import AvatarUploadTrigger from "@/components/avatar-upload-trigger";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";

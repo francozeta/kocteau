@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { Star } from "lucide-react";
+import { Star } from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import EntityCoverImage from "@/components/entity-cover-image";
 import ReviewCardBody from "@/components/review-card-body";

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, Disc3 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Disc3 } from "@/components/ui/icons";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PrimaryGrowButton } from "@/components/ui/grow-button";

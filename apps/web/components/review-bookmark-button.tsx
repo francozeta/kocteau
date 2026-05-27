@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
-import { Bookmark } from "lucide-react";
+import { Bookmark } from "@/components/ui/icons";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";

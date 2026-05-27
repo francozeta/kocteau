@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Music2 } from "lucide-react";
+import { Music2 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 type EntityCoverVariant = "thumbnail" | "card" | "hero";

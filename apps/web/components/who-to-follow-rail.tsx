@@ -6,6 +6,7 @@ import FollowProfileButton from "@/components/follow-profile-button";
 import { WhoToFollowRailSkeleton } from "@/components/feed-loading-skeletons";
 import NewReviewDialog from "@/components/new-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
+import TrackCarousel from "@/components/track-carousel";
 import TrackTile from "@/components/track-tile";
 import UserAvatar from "@/components/user-avatar";
 import { helpFooterLinks } from "@/lib/help";
@@ -159,22 +160,26 @@ export default function WhoToFollowRail({
         </section>
 
         {visibleStarterTracks.length > 0 ? (
-          <section className="mt-6 min-h-[12.25rem] space-y-3 overflow-hidden" aria-label="Starter picks">
+          <section className="mt-6 min-h-[12.25rem] space-y-3" aria-label="Starter picks">
             <p className="px-1 text-[12px] font-medium leading-none text-muted-foreground/70">
               Starter picks
             </p>
-            <div className="-mx-1 overflow-hidden">
-              <div className="scroll-mask-r scroll-mask-r-from-[calc(100%-1.25rem)] no-scrollbar flex gap-3 overflow-x-auto overscroll-x-contain px-1 pb-1">
-                {visibleStarterTracks.map((track) => (
-                  <div key={track.id} className="w-[6.35rem] shrink-0">
-                    <StarterPickReviewTrigger
-                      track={track}
-                      isAuthenticated={isAuthenticated}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <TrackCarousel
+              ariaLabel="Starter picks"
+              compactControls
+              contentClassName="gap-3"
+              controlClassName="[--kocteau-carousel-cover-size:6.35rem]"
+              fadeClassName="kocteau-carousel-mask-r-from-tight"
+              itemClassName="basis-[6.35rem]"
+            >
+              {visibleStarterTracks.map((track) => (
+                <StarterPickReviewTrigger
+                  key={track.id}
+                  track={track}
+                  isAuthenticated={isAuthenticated}
+                />
+              ))}
+            </TrackCarousel>
           </section>
         ) : null}
 

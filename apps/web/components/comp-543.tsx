@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- File previews can use blob URLs that Next Image does not optimize. */
 
-import { CircleUserRoundIcon, XIcon } from "lucide-react";
+import { CircleUserRoundIcon, XIcon } from "@/components/ui/icons";
 
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { Button } from "@/components/ui/button";

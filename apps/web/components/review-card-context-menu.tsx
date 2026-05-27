@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, Flag, Music2, PencilLine, TextQuote, Trash2 } from "lucide-react";
+import { Bookmark, Flag, Music2, PencilLine, TextQuote, Trash2 } from "@/components/ui/icons";
 import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";

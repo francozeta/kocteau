@@ -8,7 +8,7 @@ import {
   type Icon,
   MagnifyingGlassIcon,
   UserCircleIcon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { cn } from "@/lib/utils";

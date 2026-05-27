@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { UserCheck, UserPlus } from "lucide-react";
+import { UserCheck, UserPlus } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { useProfileFollow } from "@/hooks/use-profile-follow";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";

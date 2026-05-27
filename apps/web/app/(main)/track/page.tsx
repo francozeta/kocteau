@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Music2 } from "lucide-react";
+import { ArrowRight, Music2 } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
 import TrackContextMenu from "@/components/track-context-menu";

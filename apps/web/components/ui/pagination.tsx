@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { IconChevronLeft, IconChevronRight, IconDots } from "@tabler/icons-react"
+import { IconChevronLeft, IconChevronRight, IconDots } from "@/components/ui/icons"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (

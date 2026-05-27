@@ -448,6 +448,26 @@
     background: color-mix(in oklch, var(--foreground) 4.5%, transparent);
   }
 
+  .kocteau-carousel-mask-r {
+    --kocteau-carousel-mask-from-r: calc(100% - 3rem);
+    mask-image: linear-gradient(
+      to right,
+      black,
+      black var(--kocteau-carousel-mask-from-r),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      black,
+      black var(--kocteau-carousel-mask-from-r),
+      transparent
+    );
+  }
+
+  .kocteau-carousel-mask-r-from-tight {
+    --kocteau-carousel-mask-from-r: calc(100% - 1.25rem);
+  }
+
   .kocteau-sidebar-note {
     background: color-mix(in oklch, var(--foreground) 5%, transparent);
     box-shadow: none;

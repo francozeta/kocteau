@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import FeedReviewCta from "@/components/feed-review-cta";
 import FeedStarterLayer from "@/components/feed-starter-layer";
-import { Music2, Sparkles, UsersRound } from "lucide-react";
+import { Music2, Sparkles, UsersRound } from "@/components/ui/icons";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";

@@ -10,7 +10,7 @@ import {
   SparkleIcon,
   UserCircleIcon,
   WarningCircleIcon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import NotificationsButton from "@/components/notifications-button";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import {

@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, ExternalLink, MoreHorizontal, Share2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, MoreHorizontal, Share2 } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
 import PrefetchLink from "@/components/prefetch-link";
 import { useRouteHeader } from "@/components/route-header-context";

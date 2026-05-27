@@ -7,7 +7,7 @@ import useEmblaCarousel, {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
+import { IconChevronLeft, IconChevronRight } from "@/components/ui/icons"
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
@@ -95,12 +95,37 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    onSelect(api)
-    api.on("reInit", onSelect)
-    api.on("select", onSelect)
+    const sync = () => onSelect(api)
+
+    sync()
+    const frame = window.requestAnimationFrame(() => {
+      api.reInit()
+      sync()
+    })
+    const timeout = window.setTimeout(() => {
+      api.reInit()
+      sync()
+    }, 250)
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(() => {
+            api.reInit()
+            sync()
+          })
+
+    resizeObserver?.observe(api.rootNode())
+    resizeObserver?.observe(api.containerNode())
+
+    api.on("reInit", sync)
+    api.on("select", sync)
 
     return () => {
-      api?.off("select", onSelect)
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(timeout)
+      resizeObserver?.disconnect()
+      api.off("reInit", sync)
+      api.off("select", sync)
     }
   }, [api, onSelect])
 
@@ -132,13 +157,19 @@ function Carousel({
   )
 }
 
-function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
+function CarouselContent({
+  className,
+  viewportClassName,
+  ...props
+}: React.ComponentProps<"div"> & {
+  viewportClassName?: string
+}) {
   const { carouselRef, orientation } = useCarousel()
 
   return (
     <div
       ref={carouselRef}
-      className="overflow-hidden"
+      className={cn("overflow-hidden", viewportClassName)}
       data-slot="carousel-content"
     >
       <div

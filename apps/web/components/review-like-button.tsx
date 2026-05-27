@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
-import { Heart } from "lucide-react";
+import { Heart } from "@/components/ui/icons";
 import { useReviewLike } from "@/hooks/use-review-like";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";

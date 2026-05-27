@@ -11,7 +11,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import { IconChevronDown, IconX, IconCheck } from "@tabler/icons-react"
+import { IconChevronDown, IconX, IconCheck } from "@/components/ui/icons"
 
 const Combobox = ComboboxPrimitive.Root
 

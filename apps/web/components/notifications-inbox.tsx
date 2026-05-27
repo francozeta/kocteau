@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell } from "@/components/ui/icons";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";

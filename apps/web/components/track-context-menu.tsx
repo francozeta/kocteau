@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CornerUpRight, MessageSquarePlus, Share2 } from "lucide-react";
+import { CornerUpRight, MessageSquarePlus, Share2 } from "@/components/ui/icons";
 import { useRouter } from "next/navigation";
 import {
   ContextMenu,
