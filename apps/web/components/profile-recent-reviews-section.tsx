@@ -64,7 +64,7 @@ export default function ProfileRecentReviewsSection({
       ) : (
         <TrackCarousel
           ariaLabel="Recent activity"
-          controlClassName="[--kocteau-carousel-cover-size:8.6rem] lg:[--kocteau-carousel-cover-size:8.35rem]"
+          controlClassName="left-2 right-2 [--kocteau-carousel-cover-size:8.6rem] lg:[--kocteau-carousel-cover-size:8.35rem]"
           itemClassName="basis-[8.5rem] sm:basis-[9rem] lg:basis-[8.35rem] xl:basis-[8.6rem]"
         >
           {recentReviews.map((review) => (
