@@ -60,9 +60,9 @@ export function useReviewActions({
       return "";
     }
 
-    const pathname = entityId ? `/track/${entityId}#review-${reviewId}` : `/#review-${reviewId}`;
+    const pathname = `/review/${reviewId}`;
     return new URL(pathname, window.location.origin).toString();
-  }, [entityId, reviewId]);
+  }, [reviewId]);
 
   async function copyReviewLink() {
     try {

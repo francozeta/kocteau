@@ -105,6 +105,19 @@ export default async function TrackPage({
           entity,
           reviewCount: trackReviews.length,
           averageRating,
+          reviews: trackReviews.slice(0, 12).map((review) => ({
+            id: review.id,
+            title: review.title,
+            body: review.body,
+            rating: review.rating,
+            created_at: review.created_at,
+            author: review.author
+              ? {
+                  username: review.author.username,
+                  display_name: review.author.display_name,
+                }
+              : null,
+          })),
         })}
         id="track-structured-data"
       />

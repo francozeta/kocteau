@@ -11,7 +11,7 @@ import {
 } from "react";
 
 export type DetailHeaderState = {
-  kind: "track" | "profile";
+  kind: "track" | "profile" | "review";
   title: string;
   shareLabel: string;
   sharePath: string;
