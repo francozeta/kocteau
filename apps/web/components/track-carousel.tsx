@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { CaretLeftIcon, CaretRightIcon } from "@/components/ui/icons";
 import {
@@ -105,6 +106,95 @@ function TrackCarouselControls({
   );
 }
 
+function TrackCarouselWheelNavigation() {
+  const {
+    api,
+    canScrollNext,
+    canScrollPrev,
+    scrollNext,
+    scrollPrev,
+  } = useCarousel();
+  const canScrollNextRef = useRef(canScrollNext);
+  const canScrollPrevRef = useRef(canScrollPrev);
+  const wheelDeltaRef = useRef(0);
+  const lastScrollAtRef = useRef(0);
+
+  useEffect(() => {
+    canScrollNextRef.current = canScrollNext;
+    canScrollPrevRef.current = canScrollPrev;
+  }, [canScrollNext, canScrollPrev]);
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    const rootNode = api.rootNode();
+
+    function handleWheel(event: WheelEvent) {
+      const hasHorizontalIntent =
+        Math.abs(event.deltaX) > Math.abs(event.deltaY) || event.shiftKey;
+
+      if (!hasHorizontalIntent) {
+        return;
+      }
+
+      const rawDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
+      const normalizedDelta =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE ? rawDelta * 16 : rawDelta;
+      const direction = Math.sign(normalizedDelta);
+
+      if (direction === 0) {
+        return;
+      }
+
+      const canScroll = direction > 0
+        ? canScrollNextRef.current
+        : canScrollPrevRef.current;
+
+      if (!canScroll) {
+        wheelDeltaRef.current = 0;
+        return;
+      }
+
+      event.preventDefault();
+      wheelDeltaRef.current += normalizedDelta;
+
+      if (Math.sign(wheelDeltaRef.current) !== direction) {
+        wheelDeltaRef.current = normalizedDelta;
+      }
+
+      const now = performance.now();
+
+      if (
+        Math.abs(wheelDeltaRef.current) < 42 ||
+        now - lastScrollAtRef.current < 360
+      ) {
+        return;
+      }
+
+      if (direction > 0) {
+        scrollNext();
+      } else {
+        scrollPrev();
+      }
+
+      wheelDeltaRef.current = 0;
+      lastScrollAtRef.current = now;
+    }
+
+    rootNode.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      rootNode.removeEventListener("wheel", handleWheel);
+    };
+  }, [api, scrollNext, scrollPrev]);
+
+  return null;
+}
+
 export default function TrackCarousel({
   ariaLabel,
   children,
@@ -134,6 +224,7 @@ export default function TrackCarousel({
       >
         {children}
       </TrackCarouselContent>
+      <TrackCarouselWheelNavigation />
       <TrackCarouselControls compact={compactControls} className={controlClassName} />
     </Carousel>
   );
