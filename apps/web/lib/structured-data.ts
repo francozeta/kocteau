@@ -1,6 +1,7 @@
 import type { FeedReview } from "@/lib/queries/feed";
 import type { EntityPage } from "@/lib/queries/entities";
 import type { PublicProfile } from "@/lib/queries/profiles";
+import type { ReviewPageReview } from "@/lib/queries/reviews";
 import { getMetadataBase } from "@/lib/metadata";
 
 type FeedStructuredDataEntry = {
@@ -20,8 +21,79 @@ type FeedStructuredDataEntry = {
   };
 };
 
+type StructuredReviewEntry = {
+  id: string;
+  title?: string | null;
+  body?: string | null;
+  rating: number;
+  created_at?: string | null;
+  entity: {
+    id: string;
+    title: string;
+    artistName?: string | null;
+    coverUrl?: string | null;
+    deezerUrl?: string | null;
+  };
+  author: {
+    username: string;
+    displayName?: string | null;
+  };
+};
+
 function absoluteUrl(path: string) {
   return new URL(path, getMetadataBase()).toString();
+}
+
+function authorName(author: StructuredReviewEntry["author"]) {
+  return author.displayName?.trim() || `@${author.username}`;
+}
+
+function buildReviewNode(entry: StructuredReviewEntry) {
+  return {
+    "@type": "Review",
+    "@id": `${absoluteUrl(`/review/${entry.id}`)}#review`,
+    url: absoluteUrl(`/review/${entry.id}`),
+    name: entry.title?.trim() || `${entry.entity.title} review`,
+    reviewBody: entry.body?.trim() || undefined,
+    datePublished: entry.created_at || undefined,
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue: entry.rating,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    author: {
+      "@type": "Person",
+      name: authorName(entry.author),
+      url: absoluteUrl(`/u/${entry.author.username}`),
+    },
+    itemReviewed: {
+      "@type": "MusicRecording",
+      "@id": `${absoluteUrl(`/track/${entry.entity.id}`)}#recording`,
+      name: entry.entity.title,
+      url: absoluteUrl(`/track/${entry.entity.id}`),
+      image: entry.entity.coverUrl || undefined,
+      sameAs: entry.entity.deezerUrl || undefined,
+      byArtist: entry.entity.artistName
+        ? {
+            "@type": "MusicGroup",
+            name: entry.entity.artistName,
+          }
+        : undefined,
+    },
+  };
+}
+
+function buildBreadcrumbList(items: Array<{ name: string; path: string }>) {
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
 }
 
 export function buildSiteGraphJsonLd() {
@@ -34,6 +106,7 @@ export function buildSiteGraphJsonLd() {
         "@type": "Organization",
         "@id": `${siteUrl}#organization`,
         name: "Kocteau",
+        alternateName: ["Kocteau music reviews", "Kocteau reviews"],
         url: siteUrl,
         logo: absoluteUrl("/logo.svg"),
         description:
@@ -43,6 +116,7 @@ export function buildSiteGraphJsonLd() {
         "@type": "WebSite",
         "@id": `${siteUrl}#website`,
         name: "Kocteau",
+        alternateName: ["Kocteau reviews", "Kocteau music reviews"],
         url: siteUrl,
         description:
           "Read music reviews, track listening notes, discover active songs, and explore public taste profiles on Kocteau.",
@@ -80,35 +154,54 @@ export function buildFeedPageJsonLd(entries: FeedStructuredDataEntry[]) {
       itemListElement: entries.map((entry, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        url: absoluteUrl(`/track/${entry.entity.id}#review-${entry.reviewId}`),
-        item: {
-          "@type": "Review",
-          name: entry.reviewTitle?.trim() || `${entry.entity.title} review`,
-          reviewBody: entry.reviewBody?.trim() || undefined,
-          reviewRating: {
-            "@type": "Rating",
-            ratingValue: entry.rating,
-            bestRating: 5,
-            worstRating: 1,
-          },
-          author: {
-            "@type": "Person",
-            name: entry.author.displayName?.trim() || `@${entry.author.username}`,
-            url: absoluteUrl(`/u/${entry.author.username}`),
-          },
-          itemReviewed: {
-            "@type": "MusicRecording",
-            name: entry.entity.title,
-            byArtist: entry.entity.artistName
-              ? {
-                  "@type": "MusicGroup",
-                  name: entry.entity.artistName,
-                }
-              : undefined,
-            url: absoluteUrl(`/track/${entry.entity.id}`),
-            image: entry.entity.coverUrl || undefined,
-          },
-        },
+        url: absoluteUrl(`/review/${entry.reviewId}`),
+        item: buildReviewNode({
+          id: entry.reviewId,
+          title: entry.reviewTitle,
+          body: entry.reviewBody,
+          rating: entry.rating,
+          entity: entry.entity,
+          author: entry.author,
+        }),
+      })),
+    },
+  };
+}
+
+export function buildReviewsPageJsonLd(entries: FeedStructuredDataEntry[]) {
+  const url = absoluteUrl("/reviews");
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${url}#reviews`,
+    name: "Music reviews on Kocteau",
+    description:
+      "Recent public music reviews, ratings, and listening notes from Kocteau.",
+    url,
+    isPartOf: {
+      "@id": `${absoluteUrl("/")}#website`,
+    },
+    breadcrumb: buildBreadcrumbList([
+      { name: "Kocteau", path: "/" },
+      { name: "Reviews", path: "/reviews" },
+    ]),
+    mainEntity: {
+      "@type": "ItemList",
+      itemListOrder: "https://schema.org/ItemListOrderDescending",
+      numberOfItems: entries.length,
+      itemListElement: entries.map((entry, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: absoluteUrl(`/review/${entry.reviewId}`),
+        item: buildReviewNode({
+          id: entry.reviewId,
+          title: entry.reviewTitle,
+          body: entry.reviewBody,
+          rating: entry.rating,
+          entity: entry.entity,
+          author: entry.author,
+        }),
       })),
     },
   };
@@ -118,10 +211,22 @@ export function buildTrackPageJsonLd({
   entity,
   reviewCount,
   averageRating,
+  reviews = [],
 }: {
   entity: EntityPage;
   reviewCount: number;
   averageRating?: number | null;
+  reviews?: Array<{
+    id: string;
+    title?: string | null;
+    body?: string | null;
+    rating: number;
+    created_at?: string | null;
+    author?: {
+      username: string;
+      display_name?: string | null;
+    } | null;
+  }>;
 }) {
   const url = absoluteUrl(`/track/${entity.id}`);
 
@@ -139,6 +244,11 @@ export function buildTrackPageJsonLd({
         mainEntity: {
           "@id": `${url}#recording`,
         },
+        breadcrumb: buildBreadcrumbList([
+          { name: "Kocteau", path: "/" },
+          { name: "Tracks", path: "/track" },
+          { name: entity.title, path: `/track/${entity.id}` },
+        ]),
       },
       {
         "@type": "MusicRecording",
@@ -163,7 +273,89 @@ export function buildTrackPageJsonLd({
                 worstRating: 1,
               }
             : undefined,
+        review: reviews
+          .filter((review) => review.author?.username)
+          .map((review) =>
+            buildReviewNode({
+              id: review.id,
+              title: review.title,
+              body: review.body,
+              rating: review.rating,
+              created_at: review.created_at,
+              entity: {
+                id: entity.id,
+                title: entity.title,
+                artistName: entity.artist_name,
+                coverUrl: entity.cover_url,
+                deezerUrl: entity.deezer_url,
+              },
+              author: {
+                username: review.author?.username ?? "",
+                displayName: review.author?.display_name,
+              },
+            }),
+          ),
       },
+    ],
+  };
+}
+
+export function buildReviewPageJsonLd(review: ReviewPageReview) {
+  const entity = review.entities;
+  const author = review.author;
+  const url = absoluteUrl(`/review/${review.id}`);
+
+  if (!entity || !author?.username) {
+    return {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${url}#webpage`,
+      url,
+      name: review.title?.trim() || "Kocteau review",
+      isPartOf: {
+        "@id": `${absoluteUrl("/")}#website`,
+      },
+    };
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${url}#webpage`,
+        url,
+        name: review.title?.trim() || `${entity.title} review`,
+        isPartOf: {
+          "@id": `${absoluteUrl("/")}#website`,
+        },
+        mainEntity: {
+          "@id": `${url}#review`,
+        },
+        breadcrumb: buildBreadcrumbList([
+          { name: "Kocteau", path: "/" },
+          { name: "Reviews", path: "/reviews" },
+          { name: entity.title, path: `/track/${entity.id}` },
+        ]),
+      },
+      buildReviewNode({
+        id: review.id,
+        title: review.title,
+        body: review.body,
+        rating: review.rating,
+        created_at: review.created_at,
+        entity: {
+          id: entity.id,
+          title: entity.title,
+          artistName: entity.artist_name,
+          coverUrl: entity.cover_url,
+          deezerUrl: entity.deezer_url,
+        },
+        author: {
+          username: author.username,
+          displayName: author.display_name,
+        },
+      }),
     ],
   };
 }

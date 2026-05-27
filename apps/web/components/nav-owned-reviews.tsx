@@ -54,8 +54,7 @@ function OwnedReviewRailItem({
     <SidebarMenuItem>
       <div className="kocteau-sidebar-note flex items-start gap-1 rounded-[0.95rem] px-2 py-2">
         <PrefetchLink
-          href={`/track/${item.entity.entity_id}#review-${item.id}`}
-          queryWarmup={{ kind: "track", id: item.entity.entity_id }}
+          href={`/review/${item.id}`}
           onClick={onNavigate}
           className="group min-w-0 flex-1 rounded-lg"
         >

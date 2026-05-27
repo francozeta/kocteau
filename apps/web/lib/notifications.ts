@@ -114,8 +114,8 @@ export function normalizeNotification(record: NotificationRecord): NotificationI
 }
 
 export function notificationHref(notification: NotificationItem) {
-  if (notification.review?.entity_id && notification.review_id) {
-    return `/track/${notification.review.entity_id}#review-${notification.review_id}`;
+  if (notification.review_id) {
+    return `/review/${notification.review_id}`;
   }
 
   if (notification.review?.entity_id) {

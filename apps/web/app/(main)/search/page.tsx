@@ -17,7 +17,6 @@ export async function generateMetadata({
       title: "Explore",
       description: "Search tracks and browse active songs on Kocteau.",
       path: "/search",
-      noIndex: true,
     });
   }
 

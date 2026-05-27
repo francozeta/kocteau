@@ -60,7 +60,7 @@ export default function Header({
   const isMobileReviewRoute = /^\/review\/[^/]+$/.test(pathname);
   const isTrackDetailRoute = /^\/track\/[^/]+$/.test(pathname);
   const isProfileDetailRoute = /^\/u\/[^/]+$/.test(pathname);
-  const shouldUseContextualHeader = isTrackDetailRoute || isProfileDetailRoute;
+  const shouldUseContextualHeader = isTrackDetailRoute || isProfileDetailRoute || isMobileReviewRoute;
   const isSearchRoute = pathname.startsWith("/search");
 
   const standardHeaderTitle = (() => {
@@ -70,6 +70,10 @@ export default function Header({
 
     if (isProfileDetailRoute) {
       return detailHeader?.shareLabel ?? "Profile";
+    }
+
+    if (isMobileReviewRoute) {
+      return detailHeader?.shareLabel ?? "Review";
     }
 
     if (pathname === "/") {
@@ -128,27 +132,27 @@ export default function Header({
       return;
     }
 
-    router.push(isProfileDetailRoute ? "/" : "/search");
-  }, [isProfileDetailRoute, router]);
+    router.push(isProfileDetailRoute ? "/" : isMobileReviewRoute ? "/reviews" : "/search");
+  }, [isMobileReviewRoute, isProfileDetailRoute, router]);
 
   const handleShareDetail = useCallback(async () => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const detailKind = detailHeader?.kind ?? (isProfileDetailRoute ? "profile" : "track");
+    const detailKind =
+      detailHeader?.kind ?? (isProfileDetailRoute ? "profile" : isMobileReviewRoute ? "review" : "track");
     const absoluteUrl = new URL(detailHeader?.sharePath ?? pathname, window.location.origin).toString();
+    const detailLabel =
+      detailKind === "profile" ? "Profile" : detailKind === "review" ? "Review" : "Track";
 
     await shareUrl({
       title: detailHeader?.shareLabel ?? document.title,
       url: absoluteUrl,
-      successMessage: detailKind === "profile" ? "Profile link copied" : "Track link copied",
-      errorMessage:
-        detailKind === "profile"
-          ? "We couldn't share this profile right now."
-          : "We couldn't share this track right now.",
+      successMessage: `${detailLabel} link copied`,
+      errorMessage: `We couldn't share this ${detailLabel.toLowerCase()} right now.`,
     });
-  }, [detailHeader, isProfileDetailRoute, pathname]);
+  }, [detailHeader, isMobileReviewRoute, isProfileDetailRoute, pathname]);
 
   const standardHeader = (
     <header className={cn(
@@ -237,7 +241,7 @@ export default function Header({
                     variant="ghost"
                     size="icon-lg"
                     className="mobile-liquid-button size-10 rounded-full text-muted-foreground hover:text-foreground"
-                    aria-label={isProfileDetailRoute ? "Profile actions" : "Track actions"}
+                    aria-label={isProfileDetailRoute ? "Profile actions" : isMobileReviewRoute ? "Review actions" : "Track actions"}
                   >
                     <MoreHorizontal className="size-[1.1rem]" />
                   </Button>
@@ -249,7 +253,7 @@ export default function Header({
                 >
                   <DropdownMenuItem onSelect={() => void handleShareDetail()}>
                     <Share2 className="size-4" />
-                    {isProfileDetailRoute ? "Share profile" : "Share track"}
+                    {isProfileDetailRoute ? "Share profile" : isMobileReviewRoute ? "Share review" : "Share track"}
                   </DropdownMenuItem>
 
                   {(detailHeader?.externalLinks ?? []).map((link) => (

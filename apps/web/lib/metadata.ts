@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 const SITE_NAME = "Kocteau";
 const DEFAULT_DESCRIPTION =
-  "Music reviews by real listeners.";
+  "Kocteau is a music review and taste discovery app for public listening notes, ratings, and profiles.";
 const DEFAULT_OPEN_GRAPH_IMAGE = "/og/kocteau.webp";
 const DEFAULT_TWITTER_IMAGE = "/og/kocteau.webp";
 
@@ -132,6 +132,39 @@ export function createTrackDescription(title: string, artist?: string | null) {
   return artist
     ? `Reviews, ratings, and notes for ${title} by ${artist} on Kocteau.`
     : `Reviews, ratings, and notes for ${title} on Kocteau.`;
+}
+
+function truncateMetadataText(value: string, maxLength = 155) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+export function createReviewDescription({
+  title,
+  body,
+  entityTitle,
+  artistName,
+  authorLabel,
+}: {
+  title?: string | null;
+  body?: string | null;
+  entityTitle: string;
+  artistName?: string | null;
+  authorLabel: string;
+}) {
+  const excerpt = body?.trim() || title?.trim();
+  const trackLabel = artistName ? `${entityTitle} by ${artistName}` : entityTitle;
+
+  if (excerpt) {
+    return truncateMetadataText(`${excerpt} Review of ${trackLabel} by ${authorLabel} on Kocteau.`);
+  }
+
+  return `A Kocteau review of ${trackLabel} by ${authorLabel}.`;
 }
 
 export function createProfileDescription(

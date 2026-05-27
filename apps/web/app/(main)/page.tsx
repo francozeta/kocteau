@@ -17,7 +17,8 @@ import { feedKeys, type FeedInfiniteQueryData } from "@/queries/feed";
 
 export const metadata = createPageMetadata({
   title: "Kocteau",
-  description: "Music reviews by real listeners.",
+  description:
+    "Kocteau is a social music review app for public ratings, listening notes, and taste discovery.",
   path: "/",
 });
 

@@ -69,6 +69,12 @@ function buildTrackReviewCardDisplay(): ReviewCardDisplayOptions {
   };
 }
 
+function buildReviewPageCardDisplay(): ReviewCardDisplayOptions {
+  return {
+    entityMode: "cover",
+  };
+}
+
 function getAuthorLabel(author: ReviewCardAuthor | null | undefined) {
   return author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
 }
@@ -200,56 +206,64 @@ async function RoutedReviewCardServer({
   const initialBookmarked = Boolean(review.viewer_has_bookmarked);
 
   const card = (
-    <ReviewCard
-      review={review}
-      entity={entity}
-      author={author}
-      display={display}
-      rootProps={rootProps}
-      slots={{
-        authorName: author ? <LinkedAuthorName author={author} /> : undefined,
-        entity: entity ? (
-          <LinkedEntitySummary
-            entity={entity}
-            mode={entityMode}
-            priority={entityPriority}
-            tone={copyTone}
-          />
-        ) : undefined,
-        entityCover:
-          entity && entityMode === "cover" ? (
-            <LinkedEntityCover entity={entity} priority={entityPriority} />
+    <div>
+      <Link
+        href={`/review/${review.id}`}
+        className="sr-only focus:not-sr-only focus:mb-2 focus:inline-flex focus:h-8 focus:items-center focus:rounded-[0.55rem] focus:border focus:border-border/35 focus:bg-muted/18 focus:px-3 focus:text-xs focus:font-medium focus:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
+      >
+        Open review
+      </Link>
+      <ReviewCard
+        review={review}
+        entity={entity}
+        author={author}
+        display={display}
+        rootProps={rootProps}
+        slots={{
+          authorName: author ? <LinkedAuthorName author={author} /> : undefined,
+          entity: entity ? (
+            <LinkedEntitySummary
+              entity={entity}
+              mode={entityMode}
+              priority={entityPriority}
+              tone={copyTone}
+            />
           ) : undefined,
-        headerActions: showHeaderActions ? (
-          <ReviewActionsMenu
-            reviewId={review.id}
-            reviewTitle={review.title}
-            entityTitle={entity?.title ?? null}
-            entityId={entity?.id ?? null}
-            canManage={canManage}
-            editSeed={editSeed}
-            initialBookmarked={initialBookmarked}
-            isAuthenticated={isAuthenticated}
-          />
-        ) : null,
-        footer: showInteractionBar ? (
-          <ReviewCardInteractionBar
-            review={review}
-            isAuthenticated={isAuthenticated}
-            viewer={
-              viewerProfile
-                ? {
-                    id: viewerProfile.id,
-                    username: viewerProfile.username,
-                    display_name: viewerProfile.display_name,
-                    avatar_url: viewerProfile.avatar_url,
-                  }
-                : null
-            }
-          />
-        ) : null,
-      }}
-    />
+          entityCover:
+            entity && entityMode === "cover" ? (
+              <LinkedEntityCover entity={entity} priority={entityPriority} />
+            ) : undefined,
+          headerActions: showHeaderActions ? (
+            <ReviewActionsMenu
+              reviewId={review.id}
+              reviewTitle={review.title}
+              entityTitle={entity?.title ?? null}
+              entityId={entity?.id ?? null}
+              canManage={canManage}
+              editSeed={editSeed}
+              initialBookmarked={initialBookmarked}
+              isAuthenticated={isAuthenticated}
+            />
+          ) : null,
+          footer: showInteractionBar ? (
+            <ReviewCardInteractionBar
+              review={review}
+              isAuthenticated={isAuthenticated}
+              viewer={
+                viewerProfile
+                  ? {
+                      id: viewerProfile.id,
+                      username: viewerProfile.username,
+                      display_name: viewerProfile.display_name,
+                      avatar_url: viewerProfile.avatar_url,
+                    }
+                  : null
+              }
+            />
+          ) : null,
+        }}
+      />
+    </div>
   );
 
   if (!showContextMenu) {
@@ -325,6 +339,24 @@ export async function ProfileReviewCard({
       entity={entity}
       author={author}
       display={buildFeedReviewCardDisplay(featured)}
+      permissions={{ isAuthenticated, canManage }}
+    />
+  );
+}
+
+export async function ReviewPageCard({
+  review,
+  entity,
+  author = null,
+  isAuthenticated = false,
+  canManage = false,
+}: ReviewCardRouteProps) {
+  return (
+    <RoutedReviewCardServer
+      review={review}
+      entity={entity}
+      author={author}
+      display={buildReviewPageCardDisplay()}
       permissions={{ isAuthenticated, canManage }}
     />
   );
