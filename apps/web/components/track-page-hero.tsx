@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Share2 } from "lucide-react";
+import { ExternalLink, Share2 } from "@/components/ui/icons";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";

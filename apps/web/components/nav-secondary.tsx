@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Icon } from "@phosphor-icons/react";
+import type { Icon } from "@/components/ui/icons";
 import {
   SidebarGroup,
   SidebarGroupContent,

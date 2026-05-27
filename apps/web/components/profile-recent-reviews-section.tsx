@@ -1,6 +1,7 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star } from "@/components/ui/icons";
+import TrackCarousel from "@/components/track-carousel";
 import TrackTile from "@/components/track-tile";
 import type { ReviewCardData, ReviewCardEntity } from "@/components/review-card";
 
@@ -61,18 +62,15 @@ export default function ProfileRecentReviewsSection({
           ))}
         </div>
       ) : (
-        <div className="-mx-1 overflow-hidden">
-          <div className="scroll-mask-r scroll-mask-r-from-[calc(100%-3rem)] no-scrollbar flex gap-4 overflow-x-auto overscroll-x-contain px-1 pb-1">
-            {recentReviews.map((review) => (
-              <div
-                key={review.id}
-                className="w-[8.5rem] shrink-0 sm:w-[9rem] lg:w-[8.35rem] xl:w-[8.6rem]"
-              >
-                <RecentReviewTile review={review} />
-              </div>
-            ))}
-          </div>
-        </div>
+        <TrackCarousel
+          ariaLabel="Recent activity"
+          controlClassName="[--kocteau-carousel-cover-size:8.6rem] lg:[--kocteau-carousel-cover-size:8.35rem]"
+          itemClassName="basis-[8.5rem] sm:basis-[9rem] lg:basis-[8.35rem] xl:basis-[8.6rem]"
+        >
+          {recentReviews.map((review) => (
+            <RecentReviewTile key={review.id} review={review} />
+          ))}
+        </TrackCarousel>
       )}
     </section>
   );

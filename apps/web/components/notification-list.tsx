@@ -5,7 +5,7 @@ import {
   CheckIcon,
   ChatCircleTextIcon,
   HeartIcon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import {
   groupNotifications,
   notificationHref,

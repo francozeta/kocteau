@@ -9,7 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Disc3 } from "lucide-react";
+import { ArrowRight, Check, Disc3 } from "@/components/ui/icons";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";
 import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
 import { Input } from "@/components/ui/input";

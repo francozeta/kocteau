@@ -2,7 +2,7 @@
 
 import { startTransition, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "@/components/ui/icons";
 import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";

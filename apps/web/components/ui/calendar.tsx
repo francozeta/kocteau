@@ -10,7 +10,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { IconChevronLeft, IconChevronRight, IconChevronDown } from "@tabler/icons-react"
+import { IconChevronLeft, IconChevronRight, IconChevronDown } from "@/components/ui/icons"
 
 function Calendar({
   className,

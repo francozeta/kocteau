@@ -9,7 +9,7 @@ import {
   ChatCircleTextIcon,
   HouseIcon,
   MagnifyingGlassIcon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { NavOwnedReviews } from "@/components/nav-owned-reviews";

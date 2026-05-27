@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { BellSimpleIcon } from "@phosphor-icons/react";
+import { BellSimpleIcon } from "@/components/ui/icons";
 import { useNotifications } from "@/hooks/use-notifications";
 import type { NotificationItem } from "@/lib/notifications";
 import NotificationList from "@/components/notification-list";

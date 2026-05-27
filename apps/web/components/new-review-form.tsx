@@ -3,8 +3,8 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ChevronRight, Disc3, LoaderCircle, Search } from "lucide-react";
 import { FaDeezer } from "react-icons/fa";
+import { ArrowLeft, ChevronRight, Disc3, LoaderCircle, Search } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

@@ -12,7 +12,7 @@ import {
   Star,
   Tags,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "sonner";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { Badge } from "@/components/ui/badge";

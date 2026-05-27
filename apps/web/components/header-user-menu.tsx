@@ -9,7 +9,7 @@ import {
   SignOutIcon,
   UserCircleIcon,
   WarningCircleIcon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import UserAvatar from "@/components/user-avatar";
 import {
   AlertDialog,

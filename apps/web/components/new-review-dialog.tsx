@@ -25,7 +25,7 @@ import { Kbd } from "@/components/ui/kbd";
 import type { NewReviewFormProps, NewReviewFormStep } from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Search } from "lucide-react";
+import { Search } from "@/components/ui/icons";
 import { readPendingReviewDraft, type StoredPendingReviewDraft } from "@/lib/pending-review-draft";
 import { cn } from "@/lib/utils";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";

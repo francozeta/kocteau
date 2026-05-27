@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink } from "@/components/ui/icons";
 import CreatorPerksCard from "@/components/creator-perks-card";
 import FollowProfileButton from "@/components/follow-profile-button";
 import ProfileHeroAvatar from "@/components/profile-hero-avatar";

@@ -3,7 +3,7 @@
 import { startTransition, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Trash2 } from "@/components/ui/icons";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import { createApiError } from "@/lib/validation/errors";
 import {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { List } from "@phosphor-icons/react";
+import { List } from "@/components/ui/icons";
 import {
   Drawer,
   DrawerClose,

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Disc3, LoaderCircle, Music2, Search } from "lucide-react";
+import { Disc3, LoaderCircle, Music2, Search } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { Kbd } from "@/components/ui/kbd";
 import PrefetchLink from "@/components/prefetch-link";

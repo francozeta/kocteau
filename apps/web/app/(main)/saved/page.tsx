@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Bookmark, ChevronRight } from "lucide-react";
+import { Bookmark, ChevronRight } from "@/components/ui/icons";
 import { redirect } from "next/navigation";
 import PrefetchLink from "@/components/prefetch-link";
 import SavedReviewsList from "@/components/saved-reviews-list";

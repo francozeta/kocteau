@@ -6,7 +6,7 @@ import {
   UserCircleIcon,
   VinylRecordIcon,
   type Icon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DrawerBase,

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Music2 } from "lucide-react";
+import { Music2 } from "@/components/ui/icons";
 import { notFound, redirect } from "next/navigation";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
 import TrackPageHero from "@/components/track-page-hero";

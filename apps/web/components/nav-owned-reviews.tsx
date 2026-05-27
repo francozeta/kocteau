@@ -5,7 +5,7 @@ import {
   DotsThreeIcon,
   PushPinSimpleIcon,
   StarIcon,
-} from "@phosphor-icons/react";
+} from "@/components/ui/icons";
 import type { EditReviewSelection } from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";

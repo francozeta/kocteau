@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Flag, MoreHorizontal, Send, Trash2 } from "lucide-react";
+import { Flag, MoreHorizontal, Send, Trash2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

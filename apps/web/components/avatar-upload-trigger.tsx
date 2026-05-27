@@ -1,7 +1,7 @@
 "use client";
 
 import type { DragEventHandler } from "react";
-import { CameraIcon, UserCircleIcon } from "@phosphor-icons/react";
+import { CameraIcon, UserCircleIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 type AvatarUploadTriggerProps = {

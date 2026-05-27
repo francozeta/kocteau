@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { Music2 } from "lucide-react";
+import { Music2 } from "@/components/ui/icons";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
