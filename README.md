@@ -135,10 +135,10 @@ Run SQL scripts manually from the Supabase SQL Editor after reviewing them.
 Kocteau is OTP-first:
 
 - `signInWithOtp` sends codes for login/signup.
-- `verifyOtp({ type: "email" })` verifies the 6-digit code in-app.
+- The app verifies the 6-digit code in-app as an email OTP, then falls back to signup confirmation OTPs for newly-created users.
 - `Confirm email` should stay enabled in Supabase.
-- The Supabase `Magic Link` template must be code-only and use `{{ .Token }}`.
-- Do not include `{{ .ConfirmationURL }}` or `{{ .TokenHash }}` in the OTP template unless intentionally re-enabling magic links.
+- The Supabase `Magic Link or OTP` and `Confirm Signup` templates must both be code-only and use `{{ .Token }}`.
+- Do not include `{{ .ConfirmationURL }}` or `{{ .TokenHash }}` in either OTP template unless intentionally re-enabling magic links.
 
 See [apps/web/emails/README.md](./apps/web/emails/README.md).
 

@@ -197,6 +197,22 @@ Acceptance criteria:
 - Notifications feel more meaningful and less noisy.
 - Existing notification APIs remain compatible unless intentionally changed.
 
+### Unified Auth Entry Point
+
+Suggested issue: `feat(web): unify email auth into one entry point`
+
+- Decide whether `/login` should become the primary email auth surface and `/signup` should redirect or render the same flow.
+- Keep the OTP-first behavior and Supabase email confirmation intact.
+- Preserve existing `next` redirects, onboarding routing, and signup confirmation handling.
+
+Suggested labels: `feature`, `area:web`, `area:auth`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- New and returning users can continue with email from the same UI.
+- `/login` and `/signup` do not present conflicting copy or behavior.
+- Existing OTP, signup confirmation, and onboarding tests still cover both new and returning users.
+
 ## Sensitive System Work
 
 These can be public issues, but they should require maintainer review and careful acceptance criteria.

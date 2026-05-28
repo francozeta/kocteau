@@ -17,7 +17,7 @@ Current app behavior:
 
 - `/login` and `/signup` both use `signInWithOtp`.
 - New emails are allowed through `shouldCreateUser: true`.
-- The app verifies codes with `verifyOtp({ type: "email" })`.
+- The app verifies codes as a normal email OTP first, then falls back to a signup confirmation OTP for newly-created users.
 - After verification, users are routed through profile onboarding, taste onboarding, or `/`.
 
 ## Supabase Email Templates
@@ -31,7 +31,8 @@ Template file:
 Supabase dashboard location:
 
 ```text
-Authentication -> Email Templates -> Magic Link
+Authentication -> Emails -> Magic Link or OTP
+Authentication -> Emails -> Confirm Signup
 ```
 
 Use:
@@ -49,7 +50,7 @@ Avoid:
 
 Those URL variables reintroduce magic-link behavior and can confuse users because Kocteau expects the code to be entered in-app.
 
-The `Confirm Signup` template may also be kept code-only for consistency, but the current app flow primarily depends on the Magic Link template because it uses `signInWithOtp`.
+Existing users usually receive `Magic Link or OTP`. New emails can receive `Confirm Signup`, so both templates must use the same code-only body and a consistent subject such as `Your Kocteau code`.
 
 ## Resend SMTP
 
@@ -104,14 +105,17 @@ Editorial starter content is product configuration, not demo user data. Keep it 
 After deploying auth or recommendation changes:
 
 1. Log out.
-2. Request OTP on `/login`.
+2. Request OTP on `/login` with an existing email.
 3. Confirm the email contains only a 6-digit code.
 4. Verify the code.
-5. Complete profile onboarding if needed.
-6. Complete taste onboarding if needed.
-7. Confirm `/` loads For You.
-8. Like, bookmark, and open comments from For You.
-9. Check Supabase for analytics events.
+5. Request OTP on `/signup` with a new email.
+6. Confirm the `Confirm Signup` email contains only a 6-digit code.
+7. Verify the code.
+8. Complete profile onboarding if needed.
+9. Complete taste onboarding if needed.
+10. Confirm `/` loads For You.
+11. Like, bookmark, and open comments from For You.
+12. Check Supabase for analytics events.
 
 Useful analytics check:
 
