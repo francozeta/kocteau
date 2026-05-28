@@ -8,6 +8,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { appendInternalNext, safeInternalPath } from "@/lib/internal-path";
+import { verifyKocteauEmailOtp } from "@/lib/auth/otp";
 import { isProfileOnboarded } from "@/lib/profile";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { getFirstFieldError } from "@/lib/validation/errors";
@@ -299,10 +300,10 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
     setMessage(null);
     setFieldErrors({});
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { error } = await verifyKocteauEmailOtp({
       email: parsedEmail.data.email,
       token: parsedCode.data.code,
-      type: "email",
+      verifyOtp: (params) => supabase.auth.verifyOtp(params),
     });
 
     if (error) {
