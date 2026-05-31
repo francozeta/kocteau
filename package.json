@@ -20,7 +20,7 @@
     "dev:mobile": "pnpm --filter mobile run start",
     "dev:mobile:tunnel": "pnpm --filter mobile run start:tunnel",
     "dev:mobile:clear": "pnpm --filter mobile run start:clear",
-    "supabase:start": "supabase start",
+    "supabase:start": "supabase start -x logflare,vector",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
     "supabase:reset": "supabase db reset",
@@ -31,7 +31,7 @@
     "check": "pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
-    "supabase": "^2.76.15",
+    "supabase": "^2.102.0",
     "turbo": "2.9.2"
   },
   "pnpm": {
