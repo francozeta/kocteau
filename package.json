@@ -20,11 +20,18 @@
     "dev:mobile": "pnpm --filter mobile run start",
     "dev:mobile:tunnel": "pnpm --filter mobile run start:tunnel",
     "dev:mobile:clear": "pnpm --filter mobile run start:clear",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset",
+    "supabase:lint": "supabase db lint --local --fail-on error",
+    "supabase:types": "supabase gen types --local --lang=typescript --schema public,storage,graphql_public > apps/web/lib/supabase/database.types.ts",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "check": "pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
+    "supabase": "^2.76.15",
     "turbo": "2.9.2"
   },
   "pnpm": {

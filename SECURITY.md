@@ -26,3 +26,11 @@ If private reporting is unavailable, contact the repository owner before opening
 - API routes that write data
 - Recommendation and analytics data flows
 - Environment and Sentry configuration
+
+## Secrets
+
+Never post service role keys, Supabase secret keys, database passwords, pooler URLs, access tokens, SMTP credentials, or production `.env.local` values in issues, PRs, chat, or docs.
+
+The frontend may use public Supabase keys through `NEXT_PUBLIC_*` variables. Privileged keys belong only in controlled deployment, GitHub, Supabase, or maintainer secret stores.
+
+See [docs/security/environment.md](./docs/security/environment.md).

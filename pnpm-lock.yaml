@@ -17,6 +17,9 @@ importers:
 
   .:
     devDependencies:
+      supabase:
+        specifier: ^2.76.15
+        version: 2.76.15
       turbo:
         specifier: 2.9.2
         version: 2.9.2
@@ -268,9 +271,6 @@ importers:
       shadcn:
         specifier: ^4.1.2
         version: 4.1.2(@types/node@20.19.35)(typescript@5.9.3)
-      supabase:
-        specifier: ^2.76.15
-        version: 2.76.15
       tailwindcss:
         specifier: ^4
         version: 4.2.1

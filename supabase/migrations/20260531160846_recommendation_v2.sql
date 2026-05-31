@@ -361,4 +361,14 @@ GRANT EXECUTE ON FUNCTION public.get_recommended_review_ids(integer, numeric, ti
 GRANT EXECUTE ON FUNCTION public.infer_entity_preference_tags_from_user(uuid, numeric)
   TO authenticated;
 
+REVOKE ALL ON FUNCTION public.get_recommended_review_ids(integer, numeric, timestamp with time zone, uuid)
+  FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.infer_entity_preference_tags_from_user(uuid, numeric)
+  FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.get_recommended_review_ids(integer, numeric, timestamp with time zone, uuid)
+  TO authenticated;
+GRANT EXECUTE ON FUNCTION public.infer_entity_preference_tags_from_user(uuid, numeric)
+  TO authenticated;
+
 COMMIT;

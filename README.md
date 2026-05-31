@@ -43,12 +43,15 @@ Kocteau is now past the original demo baseline. The web app currently includes:
 
 ## Environment Variables
 
-Minimum local variables:
+Minimum web variables live in `apps/web/.env.local`:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=replace_with_local_anon_key_from_supabase_status
 ```
+
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the canonical public browser key for the web app. The exact variable name can evolve, but the rule is fixed: public browser-safe keys use `NEXT_PUBLIC_*`; secret keys never do.
 
 Optional OpenPanel analytics variables:
 
@@ -75,19 +78,29 @@ Optional production services are configured outside the app:
 
 ## Local Development
 
-Install dependencies and start the web app:
+Kocteau is local-first for contributors. A fresh checkout should use the local Supabase CLI stack, not production credentials.
 
 ```bash
 pnpm install
+pnpm supabase:start
+pnpm supabase:status
+cp apps/web/.env.example apps/web/.env.local
+pnpm supabase:reset
+pnpm supabase:types
 pnpm dev:web
 ```
 
-Then open [http://localhost:3000](http://localhost:3000).
+Then open [http://localhost:3000](http://localhost:3000). Use `pnpm supabase:status` to copy the local API URL and local anon key into `apps/web/.env.local`.
+
+Local OTP emails are captured by the local email UI printed by Supabase status, normally [http://127.0.0.1:54324](http://127.0.0.1:54324).
 
 Useful checks:
 
 ```bash
-pnpm check
+pnpm supabase:lint
+pnpm --filter web lint
+pnpm --filter web build
+git diff --check
 ```
 
 Email preview:
@@ -120,15 +133,14 @@ The core public tables are:
 - `analytics_events`
 - `rate_limit_windows`
 
-Important scripts live in `supabase/scripts`:
+The versioned Supabase source of truth is:
 
-- `wipe-demo-auth-data.sql`: destructive reset for demo/test data
-- `recommendation-v2.sql`: entity tags, recommendation scoring, inferred taste signals
-- `editorial-starter-layer.sql`: human-curated starter picks for cold-start For You
-- `analytics-events.sql`: lightweight product analytics table and policies
-- `cleanup-experimental-music-links.sql`: optional cleanup for the removed ISRC/Spotify/Apple experiment
+- `supabase/config.toml`: local Supabase services, auth, email, and storage config
+- `supabase/migrations`: ordered schema, RLS, grants, RPCs, and storage policies
+- `supabase/seed.sql` and `supabase/seeds`: deterministic local product configuration
+- `supabase/templates`: local auth email templates
 
-Run SQL scripts manually from the Supabase SQL Editor after reviewing them.
+Fresh installs should not run `supabase/scripts/maintenance`. Those files are destructive or environment-specific operator scripts and require maintainer review.
 
 ## Authentication
 
@@ -192,6 +204,8 @@ OpenPanel can be enabled for Vercel-friendly analytics by setting `NEXT_PUBLIC_O
 - Web roadmap: [docs/web-roadmap.md](./docs/web-roadmap.md)
 - Public backlog: [docs/backlog.md](./docs/backlog.md)
 - Operational notes: [docs/operations.md](./docs/operations.md)
+- Local development setup: [docs/setup/local-development.md](./docs/setup/local-development.md)
+- Environment and secret handling: [docs/security/environment.md](./docs/security/environment.md)
 - Release automation: [docs/maintainers/release.md](./docs/maintainers/release.md)
 - GitHub rules: [docs/maintainers/github-rules.md](./docs/maintainers/github-rules.md)
 - Email templates: [apps/web/emails/README.md](./apps/web/emails/README.md)
