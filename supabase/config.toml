@@ -62,7 +62,7 @@ schema_paths = []
 enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+sql_paths = ["./seeds/00_preference_tags.sql", "./seeds/10_editorial_starter_picks.sql"]
 
 [db.network_restrictions]
 # Enable management of network restrictions.
@@ -111,10 +111,9 @@ enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "10MiB"
 
-[storage.buckets.avatars]
-public = true
-file_size_limit = "5MiB"
-allowed_mime_types = ["image/webp", "image/svg+xml"]
+# The avatars bucket and policies are created by the initial migration.
+# Keeping the bucket in SQL makes `supabase db reset` non-interactive and
+# avoids CLI timing races while Storage restarts on Windows.
 
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]

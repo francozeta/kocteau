@@ -619,7 +619,7 @@ BEGIN
     WHERE review_id = p_review_id AND user_id = v_user_id;
 
     UPDATE public.reviews
-    SET likes_count = greatest(likes_count - 1, 0),
+    SET likes_count = greatest(public.reviews.likes_count - 1, 0),
         updated_at = now()
     WHERE id = p_review_id
     RETURNING reviews.likes_count INTO v_likes_count;
@@ -630,7 +630,7 @@ BEGIN
     VALUES (p_review_id, v_user_id);
 
     UPDATE public.reviews
-    SET likes_count = likes_count + 1,
+    SET likes_count = public.reviews.likes_count + 1,
         updated_at = now()
     WHERE id = p_review_id
     RETURNING reviews.likes_count INTO v_likes_count;

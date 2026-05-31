@@ -25,7 +25,7 @@
     "supabase:status": "supabase status",
     "supabase:reset": "supabase db reset",
     "supabase:lint": "supabase db lint --local --fail-on error",
-    "supabase:types": "supabase gen types --local --lang=typescript --schema public,storage,graphql_public > apps/web/lib/supabase/database.types.ts",
+    "supabase:types": "node supabase/scripts/generate-types.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "check": "pnpm lint && pnpm --filter web build"

@@ -51,7 +51,7 @@ Use this whenever migrations or seeds change:
 pnpm supabase:reset
 ```
 
-That applies `supabase/migrations` in order and then runs `supabase/seed.sql`, which loads deterministic starter data from `supabase/seeds`.
+That applies `supabase/migrations` in order and then loads the deterministic seed files listed in `supabase/config.toml`.
 
 The seed path intentionally contains only product configuration:
 

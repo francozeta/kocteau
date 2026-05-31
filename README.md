@@ -137,7 +137,7 @@ The versioned Supabase source of truth is:
 
 - `supabase/config.toml`: local Supabase services, auth, email, and storage config
 - `supabase/migrations`: ordered schema, RLS, grants, RPCs, and storage policies
-- `supabase/seed.sql` and `supabase/seeds`: deterministic local product configuration
+- `supabase/seeds`: deterministic local product configuration loaded by `config.toml`
 - `supabase/templates`: local auth email templates
 
 Fresh installs should not run `supabase/scripts/maintenance`. Those files are destructive or environment-specific operator scripts and require maintainer review.

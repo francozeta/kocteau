@@ -76,7 +76,6 @@ Fresh environments should be built from:
 ```text
 supabase/config.toml
 supabase/migrations
-supabase/seed.sql
 supabase/seeds
 ```
 
