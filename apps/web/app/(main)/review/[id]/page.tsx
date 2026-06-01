@@ -121,6 +121,8 @@ export default async function ReviewPage({
       <JsonLd data={buildReviewPageJsonLd(review)} id="review-structured-data" />
       <ReviewPageHeaderBridge
         reviewId={review.id}
+        entityId={entity?.id}
+        isAuthenticated={Boolean(user)}
         title={headerTitle}
         entityTitle={entity?.title}
         artistName={entity?.artist_name}

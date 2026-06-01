@@ -2,9 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouteHeader } from "@/components/route-header-context";
+import { trackAnalyticsEvent } from "@/lib/analytics/client";
 
 type ReviewPageHeaderBridgeProps = {
   reviewId: string;
+  entityId?: string | null;
+  isAuthenticated?: boolean;
   title: string;
   entityTitle?: string | null;
   artistName?: string | null;
@@ -12,6 +15,8 @@ type ReviewPageHeaderBridgeProps = {
 
 export default function ReviewPageHeaderBridge({
   reviewId,
+  entityId,
+  isAuthenticated = false,
   title,
   entityTitle,
   artistName,
@@ -37,6 +42,21 @@ export default function ReviewPageHeaderBridge({
       setDetailHeader(null);
     };
   }, [artistName, entityTitle, reviewId, setDetailHeader, title]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    trackAnalyticsEvent({
+      eventType: "review_open",
+      source: "review:page",
+      metadata: {
+        review_id: reviewId,
+        entity_id: entityId ?? null,
+      },
+    });
+  }, [entityId, isAuthenticated, reviewId]);
 
   return null;
 }

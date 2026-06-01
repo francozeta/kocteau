@@ -310,7 +310,7 @@ async function queryRecommendedFeedPage({
 
     await trackServerAnalyticsEvent(supabase, {
       userId: viewerId,
-      eventType: "for_you_fallback",
+      eventType: "recommendation_fallback",
       source: "feed:server",
       metadata: {
         code: recommendationsResult.error.code ?? null,

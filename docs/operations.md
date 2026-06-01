@@ -168,7 +168,7 @@ Starter tags affect recommendations in two stages:
 1. `get_starter_tracks()` ranks starter picks against the viewer's onboarding taste.
 2. `sync_entity_tags_from_starter_track()` copies starter tags to `entity_preference_tags` when a user reviews that track. If a curator edits the starter tags later, stale `system` tags are removed while manual tags are preserved.
 
-The feed presents these picks as a lightweight taste queue. A pass records `for_you_recommendation_action` in analytics; a review click still records `for_you_review_action`.
+The feed presents these picks as a lightweight taste queue. Impressions, passes, review intent, and published reviews record `starter_impression`, `starter_pass`, `starter_review_cta`, and `starter_review_published` in analytics.
 
 If the full starter migration has already landed but a legacy environment needs only the starter tag/RPC patch, review `supabase/scripts/maintenance/starter-algorithm-signals-patch.sql`. It updates only the starter tag table and related RPC functions, so it takes fewer schema locks.
 

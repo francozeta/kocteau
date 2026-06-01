@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Sparkles, X } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
@@ -33,6 +33,7 @@ export default function FeedStarterLayer({
 }: FeedStarterLayerProps) {
   const [passedTrackIds, setPassedTrackIds] = useState<Set<string>>(() => new Set());
   const [reviewedTrackIds, setReviewedTrackIds] = useState<Set<string>>(() => new Set());
+  const trackedImpressionIdsRef = useRef(new Set<string>());
   const prefersReducedMotion = useReducedMotion();
   const visibleTracks = useMemo(
     () =>
@@ -44,6 +45,28 @@ export default function FeedStarterLayer({
   const activeTrack = visibleTracks[0] ?? null;
   const upcomingTracks = visibleTracks.slice(1, 4);
   const completedCount = tracks.length - visibleTracks.length;
+
+  useEffect(() => {
+    if (!isAuthenticated || !activeTrack) {
+      return;
+    }
+
+    if (trackedImpressionIdsRef.current.has(activeTrack.id)) {
+      return;
+    }
+
+    trackedImpressionIdsRef.current.add(activeTrack.id);
+    trackAnalyticsEvent({
+      eventType: "starter_impression",
+      source: "feed:starter",
+      metadata: {
+        starter_track_id: activeTrack.id,
+        provider_id: activeTrack.provider_id,
+        matched_tag_count: activeTrack.matched_tag_count,
+        position: completedCount,
+      },
+    });
+  }, [activeTrack, completedCount, isAuthenticated]);
 
   if (tracks.length === 0) {
     return null;
@@ -57,7 +80,7 @@ export default function FeedStarterLayer({
     }
 
     trackAnalyticsEvent({
-      eventType: "for_you_recommendation_action",
+      eventType: "starter_pass",
       source: "feed:starter",
       metadata: {
         action: "starter_pass",
@@ -76,7 +99,7 @@ export default function FeedStarterLayer({
     }
 
     trackAnalyticsEvent({
-      eventType: "for_you_recommendation_action",
+      eventType: "starter_review_published",
       source: "feed:starter",
       metadata: {
         action: "starter_review_published",
@@ -220,8 +243,12 @@ export default function FeedStarterLayer({
                       size="sm"
                       className="h-8 gap-1.5 rounded-md border-border/28 bg-[var(--kocteau-surface-control)] px-3 text-xs text-foreground hover:bg-[var(--kocteau-surface-control-hover)]"
                       onClick={() => {
+                        if (!isAuthenticated) {
+                          return;
+                        }
+
                         trackAnalyticsEvent({
-                          eventType: "for_you_review_action",
+                          eventType: "starter_review_cta",
                           source: "feed:starter",
                           metadata: {
                             action: "starter_review_cta",

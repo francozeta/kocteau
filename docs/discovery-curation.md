@@ -100,7 +100,6 @@ entity_open
 feed_loaded
 recommendation_fallback
 for_you_review_action
-for_you_recommendation_action
 starter_impression
 starter_open
 starter_pass
@@ -128,10 +127,11 @@ Use only fields that help answer a product question:
 | `review_open` | `review_id`, `entity_id`, `reason`, `position` | Which surfaced reviews earn deeper reading? |
 | `review_read_50` | `review_id`, `entity_id`, `reason` | Which reviews hold attention? |
 | `review_read_90` | `review_id`, `entity_id`, `reason` | Which reviews are genuinely read? |
-| `entity_open` | `entity_id`, `provider`, `provider_id`, `source` | Which tracks become discovery destinations? |
+| `entity_open` | `entity_id`, `provider`, `provider_id`, `type` | Which tracks become discovery destinations? |
 | `for_you_review_action` | `action`, `review_id`, `entity_id`, `reason` | Which feed actions should tune ranking? |
-| `for_you_recommendation_action` | `action`, `starter_track_id`, `provider_id`, `matched_tag_count` | Are starter picks useful or being skipped? |
 | `starter_impression` | `starter_track_id`, `provider_id`, `matched_tag_count`, `position` | Which editorial picks are shown? |
+| `starter_pass` | `starter_track_id`, `provider_id`, `matched_tag_count` | Which editorial picks should be downranked or replaced? |
+| `starter_open` | `starter_track_id`, `provider_id`, `matched_tag_count` | Which editorial picks become discovery destinations? |
 | `starter_review_cta` | `starter_track_id`, `provider_id` | Which starter picks invite reviews? |
 | `starter_review_published` | `starter_track_id`, `provider_id` | Which starter picks convert into reviews? |
 
