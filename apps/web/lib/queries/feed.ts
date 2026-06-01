@@ -289,9 +289,9 @@ async function queryRecommendedFeedPage({
   const [recommendationsResult, viewerReviews, activeUsers] = await Promise.all([
     supabase.rpc("get_recommended_review_ids", {
       p_limit: pageLimit + 1,
-      p_cursor_score: decodedCursor?.score ?? null,
-      p_cursor_created_at: decodedCursor?.created_at ?? null,
-      p_cursor_id: decodedCursor?.id ?? null,
+      p_cursor_score: decodedCursor?.score,
+      p_cursor_created_at: decodedCursor?.created_at,
+      p_cursor_id: decodedCursor?.id,
     }),
     decodedCursor
       ? Promise.resolve([])

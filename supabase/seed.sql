@@ -1,0 +1,5 @@
+-- Supabase CLI loads seed files from [db.seed].sql_paths in config.toml.
+-- Keep deterministic seed SQL in supabase/seeds/*.sql.
+--
+-- Do not use psql meta-commands such as \ir here: the CLI sends seed files
+-- as SQL batches and does not expand psql include directives.

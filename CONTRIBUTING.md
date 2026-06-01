@@ -21,26 +21,28 @@ See [docs/backlog.md](./docs/backlog.md) for the current public backlog. Maintai
 
 ## Local Setup
 
-Install dependencies:
+Kocteau's default contribution path uses local Supabase. You should not need production credentials for normal web work.
 
 ```bash
 pnpm install
-```
-
-Start the web app:
-
-```bash
+pnpm supabase:start
+pnpm supabase:status
+cp apps/web/.env.example apps/web/.env.local
+pnpm supabase:reset
+pnpm supabase:types
 pnpm dev:web
 ```
 
 Open `http://localhost:3000`.
 
-Minimum local environment variables:
+Copy the local Supabase URL and local anon key from `pnpm supabase:status` into `apps/web/.env.local`:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=...
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 ```
+
+Use the local email inbox printed by `pnpm supabase:status` to read OTP codes. Do not use production Supabase, SMTP, or service role credentials for public contribution work.
 
 Optional OpenPanel analytics variables:
 
@@ -54,13 +56,10 @@ OPENPANEL_CLIENT_SECRET=...
 Before opening a web PR, run:
 
 ```bash
-pnpm check
-```
-
-That currently runs:
-
-```bash
-pnpm lint && pnpm --filter web build
+pnpm supabase:lint
+pnpm --filter web lint
+pnpm --filter web build
+git diff --check
 ```
 
 Root `pnpm build` is not the public contribution check yet because the monorepo build path still needs more review.

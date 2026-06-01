@@ -69,36 +69,43 @@ Sender name: Kocteau
 
 The sender domain must be verified in Resend. Avoid using Vercel preview domains as email sender domains.
 
-## SQL Scripts
+## Supabase Schema And Scripts
 
-Scripts live in:
+Fresh environments should be built from:
 
 ```text
-supabase/scripts
+supabase/config.toml
+supabase/migrations
+supabase/seeds
 ```
 
-Current scripts:
+Current migration responsibilities:
 
-- `wipe-demo-auth-data.sql`
-- `recommendation-v2.sql`
-- `editorial-starter-layer.sql`
-- `analytics-events.sql`
-- `cleanup-experimental-music-links.sql` (optional; only for removing the old ISRC/link experiment)
+- base schema, RLS, explicit grants, storage policies, and core RPCs
+- recommendation v2 and inferred entity taste tags
+- editorial starter picks and curator RPCs
+- analytics events
+- creator perks
 
 Recommended production order for a fresh setup:
 
-1. Base schema and auth/profile scripts
-2. `recommendation-v2.sql`
-3. `editorial-starter-layer.sql`
-4. `analytics-events.sql`
-5. Supabase Auth email template updates
-6. Application deploy
+1. Review migrations against the target environment.
+2. Apply migrations through the Supabase CLI or approved deployment path.
+3. Apply production-safe seed/configuration data only when intended.
+4. Update Supabase Auth email templates.
+5. Deploy the application.
 
-Run destructive scripts only after a backup and only when intentionally clearing demo/test data.
+Maintenance scripts live in:
+
+```text
+supabase/scripts/maintenance
+```
+
+Run destructive or optional maintenance scripts only after a backup and only when intentionally operating on that environment.
 
 Editorial starter content is product configuration, not demo user data. Keep it out of destructive demo wipes unless you intentionally want to rebuild the curated starter catalog.
 
-`cleanup-experimental-music-links.sql` is not part of a fresh setup. Run it only in environments where the old `entity_external_links`/ISRC experiment was already applied.
+`cleanup-experimental-music-links.sql` is not part of a fresh setup. Run the maintenance copy only in environments where the old `entity_external_links`/ISRC experiment was already applied.
 
 ## Post-Deploy Checks
 
@@ -159,11 +166,11 @@ Starter tags affect recommendations in two stages:
 
 The feed presents these picks as a lightweight taste queue. A pass records `for_you_recommendation_action` in analytics; a review click still records `for_you_review_action`.
 
-If the full starter script hits a production lock or deadlock after the base layer already exists, run `supabase/scripts/starter-algorithm-signals-patch.sql` instead. It updates only the starter tag table and related RPC functions, so it takes fewer schema locks.
+If the full starter migration has already landed but a legacy environment needs only the starter tag/RPC patch, review `supabase/scripts/maintenance/starter-algorithm-signals-patch.sql`. It updates only the starter tag table and related RPC functions, so it takes fewer schema locks.
 
 Track pages currently keep Deezer as the canonical external music link. Spotify/Apple/ISRC resolution is intentionally not part of the app right now because the provider access model adds avoidable operational friction for the current product stage. Future playback should be designed as a separate YouTube embed layer, likely behind explicit curator/admin controls.
 
-If an environment still has old ISRC/link tables from experimentation, run `supabase/scripts/cleanup-experimental-music-links.sql` after reviewing it. Do not run new backfills or add Spotify/Apple credentials unless that integration is intentionally reopened.
+If an environment still has old ISRC/link tables from experimentation, run `supabase/scripts/maintenance/cleanup-experimental-music-links.sql` after reviewing it. Do not run new backfills or add Spotify/Apple credentials unless that integration is intentionally reopened.
 
 Public identity and internal permissions are intentionally separate:
 
@@ -171,7 +178,7 @@ Public identity and internal permissions are intentionally separate:
 - `profile_roles`: private permission rows, currently `curator` or `admin`.
 - `is_starter_curator()`: checks the authenticated user's role.
 
-The script grants `admin` to the profile whose username is `kocteau` when it runs. If that profile does not exist yet, create the profile first or insert the role later.
+The editorial starter migration grants `admin` to the profile whose username is `kocteau` when it runs. If that profile does not exist yet, create the profile first or insert the role later.
 
 ## Branching and Releases
 

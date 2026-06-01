@@ -46,6 +46,10 @@ packages/*/.env
 packages/*/.env.local
 packages/*/.env.*.local
 
+# Supabase local state
+supabase/.temp/
+supabase/.branches/
+
 # Vercel
 .vercel/
 apps/*/.vercel/

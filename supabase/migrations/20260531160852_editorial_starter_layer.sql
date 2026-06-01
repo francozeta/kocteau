@@ -770,4 +770,76 @@ GRANT EXECUTE ON FUNCTION public.sync_entity_tags_from_starter_track(
   numeric
 ) TO authenticated;
 
+REVOKE ALL ON FUNCTION public.is_starter_curator()
+  FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_starter_tracks(integer)
+  FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.upsert_starter_track(
+  text,
+  text,
+  public.entity_type,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  boolean,
+  boolean,
+  uuid[],
+  text
+) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.archive_starter_track(uuid)
+  FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.upsert_preference_tag(
+  public.preference_kind,
+  text,
+  text,
+  text,
+  boolean
+) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.sync_entity_tags_from_starter_track(
+  uuid,
+  text,
+  text,
+  public.entity_type,
+  numeric
+) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.is_starter_curator()
+  TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_starter_tracks(integer)
+  TO authenticated;
+GRANT EXECUTE ON FUNCTION public.upsert_starter_track(
+  text,
+  text,
+  public.entity_type,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  boolean,
+  boolean,
+  uuid[],
+  text
+) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.archive_starter_track(uuid)
+  TO authenticated;
+GRANT EXECUTE ON FUNCTION public.upsert_preference_tag(
+  public.preference_kind,
+  text,
+  text,
+  text,
+  boolean
+) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.sync_entity_tags_from_starter_track(
+  uuid,
+  text,
+  text,
+  public.entity_type,
+  numeric
+) TO authenticated;
+
 COMMIT;

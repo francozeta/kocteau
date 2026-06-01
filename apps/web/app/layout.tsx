@@ -9,6 +9,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { getMetadataBase } from "@/lib/metadata";
 import { buildSiteGraphJsonLd } from "@/lib/structured-data";
 
+const supabaseAssetOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -50,12 +52,12 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
         <link rel="dns-prefetch" href="https://cdn-images.dzcdn.net" />
-        <link
-          rel="preconnect"
-          href="https://ytxilnlmvioccfaomizi.supabase.co"
-          crossOrigin=""
-        />
-        <link rel="dns-prefetch" href="https://ytxilnlmvioccfaomizi.supabase.co" />
+        {supabaseAssetOrigin ? (
+          <>
+            <link rel="preconnect" href={supabaseAssetOrigin} crossOrigin="" />
+            <link rel="dns-prefetch" href={supabaseAssetOrigin} />
+          </>
+        ) : null}
       </head>
       <body
         className={`${geist.className} antialiased dark`}

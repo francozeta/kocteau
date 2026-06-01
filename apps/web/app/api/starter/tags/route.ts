@@ -21,8 +21,8 @@ export async function POST(req: Request) {
   const { data, error } = await curator.supabase.rpc("upsert_preference_tag", {
     p_kind: tag.kind,
     p_label: tag.label,
-    p_slug: null,
-    p_description: tag.description,
+    p_slug: undefined,
+    p_description: tag.description ?? undefined,
     p_is_featured: tag.is_featured,
   });
 

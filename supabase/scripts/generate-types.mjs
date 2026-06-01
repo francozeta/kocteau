@@ -1,0 +1,56 @@
+import { spawnSync } from "node:child_process";
+import { existsSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const supabaseScript = resolve(
+  repoRoot,
+  "node_modules",
+  "supabase",
+  "dist",
+  "supabase.js",
+);
+const supabaseLegacyBin =
+  process.platform === "win32"
+    ? resolve(repoRoot, "node_modules", "supabase", "bin", "supabase.exe")
+    : resolve(repoRoot, "node_modules", "supabase", "bin", "supabase");
+const command = existsSync(supabaseScript) ? process.execPath : supabaseLegacyBin;
+const commandArgs = existsSync(supabaseScript) ? [supabaseScript] : [];
+
+const result = spawnSync(
+  command,
+  [
+    ...commandArgs,
+    "gen",
+    "types",
+    "--local",
+    "--lang=typescript",
+    "--schema",
+    "public,storage,graphql_public",
+  ],
+  {
+    encoding: "utf8",
+    cwd: repoRoot,
+  },
+);
+
+if (result.stderr) {
+  process.stderr.write(result.stderr);
+}
+
+if (result.error) {
+  throw result.error;
+}
+
+if (result.status !== 0) {
+  process.exit(result.status ?? 1);
+}
+
+const output = result.stdout.replace(/\r\n/gu, "\n").replace(/(?:\n)+$/u, "\n");
+
+writeFileSync(
+  resolve(repoRoot, "apps", "web", "lib", "supabase", "database.types.ts"),
+  output,
+  "utf8",
+);
