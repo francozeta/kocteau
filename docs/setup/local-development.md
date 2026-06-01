@@ -1,5 +1,7 @@
 # Local Development Setup
 
+[Docs index](../README.md) | [Environment and secrets](../security/environment.md) | [Operations](../operations.md) | [Contributing](../../CONTRIBUTING.md)
+
 Kocteau is local-first for contributors. A fresh checkout should run against a local Supabase stack and should not require production credentials.
 
 ## Requirements

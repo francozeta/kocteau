@@ -17,7 +17,7 @@ Good first contributions usually live in one of these areas:
 
 Avoid starting with auth, Supabase, recommendation, analytics, release, or CI changes unless a maintainer has already discussed the direction with you.
 
-See [docs/backlog.md](./docs/backlog.md) for the current public backlog. Maintainers use it to turn small, clear tasks into GitHub issues.
+See [docs/README.md](./docs/README.md) for the documentation map and [docs/backlog.md](./docs/backlog.md) for the current public backlog. Maintainers use the backlog to turn small, clear tasks into GitHub issues.
 
 ## Local Setup
 
@@ -43,13 +43,6 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 ```
 
 Use the local email inbox printed by `pnpm supabase:status` to read OTP codes. Do not use production Supabase, SMTP, or service role credentials for public contribution work.
-
-Optional OpenPanel analytics variables:
-
-```env
-NEXT_PUBLIC_OPENPANEL_CLIENT_ID=...
-OPENPANEL_CLIENT_SECRET=...
-```
 
 ## Checks
 

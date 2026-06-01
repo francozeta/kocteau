@@ -1,5 +1,7 @@
 # Environment And Secret Handling
 
+[Docs index](../README.md) | [Local development](../setup/local-development.md) | [Operations](../operations.md) | [Contributing](../../CONTRIBUTING.md)
+
 Kocteau uses separate environments for local development, staging, and production.
 
 ## Environment Boundaries

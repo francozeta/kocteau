@@ -1,5 +1,7 @@
 # Kocteau Interface Craft Rules
 
+[Docs index](../README.md) | [Motion rules](./motion-rules.md) | [Web roadmap](../web-roadmap.md) | [Backlog](../backlog.md)
+
 These notes distill the interface and animation direction from the Kocteau
 design reading notes. Use them together with `AGENTS.md` and
 `docs/ai/motion-rules.md`.

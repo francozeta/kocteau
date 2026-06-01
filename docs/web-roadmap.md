@@ -1,5 +1,7 @@
 # Kocteau Web Roadmap
 
+[Docs index](./README.md) | [MVP baseline](./mvp.md) | [Discovery and curation](./discovery-curation.md) | [Backlog](./backlog.md) | [Operations](./operations.md)
+
 ## Scope
 
 This roadmap is for the web app only.
@@ -192,6 +194,8 @@ Make writing a review faster, more expressive, and more confidence-building.
 
 ## Phase 3: Feed, Discovery, and Relevance
 
+Detailed discovery, curation, and analytics guidance lives in `docs/discovery-curation.md`.
+
 ### Goal
 
 Turn the home and discovery surfaces into a reason to return.
@@ -224,6 +228,9 @@ In progress. For You and recommendation v2 are live. The next job is measurement
   - actions per loaded review
   - recommendation fallback rate
   - interaction mix by reason label
+- Keep a documented signal contract before broadening analytics instrumentation.
+- Improve `/studio/starter` as the first editorial curation surface before building larger admin tools.
+- Explore editorial candidates only after starter and recommendation health can be measured.
 
 ### Likely Files
 
@@ -378,6 +385,8 @@ Strengthen the reasons people come back and feel safe participating.
 - playlists
 - albums and artists as first-class review targets
 - heavy ML recommendation systems
+- embeddings and vector search
+- native artist profiles and review premieres
 - gamification and streaks
 - direct messages
 - large creator or curator programs
@@ -394,7 +403,9 @@ Strengthen the reasons people come back and feel safe participating.
 
 ## Immediate Next Execution Steps
 
-1. Use analytics to validate For You health after real usage.
-2. Improve review creation quality and post-publish feedback.
-3. Strengthen Explore around trending, discussed, and top-rated music.
-4. Add lightweight trust/reporting flows without a heavy dashboard.
+1. Implement the discovery analytics signal contract.
+2. Use analytics to validate For You health after real usage.
+3. Improve `/studio/starter` around tag coverage, trust, and curator speed.
+4. Improve review creation quality and post-publish feedback.
+5. Strengthen Explore around trending, discussed, and top-rated music.
+6. Add lightweight trust/reporting flows without a heavy dashboard.

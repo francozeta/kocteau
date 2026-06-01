@@ -53,15 +53,6 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=replace_with_local_anon_key_from_supabase_s
 
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the canonical public browser key for the web app. The exact variable name can evolve, but the rule is fixed: public browser-safe keys use `NEXT_PUBLIC_*`; secret keys never do.
 
-Optional OpenPanel analytics variables:
-
-```env
-NEXT_PUBLIC_OPENPANEL_CLIENT_ID=...
-OPENPANEL_CLIENT_SECRET=...
-```
-
-`NEXT_PUBLIC_OPENPANEL_CLIENT_ID` enables client-side screen view tracking through the first-party `/api/op` proxy. `OPENPANEL_CLIENT_SECRET` also mirrors Kocteau's existing first-party product events to OpenPanel from the server. Session replay is not enabled by default.
-
 Optional creator perks variable:
 
 ```env
@@ -196,18 +187,30 @@ Kocteau uses a small first-party analytics table in Supabase. Events currently t
 
 The goal is product feedback, not surveillance. Events avoid emails, IPs, user agents, and long free-form payloads.
 
-OpenPanel can be enabled for Vercel-friendly analytics by setting `NEXT_PUBLIC_OPENPANEL_CLIENT_ID`. If `OPENPANEL_CLIENT_SECRET` is also set, the same product events are mirrored server-side without adding emails, user agents, or free-form profile fields.
+## Documentation Map
 
-## Documentation
+The documentation hub is [docs/README.md](./docs/README.md). Start there when you want to move through the project by product area instead of hunting for files.
 
-- MVP and product baseline: [docs/mvp.md](./docs/mvp.md)
+Core docs:
+
+- Product baseline: [docs/mvp.md](./docs/mvp.md)
 - Web roadmap: [docs/web-roadmap.md](./docs/web-roadmap.md)
-- Public backlog: [docs/backlog.md](./docs/backlog.md)
-- Operational notes: [docs/operations.md](./docs/operations.md)
+- Discovery, curation, and analytics strategy: [docs/discovery-curation.md](./docs/discovery-curation.md)
+- Public backlog and future RFCs: [docs/backlog.md](./docs/backlog.md)
+
+Contributor and operations docs:
+
+- Contributing guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
 - Local development setup: [docs/setup/local-development.md](./docs/setup/local-development.md)
 - Environment and secret handling: [docs/security/environment.md](./docs/security/environment.md)
+- Operational notes: [docs/operations.md](./docs/operations.md)
+
+Maintainer and craft docs:
+
 - Release automation: [docs/maintainers/release.md](./docs/maintainers/release.md)
 - GitHub rules: [docs/maintainers/github-rules.md](./docs/maintainers/github-rules.md)
+- Interface craft rules: [docs/ai/interface-craft-rules.md](./docs/ai/interface-craft-rules.md)
+- Motion rules: [docs/ai/motion-rules.md](./docs/ai/motion-rules.md)
 - Email templates: [apps/web/emails/README.md](./apps/web/emails/README.md)
 
 ## Contributing

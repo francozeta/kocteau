@@ -1,5 +1,7 @@
 # GitHub Rules
 
+[Docs index](../README.md) | [Release automation](./release.md) | [Operations](../operations.md) | [Backlog](../backlog.md)
+
 These settings keep Kocteau open to public contributions while protecting release, auth, data, and recommendation flows.
 
 ## General Repository Settings

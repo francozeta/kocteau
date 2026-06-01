@@ -1,5 +1,7 @@
 # Kocteau Operations
 
+[Docs index](./README.md) | [Local development](./setup/local-development.md) | [Environment and secrets](./security/environment.md) | [Discovery and curation](./discovery-curation.md) | [Release automation](./maintainers/release.md)
+
 This file captures the production setup that lives outside the codebase.
 
 ## Supabase Auth
@@ -132,6 +134,8 @@ from public.analytics_events
 group by event_type, source
 order by count(*) desc;
 ```
+
+Before adding broad analytics instrumentation, update the signal contract in `docs/discovery-curation.md`. Events should stay product-specific and should not store email, IP address, user agent, or raw review text in metadata.
 
 Useful recommendation health check:
 

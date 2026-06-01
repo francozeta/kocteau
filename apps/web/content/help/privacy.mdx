@@ -9,6 +9,7 @@ Kocteau collects the information needed to run a music review product:
 - Review activity, such as ratings, written reviews, comments, likes, saves, follows, and notifications.
 - Taste signals, such as onboarding choices, profile preferences, familiar tracks, and interaction history.
 - Technical data, such as device, browser, app performance, error reports, and security events.
+- Product analytics signals, such as feed loads, recommendation actions, starter pick actions, review opens, and similar events that help Kocteau understand whether discovery is working.
 
 <span id="how-kocteau-uses-information" className="block scroll-m-24" />
 
@@ -17,6 +18,16 @@ Kocteau collects the information needed to run a music review product:
 Kocteau uses information to authenticate users, publish reviews, show profiles, personalize the For You feed, recommend music and writers, protect the platform, debug issues, measure product health, and communicate important account or product updates.
 
 Kocteau does not need sensitive personal data to make music discovery feel personal. The product should learn from reviews, ratings, follows, saves, and taste signals rather than from invasive tracking.
+
+<span id="recommendation-and-analytics-signals" className="block scroll-m-24" />
+
+## Recommendation and analytics signals
+
+Kocteau may record product events to understand how the review and discovery loop is working. Examples include whether a feed loaded, whether a review was opened, whether a starter pick was skipped, or whether a recommendation path fell back to a safer default.
+
+First-party analytics events should stay limited to product context such as event type, surface, review or track identifiers, recommendation reason, position, and small counters. Kocteau should not store email addresses, IP addresses, user agents, or raw review text inside first-party analytics event metadata.
+
+Aggregate analytics may be used to improve For You, starter picks, Explore, recommendation health checks, and future editorial candidate review. These signals should support human curation and product quality rather than advertising profiles.
 
 <span id="public-content" className="block scroll-m-24" />
 

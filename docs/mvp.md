@@ -1,5 +1,7 @@
 # Kocteau MVP
 
+[Docs index](./README.md) | [Web roadmap](./web-roadmap.md) | [Discovery and curation](./discovery-curation.md) | [Backlog](./backlog.md) | [Operations](./operations.md)
+
 ## Vision
 
 Kocteau is a place where people review music, express taste, and discover what to hear next through other listeners.

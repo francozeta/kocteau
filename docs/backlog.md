@@ -1,8 +1,12 @@
 # Kocteau Public Backlog
 
+[Docs index](./README.md) | [MVP baseline](./mvp.md) | [Web roadmap](./web-roadmap.md) | [Discovery and curation](./discovery-curation.md) | [Contributing](../CONTRIBUTING.md)
+
 This backlog turns the roadmap into work that maintainers and contributors can pick up.
 
 It is web-first. `apps/web` is the production surface. `apps/mobile` stays future-facing unless a maintainer explicitly opens mobile work.
+
+For discovery, curation, recommendation, and analytics work, start with `docs/discovery-curation.md`. That document defines the product philosophy, signal contract, and phased direction for the hybrid recommendation system.
 
 ## How to Use This Backlog
 
@@ -32,6 +36,7 @@ These are the next useful moves after enabling public contribution.
 | P0 | Pin the public repository description, topics, website URL, and social preview image in GitHub settings. | ready | `docs`, `area:docs` |
 | P1 | Open 6-10 curated GitHub issues from this backlog before broader public sharing. | ready | `docs`, `help wanted` |
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
+| P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | ready | `docs`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Keep branch protection advisory until the first public PRs prove the flow. | needs maintainer decision | `chore`, `area:ci` |
 | P2 | Enable `Verify` as a required status check after 1-2 stable contribution weeks. | needs maintainer decision | `chore`, `area:ci` |
 
@@ -128,6 +133,38 @@ Acceptance criteria:
 - Core flows use a consistent tone.
 - No unrelated UI logic changes are included.
 
+### Discovery Documentation Examples
+
+Suggested issue: `docs: add examples to the discovery signal contract`
+
+- Expand `docs/discovery-curation.md` with 2-3 concrete examples of analytics event payloads.
+- Include examples for a For You review impression, a starter pick pass, and a review read-depth event.
+- Keep examples free of email, IP address, user agent, or raw review body text.
+
+Suggested labels: `docs`, `area:docs`, `area:recommendations`, `good first issue`
+
+Acceptance criteria:
+
+- Contributors can see the expected shape of a signal before adding instrumentation.
+- The examples explain which product decision each event supports.
+- No production code changes are included.
+
+### Starter Studio Copy And Empty States
+
+Suggested issue: `fix(web): clarify starter studio empty states and helper copy`
+
+- Improve `/studio/starter` copy for empty search, no starter picks, picks without tags, and archive confirmation language.
+- Preserve the current curation workflow and API behavior.
+- Keep the tone editorial and concise.
+
+Suggested labels: `feature`, `area:web`, `area:ui`, `area:recommendations`, `help wanted`
+
+Acceptance criteria:
+
+- The curator understands what action to take when there are no picks, no search query, or no tags.
+- Starter copy does not sound like a generic admin dashboard.
+- Desktop and narrow viewport screenshots are included.
+
 ## Maintainer-Led Product Work
 
 These are important, but they need product direction before public contributors should implement them.
@@ -221,15 +258,35 @@ These can be public issues, but they should require maintainer review and carefu
 
 Suggested issue: `feat(web): add lightweight recommendation health checks for maintainers`
 
-- Track fallback rate, action rate, and starter-pick usage.
+- Track fallback rate, action rate, read-depth rate, and starter-pick usage.
 - Prefer simple SQL/admin notes before building a dashboard.
+- Use the signal contract in `docs/discovery-curation.md` before adding new events.
 
 Suggested labels: `feature`, `area:recommendations`, `area:analytics`, `needs maintainer decision`
 
 Acceptance criteria:
 
 - Maintainers can tell if For You is healthy after public traffic.
+- Metrics are grouped by safe fields such as event type, source, reason label, and day.
 - No private user data is exposed.
+
+### Analytics Signal Contract Implementation
+
+Suggested issue: `feat(web): implement the discovery analytics signal contract`
+
+- Add the first instrumentation pass for the events defined in `docs/discovery-curation.md`.
+- Start with For You load, recommendation fallback, review impression/open, entity open, and starter pick actions.
+- Keep analytics best-effort so product interactions never fail because an event fails.
+- Avoid sensitive metadata such as email, IP address, user agent, and raw review text.
+
+Suggested labels: `feature`, `area:web`, `area:analytics`, `area:recommendations`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- Events follow the documented naming and metadata contract.
+- Analytics validation rejects invalid event names and oversized metadata.
+- The implementation includes focused tests for payload validation where practical.
+- Manual verification confirms events are written after feed and starter interactions.
 
 ### Starter Picks Curation
 
@@ -237,6 +294,8 @@ Suggested issue: `feat(web): improve starter pick curation workflow`
 
 - Improve `/studio/starter` ergonomics for the official curator.
 - Make tag assignment and archive behavior easier to trust.
+- Add lightweight visibility into tag coverage, untagged picks, and starter pick conversion once analytics events exist.
+- Do not add a broad admin dashboard in this issue.
 
 Suggested labels: `feature`, `area:web`, `area:recommendations`, `needs maintainer decision`
 
@@ -244,6 +303,42 @@ Acceptance criteria:
 
 - Curators can seed and maintain starter picks faster.
 - Starter tags remain compatible with recommendation RPCs.
+- The UI remains quiet, editorial, and focused on the starter layer.
+
+### Editorial Candidate Queue
+
+Suggested issue: `feat(web): design editorial candidate queue for starter picks`
+
+- Add a maintainer-reviewed design for `editorial_candidates` before implementation.
+- Candidate reasons may include review velocity, bookmark growth, read depth, trusted-user activity, emerging tags, and undercovered taste areas.
+- The first version should support approve to starter, dismiss, and later states.
+- Keep curator approval required before a candidate becomes official starter content.
+
+Suggested labels: `feature`, `area:web`, `area:supabase`, `area:recommendations`, `needs design review`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- The proposed schema avoids private user data and keeps RLS explicit.
+- The product flow is `signals -> candidate -> curator decision -> starter pick or dismissal`.
+- The implementation plan explains how candidates are generated without heavy ML.
+- Existing starter pick RPCs and curator access remain compatible.
+
+### Recommendation Ranking Tuning
+
+Suggested issue: `feat(web): tune For You ranking with measured signals`
+
+- Tune `get_recommended_review_ids` only after analytics events can report feed health.
+- Consider written-review quality, author diversity, entity diversity, exploration, and editorial fallback.
+- Keep the scoring inspectable and reversible.
+
+Suggested labels: `feature`, `area:supabase`, `area:recommendations`, `area:analytics`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- A before/after health snapshot is captured with safe aggregate metrics.
+- The SQL remains readable and has indexes for the new access pattern if needed.
+- Recommendation reason labels still map cleanly to the web UI.
+- Sparse-data users still receive useful editorial fallback.
 
 ### Trust and Safety V1
 
@@ -270,6 +365,60 @@ Do this after the public flow has real usage.
 - Pin GitHub Actions to commit SHAs only after the workflow set is stable.
 - Decide whether Discussions should be enabled and moderated.
 - Consider issue forms for RFCs only if product discussion becomes noisy.
+
+## Future RFC Backlog
+
+These ideas are not ready for implementation issues yet. They are useful prompts for contributors who want to help with product research, design notes, or RFC drafts.
+
+### Taste Graph
+
+Suggested RFC: `rfc: define a manual taste graph for entity relationships`
+
+- Explore a small `entity_relationships` model before embeddings.
+- Relationship examples: similar texture, influence, same scene, contrast pick, gateway recommendation.
+- Focus on explainability for track pages, Explore, and future For You tuning.
+
+Suggested labels: `rfc`, `area:recommendations`, `area:product`, `needs maintainer decision`
+
+### Native Artist Discovery
+
+Suggested RFC: `rfc: explore native artist profiles without hosting audio`
+
+- Research whether Kocteau should let emerging artists create lightweight profiles with external music links.
+- Consider Bandcamp, SoundCloud, YouTube, Audiomack, and official site links.
+- Avoid audio hosting, rights management, or playback commitments in the first RFC.
+
+Suggested labels: `rfc`, `area:product`, `area:research`, `needs maintainer decision`
+
+### Artist-As-Curator
+
+Suggested RFC: `rfc: explore artist-as-curator flows`
+
+- Define how artists could review or recommend music that influenced them.
+- Keep the value centered on taste, context, and discovery rather than promotion.
+- Include risks around reciprocal praise and low-trust activity.
+
+Suggested labels: `rfc`, `area:product`, `area:community`, `needs maintainer decision`
+
+### Review Premiere
+
+Suggested RFC: `rfc: explore review premieres for independent releases`
+
+- Explore whether artists can prepare context before a release while curators write early reviews from external private links.
+- Keep the first version operationally light and avoid storing audio.
+- Identify trust, moderation, and disclosure requirements before implementation.
+
+Suggested labels: `rfc`, `area:product`, `area:community`, `needs maintainer decision`
+
+### Embeddings And Vector Search
+
+Suggested RFC: `rfc: evaluate embeddings and pgvector for discovery`
+
+- Define which objects would be embedded and why.
+- Compare manual taste graph, tag matching, and vector similarity.
+- Do not implement embeddings until Kocteau has enough real reviews and interactions to evaluate quality.
+
+Suggested labels: `rfc`, `area:recommendations`, `area:supabase`, `needs maintainer decision`
 
 ## Deferred
 

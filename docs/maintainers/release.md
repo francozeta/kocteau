@@ -1,5 +1,7 @@
 # Release Automation
 
+[Docs index](../README.md) | [GitHub rules](./github-rules.md) | [Operations](../operations.md) | [Backlog](../backlog.md)
+
 Kocteau uses Release Please for versioning, changelog updates, tags, and GitHub Releases.
 
 This keeps release control with the maintainer while avoiding manual version and changelog work.

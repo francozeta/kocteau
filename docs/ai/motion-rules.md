@@ -1,5 +1,7 @@
 # Kocteau Motion Rules
 
+[Docs index](../README.md) | [Interface craft rules](./interface-craft-rules.md) | [Web roadmap](../web-roadmap.md) | [Backlog](../backlog.md)
+
 These rules define how to use `motion/react` in Kocteau.
 
 Motion is optional by default. Do not animate a surface just because animation is available.
