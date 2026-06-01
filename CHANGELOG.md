@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.3](https://github.com/francozeta/kocteau/compare/v0.3.2...v0.3.3) (2026-06-01)
+
+
+### Bug Fixes
+
+* **supabase:** stabilize local setup ([94ba3c7](https://github.com/francozeta/kocteau/commit/94ba3c7445f13daffb6148aac42c2027571f299f))
+* **web:** satisfy stricter hooks lint ([0d8efc7](https://github.com/francozeta/kocteau/commit/0d8efc7f0d8dbdc6296b3a6f966e0ab77b570cbf))
+* **web:** satisfy stricter hooks lint ([b9010fc](https://github.com/francozeta/kocteau/commit/b9010fc43065911341def6fbee01714ab55978c9))
+* **web:** support signup OTP codes ([40abc6b](https://github.com/francozeta/kocteau/commit/40abc6b9c0d89d8bdee13c6771febd0092e75da2))
+* **web:** support signup OTP codes ([4bac124](https://github.com/francozeta/kocteau/commit/4bac1243437e85d64d07f78c04aa3ebf43b75ab0))
+
 ## [0.3.2](https://github.com/francozeta/kocteau/compare/v0.3.1...v0.3.2) (2026-05-27)
 
 
