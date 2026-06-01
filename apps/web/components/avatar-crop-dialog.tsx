@@ -49,19 +49,77 @@ export default function AvatarCropDialog({
   onOpenChange,
 }: AvatarCropDialogProps) {
   const isMobile = useIsMobile();
+  const sourceFile = initialFile;
+  const cropSessionKey = sourceFile
+    ? `${open ? "open" : "closed"}:${sourceFile.name}:${sourceFile.size}:${sourceFile.lastModified}`
+    : `${open ? "open" : "closed"}:empty`;
+
+  const cropperContent = (
+    <AvatarCropDialogContent
+      key={cropSessionKey}
+      isMobile={isMobile}
+      sourceFile={sourceFile}
+      onConfirm={onConfirm}
+      onOpenChange={onOpenChange}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <DrawerBase open={open} onOpenChange={onOpenChange} swipeDirection="down">
+        <DrawerBasePortal>
+          <DrawerBaseBackdrop className="bg-black/78" />
+          <DrawerBaseViewport>
+            <DrawerBaseContent className="max-h-[calc(100dvh-0.25rem)] border-white/10 bg-[#060606] text-white">
+              <DrawerBaseHandle className="bg-white/18" />
+              <DrawerBaseHeader className="sr-only">
+                <DrawerBaseTitle>Crop profile photo</DrawerBaseTitle>
+                <DrawerBaseDescription>
+                  Adjust the framing and save.
+                </DrawerBaseDescription>
+              </DrawerBaseHeader>
+
+              {cropperContent}
+            </DrawerBaseContent>
+          </DrawerBaseViewport>
+        </DrawerBasePortal>
+      </DrawerBase>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="w-[min(100vw-1rem,34rem)] overflow-hidden rounded-[1.1rem] border border-white/10 bg-[#060606] p-0 text-white shadow-2xl"
+      >
+        <DialogHeader className="sr-only">
+          <DialogTitle>Crop profile photo</DialogTitle>
+          <DialogDescription>
+            Adjust the framing and save.
+          </DialogDescription>
+        </DialogHeader>
+
+        {cropperContent}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AvatarCropDialogContent({
+  isMobile,
+  sourceFile,
+  onConfirm,
+  onOpenChange,
+}: {
+  isMobile: boolean;
+  sourceFile: File | null;
+  onConfirm: (result: PreparedAvatarUpload) => void;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [cropArea, setCropArea] = useState<PixelCropArea | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
-  const sourceFile = initialFile;
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    setCropArea(null);
-    setError(null);
-  }, [open, initialFile]);
 
   const previewUrl = useMemo(() => {
     if (!sourceFile) {
@@ -199,44 +257,5 @@ export default function AvatarCropDialog({
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <DrawerBase open={open} onOpenChange={onOpenChange} swipeDirection="down">
-        <DrawerBasePortal>
-          <DrawerBaseBackdrop className="bg-black/78" />
-          <DrawerBaseViewport>
-            <DrawerBaseContent className="max-h-[calc(100dvh-0.25rem)] border-white/10 bg-[#060606] text-white">
-              <DrawerBaseHandle className="bg-white/18" />
-              <DrawerBaseHeader className="sr-only">
-                <DrawerBaseTitle>Crop profile photo</DrawerBaseTitle>
-                <DrawerBaseDescription>
-                  Adjust the framing and save.
-                </DrawerBaseDescription>
-              </DrawerBaseHeader>
-
-              {cropperContent}
-            </DrawerBaseContent>
-          </DrawerBaseViewport>
-        </DrawerBasePortal>
-      </DrawerBase>
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="w-[min(100vw-1rem,34rem)] overflow-hidden rounded-[1.1rem] border border-white/10 bg-[#060606] p-0 text-white shadow-2xl"
-      >
-        <DialogHeader className="sr-only">
-          <DialogTitle>Crop profile photo</DialogTitle>
-          <DialogDescription>
-            Adjust the framing and save.
-          </DialogDescription>
-        </DialogHeader>
-
-        {cropperContent}
-      </DialogContent>
-    </Dialog>
-  );
+  return cropperContent;
 }

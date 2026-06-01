@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Disc3, LoaderCircle, Music2, Search } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
@@ -25,6 +25,11 @@ type SearchPageClientProps = {
 type RecentSearch = {
   label: string;
   query: string;
+};
+
+type ActiveSearchResultState = {
+  key: string;
+  index: number;
 };
 
 const suggestedSearches = [
@@ -59,6 +64,50 @@ const searchEntityTabs: Array<{
 ];
 
 const recentSearchesStorageKey = "kocteau:recent-searches";
+const recentSearchesChangedEvent = "kocteau:recent-searches-changed";
+const emptyRecentSearchesSnapshot = "[]";
+
+function parseRecentSearchesSnapshot(snapshot: string): RecentSearch[] {
+  try {
+    const parsed = JSON.parse(snapshot) as RecentSearch[];
+
+    if (Array.isArray(parsed)) {
+      return parsed.slice(0, 6);
+    }
+  } catch {
+    // Ignore broken local storage payloads and fall back to empty recent searches.
+  }
+
+  return [];
+}
+
+function getRecentSearchesSnapshot() {
+  return window.localStorage.getItem(recentSearchesStorageKey) ?? emptyRecentSearchesSnapshot;
+}
+
+function getRecentSearchesServerSnapshot() {
+  return emptyRecentSearchesSnapshot;
+}
+
+function subscribeRecentSearches(onStoreChange: () => void) {
+  function handleStorage(event: StorageEvent) {
+    if (event.key === recentSearchesStorageKey) {
+      onStoreChange();
+    }
+  }
+
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(recentSearchesChangedEvent, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(recentSearchesChangedEvent, onStoreChange);
+  };
+}
+
+function notifyRecentSearchesChanged() {
+  window.dispatchEvent(new Event(recentSearchesChangedEvent));
+}
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -229,52 +278,52 @@ export default function SearchPageClient({
   const pathname = usePathname();
 
   const [query, setQuery] = useState(initialQuery);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [activeIndexState, setActiveIndexState] = useState<ActiveSearchResultState>({
+    key: "",
+    index: -1,
+  });
   const resultRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   const searchType = initialType;
   const normalizedQuery = query.trim();
+  const recentSearchesSnapshot = useSyncExternalStore(
+    subscribeRecentSearches,
+    getRecentSearchesSnapshot,
+    getRecentSearchesServerSnapshot,
+  );
+  const recentSearches = useMemo(
+    () => parseRecentSearchesSnapshot(recentSearchesSnapshot),
+    [recentSearchesSnapshot],
+  );
   const { data = [], isFetching, error } = useDeezerSearch({
     query,
     type: searchType,
     enabled: searchType === "track",
   });
   const results = data as DeezerSearchResult[];
+  const activeResultKey = useMemo(
+    () =>
+      [
+        normalizedQuery,
+        ...results.map((result) => `${result.provider}:${result.provider_id}`),
+      ].join("|"),
+    [normalizedQuery, results],
+  );
+  const defaultActiveIndex = normalizedQuery.length >= 2 && results.length > 0 ? 0 : -1;
+  const activeIndex =
+    activeIndexState.key === activeResultKey ? activeIndexState.index : defaultActiveIndex;
 
-  useEffect(() => {
-    setQuery(initialQuery);
-  }, [initialQuery]);
+  function setActiveIndex(nextIndex: number | ((current: number) => number)) {
+    setActiveIndexState((current) => {
+      const currentIndex =
+        current.key === activeResultKey ? current.index : defaultActiveIndex;
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      const stored = window.localStorage.getItem(recentSearchesStorageKey);
-
-      if (!stored) {
-        return;
-      }
-
-      const parsed = JSON.parse(stored) as RecentSearch[];
-
-      if (Array.isArray(parsed)) {
-        setRecentSearches(parsed.slice(0, 6));
-      }
-    } catch {
-      // Ignore broken local storage payloads and fall back to empty recent searches.
-    }
-  }, []);
-
-  useEffect(() => {
-    if (normalizedQuery.length < 2 || results.length === 0) {
-      setActiveIndex(-1);
-      return;
-    }
-
-    setActiveIndex(0);
-  }, [normalizedQuery, results.length]);
+      return {
+        key: activeResultKey,
+        index:
+          typeof nextIndex === "function" ? nextIndex(currentIndex) : nextIndex,
+      };
+    });
+  }
 
   useEffect(() => {
     if (activeIndex < 0) {
@@ -341,18 +390,19 @@ export default function SearchPageClient({
       query: label,
     } satisfies RecentSearch;
 
-    setRecentSearches((current) => {
-      const next = [nextItem, ...current.filter((item) => item.query.toLowerCase() !== label.toLowerCase())].slice(0, 6);
-      window.localStorage.setItem(recentSearchesStorageKey, JSON.stringify(next));
-      return next;
-    });
+    const next = [
+      nextItem,
+      ...recentSearches.filter((item) => item.query.toLowerCase() !== label.toLowerCase()),
+    ].slice(0, 6);
+
+    window.localStorage.setItem(recentSearchesStorageKey, JSON.stringify(next));
+    notifyRecentSearchesChanged();
   }
 
   function clearRecentSearches() {
-    setRecentSearches([]);
-
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(recentSearchesStorageKey);
+      notifyRecentSearchesChanged();
     }
   }
 
