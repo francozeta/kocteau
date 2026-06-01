@@ -196,8 +196,12 @@ export default function FeedReviewList({
       return;
     }
 
+    let reviewPositionOffset = 0;
+
     (data?.pages ?? []).forEach((page, pageIndex) => {
       const reviewIds = page.feed.map((review) => review.id);
+      const pageStartPosition = reviewPositionOffset;
+      reviewPositionOffset += page.feed.length;
 
       if (reviewIds.length === 0) {
         return;
@@ -211,17 +215,34 @@ export default function FeedReviewList({
 
       trackedPageKeysRef.current.add(pageKey);
       trackAnalyticsEvent({
-        eventType: "for_you_reviews_loaded",
+        eventType: "feed_loaded",
         source: "feed:for-you",
         metadata: {
+          view,
           page_index: pageIndex,
           review_count: reviewIds.length,
+          starter_count: visibleStarterTracks.length,
           review_ids: reviewIds,
+          has_cursor: Boolean(page.nextCursor),
           has_next_page: Boolean(page.nextCursor),
         },
       });
+
+      page.feed.forEach((review, reviewIndex) => {
+        trackAnalyticsEvent({
+          eventType: "review_impression",
+          source: "feed:for-you",
+          metadata: {
+            review_id: review.id,
+            entity_id: review.entities?.id ?? null,
+            reason: review.recommendation_reason ?? null,
+            page_index: pageIndex,
+            position: pageStartPosition + reviewIndex,
+          },
+        });
+      });
     });
-  }, [data?.pages, isAuthenticated, view]);
+  }, [data?.pages, isAuthenticated, view, visibleStarterTracks.length]);
 
   useEffect(() => {
     const node = sentinelRef.current;

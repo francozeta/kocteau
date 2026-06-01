@@ -160,7 +160,7 @@ Recommendation inputs currently include:
 - rating, likes, comments, and recency
 - light diversity penalties to reduce repetition
 
-If the recommendation RPC fails, the app logs `for_you_fallback` and falls back to latest reviews instead of breaking the feed.
+If the recommendation RPC fails, the app logs `recommendation_fallback` and falls back to latest reviews instead of breaking the feed.
 
 When a signed-in user's For You feed is empty or sparse, Kocteau can show editorial starter picks. These are not fake reviews; they are curated track prompts stored in `starter_tracks` and ranked against the user's onboarding tags through `get_starter_tracks`.
 
@@ -180,10 +180,16 @@ Official identity and internal permissions are separate:
 Kocteau uses a small first-party analytics table in Supabase. Events currently tracked:
 
 - `taste_onboarding_completed`
-- `for_you_reviews_loaded`
+- `feed_loaded`
+- `recommendation_fallback`
+- `review_impression`
+- `review_open`
+- `entity_open`
 - `for_you_review_action`
-- `for_you_recommendation_action`
-- `for_you_fallback`
+- `starter_impression`
+- `starter_pass`
+- `starter_review_cta`
+- `starter_review_published`
 
 The goal is product feedback, not surveillance. Events avoid emails, IPs, user agents, and long free-form payloads.
 

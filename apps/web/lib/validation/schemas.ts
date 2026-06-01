@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  analyticsAcceptedEventTypes,
+  getCanonicalAnalyticsEventType,
+  isAllowedAnalyticsMetadataKey,
+} from "@/lib/analytics/events";
 import { searchableEntityTypes } from "@/lib/search-types";
 import { tasteOnboardingMaxTags, tasteOnboardingMinTags } from "@/lib/taste";
 
@@ -255,20 +260,21 @@ const analyticsMetadataValueSchema: z.ZodType<
 ]);
 
 export const analyticsEventSchema = z.object({
-  eventType: z.enum([
-    "taste_onboarding_completed",
-    "for_you_reviews_loaded",
-    "for_you_review_action",
-    "for_you_recommendation_action",
-    "for_you_fallback",
-  ]),
+  eventType: z
+    .enum(analyticsAcceptedEventTypes)
+    .transform((eventType) => getCanonicalAnalyticsEventType(eventType) ?? eventType),
   source: z
     .string()
     .trim()
     .regex(/^[a-z0-9_:-]{2,80}$/, "Invalid analytics source.")
     .default("web"),
   metadata: z
-    .record(z.string().regex(/^[a-z0-9_:-]{1,64}$/), analyticsMetadataValueSchema)
+    .record(
+      z.string().refine(isAllowedAnalyticsMetadataKey, {
+        message: "Analytics metadata contains a sensitive or invalid key.",
+      }),
+      analyticsMetadataValueSchema,
+    )
     .default({}),
 });
 

@@ -124,6 +124,10 @@ export default async function TrackPage({
       <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
         <TrackPageHeaderBridge
           entityId={entity.id}
+          provider={entity.provider}
+          providerId={entity.provider_id}
+          type={entity.type}
+          isAuthenticated={Boolean(user)}
           title={entity.title}
           artistName={entity.artist_name}
           deezerUrl={entity.deezer_url}
