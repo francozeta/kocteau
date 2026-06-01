@@ -78,7 +78,44 @@ export type NewReviewFormProps = {
 
 export type NewReviewFormStep = "search" | "compose";
 
-export default function NewReviewForm({
+type ActiveResultState = {
+  key: string;
+  index: number;
+};
+
+function getSelectionKey(selection: DeezerResult | null | undefined) {
+  if (!selection) {
+    return "none";
+  }
+
+  return [
+    selection.provider,
+    selection.provider_id,
+    selection.entity_id ?? "",
+    selection.title,
+    selection.artist_name ?? "",
+  ].join(":");
+}
+
+function getNewReviewFormStateKey(props: NewReviewFormProps) {
+  return [
+    props.mode ?? "create",
+    props.intent ?? "review",
+    props.reviewId ?? "",
+    props.initialQuery ?? "",
+    getSelectionKey(props.initialSelection),
+    props.initialRating ?? "",
+    props.initialTitle ?? "",
+    props.initialBody ?? "",
+    props.initialPinned ? "pinned" : "unpinned",
+  ].join("|");
+}
+
+export default function NewReviewForm(props: NewReviewFormProps) {
+  return <NewReviewFormState key={getNewReviewFormStateKey(props)} {...props} />;
+}
+
+function NewReviewFormState({
   mode = "create",
   intent = "review",
   isAuthenticated = true,
@@ -108,7 +145,10 @@ export default function NewReviewForm({
   );
   const [query, setQuery] = useState(initialQuery);
   const [selected, setSelected] = useState<DeezerResult | null>(initialSelection);
-  const [activeResultIndex, setActiveResultIndex] = useState(-1);
+  const [activeResultState, setActiveResultState] = useState<ActiveResultState>({
+    key: "",
+    index: -1,
+  });
 
   const [rating, setRating] = useState<number | null>(initialRating);
   const [title, setTitle] = useState(initialTitle);
@@ -132,44 +172,34 @@ export default function NewReviewForm({
     enabled: searchEnabled,
   });
   const results = useMemo(() => (searchEnabled ? ((data ?? []) as DeezerResult[]) : []), [data, searchEnabled]);
+  const activeResultKey = useMemo(
+    () =>
+      [
+        step,
+        normalizedQuery,
+        ...results.map((result) => `${result.provider}:${result.provider_id}`),
+      ].join("|"),
+    [normalizedQuery, results, step],
+  );
+  const defaultActiveResultIndex =
+    step === "search" && normalizedQuery.length >= 2 && results.length > 0 ? 0 : -1;
+  const activeResultIndex =
+    activeResultState.key === activeResultKey
+      ? activeResultState.index
+      : defaultActiveResultIndex;
 
-  useEffect(() => {
-    setQuery(initialQuery);
-  }, [initialQuery]);
+  function setActiveResultIndex(nextIndex: number | ((current: number) => number)) {
+    setActiveResultState((current) => {
+      const currentIndex =
+        current.key === activeResultKey ? current.index : defaultActiveResultIndex;
 
-  useEffect(() => {
-    if (isSearchIntent) {
-      setStep("search");
-      setSelected(null);
-      setErrorMsg(null);
-      return;
-    }
-
-    if (initialSelection) {
-      setSelected(initialSelection);
-      setStep("compose");
-      setErrorMsg(null);
-      return;
-    }
-
-    setSelected(null);
-    setStep("search");
-  }, [initialSelection, isSearchIntent]);
-
-  useEffect(() => {
-    setRating(initialRating);
-    setTitle(initialTitle);
-    setBody(initialBody);
-  }, [initialBody, initialRating, initialTitle, reviewId]);
-
-  useEffect(() => {
-    if (step !== "search" || normalizedQuery.length < 2 || results.length === 0) {
-      setActiveResultIndex(-1);
-      return;
-    }
-
-    setActiveResultIndex(0);
-  }, [normalizedQuery, results.length, step]);
+      return {
+        key: activeResultKey,
+        index:
+          typeof nextIndex === "function" ? nextIndex(currentIndex) : nextIndex,
+      };
+    });
+  }
 
   useEffect(() => {
     if (activeResultIndex < 0) {

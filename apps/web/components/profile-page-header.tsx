@@ -38,7 +38,31 @@ type ProfilePageHeaderProps = {
   } | null;
 };
 
-export default function ProfilePageHeader({
+function getProfilePageHeaderStateKey(profile: ProfilePageHeaderProfile) {
+  return [
+    profile.id,
+    profile.username,
+    profile.display_name ?? "",
+    profile.avatar_url ?? "",
+    profile.bio ?? "",
+    profile.spotify_url ?? "",
+    profile.apple_music_url ?? "",
+    profile.deezer_url ?? "",
+    profile.is_official ? "official" : "",
+    profile.official_label ?? "",
+  ].join("|");
+}
+
+export default function ProfilePageHeader(props: ProfilePageHeaderProps) {
+  return (
+    <ProfilePageHeaderState
+      key={getProfilePageHeaderStateKey(props.profile)}
+      {...props}
+    />
+  );
+}
+
+function ProfilePageHeaderState({
   profile,
   totalReviews,
   memberSince,
@@ -83,10 +107,6 @@ export default function ProfilePageHeader({
       ].filter((link): link is { label: string; url: string } => Boolean(link)),
     [localProfile.apple_music_url, localProfile.deezer_url, localProfile.spotify_url],
   );
-
-  useEffect(() => {
-    setLocalProfile(profile);
-  }, [profile]);
 
   useEffect(() => {
     setDetailHeader({
