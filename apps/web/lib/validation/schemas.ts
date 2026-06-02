@@ -207,6 +207,10 @@ export const starterPreferenceTagSchema = z.object({
   is_featured: z.boolean().optional().default(true),
 });
 
+export const starterPreferenceTagUpdateSchema = starterPreferenceTagSchema.extend({
+  id: z.string().uuid("Invalid starter tag id."),
+});
+
 export const updateReviewSchema = z.object({
   review_title: optionalTrimmedString(120),
   review_body: optionalTrimmedString(2000),
@@ -288,6 +292,7 @@ export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type StarterTrackUpsertInput = z.infer<typeof starterTrackUpsertSchema>;
 export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>;
 export type StarterPreferenceTagInput = z.infer<typeof starterPreferenceTagSchema>;
+export type StarterPreferenceTagUpdateInput = z.infer<typeof starterPreferenceTagUpdateSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;

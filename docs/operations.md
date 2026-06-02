@@ -171,6 +171,10 @@ Apply `supabase/migrations/20260601195115_starter_tracks_for_surface.sql` before
 
 Use `supabase/scripts/maintenance/starter-rail-surface-check.sql` to compare several surfaces from the SQL editor. Direct SQL editor calls may not have `auth.uid()`, so validate viewer-specific taste ranking and reviewed-track filtering from the app after logging in.
 
+Apply `supabase/migrations/20260601211257_starter_tag_taxonomy.sql` when Starter Studio needs the expanded `era` and `format` vocabulary plus curator-only tag editing. This migration is additive: it upserts baseline eras/formats and adds `update_preference_tag()` without deleting existing tags.
+
+Use `supabase/scripts/maintenance/starter-tag-coverage-check.sql` to find preference tags with no active starter picks. Zero coverage is not a database error; it means the vocabulary exists before the curated catalog has caught up.
+
 The easiest way to seed starter picks is the internal route:
 
 ```text

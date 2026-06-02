@@ -303,6 +303,7 @@ Suggested issue: `feat(web): improve starter pick curation workflow`
 - Make tag assignment and archive behavior easier to trust.
 - Add lightweight visibility into tag coverage, untagged picks, and starter pick conversion once analytics events exist.
 - Do not add a broad admin dashboard in this issue.
+- Treat `era` and `format` as first-class curator signals, not hidden onboarding leftovers.
 
 Suggested labels: `feature`, `area:web`, `area:recommendations`, `needs maintainer decision`
 
@@ -311,6 +312,7 @@ Acceptance criteria:
 - Curators can seed and maintain starter picks faster.
 - Starter tags remain compatible with recommendation RPCs.
 - The UI remains quiet, editorial, and focused on the starter layer.
+- Curators can see tags with low or zero starter coverage while assigning signals.
 
 ### Starter Rail Diversity Follow-Up
 

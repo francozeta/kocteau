@@ -1096,6 +1096,31 @@ export type Database = {
           likes_count: number
         }[]
       }
+      update_preference_tag: {
+        Args: {
+          p_description?: string
+          p_is_featured?: boolean
+          p_kind: Database["public"]["Enums"]["preference_kind"]
+          p_label: string
+          p_tag_id: string
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          is_featured: boolean
+          kind: Database["public"]["Enums"]["preference_kind"]
+          label: string
+          slug: string
+          sort_order: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "preference_tags"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       upsert_preference_tag: {
         Args: {
           p_description?: string
