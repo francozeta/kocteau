@@ -8,7 +8,6 @@ import { RouteHeaderProvider } from "@/components/route-header-context";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentOnboardingState, getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { getStarterCuratorAccess } from "@/lib/queries/curation";
-import { getStarterTracks } from "@/lib/queries/starter";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
@@ -29,10 +28,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     redirect("/onboarding/taste");
   }
 
-  const [starterTracks, canAccessStudio] = await Promise.all([
-    getStarterTracks({ viewerId: user?.id, limit: 6 }),
-    user ? getStarterCuratorAccess() : Promise.resolve(false),
-  ]);
+  const canAccessStudio = user ? await getStarterCuratorAccess() : false;
 
   return (
     <ReactQueryProvider>
@@ -62,10 +58,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                   <main className="no-scrollbar min-w-0 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1">
                     {children}
                   </main>
-                  <WhoToFollowRail
-                    isAuthenticated={Boolean(safeProfile)}
-                    starterTracks={starterTracks}
-                  />
+                  <WhoToFollowRail isAuthenticated={Boolean(safeProfile)} />
                 </div>
               </div>
             </div>

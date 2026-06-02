@@ -153,7 +153,23 @@ select *
 from public.get_starter_tracks(6);
 ```
 
+Useful contextual starter rail check:
+
+```sql
+select *
+from public.get_starter_tracks_for_surface(
+  6,
+  'profile',
+  'profile:kocteau',
+  '{}'::text[]
+);
+```
+
 Seed at least 8-12 active `starter_tracks` before inviting first users, and tag them with `starter_track_tags` so onboarding preferences can rank them.
+
+Apply `supabase/migrations/20260601195115_starter_tracks_for_surface.sql` before deploying the contextual starter rail. The rail calls `/api/starter/rail` from the client so the main app layout does not wait on starter pick ranking for every route. The route uses the current pathname as a surface/context pair, such as `home`, `profile:kocteau`, `track:{id}`, or `studio:health`, then asks the RPC for a stable daily rotation.
+
+Use `supabase/scripts/maintenance/starter-rail-surface-check.sql` to compare several surfaces from the SQL editor. Direct SQL editor calls may not have `auth.uid()`, so validate viewer-specific taste ranking and reviewed-track filtering from the app after logging in.
 
 The easiest way to seed starter picks is the internal route:
 

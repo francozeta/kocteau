@@ -1,6 +1,7 @@
 import "server-only";
 
 import { measureServerTask } from "@/lib/perf";
+import type { StarterSurface } from "@/lib/starter/surface";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { StarterTrack } from "@/lib/starter";
 
@@ -21,6 +22,14 @@ function getStarterTrackKey(track: {
   type: string;
 }) {
   return `${track.provider}:${track.type}:${track.provider_id}`;
+}
+
+function isMissingSurfaceRpc(error: { code?: string | null; message?: string | null }) {
+  return (
+    error.code === "PGRST202" ||
+    error.code === "42883" ||
+    Boolean(error.message?.includes("get_starter_tracks_for_surface"))
+  );
 }
 
 export async function getStarterTracks({
@@ -114,6 +123,61 @@ export async function getStarterTracks({
     {
       viewerId,
       limit,
+    },
+  );
+}
+
+export async function getStarterTracksForSurface({
+  viewerId,
+  limit = 6,
+  surface = "home",
+  contextKey,
+  excludeProviderIds = [],
+}: {
+  viewerId: string | null | undefined;
+  limit?: number;
+  surface?: StarterSurface;
+  contextKey?: string | null;
+  excludeProviderIds?: string[];
+}): Promise<StarterTrack[]> {
+  return measureServerTask(
+    "getStarterTracksForSurface",
+    async () => {
+      if (!viewerId) {
+        return [];
+      }
+
+      const supabase = await supabaseServer();
+      const requestedLimit = Math.max(1, Math.min(limit, 12));
+      const { data, error } = await supabase.rpc("get_starter_tracks_for_surface", {
+        p_limit: requestedLimit,
+        p_surface: surface,
+        p_context_key: contextKey ?? surface,
+        p_exclude_provider_ids: excludeProviderIds,
+      });
+
+      if (error) {
+        console.error("[starter.getStarterTracksForSurface] failed", {
+          code: error.code ?? null,
+          message: error.message ?? null,
+          surface,
+          contextKey,
+        });
+
+        if (isMissingSurfaceRpc(error)) {
+          return getStarterTracks({ viewerId, limit: requestedLimit });
+        }
+
+        return [];
+      }
+
+      return ((data ?? []) as StarterTrack[]).slice(0, requestedLimit);
+    },
+    {
+      viewerId,
+      limit,
+      surface,
+      contextKey,
     },
   );
 }
