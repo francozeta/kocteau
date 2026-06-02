@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
@@ -9,18 +9,23 @@ import {
   Pencil,
   Plus,
   Search,
-  Star,
   Tags,
   X,
 } from "@/components/ui/icons";
 import { toast } from "sonner";
 import EntityCoverImage from "@/components/entity-cover-image";
+import { useSecondaryRail } from "@/components/secondary-rail-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
-import { preferenceKindLabels, type PreferenceKind } from "@/lib/taste";
+import {
+  preferenceKindDescriptions,
+  preferenceKindLabels,
+  preferenceKindOrder,
+  type PreferenceKind,
+} from "@/lib/taste";
 import { cn } from "@/lib/utils";
 import { fetchJson } from "@/queries/http";
 import {
@@ -54,13 +59,22 @@ type StarterDraftTrack = Pick<
 
 const defaultPrompt = "What should people pay attention to here?";
 const starterTagLimit = 6;
-const starterTagKinds = [
-  "genre",
-  "mood",
-  "scene",
-  "style",
-] as const satisfies readonly PreferenceKind[];
-const starterTagKindSet = new Set<string>(starterTagKinds);
+const starterTagKinds = preferenceKindOrder;
+const starterTagKindSet = new Set<PreferenceKind>(starterTagKinds);
+const requiredEditorialKinds = ["era", "format"] as const satisfies readonly PreferenceKind[];
+
+type TagCoverage = {
+  tag: StarterPreferenceTag;
+  trackCount: number;
+};
+
+type KindCoverage = {
+  kind: PreferenceKind;
+  label: string;
+  tagCount: number;
+  coveredTagCount: number;
+  uncoveredTagCount: number;
+};
 
 function TrackCover({
   src,
@@ -85,7 +99,7 @@ function getTagKindLabel(kind: string) {
 }
 
 function groupTagsByKind(tags: StarterPreferenceTag[]) {
-  const groups = new Map<string, StarterPreferenceTag[]>();
+  const groups = new Map<PreferenceKind, StarterPreferenceTag[]>();
 
   tags.forEach((tag) => {
     const current = groups.get(tag.kind) ?? [];
@@ -117,8 +131,25 @@ function normalizeTagLabel(label: string) {
   return label.trim().toLowerCase();
 }
 
+function getTrackPreferenceTags(track: StarterTrackWithTags) {
+  return (track.starter_track_tags ?? []).flatMap((tag) =>
+    tag.preference_tags ? [tag.preference_tags] : [],
+  );
+}
+
+function getMissingEditorialKindsFromTags(tags: StarterPreferenceTag[]) {
+  const trackKinds = new Set(tags.map((tag) => tag.kind));
+
+  return requiredEditorialKinds.filter((kind) => !trackKinds.has(kind));
+}
+
+function getMissingEditorialKinds(track: StarterTrackWithTags) {
+  return getMissingEditorialKindsFromTags(getTrackPreferenceTags(track));
+}
+
 export default function StarterStudioClient() {
   const queryClient = useQueryClient();
+  const { setContent: setSecondaryRailContent } = useSecondaryRail();
   const [query, setQuery] = useState("");
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [featured, setFeatured] = useState(true);
@@ -126,6 +157,12 @@ export default function StarterStudioClient() {
   const [tagQuery, setTagQuery] = useState("");
   const [newTagLabel, setNewTagLabel] = useState("");
   const [newTagKind, setNewTagKind] = useState<PreferenceKind>("mood");
+  const [newTagDescription, setNewTagDescription] = useState("");
+  const [newTagFeatured, setNewTagFeatured] = useState(true);
+  const [tagKindFilter, setTagKindFilter] = useState<PreferenceKind | "all">("all");
+  const [editingTag, setEditingTag] = useState<StarterPreferenceTag | null>(null);
+  const [selectedDraftTrack, setSelectedDraftTrack] =
+    useState<StarterDraftTrack | null>(null);
   const [editingTrack, setEditingTrack] =
     useState<StarterTrackWithTags | null>(null);
   const normalizedQuery = query.trim();
@@ -159,6 +196,10 @@ export default function StarterStudioClient() {
 
     return availableTags
       .filter((tag) => {
+        if (tagKindFilter !== "all" && tag.kind !== tagKindFilter) {
+          return false;
+        }
+
         if (!normalizedTagQuery) {
           return tag.is_featured;
         }
@@ -168,7 +209,7 @@ export default function StarterStudioClient() {
           .includes(normalizedTagQuery);
       })
       .slice(0, 36);
-  }, [availableTags, tagQuery]);
+  }, [availableTags, tagKindFilter, tagQuery]);
   const filteredTagGroups = useMemo(
     () => groupTagsByKind(filteredTags),
     [filteredTags],
@@ -176,6 +217,53 @@ export default function StarterStudioClient() {
   const selectedTagGroups = useMemo(
     () => groupTagsByKind(selectedTags),
     [selectedTags],
+  );
+  const tagCoverageById = useMemo(() => {
+    const coverage = new Map<string, number>();
+
+    starterTracks.forEach((track) => {
+      const uniqueTagIds = new Set(
+        (track.starter_track_tags ?? []).map((tag) => tag.tag_id),
+      );
+
+      uniqueTagIds.forEach((tagId) => {
+        coverage.set(tagId, (coverage.get(tagId) ?? 0) + 1);
+      });
+    });
+
+    return coverage;
+  }, [starterTracks]);
+  const tagCoverage = useMemo<TagCoverage[]>(
+    () =>
+      availableTags.map((tag) => ({
+        tag,
+        trackCount: tagCoverageById.get(tag.id) ?? 0,
+      })),
+    [availableTags, tagCoverageById],
+  );
+  const coverageByTagId = useMemo(
+    () => new Map(tagCoverage.map((item) => [item.tag.id, item.trackCount])),
+    [tagCoverage],
+  );
+  const kindCoverage = useMemo<KindCoverage[]>(
+    () =>
+      starterTagKinds.map((kind) => {
+        const kindTags = tagCoverage.filter((item) => item.tag.kind === kind);
+        const coveredTagCount = kindTags.filter((item) => item.trackCount > 0).length;
+
+        return {
+          kind,
+          label: preferenceKindLabels[kind],
+          tagCount: kindTags.length,
+          coveredTagCount,
+          uncoveredTagCount: Math.max(kindTags.length - coveredTagCount, 0),
+        };
+      }),
+    [tagCoverage],
+  );
+  const untaggedStarterCount = useMemo(
+    () => starterTracks.filter((track) => (track.starter_track_tags ?? []).length === 0).length,
+    [starterTracks],
   );
 
   function toggleTag(tagId: string) {
@@ -197,15 +285,25 @@ export default function StarterStudioClient() {
     });
   }
 
-  function resetDraft() {
+  const resetDraft = useCallback(() => {
     setEditingTrack(null);
+    setSelectedDraftTrack(null);
     setPrompt(defaultPrompt);
     setFeatured(true);
     setSelectedTagIds(new Set());
     setTagQuery("");
+  }, []);
+
+  function resetTagDraft() {
+    setEditingTag(null);
+    setNewTagLabel("");
+    setNewTagKind("mood");
+    setNewTagDescription("");
+    setNewTagFeatured(true);
   }
 
-  function startEditing(track: StarterTrackWithTags) {
+  const startEditing = useCallback((track: StarterTrackWithTags) => {
+    setSelectedDraftTrack(null);
     setEditingTrack(track);
     setPrompt(track.prompt ?? defaultPrompt);
     setFeatured(track.is_featured);
@@ -213,6 +311,32 @@ export default function StarterStudioClient() {
       new Set((track.starter_track_tags ?? []).map((tag) => tag.tag_id)),
     );
     setTagQuery("");
+  }, []);
+
+  const selectSearchTrack = useCallback((track: DeezerSearchResult) => {
+    const existingTrack = starterTracks.find(
+      (starterTrack) => starterTrack.provider_id === track.provider_id,
+    );
+
+    if (existingTrack) {
+      startEditing(existingTrack);
+      return;
+    }
+
+    setEditingTrack(null);
+    setSelectedDraftTrack(track);
+    setPrompt(defaultPrompt);
+    setFeatured(true);
+    setSelectedTagIds(new Set());
+    setTagQuery("");
+  }, [startEditing, starterTracks]);
+
+  function startEditingTag(tag: StarterPreferenceTag) {
+    setEditingTag(tag);
+    setNewTagLabel(tag.label);
+    setNewTagKind(tag.kind);
+    setNewTagDescription(tag.description ?? "");
+    setNewTagFeatured(tag.is_featured);
   }
 
   const addMutation = useMutation({
@@ -251,7 +375,10 @@ export default function StarterStudioClient() {
     },
     onSuccess: (_payload, track) => {
       toast.success(`${track.title} saved to Starter picks.`);
-      if (editingTrack?.provider_id === track.provider_id) {
+      if (
+        editingTrack?.provider_id === track.provider_id ||
+        selectedDraftTrack?.provider_id === track.provider_id
+      ) {
         resetDraft();
       }
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
@@ -289,14 +416,41 @@ export default function StarterStudioClient() {
         body: JSON.stringify({
           label: newTagLabel,
           kind: newTagKind,
-          description: null,
-          is_featured: true,
+          description: newTagDescription || null,
+          is_featured: newTagFeatured,
         }),
       }),
     onSuccess: (payload) => {
       toast.success(`${payload.tag.label} created.`);
       setSelectedTagIds((current) => new Set(current).add(payload.tag.id));
-      setNewTagLabel("");
+      resetTagDraft();
+      setTagKindFilter(payload.tag.kind);
+      setTagQuery("");
+      void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+  const updateTagMutation = useMutation({
+    mutationFn: (tag: StarterPreferenceTag) =>
+      fetchJson<StarterTagResponse>("/api/starter/tags", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: tag.id,
+          label: newTagLabel,
+          kind: newTagKind,
+          description: newTagDescription || null,
+          is_featured: newTagFeatured,
+        }),
+      }),
+    onSuccess: (payload) => {
+      toast.success(`${payload.tag.label} updated.`);
+      resetTagDraft();
+      setTagKindFilter(payload.tag.kind);
       setTagQuery("");
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
     },
@@ -311,38 +465,266 @@ export default function StarterStudioClient() {
   const pendingArchiveId = archiveMutation.isPending
     ? archiveMutation.variables ?? null
     : null;
+  const inspectedTrack = editingTrack ?? selectedDraftTrack;
+  const inspectedTags = useMemo(
+    () => (editingTrack ? getTrackPreferenceTags(editingTrack) : selectedTags),
+    [editingTrack, selectedTags],
+  );
+  const inspectedTagGroups = useMemo(
+    () => groupTagsByKind(inspectedTags),
+    [inspectedTags],
+  );
+  const inspectedMissingKinds = useMemo(
+    () => getMissingEditorialKindsFromTags(inspectedTags),
+    [inspectedTags],
+  );
+  const inspectedIsPending =
+    Boolean(inspectedTrack) && pendingProviderId === inspectedTrack?.provider_id;
   const canCreateTag =
     newTagLabel.trim().length >= 2 &&
-    selectedTagIds.size < starterTagLimit &&
-    !createTagMutation.isPending;
+    (Boolean(editingTag) || selectedTagIds.size < starterTagLimit) &&
+    !createTagMutation.isPending &&
+    !updateTagMutation.isPending;
 
-  function handleCreateTag() {
+  function handleSaveTag() {
     const normalizedNewTag = normalizeTagLabel(newTagLabel);
 
-    if (!normalizedNewTag || selectedTagIds.size >= starterTagLimit) {
+    if (!normalizedNewTag || (!editingTag && selectedTagIds.size >= starterTagLimit)) {
       return;
     }
 
     const existingTag = availableTags.find(
       (tag) =>
-        normalizeTagLabel(tag.label) === normalizedNewTag ||
-        normalizeTagLabel(tag.slug) === normalizedNewTag,
+        tag.id !== editingTag?.id &&
+        (normalizeTagLabel(tag.label) === normalizedNewTag ||
+          normalizeTagLabel(tag.slug) === normalizedNewTag),
     );
 
     if (existingTag) {
-      setSelectedTagIds((current) => new Set(current).add(existingTag.id));
-      setNewTagLabel("");
-      setTagQuery("");
+      if (!editingTag) {
+        setSelectedTagIds((current) => new Set(current).add(existingTag.id));
+        resetTagDraft();
+        setTagQuery("");
+      } else {
+        toast.error("A tag with that name already exists.");
+      }
       return;
     }
 
-    if (canCreateTag) {
+    if (editingTag && canCreateTag) {
+      updateTagMutation.mutate(editingTag);
+      return;
+    }
+
+    if (!editingTag && canCreateTag) {
       createTagMutation.mutate();
     }
   }
 
+  const railInspectorContent = useMemo(
+    () => (
+      <section className="space-y-3 rounded-xl border border-border/28 bg-card/18 p-3">
+        {inspectedTrack ? (
+          <>
+            <div className="space-y-3">
+              <EntityCoverImage
+                src={inspectedTrack.cover_url}
+                alt={`${inspectedTrack.title} cover`}
+                sizes="256px"
+                className="aspect-square w-full rounded-[0.85rem] border border-border/24 bg-muted/20"
+                iconClassName="size-8"
+              />
+              <div className="min-w-0 space-y-1">
+                <p className="text-[0.68rem] font-medium uppercase text-muted-foreground">
+                  {editingTrack ? "Editing starter pick" : "Selected from Deezer"}
+                </p>
+                <h2 className="text-pretty font-serif text-xl font-semibold leading-6 text-foreground">
+                  {inspectedTrack.title}
+                </h2>
+                <p className="truncate text-sm text-muted-foreground">
+                  {inspectedTrack.artist_name ?? "Unknown artist"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
+                <p className="text-muted-foreground">Signals</p>
+                <p className="mt-1 tabular-nums text-foreground">
+                  {inspectedTags.length}/{starterTagLimit}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
+                <p className="text-muted-foreground">Missing</p>
+                <p className="mt-1 truncate text-foreground">
+                  {inspectedMissingKinds.length
+                    ? inspectedMissingKinds.map((kind) => getTagKindLabel(kind)).join(", ")
+                    : "Ready"}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-lg border border-border/22 bg-background/24 p-2.5">
+              {inspectedTagGroups.length > 0 ? (
+                inspectedTagGroups.map((group) => (
+                  <div key={group.kind} className="space-y-1.5">
+                    <p className="text-[0.65rem] font-medium uppercase text-muted-foreground">
+                      {group.label}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.tags.map((tag) => (
+                        <Badge
+                          key={tag.id}
+                          variant="outline"
+                          className="h-5 border-border/42 px-1.5 text-[0.62rem] text-muted-foreground"
+                        >
+                          {tag.label}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs leading-5 text-muted-foreground">
+                  No signals yet. Choose tags from the library before saving.
+                </p>
+              )}
+
+              {inspectedMissingKinds.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 border-t border-border/18 pt-2">
+                  {inspectedMissingKinds.map((kind) => (
+                    <Badge
+                      key={kind}
+                      variant="outline"
+                      className="h-5 border-amber-500/22 bg-amber-500/7 px-1.5 text-[0.62rem] text-amber-100/78"
+                    >
+                      Add {getTagKindLabel(kind)}
+                    </Badge>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <Input
+              value={prompt}
+              onChange={(event) => setPrompt(event.target.value)}
+              placeholder="Editorial prompt"
+              className="h-9 rounded-lg bg-background/44 text-sm"
+            />
+
+            <div className="flex items-center gap-3 rounded-lg border border-border/24 bg-background/24 px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-foreground">Featured</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Prioritize this pick
+                </p>
+              </div>
+              <Switch
+                checked={featured}
+                onCheckedChange={setFeatured}
+                aria-label="Prioritize this starter pick"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Button
+                type="button"
+                size="sm"
+                disabled={addMutation.isPending}
+                onClick={() => addMutation.mutate(inspectedTrack)}
+                className="h-9"
+              >
+                {inspectedIsPending ? (
+                  <LoaderCircle className="size-3 animate-spin" />
+                ) : editingTrack ? (
+                  <Check className="size-3" />
+                ) : (
+                  <Plus className="size-3" />
+                )}
+                {editingTrack ? "Save changes" : "Add starter pick"}
+              </Button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={addMutation.isPending}
+                  onClick={resetDraft}
+                  className="h-9"
+                >
+                  <X className="size-3" />
+                  Clear
+                </Button>
+                {editingTrack ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={archiveMutation.isPending}
+                    onClick={() => archiveMutation.mutate(editingTrack.id)}
+                    className="h-9"
+                  >
+                    {pendingArchiveId === editingTrack.id ? (
+                      <LoaderCircle className="size-3 animate-spin" />
+                    ) : (
+                      <Archive className="size-3" />
+                    )}
+                    Archive
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled
+                    className="h-9"
+                  >
+                    Draft
+                  </Button>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-3 py-2">
+            <div className="aspect-square rounded-[0.85rem] border border-dashed border-border/28 bg-background/20" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">No song selected</p>
+              <p className="text-xs leading-5 text-muted-foreground">
+                Select a Deezer result or an existing starter pick to inspect cover, signals, and missing context.
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
+    ),
+    [
+      addMutation,
+      archiveMutation,
+      editingTrack,
+      featured,
+      inspectedIsPending,
+      inspectedMissingKinds,
+      inspectedTagGroups,
+      inspectedTags.length,
+      inspectedTrack,
+      pendingArchiveId,
+      prompt,
+      resetDraft,
+    ],
+  );
+
+  useEffect(() => {
+    setSecondaryRailContent(railInspectorContent);
+
+    return () => {
+      setSecondaryRailContent(null);
+    };
+  }, [railInspectorContent, setSecondaryRailContent]);
+
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6">
       <header className="space-y-1.5">
         <p className="text-xs font-medium text-muted-foreground">Kocteau editorial</p>
         <h1 className="font-serif text-3xl font-semibold tracking-normal text-foreground">
@@ -353,7 +735,7 @@ export default function StarterStudioClient() {
         </p>
       </header>
 
-      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <section className="relative">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -364,413 +746,590 @@ export default function StarterStudioClient() {
             autoFocus
           />
         </div>
-
-        <div className="flex items-center gap-3 rounded-lg border border-border/38 bg-card/30 px-3 py-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-foreground">Featured</p>
-            <p className="truncate text-xs text-muted-foreground">
-              Prioritize new picks
-            </p>
-          </div>
-          <Switch
-            checked={featured}
-            onCheckedChange={setFeatured}
-            aria-label="Prioritize this starter pick"
-          />
-        </div>
       </section>
 
-      <Input
-        value={prompt}
-        onChange={(event) => setPrompt(event.target.value)}
-        placeholder="Editorial prompt"
-        className="h-9 rounded-lg bg-card/34 text-sm"
-      />
-
-      {editingTrack ? (
-        <section className="grid gap-3 rounded-lg border border-primary/28 bg-primary/8 p-3 md:grid-cols-[3.5rem_minmax(0,1fr)_auto] md:items-center">
-          <TrackCover src={editingTrack.cover_url} title={editingTrack.title} />
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-primary">Editing starter pick</p>
-            <h2 className="truncate text-sm font-semibold text-foreground">
-              {editingTrack.title}
-            </h2>
-            <p className="truncate text-xs text-muted-foreground">
-              {editingTrack.artist_name ?? "Unknown artist"}
-            </p>
+      {inspectedTrack ? (
+        <section className="space-y-3 rounded-xl border border-border/28 bg-card/18 p-3 lg:hidden">
+          <div className="grid grid-cols-[4.25rem_minmax(0,1fr)] gap-3">
+            <EntityCoverImage
+              src={inspectedTrack.cover_url}
+              alt={`${inspectedTrack.title} cover`}
+              sizes="68px"
+              className="aspect-square w-full rounded-[0.65rem] border border-border/24 bg-muted/20"
+              iconClassName="size-5"
+            />
+            <div className="min-w-0 space-y-1">
+              <p className="text-[0.68rem] font-medium uppercase text-muted-foreground">
+                {editingTrack ? "Editing starter pick" : "Selected from Deezer"}
+              </p>
+              <h2 className="truncate text-sm font-semibold text-foreground">
+                {inspectedTrack.title}
+              </h2>
+              <p className="truncate text-xs text-muted-foreground">
+                {inspectedTrack.artist_name ?? "Unknown artist"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {inspectedTags.length}/{starterTagLimit} signals
+                {inspectedMissingKinds.length
+                  ? ` · add ${inspectedMissingKinds.map((kind) => getTagKindLabel(kind)).join(", ")}`
+                  : " · ready"}
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          <Input
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder="Editorial prompt"
+            className="h-9 rounded-lg bg-background/44 text-sm"
+          />
+
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={addMutation.isPending}
+              onClick={() => addMutation.mutate(inspectedTrack)}
+              className="h-9"
+            >
+              {inspectedIsPending ? (
+                <LoaderCircle className="size-3 animate-spin" />
+              ) : editingTrack ? (
+                <Check className="size-3" />
+              ) : (
+                <Plus className="size-3" />
+              )}
+              {editingTrack ? "Save" : "Add"}
+            </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={addMutation.isPending}
               onClick={resetDraft}
+              className="h-9"
             >
               <X className="size-3" />
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={addMutation.isPending}
-              onClick={() => addMutation.mutate(editingTrack)}
-            >
-              {addMutation.isPending &&
-              addMutation.variables?.provider_id === editingTrack.provider_id ? (
-                <LoaderCircle className="size-3 animate-spin" />
-              ) : (
-                <Check className="size-3" />
-              )}
-              Save changes
+              Clear
             </Button>
           </div>
         </section>
       ) : null}
 
-      <section className="space-y-3 rounded-lg border border-border/34 bg-card/20 p-3">
-        <div className="flex items-center justify-between gap-3">
+      <section className="space-y-3 rounded-xl border border-border/28 bg-card/18 p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Tags className="size-4 text-muted-foreground" />
-            Starter signals
+            Signal library
           </div>
-          <div className="flex items-center gap-2">
-            {editingTrack ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                disabled={addMutation.isPending}
-                onClick={() => addMutation.mutate(editingTrack)}
-              >
-                {addMutation.isPending &&
-                addMutation.variables?.provider_id === editingTrack.provider_id ? (
-                  <LoaderCircle className="size-2.5 animate-spin" />
-                ) : (
-                  <Check className="size-2.5" />
-                )}
-                Save
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              disabled={selectedTagIds.size === 0}
-              onClick={() => setSelectedTagIds(new Set())}
-            >
-              <X className="size-2.5" />
-              Clear
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              {selectedTagIds.size}/{starterTagLimit}
-            </span>
+          <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
+            <span>{starterTracks.length} picks</span>
+            <span className="size-1 rounded-full bg-muted-foreground/30" />
+            <span>{selectedTagIds.size}/{starterTagLimit} selected</span>
           </div>
         </div>
 
-        <div className="rounded-md border border-border/28 bg-background/24 p-2">
-          {selectedTagGroups.length > 0 ? (
-            <div className="space-y-2">
-              {selectedTagGroups.map((group) => (
-                <div
-                  key={group.kind}
-                  className="grid gap-1.5 sm:grid-cols-[4.5rem_minmax(0,1fr)] sm:items-start"
-                >
-                  <p className="pt-1 text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground">
-                    {group.label}
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {kindCoverage.map((stat) => {
+            const isActive = tagKindFilter === stat.kind;
+            const coverageLabel =
+              stat.tagCount === 0
+                ? "No tags"
+                : `${stat.coveredTagCount}/${stat.tagCount} covered`;
+
+            return (
+              <button
+                key={stat.kind}
+                type="button"
+                onClick={() => setTagKindFilter(isActive ? "all" : stat.kind)}
+                className={cn(
+                  "rounded-lg border px-3 py-2 text-left transition-[background-color,border-color,transform] duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                  isActive
+                    ? "border-foreground/32 bg-foreground/[0.075]"
+                    : "border-border/30 bg-background/24 hover:border-foreground/18 hover:bg-muted/18",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-xs font-medium text-foreground">
+                    {stat.label}
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {group.tags.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        asChild
-                        variant="outline"
-                        className="h-6 border-primary/42 bg-primary/10 px-2 text-xs text-foreground"
-                      >
-                        <button type="button" onClick={() => toggleTag(tag.id)}>
-                          {tag.label}
-                          <X className="size-2.5" />
-                        </button>
-                      </Badge>
-                    ))}
+                  <span className="text-[0.65rem] tabular-nums text-muted-foreground">
+                    {stat.uncoveredTagCount}
+                  </span>
+                </div>
+                <p className="mt-1 text-[0.68rem] text-muted-foreground">
+                  {coverageLabel}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {untaggedStarterCount > 0 ? (
+          <p className="rounded-lg border border-amber-500/24 bg-amber-500/7 px-3 py-2 text-xs text-amber-100/78">
+            {untaggedStarterCount} starter pick{untaggedStarterCount === 1 ? "" : "s"} need signals.
+          </p>
+        ) : null}
+
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_21rem]">
+          <div className="min-w-0 space-y-3">
+            <div className="rounded-lg border border-border/24 bg-background/24 p-2.5">
+              {selectedTagGroups.length > 0 ? (
+                <div className="space-y-2">
+                  {selectedTagGroups.map((group) => (
+                    <div
+                      key={group.kind}
+                      className="grid gap-1.5 sm:grid-cols-[4.75rem_minmax(0,1fr)] sm:items-start"
+                    >
+                      <p className="pt-1 text-[0.65rem] font-medium uppercase text-muted-foreground">
+                        {group.label}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {group.tags.map((tag) => (
+                          <Badge
+                            key={tag.id}
+                            asChild
+                            variant="outline"
+                            className="h-6 border-foreground/28 bg-foreground/[0.06] px-2 text-xs text-foreground"
+                          >
+                            <button type="button" onClick={() => toggleTag(tag.id)}>
+                              {tag.label}
+                              <X className="size-2.5" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="px-1 py-1.5 text-xs text-muted-foreground">
+                  Pick up to six signals before adding or updating a starter pick.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Input
+                value={tagQuery}
+                onChange={(event) => setTagQuery(event.target.value)}
+                placeholder="Filter signals..."
+                className="h-9 rounded-lg bg-background/44 text-sm"
+              />
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTagKindFilter("all")}
+                  className={cn(
+                    "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                    tagKindFilter === "all"
+                      ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
+                      : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  All
+                </button>
+                {starterTagKinds.map((kind) => (
+                  <button
+                    key={kind}
+                    type="button"
+                    onClick={() => setTagKindFilter(kind)}
+                    className={cn(
+                      "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      tagKindFilter === kind
+                        ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
+                        : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {preferenceKindLabels[kind]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
+              {filteredTagGroups.map((group) => (
+                <div key={group.kind} className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[0.65rem] font-medium uppercase text-muted-foreground">
+                      {group.label}
+                    </p>
+                    <p className="truncate text-[0.65rem] text-muted-foreground/70">
+                      {preferenceKindDescriptions[group.kind as PreferenceKind]}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.tags.map((tag) => {
+                      const isSelected = selectedTagIds.has(tag.id);
+                      const coverageCount = coverageByTagId.get(tag.id) ?? 0;
+
+                      return (
+                        <span
+                          key={tag.id}
+                          className={cn(
+                            "inline-flex h-8 max-w-full items-center rounded-md border text-xs font-medium transition-colors",
+                            isSelected
+                              ? "border-foreground/38 bg-foreground text-background"
+                              : "border-border/42 bg-muted/14 text-foreground hover:border-foreground/22 hover:bg-muted/36",
+                          )}
+                        >
+                          <button
+                            type="button"
+                            aria-pressed={isSelected}
+                            onClick={() => toggleTag(tag.id)}
+                            className="flex h-full min-w-0 items-center gap-1.5 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                          >
+                            <span className="truncate">{tag.label}</span>
+                            <span
+                              className={cn(
+                                "rounded-full px-1.5 text-[0.62rem] tabular-nums",
+                                isSelected
+                                  ? "bg-background/14 text-background"
+                                  : coverageCount > 0
+                                    ? "bg-foreground/[0.06] text-muted-foreground"
+                                    : "bg-amber-500/10 text-amber-100/78",
+                              )}
+                            >
+                              {coverageCount}
+                            </span>
+                            {isSelected ? <Check className="size-3" /> : null}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => startEditingTag(tag)}
+                            className={cn(
+                              "grid h-full w-7 place-items-center border-l transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                              isSelected
+                                ? "border-background/20 text-background/76 hover:text-background"
+                                : "border-border/34 text-muted-foreground hover:text-foreground",
+                            )}
+                            aria-label={`Edit ${tag.label}`}
+                          >
+                            <Pencil className="size-3" />
+                          </button>
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
-            </div>
-          ) : (
-            <p className="px-1 py-1.5 text-xs text-muted-foreground">
-              Pick up to six signals before adding or updating a starter pick.
-            </p>
-          )}
-        </div>
 
-        <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_12rem_auto]">
-          <Input
-            value={tagQuery}
-            onChange={(event) => setTagQuery(event.target.value)}
-            placeholder="Filter tags..."
-            className="h-8 rounded-md bg-background/44 text-sm"
-          />
-          <select
-            value={newTagKind}
-            onChange={(event) => setNewTagKind(event.target.value as PreferenceKind)}
-            aria-label="New tag kind"
-            className="h-8 rounded-md border border-input bg-input px-2 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-          >
-            {starterTagKinds.map((kind) => (
-              <option key={kind} value={kind}>
-                {preferenceKindLabels[kind]}
-              </option>
-            ))}
-          </select>
-          <div className="flex gap-2">
+              {filteredTagGroups.length === 0 ? (
+                <p className="rounded-lg border border-border/24 bg-background/24 px-3 py-5 text-center text-xs text-muted-foreground">
+                  No matching signals.
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <aside className="space-y-3 rounded-lg border border-border/24 bg-background/24 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium text-foreground">
+                  {editingTag ? "Edit signal" : "Create signal"}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {editingTag ? editingTag.slug : "Build the vocabulary as you curate."}
+                </p>
+              </div>
+              {editingTag ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  onClick={resetTagDraft}
+                >
+                  <X className="size-2.5" />
+                  New
+                </Button>
+              ) : null}
+            </div>
+
             <Input
               value={newTagLabel}
               onChange={(event) => setNewTagLabel(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   event.preventDefault();
-                  handleCreateTag();
+                  handleSaveTag();
                 }
               }}
-              placeholder="New tag"
-              className="h-8 rounded-md bg-background/44 text-sm md:w-28"
+              placeholder="Signal name"
+              className="h-9 rounded-lg bg-background/44 text-sm"
             />
+
+            <div className="grid grid-cols-2 gap-1.5">
+              {starterTagKinds.map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  aria-pressed={newTagKind === kind}
+                  onClick={() => setNewTagKind(kind)}
+                  className={cn(
+                    "h-8 rounded-md border px-2 text-left text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                    newTagKind === kind
+                      ? "border-foreground/32 bg-foreground/[0.075] text-foreground"
+                      : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {preferenceKindLabels[kind]}
+                </button>
+              ))}
+            </div>
+
+            <Input
+              value={newTagDescription}
+              onChange={(event) => setNewTagDescription(event.target.value)}
+              placeholder="Short note"
+              className="h-9 rounded-lg bg-background/44 text-sm"
+            />
+
+            <div className="flex items-center gap-3 rounded-lg border border-border/24 bg-card/18 px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-foreground">Featured</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Show in default tag views
+                </p>
+              </div>
+              <Switch
+                checked={newTagFeatured}
+                onCheckedChange={setNewTagFeatured}
+                aria-label="Feature this signal"
+              />
+            </div>
+
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={!canCreateTag}
-              onClick={handleCreateTag}
-              className="h-8"
+              onClick={handleSaveTag}
+              className="h-9 w-full"
             >
-              {createTagMutation.isPending ? (
+              {createTagMutation.isPending || updateTagMutation.isPending ? (
                 <LoaderCircle className="size-3 animate-spin" />
+              ) : editingTag ? (
+                <Check className="size-3" />
               ) : (
                 <Plus className="size-3" />
               )}
-              Tag
+              {editingTag ? "Save signal" : "Create signal"}
             </Button>
-          </div>
-        </div>
-
-        <div className="max-h-44 space-y-3 overflow-y-auto pr-1">
-          {filteredTagGroups.map((group) => (
-            <div key={group.kind} className="space-y-1.5">
-              <p className="text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground">
-                {group.label}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {group.tags.map((tag) => {
-                  const isSelected = selectedTagIds.has(tag.id);
-
-                  return (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      aria-pressed={isSelected}
-                      onClick={() => toggleTag(tag.id)}
-                      className={cn(
-                        "inline-flex h-7 max-w-full items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
-                        isSelected
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border/60 bg-muted/18 text-foreground hover:border-foreground/25 hover:bg-muted/45",
-                      )}
-                    >
-                      <span className="truncate">{tag.label}</span>
-                      {isSelected ? <Check className="size-3" /> : null}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
-          {filteredTagGroups.length === 0 ? (
-            <p className="rounded-md border border-border/28 bg-background/24 px-3 py-4 text-center text-xs text-muted-foreground">
-              No matching tags.
-            </p>
-          ) : null}
+          </aside>
         </div>
       </section>
 
-      <div className="grid min-h-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <section className="min-w-0 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-foreground">Deezer results</h2>
-            {searchFetching ? (
-              <LoaderCircle className="size-4 animate-spin text-muted-foreground" />
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            {searchError ? (
-              <p className="rounded-lg border border-destructive/34 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {searchError.message}
-              </p>
-            ) : null}
-
-            {normalizedQuery.length < 2 ? (
-              <p className="rounded-lg border border-border/34 bg-card/26 px-3 py-8 text-center text-sm text-muted-foreground">
-                Search by track, artist, or album.
-              </p>
-            ) : null}
-
-            {(searchResults ?? []).map((track) => {
-              const alreadyAdded = existingProviderIds.has(track.provider_id);
-              const isPending = pendingProviderId === track.provider_id;
-
-              return (
-                <article
-                  key={track.provider_id}
-                  className="grid min-h-[4.75rem] grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border/34 bg-card/24 p-2.5"
-                >
-                  <TrackCover src={track.cover_url} title={track.title} />
-                  <div className="min-w-0">
-                    <h3 className="truncate text-sm font-medium text-foreground">
-                      {track.title}
-                    </h3>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {track.artist_name ?? "Unknown artist"}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={alreadyAdded ? "secondary" : "default"}
-                    disabled={addMutation.isPending}
-                    onClick={() => addMutation.mutate(track)}
-                    className="gap-1.5"
-                  >
-                    {isPending ? (
-                      <LoaderCircle className="size-3 animate-spin" />
-                    ) : alreadyAdded ? (
-                      <Star className="size-3" />
-                    ) : (
-                      <Plus className="size-3" />
-                    )}
-                    {alreadyAdded ? "Update" : "Add"}
-                  </Button>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <aside className="min-w-0 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-foreground">Starter picks</h2>
-            <span className="text-xs text-muted-foreground">
-              {starterTracks.length}
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            {starterTracksQuery.isLoading ? (
-              <div className="flex min-h-24 items-center justify-center rounded-lg border border-border/34 bg-card/24">
+      <div className="min-h-0">
+        <section className="min-w-0 space-y-5">
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-foreground">Deezer results</h2>
+              {searchFetching ? (
                 <LoaderCircle className="size-4 animate-spin text-muted-foreground" />
-              </div>
-            ) : null}
+              ) : null}
+            </div>
 
-            {!starterTracksQuery.isLoading && starterTracks.length === 0 ? (
-              <p className="rounded-lg border border-border/34 bg-card/24 px-3 py-8 text-center text-sm text-muted-foreground">
-                No starter picks yet.
-              </p>
-            ) : null}
+            <div className="space-y-2">
+              {searchError ? (
+                <p className="rounded-lg border border-destructive/34 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {searchError.message}
+                </p>
+              ) : null}
 
-            {starterTracks.map((track) => {
-              const isArchiving = pendingArchiveId === track.id;
-              const tags = track.starter_track_tags ?? [];
-              const isEditing = editingTrack?.id === track.id;
+              {normalizedQuery.length < 2 ? (
+                <p className="rounded-lg border border-border/28 bg-card/18 px-3 py-8 text-center text-sm text-muted-foreground">
+                  Search by track, artist, or album.
+                </p>
+              ) : null}
 
-              return (
-                <article
-                  key={track.id}
-                  className={cn(
-                    "grid min-h-[4.5rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-border/34 bg-card/24 p-2 transition-colors",
-                    track.is_featured && "border-foreground/20",
-                    isEditing && "border-primary/50 bg-primary/8",
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => startEditing(track)}
-                    className="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2.5 rounded-md text-left focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
+              {(searchResults ?? []).map((track) => {
+                const alreadyAdded = existingProviderIds.has(track.provider_id);
+                const isSelected =
+                  selectedDraftTrack?.provider_id === track.provider_id ||
+                  editingTrack?.provider_id === track.provider_id;
+
+                return (
+                  <article
+                    key={track.provider_id}
+                    className={cn(
+                      "grid min-h-[4.75rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border/28 bg-card/18 p-2.5 transition-colors",
+                      isSelected && "border-foreground/34 bg-foreground/[0.055]",
+                    )}
                   >
-                    <TrackCover src={track.cover_url} title={track.title} />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-foreground">
-                        {track.title}
+                    <button
+                      type="button"
+                      onClick={() => selectSearchTrack(track)}
+                      className="grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                    >
+                      <TrackCover src={track.cover_url} title={track.title} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-foreground">
+                          {track.title}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {track.artist_name ?? "Unknown artist"}
+                        </span>
                       </span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {track.artist_name ?? "Unknown artist"}
-                      </span>
-                      <span className="mt-1 flex flex-wrap gap-1">
-                        {tags.length ? (
-                          <>
-                            {tags.slice(0, 3).flatMap((tag) =>
-                              tag.preference_tags ? (
+                    </button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={isSelected ? "secondary" : "outline"}
+                      disabled={addMutation.isPending}
+                      onClick={() => selectSearchTrack(track)}
+                      className="gap-1.5"
+                    >
+                      {isSelected ? (
+                        <Check className="size-3" />
+                      ) : alreadyAdded ? (
+                        <Pencil className="size-3" />
+                      ) : (
+                        <Plus className="size-3" />
+                      )}
+                      {isSelected ? "Selected" : alreadyAdded ? "Edit" : "Select"}
+                    </Button>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-foreground">Starter catalog</h2>
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {starterTracks.length}
+              </span>
+            </div>
+
+            <div className="grid gap-2 xl:grid-cols-2">
+              {starterTracksQuery.isLoading ? (
+                <div className="flex min-h-24 items-center justify-center rounded-lg border border-border/28 bg-card/18 xl:col-span-2">
+                  <LoaderCircle className="size-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : null}
+
+              {!starterTracksQuery.isLoading && starterTracks.length === 0 ? (
+                <p className="rounded-lg border border-border/28 bg-card/18 px-3 py-8 text-center text-sm text-muted-foreground xl:col-span-2">
+                  No starter picks yet.
+                </p>
+              ) : null}
+
+              {starterTracks.map((track) => {
+                const isArchiving = pendingArchiveId === track.id;
+                const tags = track.starter_track_tags ?? [];
+                const isEditing = editingTrack?.id === track.id;
+                const missingKinds = getMissingEditorialKinds(track);
+
+                return (
+                  <article
+                    key={track.id}
+                    className={cn(
+                      "grid min-h-[4.5rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-border/28 bg-card/18 p-2 transition-colors",
+                      track.is_featured && "border-foreground/18",
+                      isEditing && "border-foreground/34 bg-foreground/[0.055]",
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => startEditing(track)}
+                      className="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2.5 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                    >
+                      <TrackCover src={track.cover_url} title={track.title} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-foreground">
+                          {track.title}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {track.artist_name ?? "Unknown artist"}
+                        </span>
+                        <span className="mt-1 flex flex-wrap gap-1">
+                          {track.is_featured ? (
+                            <Badge
+                              variant="outline"
+                              className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                            >
+                              Featured
+                            </Badge>
+                          ) : null}
+                          {tags.length ? (
+                            <>
+                              {tags.slice(0, 2).flatMap((tag) =>
+                                tag.preference_tags ? (
+                                  <Badge
+                                    key={tag.tag_id}
+                                    variant="outline"
+                                    className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                                  >
+                                    {tag.preference_tags.label}
+                                  </Badge>
+                                ) : [],
+                              )}
+                              {tags.length > 2 ? (
                                 <Badge
-                                  key={tag.tag_id}
                                   variant="outline"
                                   className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
                                 >
-                                  {tag.preference_tags.label}
+                                  +{tags.length - 2}
                                 </Badge>
-                              ) : [],
-                            )}
-                            {tags.length > 3 ? (
-                              <Badge
-                                variant="outline"
-                                className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
-                              >
-                                +{tags.length - 3}
-                              </Badge>
-                            ) : null}
-                          </>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="h-4 border-amber-500/28 bg-amber-500/8 px-1.5 text-[0.56rem] text-amber-200/80"
-                          >
-                            No signals
-                          </Badge>
-                        )}
+                              ) : null}
+                            </>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="h-4 border-amber-500/28 bg-amber-500/8 px-1.5 text-[0.56rem] text-amber-200/80"
+                            >
+                              No signals
+                            </Badge>
+                          )}
+                          {tags.length > 0 && missingKinds.length > 0
+                            ? missingKinds.map((kind) => (
+                                <Badge
+                                  key={kind}
+                                  variant="outline"
+                                  className="h-4 border-amber-500/22 bg-amber-500/7 px-1.5 text-[0.56rem] text-amber-100/78"
+                                >
+                                  No {getTagKindLabel(kind).toLowerCase()}
+                                </Badge>
+                              ))
+                            : null}
+                        </span>
                       </span>
-                    </span>
-                  </button>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant={isEditing ? "secondary" : "ghost"}
-                      size="icon-sm"
-                      onClick={() => startEditing(track)}
-                      title="Edit starter pick"
-                    >
-                      <Pencil className="size-3" />
-                      <span className="sr-only">Edit starter pick</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      disabled={archiveMutation.isPending}
-                      onClick={() => archiveMutation.mutate(track.id)}
-                      title="Archive starter pick"
-                    >
-                      {isArchiving ? (
-                        <LoaderCircle className="size-3 animate-spin" />
-                      ) : (
-                        <Archive className="size-3" />
-                      )}
-                      <span className="sr-only">Archive starter pick</span>
-                    </Button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </aside>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant={isEditing ? "secondary" : "ghost"}
+                        size="icon-sm"
+                        onClick={() => startEditing(track)}
+                        title="Edit starter pick"
+                      >
+                        <Pencil className="size-3" />
+                        <span className="sr-only">Edit starter pick</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        disabled={archiveMutation.isPending}
+                        onClick={() => archiveMutation.mutate(track.id)}
+                        title="Archive starter pick"
+                      >
+                        {isArchiving ? (
+                          <LoaderCircle className="size-3 animate-spin" />
+                        ) : (
+                          <Archive className="size-3" />
+                        )}
+                        <span className="sr-only">Archive starter pick</span>
+                      </Button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        </section>
+
       </div>
     </div>
   );

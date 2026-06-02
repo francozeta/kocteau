@@ -183,6 +183,8 @@ Priorities:
 - contextual starter pick rotation by route surface
 - client-loaded rail picks through `/api/starter/rail`
 - reviewed-track filtering inside the starter RPC
+- fuller `era` and `format` vocabularies for editorial coverage
+- curator-side tag editing without leaving Studio
 - faster tag assignment
 - clearer pick status
 - warnings for picks without signals
