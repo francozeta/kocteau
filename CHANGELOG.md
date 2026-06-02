@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.4](https://github.com/francozeta/kocteau/compare/v0.3.3...v0.3.4) (2026-06-02)
+
+
+### Features
+
+* **web:** add recommendation health studio ([b4c371d](https://github.com/francozeta/kocteau/commit/b4c371d6a597ab5369f1ed545ffeacf0b862fa41))
+* **web:** add recommendation health studio ([05f7ae6](https://github.com/francozeta/kocteau/commit/05f7ae6d57869529f9c293cd850d006d0685bc76))
+* **web:** contextualize starter rail picks ([362d1fe](https://github.com/francozeta/kocteau/commit/362d1feee8f779186fddca74b69add59d8f853d4))
+* **web:** contextualize starter rail picks ([b2169be](https://github.com/francozeta/kocteau/commit/b2169be618c326372a1fd9b82b2232b65bc54b26))
+* **web:** implement analytics signal contract ([3babc05](https://github.com/francozeta/kocteau/commit/3babc05cf39567c35923b194b7e93dc4602347e1))
+* **web:** implement analytics signal contract ([495f4b5](https://github.com/francozeta/kocteau/commit/495f4b538dbdee7cc1c88d837ce51f7a336f32ec))
+* **web:** improve starter studio taxonomy ([a065e2a](https://github.com/francozeta/kocteau/commit/a065e2a6d7544ad3205df17d8448ce04c5c0b547))
+* **web:** improve starter studio taxonomy ([dffb272](https://github.com/francozeta/kocteau/commit/dffb272cb6b666efdd92969babca2b50310967db))
+
+
+### Documentation
+
+* map discovery and contributor docs ([1b5b375](https://github.com/francozeta/kocteau/commit/1b5b3754c0c92e24d41233d65236084bd7b44b04))
+* **web:** draft public changelog for v0.3.3 ([cc56b6f](https://github.com/francozeta/kocteau/commit/cc56b6ffc2aa0c073e3f4e8f78b8ed0def7f3f7c))
+* **web:** draft public changelog for v0.3.3 ([5b275dc](https://github.com/francozeta/kocteau/commit/5b275dcb641a5e3ef01d41e3c5c553d23346b046))
+
 ## [0.3.3](https://github.com/francozeta/kocteau/compare/v0.3.2...v0.3.3) (2026-06-01)
 
 
