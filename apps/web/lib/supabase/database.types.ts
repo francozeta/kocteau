@@ -1019,6 +1019,30 @@ export type Database = {
           type: Database["public"]["Enums"]["entity_type"]
         }[]
       }
+      get_starter_tracks_for_surface: {
+        Args: {
+          p_context_key?: string
+          p_exclude_provider_ids?: string[]
+          p_limit?: number
+          p_surface?: string
+        }
+        Returns: {
+          artist_name: string
+          collection_slug: string
+          collection_title: string
+          cover_url: string
+          deezer_url: string
+          editorial_note: string
+          id: string
+          matched_tag_count: number
+          prompt: string
+          provider: string
+          provider_id: string
+          score: number
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+        }[]
+      }
       get_viewer_review_collection_state: {
         Args: { p_review_ids: string[] }
         Returns: {

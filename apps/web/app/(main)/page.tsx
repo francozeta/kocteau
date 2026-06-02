@@ -10,7 +10,7 @@ import {
   getFeedPage,
   getFeedViewerState,
 } from "@/lib/queries/feed";
-import { getStarterTracks } from "@/lib/queries/starter";
+import { getStarterTracksForSurface } from "@/lib/queries/starter";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { feedKeys, type FeedInfiniteQueryData } from "@/queries/feed";
@@ -42,7 +42,12 @@ export default async function HomePage({
       includeActiveUsers: false,
     }),
     activeView === "for-you" && user?.id
-      ? getStarterTracks({ viewerId: user.id, limit: 6 })
+      ? getStarterTracksForSurface({
+          viewerId: user.id,
+          limit: 6,
+          surface: "home",
+          contextKey: "home",
+        })
       : Promise.resolve([]),
   ]);
   const viewerStatePromise =

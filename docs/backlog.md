@@ -312,6 +312,23 @@ Acceptance criteria:
 - Starter tags remain compatible with recommendation RPCs.
 - The UI remains quiet, editorial, and focused on the starter layer.
 
+### Starter Rail Diversity Follow-Up
+
+Suggested issue: `feat(web): evaluate contextual starter rail diversity`
+
+- Review the contextual starter rail across home, profile, track, saved, and Studio surfaces after `get_starter_tracks_for_surface()` is live.
+- Compare SQL editor checks, production logs, and screenshots from desktop/narrow viewports.
+- Tune only the surface/context weighting, skeleton timing, or copy if the rail still feels repetitive.
+- Avoid adding heavy recommendation logic or fake activity.
+
+Suggested labels: `feature`, `area:web`, `area:recommendations`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- Maintainers can tell whether the rail varies by surface without harming editorial quality.
+- Any ranking tweak has a before/after note with the affected surfaces.
+- The rail remains client-loaded and does not block the main layout render.
+
 ### Editorial Candidate Queue
 
 Suggested issue: `feat(web): design editorial candidate queue for starter picks`

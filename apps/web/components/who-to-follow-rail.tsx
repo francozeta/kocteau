@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import FollowProfileButton from "@/components/follow-profile-button";
 import { WhoToFollowRailSkeleton } from "@/components/feed-loading-skeletons";
@@ -8,14 +9,20 @@ import NewReviewDialog from "@/components/new-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
 import TrackCarousel from "@/components/track-carousel";
 import TrackTile from "@/components/track-tile";
+import { Skeleton } from "@/components/ui/skeleton";
 import UserAvatar from "@/components/user-avatar";
 import { helpFooterLinks } from "@/lib/help";
 import type { StarterTrack } from "@/lib/starter";
+import { getStarterRailQueryPath } from "@/lib/starter/surface";
+import { fetchJson } from "@/queries/http";
 import { activeProfilesQueryOptions } from "@/queries/profiles";
 
 type WhoToFollowRailProps = {
   isAuthenticated: boolean;
-  starterTracks?: StarterTrack[];
+};
+
+type StarterRailResponse = {
+  tracks: StarterTrack[];
 };
 
 function useDesktopRail() {
@@ -77,17 +84,44 @@ function StarterPickReviewTrigger({
   );
 }
 
-export default function WhoToFollowRail({
-  isAuthenticated,
-  starterTracks = [],
-}: WhoToFollowRailProps) {
+function StarterRailSkeleton() {
+  return (
+    <div className="flex gap-3 overflow-hidden" aria-hidden="true">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div key={`starter-rail-skeleton-${index}`} className="w-[6.35rem] shrink-0 space-y-2">
+          <Skeleton className="aspect-square w-full rounded-[0.58rem] bg-muted-foreground/[0.1]" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-[88%] rounded-full bg-muted-foreground/[0.12]" />
+            <Skeleton className="h-2.5 w-[64%] rounded-full bg-muted-foreground/[0.08]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProps) {
   const isDesktop = useDesktopRail();
+  const pathname = usePathname();
+  const starterRailQueryPath = useMemo(
+    () => getStarterRailQueryPath(pathname),
+    [pathname],
+  );
   const { data, isLoading } = useQuery({
     ...activeProfilesQueryOptions(3),
     enabled: isDesktop,
   });
+  const { data: starterRail, isLoading: isStarterRailLoading } = useQuery({
+    queryKey: ["starter", "rail", starterRailQueryPath],
+    queryFn: () => fetchJson<StarterRailResponse>(starterRailQueryPath),
+    enabled: isDesktop && isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
   const profiles = data?.profiles ?? [];
-  const visibleStarterTracks = starterTracks.slice(0, 6);
+  const visibleStarterTracks = (starterRail?.tracks ?? []).slice(0, 6);
+  const showStarterRail =
+    isAuthenticated && (isStarterRailLoading || visibleStarterTracks.length > 0);
 
   return (
     <aside
@@ -159,27 +193,31 @@ export default function WhoToFollowRail({
           )}
         </section>
 
-        {visibleStarterTracks.length > 0 ? (
+        {showStarterRail ? (
           <section className="mt-6 min-h-[12.25rem] space-y-3" aria-label="Starter picks">
             <p className="px-1 text-[12px] font-medium leading-none text-muted-foreground/70">
               Starter picks
             </p>
-            <TrackCarousel
-              ariaLabel="Starter picks"
-              compactControls
-              contentClassName="gap-3"
-              controlClassName="[--kocteau-carousel-cover-size:6.35rem]"
-              fadeClassName="kocteau-carousel-mask-r-from-tight"
-              itemClassName="basis-[6.35rem]"
-            >
-              {visibleStarterTracks.map((track) => (
-                <StarterPickReviewTrigger
-                  key={track.id}
-                  track={track}
-                  isAuthenticated={isAuthenticated}
-                />
-              ))}
-            </TrackCarousel>
+            {isStarterRailLoading ? (
+              <StarterRailSkeleton />
+            ) : (
+              <TrackCarousel
+                ariaLabel="Starter picks"
+                compactControls
+                contentClassName="gap-3"
+                controlClassName="[--kocteau-carousel-cover-size:6.35rem]"
+                fadeClassName="kocteau-carousel-mask-r-from-tight"
+                itemClassName="basis-[6.35rem]"
+              >
+                {visibleStarterTracks.map((track) => (
+                  <StarterPickReviewTrigger
+                    key={track.id}
+                    track={track}
+                    isAuthenticated={isAuthenticated}
+                  />
+                ))}
+              </TrackCarousel>
+            )}
           </section>
         ) : null}
 

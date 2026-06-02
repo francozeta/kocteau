@@ -172,12 +172,17 @@ Useful checks:
 - tag coverage across starter picks
 - reviews with high read depth but low engagement
 
-### Phase 3: Starter Studio V2
+### Phase 3: Starter Studio V2 And Contextual Starter Rails
 
 Improve `/studio/starter` as a quiet editorial tool for the official curator.
 
+Phase 3A starts with the secondary starter rail: starter picks should not feel identical on every screen, and they should not block the main layout render. The rail can use a lightweight surface/context contract, such as `home`, `profile:{username}`, `track:{id}`, `review:{id}`, or `studio:health`, to request a stable daily editorial rotation from `get_starter_tracks_for_surface()`.
+
 Priorities:
 
+- contextual starter pick rotation by route surface
+- client-loaded rail picks through `/api/starter/rail`
+- reviewed-track filtering inside the starter RPC
 - faster tag assignment
 - clearer pick status
 - warnings for picks without signals
