@@ -170,6 +170,28 @@ Starter tags affect recommendations in two stages:
 
 The feed presents these picks as a lightweight taste queue. Impressions, passes, review intent, and published reviews record `starter_impression`, `starter_pass`, `starter_review_cta`, and `starter_review_published` in analytics.
 
+## Recommendation Health Checks
+
+Use `supabase/scripts/maintenance/recommendation-health-checks.sql` to inspect aggregate For You and starter health from the Supabase SQL editor.
+
+Curators can use the internal route:
+
+```text
+/studio/health
+```
+
+That route reads the same kind of aggregate signal through `get_recommendation_health_snapshot()`. Apply `supabase/migrations/20260601180027_recommendation_health_rpc.sql` before deploying the route to production.
+
+These checks are read-only and should be interpreted directionally:
+
+- `fallback_rate` above 0 means For You is falling back to latest reviews.
+- Low review open rate by reason means a reason may be surfacing weak matches.
+- High starter pass rate means a curated pick may be mistagged, too repetitive, or not editorially useful.
+- Starter impressions without review CTAs may mean the pick is visible but not inviting.
+- Entity opens show which tracks become discovery destinations.
+
+Do not export raw analytics rows. Share only aggregate counts and rates.
+
 If the full starter migration has already landed but a legacy environment needs only the starter tag/RPC patch, review `supabase/scripts/maintenance/starter-algorithm-signals-patch.sql`. It updates only the starter tag table and related RPC functions, so it takes fewer schema locks.
 
 Track pages currently keep Deezer as the canonical external music link. Spotify/Apple/ISRC resolution is intentionally not part of the app right now because the provider access model adds avoidable operational friction for the current product stage. Future playback should be designed as a separate YouTube embed layer, likely behind explicit curator/admin controls.

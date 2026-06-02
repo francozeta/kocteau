@@ -7,8 +7,10 @@ import {
   BellSimpleIcon,
   BookmarkSimpleIcon,
   ChatCircleTextIcon,
+  GearSixIcon,
   HouseIcon,
   MagnifyingGlassIcon,
+  Sparkles,
 } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
@@ -49,12 +51,14 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
   ownedReviews?: SidebarOwnedReview[];
   unreadCount?: number;
+  canAccessStudio?: boolean;
 };
 
 export default function AppSidebar({
   profile,
   ownedReviews = [],
   unreadCount: initialUnreadCount = 0,
+  canAccessStudio = false,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname();
@@ -143,6 +147,22 @@ export default function AppSidebar({
         },
       ]
     : [];
+  const studioItems = canAccessStudio
+    ? [
+        {
+          title: "Starter",
+          url: "/studio/starter",
+          icon: Sparkles,
+          isActive: pathname.startsWith("/studio/starter"),
+        },
+        {
+          title: "Health",
+          url: "/studio/health",
+          icon: GearSixIcon,
+          isActive: pathname.startsWith("/studio/health"),
+        },
+      ]
+    : [];
 
   const canShowOwnedReviews = Boolean(profile) && sidebarReviews.length > 0;
   const reviewEntryLabel = profile ? "New review" : "Find a track";
@@ -191,6 +211,13 @@ export default function AppSidebar({
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
           <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
           {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} onNavigate={closeMobileSidebar} /> : null}
+          {studioItems.length > 0 ? (
+            <NavSecondary
+              items={studioItems}
+              label="Studio"
+              onNavigate={closeMobileSidebar}
+            />
+          ) : null}
           {canShowOwnedReviews ? <NavOwnedReviews items={sidebarReviews} onNavigate={closeMobileSidebar} /> : null}
         </SidebarContent>
 

@@ -996,6 +996,10 @@ export type Database = {
           score: number
         }[]
       }
+      get_recommendation_health_snapshot: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
       get_starter_tracks: {
         Args: { p_limit?: number }
         Returns: {
