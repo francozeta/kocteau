@@ -7,6 +7,7 @@ import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/route-header-context";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentOnboardingState, getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
+import { getStarterCuratorAccess } from "@/lib/queries/curation";
 import { getStarterTracks } from "@/lib/queries/starter";
 import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -28,7 +29,10 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     redirect("/onboarding/taste");
   }
 
-  const starterTracks = await getStarterTracks({ viewerId: user?.id, limit: 6 });
+  const [starterTracks, canAccessStudio] = await Promise.all([
+    getStarterTracks({ viewerId: user?.id, limit: 6 }),
+    user ? getStarterCuratorAccess() : Promise.resolve(false),
+  ]);
 
   return (
     <ReactQueryProvider>
@@ -46,6 +50,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           profile={safeProfile}
           ownedReviews={ownedReviews}
           unreadCount={initialUnreadCount}
+          canAccessStudio={canAccessStudio}
         />
         <SidebarInset className="min-h-svh bg-[var(--kocteau-canvas)] lg:h-dvh lg:overflow-hidden lg:p-2.5">
           <RouteHeaderProvider>

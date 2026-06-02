@@ -262,6 +262,13 @@ Suggested issue: `feat(web): add lightweight recommendation health checks for ma
 - Prefer simple SQL/admin notes before building a dashboard.
 - Use the signal contract in `docs/discovery-curation.md` before adding new events.
 
+Implementation path:
+
+1. Add read-only aggregate SQL checks for maintainers.
+2. Add a curator-only Studio health page backed by an aggregate Supabase RPC.
+3. Review a real 7-14 day snapshot after public traffic exists.
+4. Tune `get_recommended_review_ids` only after capturing a before snapshot.
+
 Suggested labels: `feature`, `area:recommendations`, `area:analytics`, `needs maintainer decision`
 
 Acceptance criteria:

@@ -161,6 +161,8 @@ Outcomes:
 
 Add lightweight health checks before building a dashboard.
 
+Phase 2 starts with a read-only SQL playbook for maintainers and a curator-only Studio health surface powered by safe aggregate RPCs. Do not expose raw `analytics_events` rows to the web app.
+
 Useful checks:
 
 - fallback rate by day
