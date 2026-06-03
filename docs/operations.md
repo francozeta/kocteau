@@ -1,6 +1,6 @@
 # Kocteau Operations
 
-[Docs index](./README.md) | [Local development](./setup/local-development.md) | [Environment and secrets](./security/environment.md) | [Discovery and curation](./discovery-curation.md) | [Release automation](./maintainers/release.md)
+[Docs index](./README.md) | [Local development](./setup/local-development.md) | [Supabase maintainer workflow](./maintainers/supabase-workflow.md) | [Environment and secrets](./security/environment.md) | [Discovery and curation](./discovery-curation.md) | [Release automation](./maintainers/release.md)
 
 This file captures the production setup that lives outside the codebase.
 
@@ -92,7 +92,7 @@ Current migration responsibilities:
 Recommended production order for a fresh setup:
 
 1. Review migrations against the target environment.
-2. Apply migrations through the Supabase CLI or approved deployment path.
+2. Apply migrations through the [Supabase maintainer workflow](./maintainers/supabase-workflow.md) or another approved deployment path.
 3. Apply production-safe seed/configuration data only when intended.
 4. Update Supabase Auth email templates.
 5. Deploy the application.
