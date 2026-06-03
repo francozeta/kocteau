@@ -38,6 +38,7 @@ These items should not be reopened unless a maintainer finds a regression or sta
 | Starter Studio tag editing | done | Curators can create and edit starter signals without leaving Studio. |
 | Starter Studio selected-track inspector | done | The secondary rail focuses on the selected song instead of generic modules while curating. |
 | Starter Studio workflow polish | in review | Catalog filters, readiness labels, editorial notes, and archive confirmation live in `feat/starter-studio-workflow-polish`. |
+| Anti-mainstream candidate finder V0 | done | Deezer can propose related/deep-cut candidates without writing to the database. |
 
 ## Near-Term Priorities
 
@@ -340,7 +341,7 @@ Acceptance criteria:
 
 Suggested issue: `feat(web): add anti-mainstream Deezer candidate finder`
 
-State: `ready`, maintainer-led. This is the next starter curation phase.
+State: `done` for V0. Keep follow-up work focused on queue persistence and measured curation quality.
 
 - Add a curator-only `/api/starter/candidates` route.
 - Use Deezer related artists and artist top tracks as candidate sources.
@@ -385,11 +386,11 @@ Acceptance criteria:
 
 Suggested issue: `feat(web): design editorial candidate queue for starter picks`
 
-State: `blocked` until the anti-mainstream candidate finder proves the curator flow is useful.
+State: `in progress` for V1 persistence.
 
 - Add a maintainer-reviewed design for `editorial_candidates` before implementation.
 - Candidate reasons may include review velocity, bookmark growth, read depth, trusted-user activity, emerging tags, and undercovered taste areas.
-- The first version should support approve to starter, dismiss, and later states.
+- The first version should support saving to queue, selecting into the starter draft, approving after starter save, and dismissing.
 - Keep curator approval required before a candidate becomes official starter content.
 
 Suggested labels: `feature`, `area:web`, `area:supabase`, `area:recommendations`, `needs design review`, `needs maintainer decision`

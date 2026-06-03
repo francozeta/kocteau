@@ -5,6 +5,7 @@ import {
   isAllowedAnalyticsMetadataKey,
 } from "@/lib/analytics/events";
 import { searchableEntityTypes } from "@/lib/search-types";
+import { editorialCandidateStatuses } from "@/lib/starter/candidate-queue";
 import { tasteOnboardingMaxTags, tasteOnboardingMinTags } from "@/lib/taste";
 
 function optionalTrimmedString(maxLength: number) {
@@ -90,6 +91,48 @@ export const starterCandidateQuerySchema = z.object({
     .max(80, "Search queries can be up to 80 characters."),
   mode: z.enum(["related-seed", "deep-cut"]).optional().default("related-seed"),
   limit: z.coerce.number().int().min(1).max(12).optional().default(8),
+});
+
+export const editorialCandidateListQuerySchema = z.object({
+  status: z.enum(editorialCandidateStatuses).optional().default("queued"),
+  limit: z.coerce.number().int().min(1).max(30).optional().default(12),
+});
+
+const editorialCandidateMetadataSchema = z
+  .record(
+    z.string().max(48),
+    z.union([
+      z.string().max(240),
+      z.number().finite(),
+      z.boolean(),
+      z.null(),
+    ]),
+  )
+  .optional()
+  .default({});
+
+export const editorialCandidateUpsertSchema = z.object({
+  provider: z.literal("deezer"),
+  provider_id: z.string().trim().min(1, "Missing provider track id."),
+  type: z.literal("track"),
+  title: z.string().trim().min(1, "Track title is required.").max(160, "Track title is too long."),
+  artist_name: optionalTrimmedString(160),
+  cover_url: z.string().trim().url("Cover URL must be valid.").nullable().optional().transform((value) => value ?? null),
+  deezer_url: z.string().trim().url("Deezer URL must be valid.").nullable().optional().transform((value) => value ?? null),
+  source: z.enum(["related-seed", "deep-cut", "manual", "system-signal"]),
+  source_label: z.string().trim().min(2).max(48),
+  seed_label: optionalTrimmedString(120),
+  tier: z.enum(["emerging", "undercovered", "familiar", "deep-cut", "obvious"]),
+  reason: optionalTrimmedString(240),
+  score: z.number().finite().min(-1000).max(1000).optional().default(0),
+  metadata: editorialCandidateMetadataSchema,
+});
+
+export const editorialCandidateDecisionSchema = z.object({
+  id: z.string().uuid("Invalid editorial candidate id."),
+  status: z.enum(editorialCandidateStatuses),
+  decision_note: optionalTrimmedString(240),
+  starter_track_id: z.string().uuid("Invalid starter track id.").nullable().optional().transform((value) => value ?? null),
 });
 
 export const loginSchema = z.object({
@@ -304,6 +347,9 @@ export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>
 export type StarterPreferenceTagInput = z.infer<typeof starterPreferenceTagSchema>;
 export type StarterPreferenceTagUpdateInput = z.infer<typeof starterPreferenceTagUpdateSchema>;
 export type StarterCandidateQueryInput = z.infer<typeof starterCandidateQuerySchema>;
+export type EditorialCandidateListQueryInput = z.infer<typeof editorialCandidateListQuerySchema>;
+export type EditorialCandidateUpsertInput = z.infer<typeof editorialCandidateUpsertSchema>;
+export type EditorialCandidateDecisionInput = z.infer<typeof editorialCandidateDecisionSchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;

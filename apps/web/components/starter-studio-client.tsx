@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
+import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import {
   preferenceKindDescriptions,
   preferenceKindLabels,
@@ -29,12 +29,15 @@ import {
   type PreferenceKind,
 } from "@/lib/taste";
 import type { StarterCandidateSource } from "@/lib/starter/candidates";
+import { getEditorialCandidateStatusLabel } from "@/lib/starter/candidate-queue";
 import { cn } from "@/lib/utils";
 import { fetchJson } from "@/queries/http";
 import {
+  editorialCandidateQueueQueryOptions,
   starterCandidatesQueryOptions,
   starterCuratorTracksQueryOptions,
   starterKeys,
+  type EditorialCandidateRow,
   type StarterPreferenceTag,
   type StarterTrackRow,
   type StarterTrackWithTags,
@@ -48,6 +51,11 @@ type StarterTrackResponse = {
 type StarterTagResponse = {
   ok: boolean;
   tag: StarterPreferenceTag;
+};
+
+type EditorialCandidateResponse = {
+  ok: boolean;
+  candidate: EditorialCandidateRow;
 };
 
 type StarterDraftTrack = Pick<
@@ -214,6 +222,7 @@ export default function StarterStudioClient() {
   const [editingTag, setEditingTag] = useState<StarterPreferenceTag | null>(null);
   const [selectedDraftTrack, setSelectedDraftTrack] =
     useState<StarterDraftTrack | null>(null);
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [editingTrack, setEditingTrack] =
     useState<StarterTrackWithTags | null>(null);
   const normalizedQuery = query.trim();
@@ -228,6 +237,12 @@ export default function StarterStudioClient() {
     }),
     enabled: normalizedCandidateQuery.length >= 2,
   });
+  const editorialCandidateQueueQuery = useQuery(
+    editorialCandidateQueueQueryOptions({
+      status: "queued",
+      limit: 12,
+    }),
+  );
   const {
     data: searchResults,
     isFetching: searchFetching,
@@ -247,6 +262,17 @@ export default function StarterStudioClient() {
   const existingProviderIds = useMemo(
     () => new Set(starterTracks.map((track) => track.provider_id)),
     [starterTracks],
+  );
+  const editorialCandidateQueue = useMemo(
+    () => editorialCandidateQueueQuery.data?.candidates ?? [],
+    [editorialCandidateQueueQuery.data],
+  );
+  const queuedCandidateProviderIds = useMemo(
+    () =>
+      new Set(
+        editorialCandidateQueue.map((candidate) => candidate.provider_id),
+      ),
+    [editorialCandidateQueue],
   );
   const candidateResults = useMemo(
     () =>
@@ -385,6 +411,7 @@ export default function StarterStudioClient() {
   const resetDraft = useCallback(() => {
     setEditingTrack(null);
     setSelectedDraftTrack(null);
+    setSelectedCandidateId(null);
     setPrompt(defaultPrompt);
     setEditorialNote("");
     setFeatured(true);
@@ -403,6 +430,7 @@ export default function StarterStudioClient() {
 
   const startEditing = useCallback((track: StarterTrackWithTags) => {
     setSelectedDraftTrack(null);
+    setSelectedCandidateId(null);
     setEditingTrack(track);
     setPrompt(track.prompt ?? defaultPrompt);
     setEditorialNote(track.editorial_note ?? "");
@@ -414,18 +442,23 @@ export default function StarterStudioClient() {
     setConfirmArchiveId(null);
   }, []);
 
-  const selectSearchTrack = useCallback((track: DeezerSearchResult) => {
+  const selectSearchTrack = useCallback((
+    track: StarterDraftTrack,
+    candidateId: string | null = null,
+  ) => {
     const existingTrack = starterTracks.find(
       (starterTrack) => starterTrack.provider_id === track.provider_id,
     );
 
     if (existingTrack) {
+      setSelectedCandidateId(null);
       startEditing(existingTrack);
       return;
     }
 
     setEditingTrack(null);
     setSelectedDraftTrack(track);
+    setSelectedCandidateId(candidateId);
     setPrompt(defaultPrompt);
     setEditorialNote("");
     setFeatured(true);
@@ -443,7 +476,7 @@ export default function StarterStudioClient() {
   }
 
   const addMutation = useMutation({
-    mutationFn: (track: DeezerSearchResult | StarterDraftTrack) => {
+    mutationFn: (track: StarterDraftTrack) => {
       const existingTrack = starterTracks.find(
         (starterTrack) => starterTrack.provider_id === track.provider_id,
       );
@@ -476,8 +509,33 @@ export default function StarterStudioClient() {
         }),
       });
     },
-    onSuccess: (_payload, track) => {
+    onSuccess: (payload, track) => {
       toast.success(`${track.title} saved to Starter picks.`);
+      const approvedCandidateId = selectedCandidateId;
+
+      if (approvedCandidateId) {
+        void fetchJson<EditorialCandidateResponse>("/api/starter/candidate-queue", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: approvedCandidateId,
+            status: "approved",
+            starter_track_id: payload.track.id,
+            decision_note: "Approved into starter picks.",
+          }),
+        })
+          .then(() =>
+            queryClient.invalidateQueries({
+              queryKey: starterKeys.candidateQueue("queued", 12),
+            }),
+          )
+          .catch((error) => {
+            toast.error(error.message);
+          });
+      }
+
       if (
         editingTrack?.provider_id === track.provider_id ||
         selectedDraftTrack?.provider_id === track.provider_id
@@ -485,6 +543,82 @@ export default function StarterStudioClient() {
         resetDraft();
       }
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const queueCandidateMutation = useMutation({
+    mutationFn: (candidate: StarterDraftTrack & {
+      source: string;
+      source_label: string;
+      seed_label: string | null;
+      tier: string;
+      reason: string | null;
+      score: number;
+    }) =>
+      fetchJson<EditorialCandidateResponse>("/api/starter/candidate-queue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provider: candidate.provider,
+          provider_id: candidate.provider_id,
+          type: candidate.type,
+          title: candidate.title,
+          artist_name: candidate.artist_name,
+          cover_url: candidate.cover_url,
+          deezer_url: candidate.deezer_url,
+          source: candidate.source,
+          source_label: candidate.source_label,
+          seed_label: candidate.seed_label,
+          tier: candidate.tier,
+          reason: candidate.reason,
+          score: candidate.score,
+          metadata: {
+            mode: candidateMode,
+            seed: normalizedCandidateQuery,
+          },
+        }),
+      }),
+    onSuccess: (payload) => {
+      toast.success(`${payload.candidate.title} saved to the queue.`);
+      void queryClient.invalidateQueries({
+        queryKey: starterKeys.candidateQueue("queued", 12),
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const decideCandidateMutation = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      decision_note,
+    }: {
+      id: string;
+      status: "queued" | "approved" | "dismissed" | "archived";
+      decision_note?: string;
+    }) =>
+      fetchJson<EditorialCandidateResponse>("/api/starter/candidate-queue", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+          status,
+          decision_note,
+        }),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: starterKeys.candidateQueue("queued", 12),
+      });
     },
     onError: (error) => {
       toast.error(error.message);
@@ -1393,6 +1527,10 @@ export default function StarterStudioClient() {
                   const isSelected =
                     selectedDraftTrack?.provider_id === track.provider_id ||
                     editingTrack?.provider_id === track.provider_id;
+                  const isQueued = queuedCandidateProviderIds.has(track.provider_id);
+                  const isQueueing =
+                    queueCandidateMutation.isPending &&
+                    queueCandidateMutation.variables?.provider_id === track.provider_id;
 
                   return (
                     <article
@@ -1450,6 +1588,23 @@ export default function StarterStudioClient() {
                           type="button"
                           size="sm"
                           variant="ghost"
+                          disabled={isQueued || queueCandidateMutation.isPending}
+                          onClick={() => queueCandidateMutation.mutate(track)}
+                          className="h-8 gap-1.5 text-muted-foreground"
+                        >
+                          {isQueueing ? (
+                            <LoaderCircle className="size-3 animate-spin" />
+                          ) : isQueued ? (
+                            <Check className="size-3" />
+                          ) : (
+                            <Plus className="size-3" />
+                          )}
+                          {isQueued ? "Queued" : "Queue"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
                           onClick={() =>
                             setDismissedCandidateKeys((current) =>
                               new Set(current).add(
@@ -1468,6 +1623,136 @@ export default function StarterStudioClient() {
                 })}
               </div>
             ) : null}
+
+            <div className="space-y-2 border-t border-border/20 pt-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-medium text-foreground">
+                    Saved queue
+                  </h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Keep candidates for slower listening before they become starter picks.
+                  </p>
+                </div>
+                <span className="rounded-md border border-border/28 bg-background/24 px-2 py-1 text-xs tabular-nums text-muted-foreground">
+                  {editorialCandidateQueue.length}
+                </span>
+              </div>
+
+              {editorialCandidateQueueQuery.isLoading ? (
+                <div className="flex min-h-20 items-center justify-center rounded-lg border border-border/24 bg-background/24">
+                  <LoaderCircle className="size-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : null}
+
+              {editorialCandidateQueueQuery.error ? (
+                <p className="rounded-lg border border-amber-500/24 bg-amber-500/7 px-3 py-2 text-sm text-amber-100/78">
+                  Candidate queue needs the latest Supabase migration.
+                </p>
+              ) : null}
+
+              {!editorialCandidateQueueQuery.isLoading &&
+              !editorialCandidateQueueQuery.error &&
+              editorialCandidateQueue.length === 0 ? (
+                <p className="rounded-lg border border-border/24 bg-background/24 px-3 py-5 text-center text-sm text-muted-foreground">
+                  No saved candidates yet.
+                </p>
+              ) : null}
+
+              {editorialCandidateQueue.length > 0 ? (
+                <div className="grid gap-2 xl:grid-cols-2">
+                  {editorialCandidateQueue.map((candidate) => {
+                    const isSelected =
+                      selectedCandidateId === candidate.id ||
+                      selectedDraftTrack?.provider_id === candidate.provider_id ||
+                      editingTrack?.provider_id === candidate.provider_id;
+                    const isDeciding =
+                      decideCandidateMutation.isPending &&
+                      decideCandidateMutation.variables?.id === candidate.id;
+
+                    return (
+                      <article
+                        key={candidate.id}
+                        className={cn(
+                          "grid min-h-[5.25rem] grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-lg border border-border/28 bg-background/24 p-2.5 transition-colors",
+                          isSelected && "border-foreground/34 bg-foreground/[0.055]",
+                        )}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => selectSearchTrack(candidate, candidate.id)}
+                          className="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                        >
+                          <TrackCover src={candidate.cover_url} title={candidate.title} />
+                          <span className="min-w-0 space-y-1">
+                            <span className="block truncate text-sm font-medium text-foreground">
+                              {candidate.title}
+                            </span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {candidate.artist_name ?? "Unknown artist"}
+                            </span>
+                            <span className="flex flex-wrap gap-1">
+                              <Badge
+                                variant="outline"
+                                className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                              >
+                                {getEditorialCandidateStatusLabel("queued")}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                              >
+                                {candidate.source_label}
+                              </Badge>
+                            </span>
+                            {candidate.reason ? (
+                              <span className="block line-clamp-2 text-xs leading-5 text-muted-foreground">
+                                {candidate.reason}
+                              </span>
+                            ) : null}
+                          </span>
+                        </button>
+
+                        <div className="flex flex-col gap-1.5">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={isSelected ? "secondary" : "outline"}
+                            disabled={addMutation.isPending}
+                            onClick={() => selectSearchTrack(candidate, candidate.id)}
+                            className="h-8 gap-1.5"
+                          >
+                            {isSelected ? <Check className="size-3" /> : <Plus className="size-3" />}
+                            {isSelected ? "Selected" : "Select"}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            disabled={decideCandidateMutation.isPending}
+                            onClick={() =>
+                              decideCandidateMutation.mutate({
+                                id: candidate.id,
+                                status: "dismissed",
+                                decision_note: "Dismissed from Studio queue.",
+                              })
+                            }
+                            className="h-8 gap-1.5 text-muted-foreground"
+                          >
+                            {isDeciding ? (
+                              <LoaderCircle className="size-3 animate-spin" />
+                            ) : (
+                              <X className="size-3" />
+                            )}
+                            Dismiss
+                          </Button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
           </section>
 
           <section className="space-y-3">

@@ -69,6 +69,106 @@ export type Database = {
           },
         ]
       }
+      editorial_candidates: {
+        Row: {
+          artist_name: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          deezer_url: string | null
+          id: string
+          metadata: Json
+          provider: string
+          provider_id: string
+          reason: string | null
+          score: number
+          seed_label: string | null
+          source: string
+          source_label: string
+          starter_track_id: string | null
+          status: string
+          tier: string
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+          updated_at: string
+        }
+        Insert: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          deezer_url?: string | null
+          id?: string
+          metadata?: Json
+          provider?: string
+          provider_id: string
+          reason?: string | null
+          score?: number
+          seed_label?: string | null
+          source: string
+          source_label: string
+          starter_track_id?: string | null
+          status?: string
+          tier: string
+          title: string
+          type?: Database["public"]["Enums"]["entity_type"]
+          updated_at?: string
+        }
+        Update: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          deezer_url?: string | null
+          id?: string
+          metadata?: Json
+          provider?: string
+          provider_id?: string
+          reason?: string | null
+          score?: number
+          seed_label?: string | null
+          source?: string
+          source_label?: string
+          starter_track_id?: string | null
+          status?: string
+          tier?: string
+          title?: string
+          type?: Database["public"]["Enums"]["entity_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_candidates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_candidates_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_candidates_starter_track_id_fkey"
+            columns: ["starter_track_id"]
+            isOneToOne: false
+            referencedRelation: "starter_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_collection_items: {
         Row: {
           collection_id: string
@@ -1117,6 +1217,94 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "preference_tags"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_editorial_candidate_status: {
+        Args: {
+          p_candidate_id: string
+          p_decision_note?: string
+          p_starter_track_id?: string
+          p_status: string
+        }
+        Returns: {
+          artist_name: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          deezer_url: string | null
+          id: string
+          metadata: Json
+          provider: string
+          provider_id: string
+          reason: string | null
+          score: number
+          seed_label: string | null
+          source: string
+          source_label: string
+          starter_track_id: string | null
+          status: string
+          tier: string
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "editorial_candidates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      upsert_editorial_candidate: {
+        Args: {
+          p_artist_name?: string
+          p_cover_url?: string
+          p_deezer_url?: string
+          p_metadata?: Json
+          p_provider: string
+          p_provider_id: string
+          p_reason?: string
+          p_score?: number
+          p_seed_label?: string
+          p_source?: string
+          p_source_label?: string
+          p_tier?: string
+          p_title: string
+          p_type: Database["public"]["Enums"]["entity_type"]
+        }
+        Returns: {
+          artist_name: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          deezer_url: string | null
+          id: string
+          metadata: Json
+          provider: string
+          provider_id: string
+          reason: string | null
+          score: number
+          seed_label: string | null
+          source: string
+          source_label: string
+          starter_track_id: string | null
+          status: string
+          tier: string
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "editorial_candidates"
           isOneToOne: true
           isSetofReturn: false
         }
