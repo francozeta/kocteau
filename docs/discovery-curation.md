@@ -46,7 +46,7 @@ This roadmap is intentionally phased. Current shipped or in-review work:
 - Phase 3B starter taxonomy work is in place for `era` and `format` signals.
 - Phase 3C starter Studio workflow polish is in review with catalog filters, readiness labels, editorial notes, and safer archive confirmation.
 
-The active next step is Phase 3D: an anti-mainstream Deezer candidate finder for the curator. It should not write to the database in v0. It proposes candidates, explains why they might fit Kocteau, and lets the curator decide whether to select them into the existing starter pick workflow.
+Phase 3D adds an anti-mainstream Deezer candidate finder for the curator. It does not write to the database in v0. Phase 4 adds the persistent candidate queue so promising suggestions can be saved, revisited, approved into starter picks, or dismissed.
 
 ## Product Model
 
@@ -252,7 +252,7 @@ This phase should prove whether a human curator can use algorithmic suggestions 
 
 Introduce `editorial_candidates` as a queue where the system proposes tracks that might deserve human review.
 
-Status: future persistent version. Do not start with a table until Phase 3D proves the curator flow is useful.
+Status: active V1. The first persistent version stores only curator-facing track candidates and decisions. It does not auto-promote candidates into starter picks.
 
 Candidate reasons can include:
 
@@ -270,6 +270,14 @@ signals -> candidate -> curator decision -> starter pick or dismissal
 ```
 
 The algorithm discovers. Humans validate.
+
+V1 constraints:
+
+- candidates remain curator-only
+- approving still requires saving through the existing starter pick workflow
+- dismissed candidates stay as decision history
+- no public candidate pages
+- no automated ranking changes until recommendation health can measure impact
 
 ### Phase 5: Feed Tuning
 
