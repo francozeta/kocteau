@@ -411,6 +411,7 @@ State: `next maintainer phase`. Do not change the recommendation RPC until a bas
 
 - Tune `get_recommended_review_ids` only after analytics events can report feed health.
 - Consider written-review quality, author diversity, entity diversity, exploration, and editorial fallback.
+- Keep the product democratic: users can review known music, but ranking should reward reviews that add context rather than recognition alone.
 - Keep the scoring inspectable and reversible.
 
 Implementation path:
