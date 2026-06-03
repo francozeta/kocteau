@@ -37,8 +37,9 @@ These items should not be reopened unless a maintainer finds a regression or sta
 | Starter tag taxonomy | done | `era` and `format` are first-class starter signals alongside genre, mood, scene, and style. |
 | Starter Studio tag editing | done | Curators can create and edit starter signals without leaving Studio. |
 | Starter Studio selected-track inspector | done | The secondary rail focuses on the selected song instead of generic modules while curating. |
-| Starter Studio workflow polish | in review | Catalog filters, readiness labels, editorial notes, and archive confirmation live in `feat/starter-studio-workflow-polish`. |
+| Starter Studio workflow polish | done | Catalog filters, readiness labels, editorial notes, and archive confirmation are merged. |
 | Anti-mainstream candidate finder V0 | done | Deezer can propose related/deep-cut candidates without writing to the database. |
+| Editorial candidate queue V1 | done | Curators can persist, revisit, approve, and dismiss candidate suggestions before promoting starter picks. |
 
 ## Near-Term Priorities
 
@@ -386,7 +387,7 @@ Acceptance criteria:
 
 Suggested issue: `feat(web): design editorial candidate queue for starter picks`
 
-State: `in progress` for V1 persistence.
+State: `done` for V1 persistence. Future work should focus on measured curation quality and candidate generation sources, not automatic promotion.
 
 - Add a maintainer-reviewed design for `editorial_candidates` before implementation.
 - Candidate reasons may include review velocity, bookmark growth, read depth, trusted-user activity, emerging tags, and undercovered taste areas.
@@ -406,9 +407,18 @@ Acceptance criteria:
 
 Suggested issue: `feat(web): tune For You ranking with measured signals`
 
+State: `next maintainer phase`. Do not change the recommendation RPC until a baseline snapshot is captured.
+
 - Tune `get_recommended_review_ids` only after analytics events can report feed health.
 - Consider written-review quality, author diversity, entity diversity, exploration, and editorial fallback.
 - Keep the scoring inspectable and reversible.
+
+Implementation path:
+
+1. Run `supabase/scripts/maintenance/feed-tuning-baseline-snapshot.sql` in the Supabase SQL editor and save aggregate results in the PR notes.
+2. Identify one or two ranking hypotheses, such as written-review lift, author/entity diversity, or editorial fallback quality.
+3. Change only `get_recommended_review_ids()` and any directly related indexes/types in one focused PR.
+4. Re-run the same snapshot 7-14 days after deployment before tuning again.
 
 Suggested labels: `feature`, `area:supabase`, `area:recommendations`, `area:analytics`, `needs maintainer decision`
 
