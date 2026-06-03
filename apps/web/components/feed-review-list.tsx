@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import FeedReviewCta from "@/components/feed-review-cta";
 import FeedStarterLayer from "@/components/feed-starter-layer";
+import FeedStarterShelf from "@/components/feed-starter-shelf";
 import { Music2, Sparkles, UsersRound } from "@/components/ui/icons";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -276,6 +277,11 @@ export default function FeedReviewList({
     isAuthenticated &&
     visibleStarterTracks.length > 0 &&
     reviews.length < 4;
+  const showMobileStarterShelf =
+    view === "for-you" &&
+    isAuthenticated &&
+    visibleStarterTracks.length > 0 &&
+    reviews.length > 0;
   const showReviewCta = view === "for-you" || view === "latest";
 
   if (reviews.length === 0) {
@@ -295,6 +301,14 @@ export default function FeedReviewList({
     <div className="space-y-3.5">
       {showReviewCta ? (
         <FeedReviewCta isAuthenticated={isAuthenticated} />
+      ) : null}
+
+      {showMobileStarterShelf ? (
+        <FeedStarterShelf
+          tracks={visibleStarterTracks}
+          isAuthenticated={isAuthenticated}
+          className="lg:hidden"
+        />
       ) : null}
 
       {reviews.map((review, index) => {
@@ -319,10 +333,12 @@ export default function FeedReviewList({
       })}
 
       {showStarterLayer ? (
-        <FeedStarterLayer
-          tracks={visibleStarterTracks}
-          isAuthenticated={isAuthenticated}
-        />
+        <div className={showMobileStarterShelf ? "hidden lg:block" : undefined}>
+          <FeedStarterLayer
+            tracks={visibleStarterTracks}
+            isAuthenticated={isAuthenticated}
+          />
+        </div>
       ) : null}
 
       {hasNextPage ? (
