@@ -419,6 +419,31 @@ Acceptance criteria:
 - Recommendation reason labels still map cleanly to the web UI.
 - Sparse-data users still receive useful editorial fallback.
 
+### SEO Indexability Health
+
+Suggested issue: `chore(web): add SEO indexability health checks`
+
+State: `needs maintainer decision`. Search Console may report `Discovered - currently not indexed` for new or low-volume pages even when sitemap, robots, metadata, and structured data are valid.
+
+- Add a maintainer SEO checklist for Search Console statuses such as page with redirect, discovered but not indexed, crawled but not indexed, and excluded by `noindex`.
+- Add a small local smoke check that fetches production `robots.txt`, `sitemap.xml`, and representative public URLs.
+- Verify sitemap URLs return `200`, have canonical metadata, are not `noindex`, and are not blocked by `robots.txt`.
+- Keep `/track/deezer/*`, auth, onboarding, notifications, saved, and API routes out of indexable sitemap targets.
+- Make sitemap `lastmod` values more truthful for static routes instead of using the generation time for every request.
+- Decide an indexing policy for thin pages: rating-only reviews, empty track pages, and profiles with no reviews.
+- Connect this work with Track Page Depth so indexable pages have enough public music context.
+- Document the manual Search Console workflow: resubmit sitemap, inspect representative URLs, run live test, and request indexing when the live URL is valid.
+
+Suggested labels: `chore`, `area:web`, `area:seo`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- Maintainers can classify Search Console issues without guessing.
+- The sitemap contains only canonical, crawlable, public URLs that Kocteau wants indexed.
+- Representative review, track, profile, and static pages pass a local SEO smoke check.
+- Redirect-only URLs are understood as non-canonical and are not treated as failed indexation.
+- Search Console follow-up steps are documented in `docs/operations.md` or a linked maintainer note.
+
 ### Trust and Safety V1
 
 Suggested issue: `feat(web): add basic report flow for reviews and profiles`
