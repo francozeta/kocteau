@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/server";
-import { getStarterTracksForSurface } from "@/lib/queries/starter";
+import {
+  getPublicStarterTracks,
+  getStarterTracksForSurface,
+} from "@/lib/queries/starter";
 import {
   getStarterContextKey,
   isStarterSurface,
@@ -38,17 +41,24 @@ function getRailContextKey(req: Request, surface: StarterSurface) {
 
 export async function GET(req: Request) {
   const user = await getCurrentUser();
+  const surface = getRailSurface(req);
+  const limit = getRailLimit(req);
+  const contextKey = getRailContextKey(req, surface);
 
   if (!user) {
-    return NextResponse.json({ tracks: [] });
+    const tracks = await getPublicStarterTracks({
+      limit,
+      contextKey,
+    });
+
+    return NextResponse.json({ tracks });
   }
 
-  const surface = getRailSurface(req);
   const tracks = await getStarterTracksForSurface({
     viewerId: user.id,
-    limit: getRailLimit(req),
+    limit,
     surface,
-    contextKey: getRailContextKey(req, surface),
+    contextKey,
   });
 
   return NextResponse.json({ tracks });

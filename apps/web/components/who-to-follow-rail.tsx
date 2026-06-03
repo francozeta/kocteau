@@ -26,6 +26,8 @@ type StarterRailResponse = {
   tracks: StarterTrack[];
 };
 
+const stableStarterRailQueryPath = "/api/starter/rail?surface=app&context=global";
+
 function useDesktopRail() {
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -107,18 +109,25 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
   const isStudioRoute = pathname?.startsWith("/studio") ?? false;
   const customRailContent = useSecondaryRailContent();
   const hasCustomRailContent = customRailContent !== null;
-  const starterRailQueryPath = useMemo(
+  const publicStarterRailQueryPath = useMemo(
     () => getStarterRailQueryPath(pathname),
     [pathname],
   );
+  const starterRailQueryPath = isAuthenticated
+    ? stableStarterRailQueryPath
+    : publicStarterRailQueryPath;
   const { data, isLoading } = useQuery({
     ...activeProfilesQueryOptions(3),
     enabled: isDesktop && !isStudioRoute,
   });
   const { data: starterRail, isLoading: isStarterRailLoading } = useQuery({
-    queryKey: ["starter", "rail", starterRailQueryPath],
+    queryKey: [
+      "starter",
+      "rail",
+      isAuthenticated ? "global" : starterRailQueryPath,
+    ],
     queryFn: () => fetchJson<StarterRailResponse>(starterRailQueryPath),
-    enabled: isDesktop && isAuthenticated && !isStudioRoute,
+    enabled: isDesktop && !isStudioRoute,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -127,7 +136,6 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
   const showStarterRail =
     !hasCustomRailContent &&
     !isStudioRoute &&
-    isAuthenticated &&
     (isStarterRailLoading || visibleStarterTracks.length > 0);
 
   return (

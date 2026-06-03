@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 type FeedStarterShelfProps = {
   tracks: StarterTrack[];
   isAuthenticated: boolean;
+  variant?: "editorial" | "personalized";
   className?: string;
 };
 
@@ -97,10 +98,22 @@ function StarterShelfTrigger({
 export default function FeedStarterShelf({
   tracks,
   isAuthenticated,
+  variant = "personalized",
   className,
 }: FeedStarterShelfProps) {
   const trackedImpressionIdsRef = useRef(new Set<string>());
   const visibleTracks = useMemo(() => tracks.slice(0, 6), [tracks]);
+  const shelfCopy = variant === "editorial"
+    ? {
+        label: "Starter picks",
+        description: "Start with something worth reviewing.",
+        countLabel: "Editorial",
+      }
+    : {
+        label: "Starter picks",
+        description: "Find your next review.",
+        countLabel: `${visibleTracks.length} picks`,
+      };
 
   useEffect(() => {
     if (!isAuthenticated || visibleTracks.length === 0) {
@@ -142,14 +155,14 @@ export default function FeedStarterShelf({
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/74">
             <Sparkles className="size-3.5" />
-            Starter picks
+            {shelfCopy.label}
           </div>
           <p className="mt-1 text-[13px] leading-5 text-muted-foreground/82">
-            Find your next review.
+            {shelfCopy.description}
           </p>
         </div>
         <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/58">
-          {visibleTracks.length} picks
+          {shelfCopy.countLabel}
         </span>
       </div>
 
