@@ -29,7 +29,7 @@ export default function GuestHeader() {
             href="/login"
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "rounded-full border-border/30 px-4 text-foreground",
+              "h-10 rounded-full border-foreground bg-foreground px-4 text-background shadow-[0_10px_28px_rgba(0,0,0,0.28)] hover:border-foreground/90 hover:bg-foreground/90 hover:text-background",
             )}
           >
             Log in

@@ -107,12 +107,10 @@ export default function FeedStarterShelf({
     ? {
         label: "Starter picks",
         description: "Start with something worth reviewing.",
-        countLabel: "Editorial",
       }
     : {
         label: "Starter picks",
         description: "Find your next review.",
-        countLabel: `${visibleTracks.length} picks`,
       };
 
   useEffect(() => {
@@ -151,7 +149,7 @@ export default function FeedStarterShelf({
       )}
       aria-label="Starter picks"
     >
-      <div className="flex items-end justify-between gap-3 px-0.5">
+      <div className="flex items-start gap-3 px-0.5">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[12px] font-medium leading-none text-muted-foreground/74">
             <Sparkles className="size-3.5" />
@@ -161,9 +159,6 @@ export default function FeedStarterShelf({
             {shelfCopy.description}
           </p>
         </div>
-        <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/58">
-          {shelfCopy.countLabel}
-        </span>
       </div>
 
       <TrackCarousel

@@ -310,7 +310,7 @@ export default function FeedReviewList({
           tracks={visibleStarterTracks}
           isAuthenticated={isAuthenticated}
           variant={isAuthenticated ? "personalized" : "editorial"}
-          className={isAuthenticated ? "lg:hidden" : undefined}
+          className="lg:hidden"
         />
       ) : null}
 
