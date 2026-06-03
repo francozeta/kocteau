@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
 import {
   preferenceKindDescriptions,
@@ -62,6 +63,16 @@ const starterTagLimit = 6;
 const starterTagKinds = preferenceKindOrder;
 const starterTagKindSet = new Set<PreferenceKind>(starterTagKinds);
 const requiredEditorialKinds = ["era", "format"] as const satisfies readonly PreferenceKind[];
+
+type CatalogFilter = "all" | "needs-signals" | "missing-context" | "ready" | "featured";
+
+const catalogFilters = [
+  { value: "all", label: "All" },
+  { value: "needs-signals", label: "No signals" },
+  { value: "missing-context", label: "Needs context" },
+  { value: "ready", label: "Ready" },
+  { value: "featured", label: "Featured" },
+] as const satisfies readonly { value: CatalogFilter; label: string }[];
 
 type TagCoverage = {
   tag: StarterPreferenceTag;
@@ -147,11 +158,27 @@ function getMissingEditorialKinds(track: StarterTrackWithTags) {
   return getMissingEditorialKindsFromTags(getTrackPreferenceTags(track));
 }
 
+function getTrackStatus(track: StarterTrackWithTags) {
+  const tags = getTrackPreferenceTags(track);
+  const missingKinds = getMissingEditorialKindsFromTags(tags);
+
+  if (tags.length === 0) {
+    return "No signals";
+  }
+
+  if (missingKinds.length > 0) {
+    return "Needs context";
+  }
+
+  return "Ready";
+}
+
 export default function StarterStudioClient() {
   const queryClient = useQueryClient();
   const { setContent: setSecondaryRailContent } = useSecondaryRail();
   const [query, setQuery] = useState("");
   const [prompt, setPrompt] = useState(defaultPrompt);
+  const [editorialNote, setEditorialNote] = useState("");
   const [featured, setFeatured] = useState(true);
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(() => new Set());
   const [tagQuery, setTagQuery] = useState("");
@@ -160,6 +187,8 @@ export default function StarterStudioClient() {
   const [newTagDescription, setNewTagDescription] = useState("");
   const [newTagFeatured, setNewTagFeatured] = useState(true);
   const [tagKindFilter, setTagKindFilter] = useState<PreferenceKind | "all">("all");
+  const [catalogFilter, setCatalogFilter] = useState<CatalogFilter>("all");
+  const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
   const [editingTag, setEditingTag] = useState<StarterPreferenceTag | null>(null);
   const [selectedDraftTrack, setSelectedDraftTrack] =
     useState<StarterDraftTrack | null>(null);
@@ -265,6 +294,28 @@ export default function StarterStudioClient() {
     () => starterTracks.filter((track) => (track.starter_track_tags ?? []).length === 0).length,
     [starterTracks],
   );
+  const filteredStarterTracks = useMemo(
+    () =>
+      starterTracks.filter((track) => {
+        const tags = getTrackPreferenceTags(track);
+        const missingKinds = getMissingEditorialKindsFromTags(tags);
+
+        switch (catalogFilter) {
+          case "needs-signals":
+            return tags.length === 0;
+          case "missing-context":
+            return tags.length > 0 && missingKinds.length > 0;
+          case "ready":
+            return tags.length > 0 && missingKinds.length === 0;
+          case "featured":
+            return track.is_featured;
+          case "all":
+          default:
+            return true;
+        }
+      }),
+    [catalogFilter, starterTracks],
+  );
 
   function toggleTag(tagId: string) {
     setSelectedTagIds((current) => {
@@ -289,9 +340,11 @@ export default function StarterStudioClient() {
     setEditingTrack(null);
     setSelectedDraftTrack(null);
     setPrompt(defaultPrompt);
+    setEditorialNote("");
     setFeatured(true);
     setSelectedTagIds(new Set());
     setTagQuery("");
+    setConfirmArchiveId(null);
   }, []);
 
   function resetTagDraft() {
@@ -306,11 +359,13 @@ export default function StarterStudioClient() {
     setSelectedDraftTrack(null);
     setEditingTrack(track);
     setPrompt(track.prompt ?? defaultPrompt);
+    setEditorialNote(track.editorial_note ?? "");
     setFeatured(track.is_featured);
     setSelectedTagIds(
       new Set((track.starter_track_tags ?? []).map((tag) => tag.tag_id)),
     );
     setTagQuery("");
+    setConfirmArchiveId(null);
   }, []);
 
   const selectSearchTrack = useCallback((track: DeezerSearchResult) => {
@@ -326,9 +381,11 @@ export default function StarterStudioClient() {
     setEditingTrack(null);
     setSelectedDraftTrack(track);
     setPrompt(defaultPrompt);
+    setEditorialNote("");
     setFeatured(true);
     setSelectedTagIds(new Set());
     setTagQuery("");
+    setConfirmArchiveId(null);
   }, [startEditing, starterTracks]);
 
   function startEditingTag(tag: StarterPreferenceTag) {
@@ -365,7 +422,7 @@ export default function StarterStudioClient() {
           cover_url: track.cover_url,
           deezer_url: track.deezer_url,
           prompt,
-          editorial_note: "Added from Starter Studio.",
+          editorial_note: editorialNote || null,
           is_featured: featured,
           is_active: true,
           tag_ids: tagIds,
@@ -397,8 +454,12 @@ export default function StarterStudioClient() {
         },
         body: JSON.stringify({ id }),
       }),
-    onSuccess: () => {
+    onSuccess: (_payload, id) => {
       toast.success("Starter pick archived.");
+      setConfirmArchiveId(null);
+      if (editingTrack?.id === id) {
+        resetDraft();
+      }
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
     },
     onError: (error) => {
@@ -478,8 +539,15 @@ export default function StarterStudioClient() {
     () => getMissingEditorialKindsFromTags(inspectedTags),
     [inspectedTags],
   );
+  const inspectedStatus = inspectedTags.length === 0
+    ? "No signals"
+    : inspectedMissingKinds.length > 0
+      ? "Needs context"
+      : "Ready";
   const inspectedIsPending =
     Boolean(inspectedTrack) && pendingProviderId === inspectedTrack?.provider_id;
+  const isConfirmingInspectedArchive =
+    Boolean(editingTrack) && confirmArchiveId === editingTrack?.id;
   const canCreateTag =
     newTagLabel.trim().length >= 2 &&
     (Boolean(editingTag) || selectedTagIds.size < starterTagLimit) &&
@@ -521,6 +589,20 @@ export default function StarterStudioClient() {
     }
   }
 
+  const focusTagKind = useCallback((kind: PreferenceKind) => {
+    setTagKindFilter(kind);
+    setTagQuery("");
+  }, []);
+
+  const handleArchive = useCallback((track: StarterTrackWithTags) => {
+    if (confirmArchiveId === track.id) {
+      archiveMutation.mutate(track.id);
+      return;
+    }
+
+    setConfirmArchiveId(track.id);
+  }, [archiveMutation, confirmArchiveId]);
+
   const railInspectorContent = useMemo(
     () => (
       <section className="space-y-3 rounded-xl border border-border/28 bg-card/18 p-3">
@@ -541,9 +623,22 @@ export default function StarterStudioClient() {
                 <h2 className="text-pretty font-serif text-xl font-semibold leading-6 text-foreground">
                   {inspectedTrack.title}
                 </h2>
-                <p className="truncate text-sm text-muted-foreground">
-                  {inspectedTrack.artist_name ?? "Unknown artist"}
-                </p>
+                <div className="flex min-w-0 items-center gap-2">
+                  <p className="truncate text-sm text-muted-foreground">
+                    {inspectedTrack.artist_name ?? "Unknown artist"}
+                  </p>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "h-5 shrink-0 border-border/34 px-1.5 text-[0.62rem]",
+                      inspectedStatus === "Ready"
+                        ? "text-foreground"
+                        : "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
+                    )}
+                  >
+                    {inspectedStatus}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -593,13 +688,14 @@ export default function StarterStudioClient() {
               {inspectedMissingKinds.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5 border-t border-border/18 pt-2">
                   {inspectedMissingKinds.map((kind) => (
-                    <Badge
+                    <button
                       key={kind}
-                      variant="outline"
-                      className="h-5 border-amber-500/22 bg-amber-500/7 px-1.5 text-[0.62rem] text-amber-100/78"
+                      type="button"
+                      onClick={() => focusTagKind(kind)}
+                      className="inline-flex h-6 items-center rounded-md border border-amber-500/22 bg-amber-500/7 px-2 text-[0.62rem] font-medium text-amber-100/78 transition-colors hover:border-amber-300/30 hover:text-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
                     >
-                      Add {getTagKindLabel(kind)}
-                    </Badge>
+                      Find {getTagKindLabel(kind)}
+                    </button>
                   ))}
                 </div>
               ) : null}
@@ -610,6 +706,14 @@ export default function StarterStudioClient() {
               onChange={(event) => setPrompt(event.target.value)}
               placeholder="Editorial prompt"
               className="h-9 rounded-lg bg-background/44 text-sm"
+            />
+
+            <Textarea
+              value={editorialNote}
+              onChange={(event) => setEditorialNote(event.target.value)}
+              placeholder="Why this pick belongs here"
+              maxLength={240}
+              className="min-h-20 resize-none rounded-lg bg-background/44 text-sm"
             />
 
             <div className="flex items-center gap-3 rounded-lg border border-border/24 bg-background/24 px-3 py-2">
@@ -662,15 +766,18 @@ export default function StarterStudioClient() {
                     variant="ghost"
                     size="sm"
                     disabled={archiveMutation.isPending}
-                    onClick={() => archiveMutation.mutate(editingTrack.id)}
-                    className="h-9"
+                    onClick={() => handleArchive(editingTrack)}
+                    className={cn(
+                      "h-9",
+                      isConfirmingInspectedArchive && "border border-amber-500/24 bg-amber-500/7 text-amber-100/86 hover:bg-amber-500/10",
+                    )}
                   >
                     {pendingArchiveId === editingTrack.id ? (
                       <LoaderCircle className="size-3 animate-spin" />
                     ) : (
                       <Archive className="size-3" />
                     )}
-                    Archive
+                    {isConfirmingInspectedArchive ? "Confirm" : "Archive"}
                   </Button>
                 ) : (
                   <Button
@@ -703,12 +810,17 @@ export default function StarterStudioClient() {
       addMutation,
       archiveMutation,
       editingTrack,
+      editorialNote,
       featured,
+      focusTagKind,
+      handleArchive,
+      inspectedStatus,
       inspectedIsPending,
       inspectedMissingKinds,
       inspectedTagGroups,
       inspectedTags.length,
       inspectedTrack,
+      isConfirmingInspectedArchive,
       pendingArchiveId,
       prompt,
       resetDraft,
@@ -768,20 +880,53 @@ export default function StarterStudioClient() {
               <p className="truncate text-xs text-muted-foreground">
                 {inspectedTrack.artist_name ?? "Unknown artist"}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {inspectedTags.length}/{starterTagLimit} signals
-                {inspectedMissingKinds.length
-                  ? ` · add ${inspectedMissingKinds.map((kind) => getTagKindLabel(kind)).join(", ")}`
-                  : " · ready"}
-              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "h-5 border-border/34 px-1.5 text-[0.62rem]",
+                    inspectedStatus === "Ready"
+                      ? "text-foreground"
+                      : "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
+                  )}
+                >
+                  {inspectedStatus}
+                </Badge>
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {inspectedTags.length}/{starterTagLimit}
+                </span>
+              </div>
             </div>
           </div>
+
+          {inspectedMissingKinds.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {inspectedMissingKinds.map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => focusTagKind(kind)}
+                  className="inline-flex h-7 items-center rounded-md border border-amber-500/22 bg-amber-500/7 px-2 text-xs font-medium text-amber-100/78 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                >
+                  Find {getTagKindLabel(kind)}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <Input
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
             placeholder="Editorial prompt"
             className="h-9 rounded-lg bg-background/44 text-sm"
+          />
+
+          <Textarea
+            value={editorialNote}
+            onChange={(event) => setEditorialNote(event.target.value)}
+            placeholder="Why this pick belongs here"
+            maxLength={240}
+            className="min-h-16 resize-none rounded-lg bg-background/44 text-sm"
           />
 
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
@@ -1198,8 +1343,30 @@ export default function StarterStudioClient() {
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-sm font-semibold text-foreground">Starter catalog</h2>
               <span className="text-xs tabular-nums text-muted-foreground">
-                {starterTracks.length}
+                {filteredStarterTracks.length}/{starterTracks.length}
               </span>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {catalogFilters.map((filter) => {
+                const isActive = catalogFilter === filter.value;
+
+                return (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    onClick={() => setCatalogFilter(filter.value)}
+                    className={cn(
+                      "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      isActive
+                        ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
+                        : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="grid gap-2 xl:grid-cols-2">
@@ -1215,11 +1382,21 @@ export default function StarterStudioClient() {
                 </p>
               ) : null}
 
-              {starterTracks.map((track) => {
+              {!starterTracksQuery.isLoading &&
+              starterTracks.length > 0 &&
+              filteredStarterTracks.length === 0 ? (
+                <p className="rounded-lg border border-border/28 bg-card/18 px-3 py-8 text-center text-sm text-muted-foreground xl:col-span-2">
+                  No starter picks match this view.
+                </p>
+              ) : null}
+
+              {filteredStarterTracks.map((track) => {
                 const isArchiving = pendingArchiveId === track.id;
                 const tags = track.starter_track_tags ?? [];
                 const isEditing = editingTrack?.id === track.id;
                 const missingKinds = getMissingEditorialKinds(track);
+                const status = getTrackStatus(track);
+                const isConfirmingArchive = confirmArchiveId === track.id;
 
                 return (
                   <article
@@ -1244,6 +1421,15 @@ export default function StarterStudioClient() {
                           {track.artist_name ?? "Unknown artist"}
                         </span>
                         <span className="mt-1 flex flex-wrap gap-1">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground",
+                              status !== "Ready" && "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
+                            )}
+                          >
+                            {status}
+                          </Badge>
                           {track.is_featured ? (
                             <Badge
                               variant="outline"
@@ -1274,14 +1460,7 @@ export default function StarterStudioClient() {
                                 </Badge>
                               ) : null}
                             </>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="h-4 border-amber-500/28 bg-amber-500/8 px-1.5 text-[0.56rem] text-amber-200/80"
-                            >
-                              No signals
-                            </Badge>
-                          )}
+                          ) : null}
                           {tags.length > 0 && missingKinds.length > 0
                             ? missingKinds.map((kind) => (
                                 <Badge
@@ -1312,8 +1491,11 @@ export default function StarterStudioClient() {
                         variant="ghost"
                         size="icon-sm"
                         disabled={archiveMutation.isPending}
-                        onClick={() => archiveMutation.mutate(track.id)}
-                        title="Archive starter pick"
+                        onClick={() => handleArchive(track)}
+                        title={isConfirmingArchive ? "Confirm archive" : "Archive starter pick"}
+                        className={cn(
+                          isConfirmingArchive && "border border-amber-500/24 bg-amber-500/7 text-amber-100/86 hover:bg-amber-500/10",
+                        )}
                       >
                         {isArchiving ? (
                           <LoaderCircle className="size-3 animate-spin" />
