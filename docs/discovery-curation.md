@@ -304,6 +304,15 @@ First pass constraints:
 - keep sparse-data fallback useful for new users
 - compare before/after snapshots rather than tuning from intuition
 
+Known or mainstream music policy:
+
+- Users are free to review familiar or popular music.
+- Do not suppress a user because their taste includes known artists.
+- Do not let known songs dominate curation just because recognition creates easy engagement.
+- Treat a thoughtful review of a familiar song as useful reading material.
+- Treat rating-only or low-context reviews of familiar songs as weak discovery material.
+- For editorial starter picks, known artists should usually enter through deep cuts, contrast picks, or strong context rather than obvious hits.
+
 ### Phase 6: Taste Graph
 
 Add manual entity relationships before embeddings.
