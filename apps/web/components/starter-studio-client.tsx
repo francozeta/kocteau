@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Sparkles,
   Tags,
   X,
 } from "@/components/ui/icons";
@@ -27,9 +28,11 @@ import {
   preferenceKindOrder,
   type PreferenceKind,
 } from "@/lib/taste";
+import type { StarterCandidateSource } from "@/lib/starter/candidates";
 import { cn } from "@/lib/utils";
 import { fetchJson } from "@/queries/http";
 import {
+  starterCandidatesQueryOptions,
   starterCuratorTracksQueryOptions,
   starterKeys,
   type StarterPreferenceTag,
@@ -73,6 +76,19 @@ const catalogFilters = [
   { value: "ready", label: "Ready" },
   { value: "featured", label: "Featured" },
 ] as const satisfies readonly { value: CatalogFilter; label: string }[];
+
+const candidateModes = [
+  { value: "related-seed", label: "Related" },
+  { value: "deep-cut", label: "Deep cuts" },
+] as const satisfies readonly { value: StarterCandidateSource; label: string }[];
+
+const candidateTierLabels: Record<string, string> = {
+  emerging: "Emerging",
+  undercovered: "Undercovered",
+  familiar: "Familiar",
+  "deep-cut": "Deep cut",
+  obvious: "Obvious",
+};
 
 type TagCoverage = {
   tag: StarterPreferenceTag;
@@ -177,6 +193,12 @@ export default function StarterStudioClient() {
   const queryClient = useQueryClient();
   const { setContent: setSecondaryRailContent } = useSecondaryRail();
   const [query, setQuery] = useState("");
+  const [candidateQuery, setCandidateQuery] = useState("");
+  const [candidateMode, setCandidateMode] =
+    useState<StarterCandidateSource>("related-seed");
+  const [dismissedCandidateKeys, setDismissedCandidateKeys] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [editorialNote, setEditorialNote] = useState("");
   const [featured, setFeatured] = useState(true);
@@ -195,7 +217,17 @@ export default function StarterStudioClient() {
   const [editingTrack, setEditingTrack] =
     useState<StarterTrackWithTags | null>(null);
   const normalizedQuery = query.trim();
+  const normalizedCandidateQuery = candidateQuery.trim();
+  const candidateDismissalScope = `${candidateMode}:${normalizedCandidateQuery.toLowerCase()}`;
   const starterTracksQuery = useQuery(starterCuratorTracksQueryOptions());
+  const candidateTracksQuery = useQuery({
+    ...starterCandidatesQueryOptions({
+      mode: candidateMode,
+      query: normalizedCandidateQuery,
+      limit: 8,
+    }),
+    enabled: normalizedCandidateQuery.length >= 2,
+  });
   const {
     data: searchResults,
     isFetching: searchFetching,
@@ -215,6 +247,20 @@ export default function StarterStudioClient() {
   const existingProviderIds = useMemo(
     () => new Set(starterTracks.map((track) => track.provider_id)),
     [starterTracks],
+  );
+  const candidateResults = useMemo(
+    () =>
+      (candidateTracksQuery.data?.tracks ?? []).filter(
+        (track) =>
+          !dismissedCandidateKeys.has(`${candidateDismissalScope}:${track.provider_id}`) &&
+          !existingProviderIds.has(track.provider_id),
+      ),
+    [
+      candidateDismissalScope,
+      candidateTracksQuery.data,
+      dismissedCandidateKeys,
+      existingProviderIds,
+    ],
   );
   const selectedTags = useMemo(
     () => availableTags.filter((tag) => selectedTagIds.has(tag.id)),
@@ -1266,6 +1312,164 @@ export default function StarterStudioClient() {
 
       <div className="min-h-0">
         <section className="min-w-0 space-y-5">
+          <section className="space-y-3 rounded-xl border border-border/28 bg-card/18 p-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-muted-foreground" />
+                  <h2 className="text-sm font-semibold text-foreground">
+                    Candidate finder
+                  </h2>
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Deezer suggests, Kocteau filters, you curate.
+                </p>
+              </div>
+              {candidateTracksQuery.isFetching ? (
+                <LoaderCircle className="size-4 animate-spin text-muted-foreground" />
+              ) : candidateTracksQuery.data?.seed_label ? (
+                <span className="rounded-md border border-border/28 bg-background/24 px-2 py-1 text-xs text-muted-foreground">
+                  Seed: {candidateTracksQuery.data.seed_label}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={candidateQuery}
+                  onChange={(event) => setCandidateQuery(event.target.value)}
+                  placeholder="Seed artist or scene"
+                  className="h-9 rounded-lg bg-background/44 pl-9 text-sm"
+                />
+              </div>
+              <div className="flex gap-1.5">
+                {candidateModes.map((mode) => {
+                  const isActive = candidateMode === mode.value;
+
+                  return (
+                    <button
+                      key={mode.value}
+                      type="button"
+                      onClick={() => setCandidateMode(mode.value)}
+                      className={cn(
+                        "h-9 rounded-md border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                        isActive
+                          ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
+                          : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {mode.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {candidateTracksQuery.error ? (
+              <p className="rounded-lg border border-destructive/34 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {candidateTracksQuery.error.message}
+              </p>
+            ) : null}
+
+            {normalizedCandidateQuery.length < 2 ? (
+              <p className="rounded-lg border border-border/24 bg-background/24 px-3 py-5 text-center text-sm text-muted-foreground">
+                Try a seed artist like Cocteau Twins, Broadcast, or Michael Jackson.
+              </p>
+            ) : null}
+
+            {normalizedCandidateQuery.length >= 2 &&
+            !candidateTracksQuery.isFetching &&
+            candidateResults.length === 0 ? (
+              <p className="rounded-lg border border-border/24 bg-background/24 px-3 py-5 text-center text-sm text-muted-foreground">
+                No candidates survived the filter. Try another seed or switch modes.
+              </p>
+            ) : null}
+
+            {candidateResults.length > 0 ? (
+              <div className="grid gap-2 xl:grid-cols-2">
+                {candidateResults.map((track) => {
+                  const isSelected =
+                    selectedDraftTrack?.provider_id === track.provider_id ||
+                    editingTrack?.provider_id === track.provider_id;
+
+                  return (
+                    <article
+                      key={track.candidate_id}
+                      className={cn(
+                        "grid min-h-[5.75rem] grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-lg border border-border/28 bg-background/24 p-2.5 transition-colors",
+                        isSelected && "border-foreground/34 bg-foreground/[0.055]",
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => selectSearchTrack(track)}
+                        className="grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] items-start gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                      >
+                        <TrackCover src={track.cover_url} title={track.title} />
+                        <span className="min-w-0 space-y-1">
+                          <span className="block truncate text-sm font-medium text-foreground">
+                            {track.title}
+                          </span>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {track.artist_name ?? "Unknown artist"}
+                          </span>
+                          <span className="flex flex-wrap gap-1">
+                            <Badge
+                              variant="outline"
+                              className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                            >
+                              {track.source_label}
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="h-4 border-border/42 px-1.5 text-[0.56rem] text-muted-foreground"
+                            >
+                              {candidateTierLabels[track.tier] ?? track.tier}
+                            </Badge>
+                          </span>
+                          <span className="block line-clamp-2 text-xs leading-5 text-muted-foreground">
+                            {track.reason}
+                          </span>
+                        </span>
+                      </button>
+                      <div className="flex flex-col gap-1.5">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={isSelected ? "secondary" : "outline"}
+                          disabled={addMutation.isPending}
+                          onClick={() => selectSearchTrack(track)}
+                          className="h-8 gap-1.5"
+                        >
+                          {isSelected ? <Check className="size-3" /> : <Plus className="size-3" />}
+                          {isSelected ? "Selected" : "Select"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            setDismissedCandidateKeys((current) =>
+                              new Set(current).add(
+                                `${candidateDismissalScope}:${track.provider_id}`,
+                              ),
+                            )
+                          }
+                          className="h-8 gap-1.5 text-muted-foreground"
+                        >
+                          <X className="size-3" />
+                          Skip
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
+          </section>
+
           <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-sm font-semibold text-foreground">Deezer results</h2>
