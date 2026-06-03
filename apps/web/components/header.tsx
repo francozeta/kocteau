@@ -197,7 +197,7 @@ export default function Header({
               <Button
                 variant="outline"
                 size="sm"
-                className="mobile-liquid-button pointer-events-auto h-10 rounded-full px-4 text-foreground md:h-8 md:rounded-[0.62rem] md:border-border/30 md:px-3 md:text-xs"
+                className="pointer-events-auto h-10 rounded-full border-foreground bg-foreground px-4 text-background shadow-[0_10px_28px_rgba(0,0,0,0.28)] transition-[background-color,border-color,color,transform,box-shadow] duration-150 ease-out hover:border-foreground/90 hover:bg-foreground/90 hover:text-background active:scale-[0.96] md:h-8 md:rounded-[0.62rem] md:px-3 md:text-xs"
               >
                 Log in
               </Button>

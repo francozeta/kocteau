@@ -112,9 +112,10 @@ export default function NotificationsButton({
         >
           <BellSimpleIcon className="size-4" weight={unreadCount > 0 ? "fill" : "regular"} />
           {unreadCount > 0 ? (
-            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-[0.45rem] bg-foreground px-1.5 py-0.5 text-[10px] font-semibold leading-none text-background shadow-sm">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
+            <span
+              className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-foreground shadow-[0_0_0_2px_var(--sidebar)]"
+              aria-hidden="true"
+            />
           ) : null}
         </Button>
       </PopoverTrigger>

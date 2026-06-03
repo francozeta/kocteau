@@ -277,11 +277,13 @@ export default function FeedReviewList({
     isAuthenticated &&
     visibleStarterTracks.length > 0 &&
     reviews.length < 4;
-  const showMobileStarterShelf =
-    view === "for-you" &&
-    isAuthenticated &&
+  const showStarterShelf =
     visibleStarterTracks.length > 0 &&
-    reviews.length > 0;
+    reviews.length > 0 &&
+    (
+      (isAuthenticated && view === "for-you") ||
+      (!isAuthenticated && view === "latest")
+    );
   const showReviewCta = view === "for-you" || view === "latest";
 
   if (reviews.length === 0) {
@@ -303,10 +305,11 @@ export default function FeedReviewList({
         <FeedReviewCta isAuthenticated={isAuthenticated} />
       ) : null}
 
-      {showMobileStarterShelf ? (
+      {showStarterShelf ? (
         <FeedStarterShelf
           tracks={visibleStarterTracks}
           isAuthenticated={isAuthenticated}
+          variant={isAuthenticated ? "personalized" : "editorial"}
           className="lg:hidden"
         />
       ) : null}
@@ -333,7 +336,7 @@ export default function FeedReviewList({
       })}
 
       {showStarterLayer ? (
-        <div className={showMobileStarterShelf ? "hidden lg:block" : undefined}>
+        <div className={showStarterShelf ? "hidden lg:block" : undefined}>
           <FeedStarterLayer
             tracks={visibleStarterTracks}
             isAuthenticated={isAuthenticated}

@@ -26,6 +26,19 @@ type StarterRailResponse = {
   tracks: StarterTrack[];
 };
 
+const stableStarterRailQueryPath = "/api/starter/rail?surface=app&context=global";
+const railFooterLinks = [
+  ...helpFooterLinks,
+  {
+    href: "https://github.com/francozeta/kocteau",
+    label: "GitHub",
+  },
+  {
+    href: "https://discord.gg/FgrNjkPa8",
+    label: "Discord",
+  },
+] as const;
+
 function useDesktopRail() {
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -107,18 +120,25 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
   const isStudioRoute = pathname?.startsWith("/studio") ?? false;
   const customRailContent = useSecondaryRailContent();
   const hasCustomRailContent = customRailContent !== null;
-  const starterRailQueryPath = useMemo(
+  const publicStarterRailQueryPath = useMemo(
     () => getStarterRailQueryPath(pathname),
     [pathname],
   );
+  const starterRailQueryPath = isAuthenticated
+    ? stableStarterRailQueryPath
+    : publicStarterRailQueryPath;
   const { data, isLoading } = useQuery({
     ...activeProfilesQueryOptions(3),
     enabled: isDesktop && !isStudioRoute,
   });
   const { data: starterRail, isLoading: isStarterRailLoading } = useQuery({
-    queryKey: ["starter", "rail", starterRailQueryPath],
+    queryKey: [
+      "starter",
+      "rail",
+      isAuthenticated ? "global" : starterRailQueryPath,
+    ],
     queryFn: () => fetchJson<StarterRailResponse>(starterRailQueryPath),
-    enabled: isDesktop && isAuthenticated && !isStudioRoute,
+    enabled: isDesktop && !isStudioRoute,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -127,7 +147,6 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
   const showStarterRail =
     !hasCustomRailContent &&
     !isStudioRoute &&
-    isAuthenticated &&
     (isStarterRailLoading || visibleStarterTracks.length > 0);
 
   return (
@@ -238,15 +257,22 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
 
         <footer className="mt-5 px-1 pb-8 pt-1 text-[11px] leading-5 text-muted-foreground/52">
           <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-            {helpFooterLinks.map((link) => (
-              <PrefetchLink
-                key={link.href}
-                href={link.href}
-                className="transition-colors hover:text-muted-foreground"
-              >
-                {link.label}
-              </PrefetchLink>
-            ))}
+            {railFooterLinks.map((link) => {
+              const isExternal = link.href.startsWith("http");
+
+              return (
+                <PrefetchLink
+                  key={link.href}
+                  href={link.href}
+                  prefetch={!isExternal}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noreferrer" : undefined}
+                  className="transition-colors hover:text-muted-foreground"
+                >
+                  {link.label}
+                </PrefetchLink>
+              );
+            })}
           </div>
           <p>© 2026 Kocteau</p>
         </footer>

@@ -49,7 +49,11 @@ export function NavSecondary({
                 </Link>
               </SidebarMenuButton>
               {item.badge && item.badge > 0 ? (
-                <SidebarMenuBadge>{item.badge > 99 ? "99+" : item.badge}</SidebarMenuBadge>
+                <SidebarMenuBadge
+                  role="status"
+                  aria-label={`${item.badge} unread`}
+                  className="right-2 !h-1.5 !w-1.5 !min-w-[0.375rem] rounded-full bg-sidebar-foreground/72 !p-0 text-transparent shadow-[0_0_0_2px_var(--sidebar)] peer-data-active/menu-button:bg-sidebar-foreground"
+                />
               ) : null}
             </SidebarMenuItem>
           ))}

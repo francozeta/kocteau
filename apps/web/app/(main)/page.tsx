@@ -10,7 +10,10 @@ import {
   getFeedPage,
   getFeedViewerState,
 } from "@/lib/queries/feed";
-import { getStarterTracksForSurface } from "@/lib/queries/starter";
+import {
+  getPublicStarterTracks,
+  getStarterTracksForSurface,
+} from "@/lib/queries/starter";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildFeedPageJsonLd } from "@/lib/structured-data";
 import { feedKeys, type FeedInfiniteQueryData } from "@/queries/feed";
@@ -35,12 +38,7 @@ export default async function HomePage({
   const user = await userPromise;
   const activeView = requestedView ?? (user ? "for-you" : "latest");
   const tabActiveView = activeView === "latest" ? "for-you" : activeView;
-  const [publicBundle, starterTracks] = await Promise.all([
-    getFeedPage({
-      view: activeView,
-      viewerId: user?.id,
-      includeActiveUsers: false,
-    }),
+  const starterTracksPromise =
     activeView === "for-you" && user?.id
       ? getStarterTracksForSurface({
           viewerId: user.id,
@@ -48,7 +46,16 @@ export default async function HomePage({
           surface: "home",
           contextKey: "home",
         })
-      : Promise.resolve([]),
+      : !user
+        ? getPublicStarterTracks({ limit: 6, contextKey: "home" })
+        : Promise.resolve([]);
+  const [publicBundle, starterTracks] = await Promise.all([
+    getFeedPage({
+      view: activeView,
+      viewerId: user?.id,
+      includeActiveUsers: false,
+    }),
+    starterTracksPromise,
   ]);
   const viewerStatePromise =
     user?.id && publicBundle.feed.length > 0

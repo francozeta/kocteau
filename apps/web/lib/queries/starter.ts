@@ -2,8 +2,30 @@ import "server-only";
 
 import { measureServerTask } from "@/lib/perf";
 import type { StarterSurface } from "@/lib/starter/surface";
+import {
+  createStarterRotationSeed,
+  rotateStarterTracks,
+} from "@/lib/starter/rotation";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { StarterTrack } from "@/lib/starter";
+
+type PublicStarterTrackRow = Pick<
+  StarterTrack,
+  | "id"
+  | "provider"
+  | "provider_id"
+  | "type"
+  | "title"
+  | "artist_name"
+  | "cover_url"
+  | "deezer_url"
+  | "prompt"
+  | "editorial_note"
+> & {
+  is_featured: boolean;
+  sort_order: number;
+  created_at: string;
+};
 
 type StarterEntityLookup = {
   id: string;
@@ -29,6 +51,85 @@ function isMissingSurfaceRpc(error: { code?: string | null; message?: string | n
     error.code === "PGRST202" ||
     error.code === "42883" ||
     Boolean(error.message?.includes("get_starter_tracks_for_surface"))
+  );
+}
+
+function mapPublicStarterTrack(track: PublicStarterTrackRow): StarterTrack {
+  return {
+    id: track.id,
+    provider: track.provider,
+    provider_id: track.provider_id,
+    type: track.type,
+    title: track.title,
+    artist_name: track.artist_name,
+    cover_url: track.cover_url,
+    deezer_url: track.deezer_url,
+    prompt: track.prompt,
+    editorial_note: track.editorial_note,
+    collection_slug: "starter-picks",
+    collection_title: "Starter picks",
+    matched_tag_count: 0,
+    score: track.is_featured ? 0.35 : 0,
+  };
+}
+
+export async function getPublicStarterTracks({
+  limit = 6,
+  seed,
+  contextKey = "public",
+}: {
+  limit?: number;
+  seed?: string;
+  contextKey?: string | null;
+} = {}): Promise<StarterTrack[]> {
+  return measureServerTask(
+    "getPublicStarterTracks",
+    async () => {
+      const supabase = await supabaseServer();
+      const requestedLimit = Math.max(1, Math.min(limit, 12));
+      const lookupLimit = Math.max(12, Math.min(requestedLimit * 4, 36));
+      const { data, error } = await supabase
+        .from("starter_tracks")
+        .select(`
+          id,
+          provider,
+          provider_id,
+          type,
+          title,
+          artist_name,
+          cover_url,
+          deezer_url,
+          prompt,
+          editorial_note,
+          is_featured,
+          sort_order,
+          created_at
+        `)
+        .eq("is_active", true)
+        .order("is_featured", { ascending: false })
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false })
+        .limit(lookupLimit)
+        .returns<PublicStarterTrackRow[]>();
+
+      if (error) {
+        console.error("[starter.getPublicStarterTracks] failed", {
+          code: error.code ?? null,
+          message: error.message ?? null,
+        });
+
+        return [];
+      }
+
+      const rotationSeed = `${seed ?? createStarterRotationSeed()}:${contextKey ?? "public"}`;
+
+      return rotateStarterTracks((data ?? []).map(mapPublicStarterTrack), rotationSeed)
+        .slice(0, requestedLimit);
+    },
+    {
+      limit,
+      contextKey,
+    },
   );
 }
 
