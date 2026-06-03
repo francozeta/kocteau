@@ -68,13 +68,15 @@ It does not create users, reviews, likes, bookmarks, comments, follows, notifica
 For future schema work:
 
 ```bash
-supabase migration new descriptive_name
+pnpm supabase:migration:new descriptive_name
 pnpm supabase:reset
 pnpm supabase:lint
 pnpm supabase:types
 ```
 
 Every migration must include RLS and explicit grants for exposed tables, views, and RPCs. Public read access still needs both a policy and a grant.
+
+This local flow is contributor-safe and Docker-backed. Maintainers deploying to Supabase Cloud should use the separate [Supabase maintainer workflow](../maintainers/supabase-workflow.md).
 
 ## Maintenance Scripts
 

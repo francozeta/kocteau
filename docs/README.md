@@ -14,10 +14,12 @@
 - [Local development](./setup/local-development.md): local-first setup with Supabase CLI.
 - [Environment and secrets](./security/environment.md): safe handling for local, staging, and production configuration.
 - [Operations](./operations.md): production setup notes, post-deploy checks, Supabase scripts, and recommendation health checks.
+- [Supabase maintainer workflow](./maintainers/supabase-workflow.md): cloud migrations, staging, production, and contributor boundaries.
 
 ## Maintainer Workflows
 
 - [Release automation](./maintainers/release.md): Release Please, changelog flow, and release smoke checks.
+- [Supabase maintainer workflow](./maintainers/supabase-workflow.md): versioned Supabase Cloud migration flow for maintainers.
 - [GitHub rules](./maintainers/github-rules.md): repository settings, branch protection, labels, and Actions permissions.
 
 ## Interface Craft
@@ -34,5 +36,4 @@
 - New contributor: read [CONTRIBUTING.md](../CONTRIBUTING.md), then [local development](./setup/local-development.md), then [public backlog](./backlog.md).
 - Product/design contributor: read [MVP baseline](./mvp.md), [web roadmap](./web-roadmap.md), and [interface craft rules](./ai/interface-craft-rules.md).
 - Recommendation or analytics contributor: read [discovery and curation](./discovery-curation.md), [operations](./operations.md), and the sensitive-system notes in [public backlog](./backlog.md).
-- Maintainer: read [operations](./operations.md), [release automation](./maintainers/release.md), and [GitHub rules](./maintainers/github-rules.md).
-
+- Maintainer: read [operations](./operations.md), [Supabase maintainer workflow](./maintainers/supabase-workflow.md), [release automation](./maintainers/release.md), and [GitHub rules](./maintainers/github-rules.md).

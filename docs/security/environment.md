@@ -12,6 +12,8 @@ Kocteau uses separate environments for local development, staging, and productio
 
 Do not point local development at production by default.
 
+Maintainers should deploy schema changes through versioned migrations using the [Supabase maintainer workflow](../maintainers/supabase-workflow.md). Contributors should stay on the local stack unless a maintainer explicitly grants a cloud task.
+
 ## Public Variables
 
 Public browser values are allowed in web variables prefixed with `NEXT_PUBLIC_*`.

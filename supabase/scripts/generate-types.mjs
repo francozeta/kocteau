@@ -17,6 +17,9 @@ const supabaseLegacyBin =
     : resolve(repoRoot, "node_modules", "supabase", "bin", "supabase");
 const command = existsSync(supabaseScript) ? process.execPath : supabaseLegacyBin;
 const commandArgs = existsSync(supabaseScript) ? [supabaseScript] : [];
+const isLinked = process.argv.includes("--linked");
+const isLocal = process.argv.includes("--local");
+const sourceFlag = isLinked && !isLocal ? "--linked" : "--local";
 
 const result = spawnSync(
   command,
@@ -24,7 +27,7 @@ const result = spawnSync(
     ...commandArgs,
     "gen",
     "types",
-    "--local",
+    sourceFlag,
     "--lang=typescript",
     "--schema",
     "public,storage,graphql_public",

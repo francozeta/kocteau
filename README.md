@@ -100,6 +100,30 @@ Email preview:
 pnpm --filter web email:dev
 ```
 
+## Supabase Workflows
+
+Contributors stay on the Docker-backed local stack:
+
+```bash
+pnpm supabase:start
+pnpm supabase:reset
+pnpm supabase:types
+```
+
+Maintainers use the repo-pinned Supabase CLI for Cloud migrations:
+
+```bash
+pnpm supabase:login
+pnpm supabase:link --project-ref <project-ref>
+pnpm supabase:migration:list:linked
+pnpm supabase:db:push:dry
+pnpm supabase:db:advisors:linked
+pnpm supabase:db:push
+pnpm supabase:types:linked
+```
+
+Run the dry run before applying migrations to staging or production. See [Supabase maintainer workflow](./docs/maintainers/supabase-workflow.md) for the full staging/production process.
+
 ## Database
 
 The core public tables are:
