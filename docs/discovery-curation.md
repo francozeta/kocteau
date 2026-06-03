@@ -340,6 +340,29 @@ The preferred model is hybrid:
 
 Do not index the whole Deezer catalog for color. Kocteau should only analyze music that enters the local editorial or review layer.
 
+### Phase 8: Taste Atlas
+
+Design a native Kocteau discovery surface that lets listeners move through taste relationships instead of only scrolling a feed or searching directly.
+
+The first version should be a small, explainable atlas:
+
+- starts from a track, artist, tag, mood, or curated starter pick
+- shows nearby recommendations with a short reason
+- supports directional feedback such as closer, stranger, softer, darker, deeper cut, or skip
+- uses known artists as gateways to hidden gems instead of treating popularity as automatically bad
+- learns from reviews, saves, follows, starter actions, and curator decisions as Kocteau grows
+
+V0 should not require a large user-data corpus. It can start from editorial relationships, starter tags, entity tags, Deezer metadata, and curator-approved candidates. The interface should be honest about sparse data by framing recommendations as editorial paths, not as all-knowing personalization.
+
+Engineering constraints:
+
+- keep V0 in the existing web, Supabase, and TypeScript stack
+- prefer readable SQL and typed query helpers over a new graph engine
+- avoid Rust, vector search, or a separate worker until performance or quality measurements prove the need
+- keep the graph explainable enough for maintainers to inspect why two entities are connected
+
+This phase should wait until feed tuning has a baseline and the existing health checks can show whether discovery changes improve review creation, saves, and useful exploration.
+
 ### Future Research
 
 These ideas are promising but should remain RFCs until the web core is healthier:
@@ -350,6 +373,7 @@ These ideas are promising but should remain RFCs until the web core is healthier
 - review premieres
 - native Kocteau tracks for music outside Deezer
 - cover color as a discovery signal beyond starter picks
+- Taste Atlas as an interactive relationship surface for discovery
 - embeddings and vector search
 - creator programs or public curator applications
 

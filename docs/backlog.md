@@ -495,6 +495,20 @@ Suggested RFC: `rfc: define a manual taste graph for entity relationships`
 
 Suggested labels: `rfc`, `area:recommendations`, `area:product`, `needs maintainer decision`
 
+### Taste Atlas
+
+Suggested RFC: `rfc: design Kocteau Taste Atlas`
+
+- Explore an interactive discovery surface where listeners can start from a track, artist, tag, or mood and move through nearby recommendations.
+- Treat the first version as an editorial and explainable graph, not as a black-box algorithm.
+- Use Kocteau signals first: starter tags, entity tags, reviews, saves, follows, curator relationships, and underexposed tracks.
+- Let the surface ask for simple taste feedback such as closer, stranger, softer, darker, deeper cut, or skip.
+- Support known artists through hidden-gem paths instead of excluding them. A popular artist can still lead to a less obvious track.
+- Keep the first implementation web-first with TypeScript, Supabase, and existing recommendation data. Do not add a separate runtime, Rust worker, vector system, or heavy graph engine until usage proves the need.
+- Avoid fake activity, fake affinity, or pretending Kocteau has learned more than the current data supports.
+
+Suggested labels: `rfc`, `area:recommendations`, `area:product`, `area:web`, `needs maintainer decision`
+
 ### Cover Color Signals
 
 Suggested RFC: `rfc: model cover color as a lightweight discovery signal`
