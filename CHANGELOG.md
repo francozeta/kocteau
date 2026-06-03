@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.3.5](https://github.com/francozeta/kocteau/compare/v0.3.4...v0.3.5) (2026-06-03)
+
+
+### Features
+
+* **web:** add anti-mainstream starter candidates ([712cad4](https://github.com/francozeta/kocteau/commit/712cad46b577454ffc00bada720e6d427ee44b76))
+* **web:** add anti-mainstream starter candidates ([de6e870](https://github.com/francozeta/kocteau/commit/de6e870d1a668013dc1951a149cd7985288ce8d7))
+* **web:** add editorial candidate queue ([f633625](https://github.com/francozeta/kocteau/commit/f633625aa204f04a3bb4f69d2aa908c4f0816669))
+* **web:** add editorial candidate queue ([d09c3f9](https://github.com/francozeta/kocteau/commit/d09c3f9356f9b5e185bd5fc0856f2ad999ff06d1))
+* **web:** add mobile starter picks shelf ([071ce9b](https://github.com/francozeta/kocteau/commit/071ce9b15318bbad321cef8dc2f3bf61eee7364e))
+* **web:** add mobile starter picks shelf ([90d66bc](https://github.com/francozeta/kocteau/commit/90d66bc93048dcd63166b8d9f018ba17fe570ede))
+* **web:** polish starter studio workflow ([a3a2b6e](https://github.com/francozeta/kocteau/commit/a3a2b6eb9e2252fdd580097e6b1757abd25d0cec))
+* **web:** polish starter studio workflow ([aacdb76](https://github.com/francozeta/kocteau/commit/aacdb76dce82d173c000349b8428db6178b41bba))
+* **web:** show public starter picks ([6dfc531](https://github.com/francozeta/kocteau/commit/6dfc531ef96a6ce001cd6c519ca4f4be2f82afce))
+* **web:** tune for you feed ranking ([49762d2](https://github.com/francozeta/kocteau/commit/49762d233bc9fe9704225f2d9d9fb0cbaca17409))
+* **web:** tune for you feed ranking ([ec907bc](https://github.com/francozeta/kocteau/commit/ec907bc2dd138719ff983219b69804c8d1f665eb))
+
+
+### Bug Fixes
+
+* **web:** polish public starter UI ([b406cbd](https://github.com/francozeta/kocteau/commit/b406cbd892b41c9a72494d889490dde455a14259))
+
+
+### Documentation
+
+* add seo indexability backlog plan ([7f134c6](https://github.com/francozeta/kocteau/commit/7f134c635d2a5197ca5482bdb8d38f9e8cc00367))
+* add seo indexability backlog plan ([5256b02](https://github.com/francozeta/kocteau/commit/5256b028d7fc2e4f1e41266a13d61359d9115c3f))
+* prepare phase 5 feed tuning ([f3b05e9](https://github.com/francozeta/kocteau/commit/f3b05e9885b07d4f3d4659e573b6e86626cc9368))
+* prepare phase 5 feed tuning ([3f32ec1](https://github.com/francozeta/kocteau/commit/3f32ec1c46d57796c005f68ef9900a3d830a1c64))
+* **supabase:** document maintainer cloud workflow ([0e2060a](https://github.com/francozeta/kocteau/commit/0e2060a692ed3cfb02c32d7e54d40c5bc8faa009))
+* **supabase:** document maintainer cloud workflow ([b0e5d25](https://github.com/francozeta/kocteau/commit/b0e5d25ff5a11f01baa47e1dcd1fa358730d64c6))
+* **web:** draft public changelog for v0.3.4 ([a70442f](https://github.com/francozeta/kocteau/commit/a70442f6f7b988ee1870e5c292d071ea2a754519))
+* **web:** draft public changelog for v0.3.4 ([bc4c3af](https://github.com/francozeta/kocteau/commit/bc4c3af45719fc0f455fa587822623bec23008ce))
+
 ## [0.3.4](https://github.com/francozeta/kocteau/compare/v0.3.3...v0.3.4) (2026-06-02)
 
 
