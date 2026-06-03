@@ -25,6 +25,20 @@ For discovery, curation, recommendation, and analytics work, start with `docs/di
 - `blocked`: cannot move until another task lands.
 - `done`: shipped or no longer relevant.
 
+## Discovery Work Already Completed
+
+These items should not be reopened unless a maintainer finds a regression or starts a focused follow-up.
+
+| Work | State | Notes |
+| --- | --- | --- |
+| Discovery signal contract | done | Event names, metadata rules, and validation are documented for the hybrid recommendation loop. |
+| Recommendation health V1 | done | Maintainers have a safe health surface and aggregate checks without exposing raw analytics rows. |
+| Contextual starter rail | done | Starter picks can vary by route surface and load outside the main layout render. |
+| Starter tag taxonomy | done | `era` and `format` are first-class starter signals alongside genre, mood, scene, and style. |
+| Starter Studio tag editing | done | Curators can create and edit starter signals without leaving Studio. |
+| Starter Studio selected-track inspector | done | The secondary rail focuses on the selected song instead of generic modules while curating. |
+| Starter Studio workflow polish | in review | Catalog filters, readiness labels, editorial notes, and archive confirmation live in `feat/starter-studio-workflow-polish`. |
+
 ## Near-Term Priorities
 
 These are the next useful moves after enabling public contribution.
@@ -153,6 +167,8 @@ Acceptance criteria:
 
 Suggested issue: `fix(web): clarify starter studio empty states and helper copy`
 
+State: `done` for the core starter workflow. Reopen only as a narrow visual QA issue if screenshots reveal confusing empty states after the candidate finder lands.
+
 - Improve `/studio/starter` copy for empty search, no starter picks, picks without tags, and archive confirmation language.
 - Preserve the current curation workflow and API behavior.
 - Keep the tone editorial and concise.
@@ -258,6 +274,8 @@ These can be public issues, but they should require maintainer review and carefu
 
 Suggested issue: `feat(web): add lightweight recommendation health checks for maintainers`
 
+State: `done` for V1. Future work should use real traffic snapshots before changing recommendation ranking.
+
 - Track fallback rate, action rate, read-depth rate, and starter-pick usage.
 - Prefer simple SQL/admin notes before building a dashboard.
 - Use the signal contract in `docs/discovery-curation.md` before adding new events.
@@ -281,6 +299,8 @@ Acceptance criteria:
 
 Suggested issue: `feat(web): implement the discovery analytics signal contract`
 
+State: `done` for the initial contract and validation layer. Additional instrumentation should be added only when it answers a specific product question.
+
 - Add the first instrumentation pass for the events defined in `docs/discovery-curation.md`.
 - Start with For You load, recommendation fallback, review impression/open, entity open, and starter pick actions.
 - Keep analytics best-effort so product interactions never fail because an event fails.
@@ -299,6 +319,8 @@ Acceptance criteria:
 
 Suggested issue: `feat(web): improve starter pick curation workflow`
 
+State: `done` for the current Studio V2 foundation. Keep future work narrow: candidate discovery, visual QA, or measured rail diversity.
+
 - Improve `/studio/starter` ergonomics for the official curator.
 - Make tag assignment and archive behavior easier to trust.
 - Add lightweight visibility into tag coverage, untagged picks, and starter pick conversion once analytics events exist.
@@ -313,6 +335,34 @@ Acceptance criteria:
 - Starter tags remain compatible with recommendation RPCs.
 - The UI remains quiet, editorial, and focused on the starter layer.
 - Curators can see tags with low or zero starter coverage while assigning signals.
+
+### Anti-Mainstream Candidate Finder V0
+
+Suggested issue: `feat(web): add anti-mainstream Deezer candidate finder`
+
+State: `ready`, maintainer-led. This is the next starter curation phase.
+
+- Add a curator-only `/api/starter/candidates` route.
+- Use Deezer related artists and artist top tracks as candidate sources.
+- Prefer emerging or undercovered artists for related-seed mode.
+- Allow famous artists only through a deep-cut mode where the candidate track is less obvious.
+- Exclude tracks already present in active starter picks.
+- Return an explainable reason and anti-mainstream tier with every candidate.
+- In `/studio/starter`, show candidates near the existing Deezer search flow.
+- Let the curator select a candidate into the existing starter draft or skip it locally.
+- Do not write candidates to the database in V0.
+- Do not import charts or auto-create starter picks.
+
+Suggested labels: `feature`, `area:web`, `area:recommendations`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- The finder works with a seed like `Cocteau Twins` or `Michael Jackson`.
+- Related mode avoids obvious chart-first recommendations.
+- Deep-cut mode treats known artists as valid only when the track is framed as a less obvious pick.
+- Candidate cards include track identity, cover, reason, tier, and Select/Skip actions.
+- The existing starter pick save flow remains the only database write.
+- Focused tests cover scoring, deduplication, existing starter exclusions, and deep-cut labeling.
 
 ### Starter Rail Diversity Follow-Up
 
@@ -334,6 +384,8 @@ Acceptance criteria:
 ### Editorial Candidate Queue
 
 Suggested issue: `feat(web): design editorial candidate queue for starter picks`
+
+State: `blocked` until the anti-mainstream candidate finder proves the curator flow is useful.
 
 - Add a maintainer-reviewed design for `editorial_candidates` before implementation.
 - Candidate reasons may include review velocity, bookmark growth, read depth, trusted-user activity, emerging tags, and undercovered taste areas.
@@ -405,6 +457,18 @@ Suggested RFC: `rfc: define a manual taste graph for entity relationships`
 - Focus on explainability for track pages, Explore, and future For You tuning.
 
 Suggested labels: `rfc`, `area:recommendations`, `area:product`, `needs maintainer decision`
+
+### Cover Color Signals
+
+Suggested RFC: `rfc: model cover color as a lightweight discovery signal`
+
+- Define when cover colors are analyzed: only after a track or album enters Kocteau through review, starter pick, or curator candidate review.
+- Compare automatic palette extraction with curator overrides.
+- Start with broad visual categories such as red, black, white, pastel, dark, saturated, muted, and high-contrast.
+- Decide whether color belongs on entities, starter metadata, or a separate visual-signal table.
+- Keep color as a discovery hint, not a substitute for taste tags, reviews, or editorial judgment.
+
+Suggested labels: `rfc`, `area:recommendations`, `area:product`, `area:supabase`, `needs maintainer decision`
 
 ### Native Artist Discovery
 

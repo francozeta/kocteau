@@ -82,6 +82,16 @@ export const deezerSearchQuerySchema = z.object({
   type: z.enum(searchableEntityTypes).optional().default("track"),
 });
 
+export const starterCandidateQuerySchema = z.object({
+  q: z
+    .string()
+    .trim()
+    .min(2, "Use at least 2 characters.")
+    .max(80, "Search queries can be up to 80 characters."),
+  mode: z.enum(["related-seed", "deep-cut"]).optional().default("related-seed"),
+  limit: z.coerce.number().int().min(1).max(12).optional().default(8),
+});
+
 export const loginSchema = z.object({
   email: z.string().trim().email("Enter a valid email address.").transform((value) => value.toLowerCase()),
   password: z.string().min(1, "Enter your password."),
@@ -293,6 +303,7 @@ export type StarterTrackUpsertInput = z.infer<typeof starterTrackUpsertSchema>;
 export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>;
 export type StarterPreferenceTagInput = z.infer<typeof starterPreferenceTagSchema>;
 export type StarterPreferenceTagUpdateInput = z.infer<typeof starterPreferenceTagUpdateSchema>;
+export type StarterCandidateQueryInput = z.infer<typeof starterCandidateQuerySchema>;
 export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;

@@ -36,6 +36,18 @@ Kocteau already has the core primitives for hybrid discovery:
 
 The next work should improve measurement, editorial workflow, and ranking confidence before introducing embeddings, vector search, or machine learning.
 
+## Status Snapshot
+
+This roadmap is intentionally phased. Current shipped or in-review work:
+
+- Phase 1 signal contract and analytics validation are in place.
+- Phase 2 recommendation health has a maintainer Studio surface and aggregate checks.
+- Phase 3A contextual starter rails are in place through a surface/context contract.
+- Phase 3B starter taxonomy work is in place for `era` and `format` signals.
+- Phase 3C starter Studio workflow polish is in review with catalog filters, readiness labels, editorial notes, and safer archive confirmation.
+
+The active next step is Phase 3D: an anti-mainstream Deezer candidate finder for the curator. It should not write to the database in v0. It proposes candidates, explains why they might fit Kocteau, and lets the curator decide whether to select them into the existing starter pick workflow.
+
 ## Product Model
 
 Discovery should work through three layers.
@@ -150,6 +162,8 @@ Use only fields that help answer a product question:
 
 Expand the analytics contract around For You, reviews, entities, and starter picks.
 
+Status: shipped enough for the first discovery work. Keep expanding only when a real product question needs another signal.
+
 Outcomes:
 
 - maintainers can see feed load health
@@ -160,6 +174,8 @@ Outcomes:
 ### Phase 2: Recommendation Health
 
 Add lightweight health checks before building a dashboard.
+
+Status: shipped enough for maintainer use. Future work should improve interpretation, not expose raw analytics rows.
 
 Phase 2 starts with a read-only SQL playbook for maintainers and a curator-only Studio health surface powered by safe aggregate RPCs. Do not expose raw `analytics_events` rows to the web app.
 
@@ -175,6 +191,8 @@ Useful checks:
 ### Phase 3: Starter Studio V2 And Contextual Starter Rails
 
 Improve `/studio/starter` as a quiet editorial tool for the official curator.
+
+Status: active. The rail, taxonomy, tag editing, selected-song rail inspector, and workflow polish are in place or in review.
 
 Phase 3A starts with the secondary starter rail: starter picks should not feel identical on every screen, and they should not block the main layout render. The rail can use a lightweight surface/context contract, such as `home`, `profile:{username}`, `track:{id}`, `review:{id}`, or `studio:health`, to request a stable daily editorial rotation from `get_starter_tracks_for_surface()`.
 
@@ -194,9 +212,47 @@ Priorities:
 
 Keep it editorial and focused. Do not turn it into a generic admin dashboard.
 
+### Phase 3D: Anti-Mainstream Candidate Finder V0
+
+Add a curator-only finder inside `/studio/starter` where Deezer proposes possible starter picks and Kocteau filters them through editorial rules.
+
+Principle:
+
+```text
+Deezer proposes -> Kocteau filters -> curator decides
+```
+
+V0 constraints:
+
+- no new database tables
+- no persistent dismissal queue
+- no automatic starter pick creation
+- no global chart ingestion
+- no heavy ML
+- no fake reviews or fake engagement
+
+Candidate sources:
+
+- related artists from an existing seed artist
+- deep cuts from a known artist, where the artist can be famous but the selected track should be less obvious
+- search queries shaped by undercovered tags or scenes
+- future visual-color intent, once cover color signals are modeled
+
+Each candidate should show:
+
+- track identity and cover
+- the source mode, such as `related seed` or `deep cut`
+- an anti-mainstream tier
+- a short editorial reason
+- actions to select into the existing starter draft or skip locally
+
+This phase should prove whether a human curator can use algorithmic suggestions without making Kocteau feel commercial or chart-driven.
+
 ### Phase 4: Editorial Candidates
 
 Introduce `editorial_candidates` as a queue where the system proposes tracks that might deserve human review.
+
+Status: future persistent version. Do not start with a table until Phase 3D proves the curator flow is useful.
 
 Candidate reasons can include:
 
@@ -241,6 +297,19 @@ Possible relationship types:
 
 This can power track pages, Explore, and future recommendation explainability.
 
+### Phase 7: Cover Visual Signals
+
+Cover color can become a lightweight taste signal after starter curation proves useful.
+
+The preferred model is hybrid:
+
+- compute a dominant cover color and simple palette only when a track or album enters Kocteau
+- store broad visual tags such as `red`, `black`, `white`, `pastel`, `dark`, or `high-contrast`
+- let curators override or verify the result when it matters
+- use visual color as a discovery hint, not as a replacement for taste tags or reviews
+
+Do not index the whole Deezer catalog for color. Kocteau should only analyze music that enters the local editorial or review layer.
+
 ### Future Research
 
 These ideas are promising but should remain RFCs until the web core is healthier:
@@ -250,6 +319,7 @@ These ideas are promising but should remain RFCs until the web core is healthier
 - artist-as-curator flows
 - review premieres
 - native Kocteau tracks for music outside Deezer
+- cover color as a discovery signal beyond starter picks
 - embeddings and vector search
 - creator programs or public curator applications
 
@@ -261,6 +331,8 @@ Good contributor work:
 - event contract examples
 - Explore copy and empty states
 - UI polish for starter curation
+- tests around anti-mainstream candidate scoring
+- non-sensitive Deezer metadata mapping helpers
 - query notes that help maintainers inspect health
 - tests around analytics payload validation
 
@@ -271,6 +343,8 @@ Maintainer-led work:
 - recommendation RPC changes
 - analytics schema changes
 - starter curator permissions
+- persistent editorial candidate queues
+- cover color schema and migration decisions
 - editorial candidate approval logic
 
 Future RFC work:
