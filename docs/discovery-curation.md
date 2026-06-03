@@ -44,9 +44,11 @@ This roadmap is intentionally phased. Current shipped or in-review work:
 - Phase 2 recommendation health has a maintainer Studio surface and aggregate checks.
 - Phase 3A contextual starter rails are in place through a surface/context contract.
 - Phase 3B starter taxonomy work is in place for `era` and `format` signals.
-- Phase 3C starter Studio workflow polish is in review with catalog filters, readiness labels, editorial notes, and safer archive confirmation.
+- Phase 3C starter Studio workflow polish is in place with catalog filters, readiness labels, editorial notes, and safer archive confirmation.
+- Phase 3D anti-mainstream Deezer candidate finder V0 is in place for related and deep-cut suggestions.
+- Phase 4 editorial candidate queue V1 is in place for persisting curator decisions.
 
-Phase 3D adds an anti-mainstream Deezer candidate finder for the curator. It does not write to the database in v0. Phase 4 adds the persistent candidate queue so promising suggestions can be saved, revisited, approved into starter picks, or dismissed.
+Phase 5 is the next maintainer phase. Feed tuning should start with a baseline snapshot before changing the recommendation RPC.
 
 ## Product Model
 
@@ -192,7 +194,7 @@ Useful checks:
 
 Improve `/studio/starter` as a quiet editorial tool for the official curator.
 
-Status: active. The rail, taxonomy, tag editing, selected-song rail inspector, and workflow polish are in place or in review.
+Status: shipped enough for the current starter curation loop. Future work should be narrow visual QA, candidate quality measurement, or measured rail diversity.
 
 Phase 3A starts with the secondary starter rail: starter picks should not feel identical on every screen, and they should not block the main layout render. The rail can use a lightweight surface/context contract, such as `home`, `profile:{username}`, `track:{id}`, `review:{id}`, or `studio:health`, to request a stable daily editorial rotation from `get_starter_tracks_for_surface()`.
 
@@ -215,6 +217,8 @@ Keep it editorial and focused. Do not turn it into a generic admin dashboard.
 ### Phase 3D: Anti-Mainstream Candidate Finder V0
 
 Add a curator-only finder inside `/studio/starter` where Deezer proposes possible starter picks and Kocteau filters them through editorial rules.
+
+Status: shipped for V0. The finder can suggest related and deep-cut candidates, while persistence is handled by the Phase 4 queue.
 
 Principle:
 
@@ -252,7 +256,7 @@ This phase should prove whether a human curator can use algorithmic suggestions 
 
 Introduce `editorial_candidates` as a queue where the system proposes tracks that might deserve human review.
 
-Status: active V1. The first persistent version stores only curator-facing track candidates and decisions. It does not auto-promote candidates into starter picks.
+Status: shipped for V1 persistence. The first persistent version stores only curator-facing track candidates and decisions. It does not auto-promote candidates into starter picks.
 
 Candidate reasons can include:
 
@@ -283,6 +287,8 @@ V1 constraints:
 
 Tune `get_recommended_review_ids` only after Phase 1 and Phase 2 produce enough signal.
 
+Status: next maintainer phase. Capture the baseline with `supabase/scripts/maintenance/feed-tuning-baseline-snapshot.sql` before changing the RPC.
+
 Potential tuning areas:
 
 - written reviews above rating-only entries
@@ -290,6 +296,13 @@ Potential tuning areas:
 - better exploration controls
 - clearer recommendation reason labels
 - stronger editorial fallback when activity is sparse
+
+First pass constraints:
+
+- change one or two scoring hypotheses at a time
+- preserve existing reason labels unless the UI and analytics contract are updated together
+- keep sparse-data fallback useful for new users
+- compare before/after snapshots rather than tuning from intuition
 
 ### Phase 6: Taste Graph
 

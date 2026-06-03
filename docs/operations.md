@@ -194,6 +194,8 @@ The feed presents these picks as a lightweight taste queue. Impressions, passes,
 
 Use `supabase/scripts/maintenance/recommendation-health-checks.sql` to inspect aggregate For You and starter health from the Supabase SQL editor.
 
+Before changing `get_recommended_review_ids()`, run `supabase/scripts/maintenance/feed-tuning-baseline-snapshot.sql` and keep the aggregate output in the PR notes. Run the same script again 7-14 days after deployment before making another ranking change.
+
 Curators can use the internal route:
 
 ```text
