@@ -339,7 +339,9 @@ export default function ProfileEditorForm({
         });
       }
 
-      toastActionSuccess("Profile updated.");
+      if (mode === "settings") {
+        toastActionSuccess("Profile updated.");
+      }
     } catch (error) {
       const profileError = error as Error & { code?: string };
 
