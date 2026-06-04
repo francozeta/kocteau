@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.3.6](https://github.com/francozeta/kocteau/compare/v0.3.5...v0.3.6) (2026-06-04)
+
+
+### Features
+
+* **repo:** add assisted starter curation workflow ([b1ce7ba](https://github.com/francozeta/kocteau/commit/b1ce7bab592047dfc6727a74e0736c055c0b5e84))
+* **repo:** add starter curation draft packets ([f63550d](https://github.com/francozeta/kocteau/commit/f63550d5fa5ab7b99e9d586323157045dfa59d98))
+* **repo:** add starter curation readiness audit ([63cb819](https://github.com/francozeta/kocteau/commit/63cb819db06a73648f3ce6f0cc91a1c3996c4298))
+* **repo:** generate starter curation apply sql ([fa95a92](https://github.com/francozeta/kocteau/commit/fa95a9273a76a150f40d364aa7de4efcbb2a2ed5))
+* **web:** add inline review replies ([9fecb82](https://github.com/francozeta/kocteau/commit/9fecb826ae952878b12c3f58501385a4ce20ba47))
+* **web:** add Kocteau-first track search ([50d7624](https://github.com/francozeta/kocteau/commit/50d76244a895b23a00b042622cc04d1444a4cf2e))
+* **web:** add Kocteau-first track search ([117de59](https://github.com/francozeta/kocteau/commit/117de59cbf7657b344dd69130d534a73ff6fa5da))
+* **web:** add toast preview system ([d3f2ac7](https://github.com/francozeta/kocteau/commit/d3f2ac763f515d18e39f74d3f9df4e97ec7dabe2))
+* **web:** add toast preview system ([4cf2167](https://github.com/francozeta/kocteau/commit/4cf2167f9aa0b8abd203073cc8cc8bd30d011a52))
+* **web:** add visible track recommendations ([ef2efab](https://github.com/francozeta/kocteau/commit/ef2efab787601ef179c1cb6ffd07a95047352f57))
+* **web:** add visible track recommendations ([6cab2c6](https://github.com/francozeta/kocteau/commit/6cab2c63ca5f5fcb13e698c4294baa172f8039e4))
+* **web:** animate reply composer shape ([f833dfe](https://github.com/francozeta/kocteau/commit/f833dfe61f7b6101e2dde22544e623bcc3d1d762))
+* **web:** focus review reply composer ([a238128](https://github.com/francozeta/kocteau/commit/a23812851b8557c7650cb66c55483670b71c9752))
+* **web:** improve review card routing ([f17ba94](https://github.com/francozeta/kocteau/commit/f17ba94b5252b733753aec76a7a5f65a315a6ab3))
+* **web:** improve review detail interactions ([b75b03e](https://github.com/francozeta/kocteau/commit/b75b03e3a2484ecc8630bef41263f58a7e589012))
+* **web:** improve starter signals and rail variety ([9b1d289](https://github.com/francozeta/kocteau/commit/9b1d28974062da21596970103d97c1ec285e7482))
+* **web:** polish taste controls and profile surfaces ([7a057c1](https://github.com/francozeta/kocteau/commit/7a057c1029035fa80b54848f5756874d5c6fcaea))
+* **web:** polish taste controls and profile surfaces ([3c5b759](https://github.com/francozeta/kocteau/commit/3c5b759e0deb71588f599c8c08f494758f716353))
+* **web:** refine comments drawer ([5ee614a](https://github.com/francozeta/kocteau/commit/5ee614a54edf68baacbc52e0b17012e820e40516))
+* **web:** relax starter signals and vary rail picks ([6cdd2a7](https://github.com/francozeta/kocteau/commit/6cdd2a7f61fc52a4b0f7d1bd33c386ac3ebaa7e3))
+
+
+### Bug Fixes
+
+* **repo:** validate starter curation tag kinds ([e3115e9](https://github.com/francozeta/kocteau/commit/e3115e955432077757e4c233899c2f9da84baceb))
+* **web:** align track recommendation carousel ([7dcb75e](https://github.com/francozeta/kocteau/commit/7dcb75e1b3e75650a0ee4caeb64200ef12445200))
+* **web:** bridge desktop scroll dead zones ([a823b9e](https://github.com/francozeta/kocteau/commit/a823b9e184d00fd8346b74a6cf55feb19c7253e2))
+* **web:** bridge desktop scroll dead zones ([0c8aaac](https://github.com/francozeta/kocteau/commit/0c8aaacddb55911d63250c60a4caee3402139cc4))
+* **web:** close audit maintenance gaps ([6662dc0](https://github.com/francozeta/kocteau/commit/6662dc005312eceb4477521c7c7ee01f7acd4a05))
+* **web:** close audit maintenance gaps ([6249e35](https://github.com/francozeta/kocteau/commit/6249e353ce75bf930137dafb309892e051a9f378))
+* **web:** harden Deezer search resilience ([d544240](https://github.com/francozeta/kocteau/commit/d54424090b2b203dcb4a88cecf55b3b99032c84c))
+* **web:** harden Deezer search resilience ([e40eff0](https://github.com/francozeta/kocteau/commit/e40eff0c0579d9f7aff984263c079a519b77bdac))
+* **web:** harden search and desktop scrolling ([804839c](https://github.com/francozeta/kocteau/commit/804839c5326c26a293e8d1daa55413b44eb1fae4))
+* **web:** harden search and desktop scrolling ([7484b8e](https://github.com/francozeta/kocteau/commit/7484b8eb29e6389f85ac2b3e2a05cf74c53c0854))
+* **web:** tune toast placement and contrast ([3e9ac9b](https://github.com/francozeta/kocteau/commit/3e9ac9b9917ab39b627e27f9c83e41eafba8f474))
+* **web:** tune toast placement and contrast ([cbdfac4](https://github.com/francozeta/kocteau/commit/cbdfac48598fde2bc6076ff236d1f63b827220d6))
+
+
+### Documentation
+
+* add taste atlas rfc ([cab9154](https://github.com/francozeta/kocteau/commit/cab9154f112501d6086c83dc779e9904795d56b1))
+* add visible recommendation backlog ([7b82060](https://github.com/francozeta/kocteau/commit/7b820605352f0a9129bbee83b4ee107b03aeb289))
+* expand visible recommendation backlog ([096f3bd](https://github.com/francozeta/kocteau/commit/096f3bdfc038c9945b3a6659a3402e0e21babf29))
+* **web:** draft public changelog for v0.3.5 ([338dbc3](https://github.com/francozeta/kocteau/commit/338dbc31610f6858e6adf546099b6194aca3d8bb))
+* **web:** draft public changelog for v0.3.5 ([e41526a](https://github.com/francozeta/kocteau/commit/e41526a192ab4e5f384875887634113033fcd650))
+
 ## [0.3.5](https://github.com/francozeta/kocteau/compare/v0.3.4...v0.3.5) (2026-06-03)
 
 
