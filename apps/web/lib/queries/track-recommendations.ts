@@ -4,7 +4,11 @@ import {
   getCandidateSourceTracks,
   type DeezerCandidateSeedArtist,
 } from "@/lib/deezer-candidate-source";
-import { getDeezerTrack, type DeezerTrackResult } from "@/lib/deezer";
+import {
+  getDeezerErrorDetails,
+  getDeezerTrack,
+  type DeezerTrackResult,
+} from "@/lib/deezer";
 import { measureServerTask } from "@/lib/perf";
 import { getPublicStarterTracks } from "@/lib/queries/starter";
 import type { EntityTasteTag } from "@/lib/queries/entities";
@@ -368,6 +372,13 @@ export async function getTrackRecommendations({
             query: seedLabel,
             limit: requestedLimit,
             seedArtist,
+          }).catch((error) => {
+            console.warn("[track-recommendations.deezer] using editorial fallback", {
+              currentProviderId,
+              ...getDeezerErrorDetails(error),
+            });
+
+            return [];
           }),
           getEditorialFallbackCandidates({
             currentEntityId,

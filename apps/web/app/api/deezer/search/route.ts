@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { DeezerRequestError, searchDeezerTracks } from "@/lib/deezer";
+import { getDeezerErrorDetails, searchDeezerTracks } from "@/lib/deezer";
 import { supabasePublic } from "@/lib/supabase/public";
 import { deezerSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -60,8 +60,7 @@ export async function GET(req: Request) {
     console.error("[deezer.search] failed", {
       type,
       queryLength: q.length,
-      status: error instanceof DeezerRequestError ? error.status : null,
-      message: error instanceof Error ? error.message : "Unknown Deezer search error",
+      ...getDeezerErrorDetails(error),
     });
 
     return NextResponse.json(

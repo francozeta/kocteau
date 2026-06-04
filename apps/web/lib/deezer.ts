@@ -47,6 +47,7 @@ type DeezerTrackApiItem = {
 
 type DeezerSearchResponse = {
   data?: DeezerTrackApiItem[];
+  error?: unknown;
 };
 
 type DeezerArtistApiItem = {
@@ -60,6 +61,7 @@ type DeezerArtistApiItem = {
 
 type DeezerArtistSearchResponse = {
   data?: DeezerArtistApiItem[];
+  error?: unknown;
 };
 
 type DeezerRelatedArtistsResponse = {
@@ -96,6 +98,7 @@ type DeezerTrackMapOptions = {
 
 const deezerRequestTimeoutMs = 8_000;
 const deezerSearchRetryDelaysMs = [250, 700] as const;
+const deezerResourceRetryDelaysMs = [300] as const;
 
 type DeezerFetchOptions = {
   errorMessage: string;
@@ -105,16 +108,37 @@ type DeezerFetchOptions = {
 
 export class DeezerRequestError extends Error {
   status: number | null;
+  cause?: unknown;
 
-  constructor(message: string, status: number | null = null) {
+  constructor(message: string, status: number | null = null, cause?: unknown) {
     super(message);
     this.name = "DeezerRequestError";
     this.status = status;
+    this.cause = cause;
   }
 }
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function shouldRetryDeezerError(error: unknown) {
+  if (error instanceof DeezerRequestError && error.status !== null) {
+    return error.status === 429 || error.status >= 500;
+  }
+
+  return true;
+}
+
+function hasDeezerApiError(payload: { error?: unknown }) {
+  return Object.prototype.hasOwnProperty.call(payload, "error");
+}
+
+export function getDeezerErrorDetails(error: unknown) {
+  return {
+    status: error instanceof DeezerRequestError ? error.status : null,
+    message: error instanceof Error ? error.message : "Unknown Deezer error",
+  };
 }
 
 async function fetchDeezerJson<T>(
@@ -146,7 +170,7 @@ async function fetchDeezerJson<T>(
     } catch (error) {
       lastError = error;
 
-      if (attempt >= retryDelays.length) {
+      if (attempt >= retryDelays.length || !shouldRetryDeezerError(error)) {
         break;
       }
 
@@ -157,10 +181,36 @@ async function fetchDeezerJson<T>(
   }
 
   if (lastError instanceof Error) {
-    throw lastError;
+    if (lastError instanceof DeezerRequestError) {
+      throw lastError;
+    }
+
+    throw new DeezerRequestError(errorMessage, null, lastError);
   }
 
   throw new DeezerRequestError(errorMessage);
+}
+
+async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
+  url: string,
+  {
+    errorMessage,
+    revalidate,
+    scope,
+  }: DeezerFetchOptions & { scope: string },
+): Promise<T | null> {
+  try {
+    const json = await fetchDeezerJson<T>(url, {
+      errorMessage,
+      revalidate,
+      retryDelays: deezerResourceRetryDelaysMs,
+    });
+
+    return hasDeezerApiError(json) ? null : json;
+  } catch (error) {
+    console.warn(`[deezer.${scope}] unavailable`, getDeezerErrorDetails(error));
+    return null;
+  }
 }
 
 function getOptionalNumber(value: number | null | undefined) {
@@ -194,6 +244,10 @@ export async function searchDeezerTracks(query: string, limit = 12): Promise<Dee
     retryDelays: deezerSearchRetryDelaysMs,
   });
 
+  if (hasDeezerApiError(json)) {
+    throw new DeezerRequestError("Deezer search request failed");
+  }
+
   return (json.data ?? []).map((item) => mapDeezerTrack(item));
 }
 
@@ -223,6 +277,10 @@ export async function searchDeezerArtists(
     retryDelays: deezerSearchRetryDelaysMs,
   });
 
+  if (hasDeezerApiError(json)) {
+    throw new DeezerRequestError("Deezer artist request failed");
+  }
+
   return (json.data ?? []).flatMap((item) => {
     const artist = mapDeezerArtist(item);
     return artist ? [artist] : [];
@@ -249,19 +307,16 @@ export async function getDeezerRelatedArtists(
   limit = 8,
 ): Promise<DeezerArtistResult[]> {
   const url = `https://api.deezer.com/artist/${encodeURIComponent(artistId)}/related?limit=${limit}`;
-  const response = await fetch(url, {
-    next: { revalidate: 300 },
-  });
+  const json = await fetchOptionalDeezerJson<DeezerRelatedArtistsResponse & { error?: unknown }>(
+    url,
+    {
+      errorMessage: "Deezer related artists request failed",
+      revalidate: 300,
+      scope: "related_artists",
+    },
+  );
 
-  if (!response.ok) {
-    return [];
-  }
-
-  const json = (await response.json()) as DeezerRelatedArtistsResponse & {
-    error?: unknown;
-  };
-
-  if ("error" in json) {
+  if (!json) {
     return [];
   }
 
@@ -276,19 +331,16 @@ export async function getDeezerArtistAlbums(
   limit = 8,
 ): Promise<DeezerAlbumResult[]> {
   const url = `https://api.deezer.com/artist/${encodeURIComponent(artistId)}/albums?limit=${limit}`;
-  const response = await fetch(url, {
-    next: { revalidate: 300 },
-  });
+  const json = await fetchOptionalDeezerJson<DeezerArtistAlbumsResponse & { error?: unknown }>(
+    url,
+    {
+      errorMessage: "Deezer artist albums request failed",
+      revalidate: 300,
+      scope: "artist_albums",
+    },
+  );
 
-  if (!response.ok) {
-    return [];
-  }
-
-  const json = (await response.json()) as DeezerArtistAlbumsResponse & {
-    error?: unknown;
-  };
-
-  if ("error" in json) {
+  if (!json) {
     return [];
   }
 
@@ -303,19 +355,16 @@ export async function getDeezerArtistTopTracks(
   limit = 6,
 ): Promise<DeezerTrackResult[]> {
   const url = `https://api.deezer.com/artist/${encodeURIComponent(artist.id)}/top?limit=${limit}`;
-  const response = await fetch(url, {
-    next: { revalidate: 300 },
-  });
+  const json = await fetchOptionalDeezerJson<DeezerArtistTopTracksResponse & { error?: unknown }>(
+    url,
+    {
+      errorMessage: "Deezer artist top tracks request failed",
+      revalidate: 300,
+      scope: "artist_top_tracks",
+    },
+  );
 
-  if (!response.ok) {
-    return [];
-  }
-
-  const json = (await response.json()) as DeezerArtistTopTracksResponse & {
-    error?: unknown;
-  };
-
-  if ("error" in json) {
+  if (!json) {
     return [];
   }
 
@@ -333,19 +382,16 @@ export async function getDeezerAlbumTracks(
   limit = 12,
 ): Promise<DeezerTrackResult[]> {
   const url = `https://api.deezer.com/album/${encodeURIComponent(album.id)}/tracks?limit=${limit}`;
-  const response = await fetch(url, {
-    next: { revalidate: 300 },
-  });
+  const json = await fetchOptionalDeezerJson<DeezerAlbumTracksResponse & { error?: unknown }>(
+    url,
+    {
+      errorMessage: "Deezer album tracks request failed",
+      revalidate: 300,
+      scope: "album_tracks",
+    },
+  );
 
-  if (!response.ok) {
-    return [];
-  }
-
-  const json = (await response.json()) as DeezerAlbumTracksResponse & {
-    error?: unknown;
-  };
-
-  if ("error" in json) {
+  if (!json) {
     return [];
   }
 
@@ -361,17 +407,16 @@ export async function getDeezerAlbumTracks(
 
 export async function getDeezerTrack(providerId: string): Promise<DeezerTrackResult | null> {
   const url = `https://api.deezer.com/track/${encodeURIComponent(providerId)}`;
-  const response = await fetch(url, {
-    next: { revalidate: 300 },
-  });
+  const json = await fetchOptionalDeezerJson<DeezerTrackApiItem & { error?: unknown }>(
+    url,
+    {
+      errorMessage: "Deezer track request failed",
+      revalidate: 300,
+      scope: "track",
+    },
+  );
 
-  if (!response.ok) {
-    return null;
-  }
-
-  const json = (await response.json()) as DeezerTrackApiItem & { error?: unknown };
-
-  if ("error" in json || !json.id || !json.title) {
+  if (!json || !json.id || !json.title) {
     return null;
   }
 
