@@ -48,6 +48,12 @@ export type DeezerSearchResult = {
   entity_id?: string | null;
 };
 
+export type KocteauSearchResult = DeezerSearchResult & {
+  source?: "local" | "starter" | "artist-match" | "deezer";
+  source_label?: string;
+  score?: number;
+};
+
 export const trackKeys = {
   all: ["tracks"] as const,
   detailPrefix: () => ["tracks", "detail"] as const,
@@ -55,6 +61,8 @@ export const trackKeys = {
   detail: (trackId: string) => ["tracks", "detail", trackId] as const,
   search: (type: SearchEntityType, query: string) =>
     ["tracks", "search", type, query] as const,
+  kocteauSearch: (type: SearchEntityType, query: string) =>
+    ["tracks", "kocteau-search", type, query] as const,
 };
 
 export function recentTracksQueryOptions(limit = 12) {
@@ -91,6 +99,30 @@ export function deezerTrackSearchQueryOptions(
     queryFn: async () => {
       const payload = await fetchJson<DeezerSearchResult[]>(
         `/api/deezer/search?${params.toString()}`,
+      );
+
+      return Array.isArray(payload) ? payload : [];
+    },
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function kocteauTrackSearchQueryOptions(
+  query: string,
+  type: SearchEntityType = "track",
+) {
+  const params = new URLSearchParams({
+    q: query,
+    type,
+  });
+
+  return queryOptions({
+    queryKey: trackKeys.kocteauSearch(type, query),
+    queryFn: async () => {
+      const payload = await fetchJson<KocteauSearchResult[]>(
+        `/api/search?${params.toString()}`,
       );
 
       return Array.isArray(payload) ? payload : [];
