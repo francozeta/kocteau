@@ -294,7 +294,7 @@ export default function SearchPageClient({
     () => parseRecentSearchesSnapshot(recentSearchesSnapshot),
     [recentSearchesSnapshot],
   );
-  const { data = [], isFetching, error } = useDeezerSearch({
+  const { data = [], isFetching, error, refetch: retrySearch } = useDeezerSearch({
     query,
     type: searchType,
     enabled: searchType === "track",
@@ -377,6 +377,11 @@ export default function SearchPageClient({
 
   const showSkeletonResults =
     hasQuery && normalizedQuery.length >= 2 && isFetching && results.length === 0;
+  const showSearchError = normalizedQuery.length >= 2 && Boolean(error);
+  const searchErrorMessage =
+    error instanceof Error && error.message
+      ? error.message
+      : "Music search is taking longer than usual. Try again in a moment.";
 
   function persistRecentSearch(nextQuery: string) {
     const label = nextQuery.trim();
@@ -457,7 +462,24 @@ export default function SearchPageClient({
             <SearchTypeTabs activeType={searchType} query={normalizedQuery} />
           </div>
 
-          {error ? <p className="mt-3 text-sm text-destructive">{error.message}</p> : null}
+          {showSearchError ? (
+            <div className="relative rounded-[var(--kocteau-radius-card)] border border-border/28 bg-[var(--kocteau-surface)] px-4 py-3 pr-24 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+              <p className="font-medium text-foreground">Music search is slow</p>
+              <p className="mt-0.5 text-xs leading-5 text-muted-foreground/82">
+                {searchErrorMessage}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  void retrySearch();
+                }}
+                disabled={isFetching}
+                className="absolute top-1/2 right-3 inline-flex h-8 -translate-y-1/2 items-center rounded-full border border-border/28 px-3 text-[12px] font-medium text-foreground/88 transition hover:bg-foreground/[0.055] disabled:pointer-events-none disabled:opacity-55"
+              >
+                {isFetching ? "Retrying" : "Retry"}
+              </button>
+            </div>
+          ) : null}
 
           {!hasQuery ? (
             <section className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-none">
@@ -539,7 +561,7 @@ export default function SearchPageClient({
                 </Empty>
               ) : null}
 
-              {!showSkeletonResults && normalizedQuery.length >= 2 && results.length === 0 ? (
+              {!showSkeletonResults && !showSearchError && normalizedQuery.length >= 2 && results.length === 0 ? (
                 <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">

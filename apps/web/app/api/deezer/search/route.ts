@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchDeezerTracks } from "@/lib/deezer";
+import { DeezerRequestError, searchDeezerTracks } from "@/lib/deezer";
 import { supabasePublic } from "@/lib/supabase/public";
 import { deezerSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -56,7 +56,19 @@ export async function GET(req: Request) {
         entity_id: entityByProviderId.get(result.provider_id) ?? null,
       }))
     );
-  } catch {
-    return NextResponse.json({ error: "Deezer request failed" }, { status: 502 });
+  } catch (error) {
+    console.error("[deezer.search] failed", {
+      type,
+      queryLength: q.length,
+      status: error instanceof DeezerRequestError ? error.status : null,
+      message: error instanceof Error ? error.message : "Unknown Deezer search error",
+    });
+
+    return NextResponse.json(
+      {
+        error: "Music search is taking longer than usual. Try again in a moment.",
+      },
+      { status: 502 },
+    );
   }
 }
