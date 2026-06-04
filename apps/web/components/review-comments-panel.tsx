@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { Flag, MoreHorizontal, Send, Trash2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +58,9 @@ export default function ReviewCommentsPanel({
   composerId,
 }: ReviewCommentsPanelProps) {
   const [body, setBody] = useState("");
+  const [composerIsMultiline, setComposerIsMultiline] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const composerBaseHeightRef = useRef<number | null>(null);
   const {
     comments,
     commentsCount,
@@ -83,6 +86,7 @@ export default function ReviewCommentsPanel({
 
   const trimmedBody = useMemo(() => body.trim(), [body]);
   const isInline = variant === "inline";
+  const shouldReduceMotion = useReducedMotion();
   const replyPlaceholder = replyTarget ? `Reply to @${replyTarget}...` : "Reply to this review...";
 
   useEffect(() => {
@@ -100,6 +104,38 @@ export default function ReviewCommentsPanel({
       window.cancelAnimationFrame(frame);
     };
   }, [autoFocusComposer, hideForm, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isInline || !isAuthenticated) {
+      return;
+    }
+
+    const node = textareaRef.current;
+
+    if (!node) {
+      return;
+    }
+
+    const syncComposerShape = () => {
+      if (!body) {
+        composerBaseHeightRef.current = node.scrollHeight;
+        setComposerIsMultiline(false);
+        return;
+      }
+
+      const baseline = composerBaseHeightRef.current ?? node.scrollHeight;
+      setComposerIsMultiline(node.scrollHeight > baseline + 4);
+    };
+
+    syncComposerShape();
+
+    const observer = new ResizeObserver(syncComposerShape);
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [body, isAuthenticated, isInline]);
 
   async function handleSubmit() {
     if (!trimmedBody) {
@@ -265,7 +301,19 @@ export default function ReviewCommentsPanel({
   const form = isAuthenticated ? (
     isInline ? (
       <div className="space-y-2">
-        <div className="flex items-end gap-2 rounded-[1.15rem] border border-border/42 bg-muted/58 px-2 py-2 transition-colors focus-within:border-border/60 focus-within:bg-muted/70 md:border-border/34 md:bg-muted/48">
+        <motion.div
+          animate={{
+            borderRadius: composerIsMultiline ? 18 : 999,
+            scale: composerIsMultiline && !shouldReduceMotion ? 1.004 : 1,
+          }}
+          className="flex items-end gap-2 border border-border/42 bg-muted/58 px-2 py-2 transition-colors duration-100 ease-out focus-within:border-border/60 focus-within:bg-muted/70 md:border-border/34 md:bg-muted/48"
+          initial={false}
+          transition={
+            shouldReduceMotion
+              ? { duration: 0 }
+              : { type: "spring", duration: 0.18, bounce: 0 }
+          }
+        >
           <UserAvatar
             avatarUrl={viewer?.avatar_url}
             displayName={viewer?.display_name ?? null}
@@ -301,7 +349,7 @@ export default function ReviewCommentsPanel({
           >
             {isPosting ? <Spinner className="size-3.5" /> : <Send className="size-3.5" />}
           </Button>
-        </div>
+        </motion.div>
         {commentsCount > 0 ? (
           <p className="px-1 text-[11px] text-muted-foreground/68">
             {commentsCount} {commentsCount === 1 ? "reply" : "replies"}
