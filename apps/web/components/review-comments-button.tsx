@@ -55,6 +55,10 @@ export default function ReviewCommentsButton({
     initialCount,
     enabled: open,
   });
+  const commentsDescription =
+    commentsCount > 0
+      ? `${commentsCount} ${commentsCount === 1 ? "reply" : "replies"}`
+      : "No replies yet";
 
   function handleTriggerClick() {
     if (inlineTarget) {
@@ -120,12 +124,10 @@ export default function ReviewCommentsButton({
       <>
         {trigger}
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent className="flex h-[88vh] max-h-[88vh] flex-col border-border/30">
-            <DrawerHeader className="border-b border-border/30 text-left">
+          <DrawerContent className="flex h-[88vh] max-h-[88vh] flex-col p-0 text-foreground before:inset-0 before:rounded-t-[1.35rem] before:border-x before:border-b-0 before:border-t before:border-border/36 before:bg-background">
+            <DrawerHeader className="border-b border-border/24 px-4 py-3 text-left">
               <DrawerTitle>Comments</DrawerTitle>
-              <DrawerDescription>
-                {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
-              </DrawerDescription>
+              <DrawerDescription>{commentsDescription}</DrawerDescription>
             </DrawerHeader>
             <ReviewCommentsPanel
               reviewId={reviewId}
@@ -148,13 +150,11 @@ export default function ReviewCommentsButton({
         <SheetContent
           side="right"
           showOverlay={false}
-          className="border-border/30 bg-background/95 p-0 supports-backdrop-filter:backdrop-blur-xl data-[side=right]:w-[min(21.5rem,calc(100vw-0.75rem))] data-[side=right]:rounded-l-[1.5rem] data-[side=right]:sm:max-w-[21.5rem]"
+          className="border-border/30 bg-background/98 p-0 shadow-none ring-0 supports-backdrop-filter:backdrop-blur-xl data-[side=right]:w-[min(24rem,calc(100vw-0.75rem))] data-[side=right]:rounded-none data-[side=right]:sm:max-w-[24rem]"
         >
-          <SheetHeader className="border-b border-border/30 px-4 py-4 pr-12">
+          <SheetHeader className="border-b border-border/24 px-4 py-3 pr-12">
             <SheetTitle>Comments</SheetTitle>
-            <SheetDescription>
-              {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
-            </SheetDescription>
+            <SheetDescription>{commentsDescription}</SheetDescription>
           </SheetHeader>
           <ReviewCommentsPanel
             reviewId={reviewId}

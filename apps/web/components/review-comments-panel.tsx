@@ -63,7 +63,6 @@ export default function ReviewCommentsPanel({
   const composerBaseHeightRef = useRef<number | null>(null);
   const {
     comments,
-    commentsCount,
     isLoading,
     isError,
     createComment,
@@ -106,7 +105,7 @@ export default function ReviewCommentsPanel({
   }, [autoFocusComposer, hideForm, isAuthenticated]);
 
   useEffect(() => {
-    if (!isInline || !isAuthenticated) {
+    if (!isAuthenticated) {
       return;
     }
 
@@ -135,7 +134,7 @@ export default function ReviewCommentsPanel({
     return () => {
       observer.disconnect();
     };
-  }, [body, isAuthenticated, isInline]);
+  }, [body, isAuthenticated]);
 
   async function handleSubmit() {
     if (!trimmedBody) {
@@ -181,13 +180,16 @@ export default function ReviewCommentsPanel({
   }
 
   const commentsList = (
-    <div className={cn(isInline ? "space-y-0" : "space-y-4 py-5")}>
+    <div className="space-y-0">
       {isLoading ? (
         <div className="flex justify-center py-10">
           <Spinner className="size-4 text-muted-foreground/70" />
         </div>
       ) : isError ? (
-        <div className="rounded-xl border border-border/40 bg-card/46 p-4 text-sm text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/30 md:bg-card/40">
+        <div className={cn(
+          "border-t border-border/24 text-sm text-muted-foreground",
+          isInline ? "px-1 py-4" : "px-4 py-5",
+        )}>
           Comments are temporarily unavailable.
         </div>
       ) : comments.length > 0 ? (
@@ -200,9 +202,8 @@ export default function ReviewCommentsPanel({
               key={comment.id}
               id={`comment-${comment.id}`}
               className={cn(
-                isInline
-                  ? "border-b border-border/24 py-4 transition-opacity last:border-b-0"
-                  : "rounded-xl border border-border/40 bg-card/46 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-opacity md:border-border/30 md:bg-card/40",
+                "border-t border-border/24 transition-opacity",
+                isInline ? "px-1 py-4" : "px-4 py-4",
                 comment.optimistic && "opacity-70",
               )}
             >
@@ -289,7 +290,7 @@ export default function ReviewCommentsPanel({
           "text-sm text-muted-foreground",
           isInline
             ? "px-1 py-4"
-            : "rounded-xl border border-dashed border-border/48 bg-card/36 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] md:border-border/40 md:bg-card/30",
+            : "border-t border-border/24 px-4 py-5",
         )}>
           <p className="font-medium text-foreground/86">No replies yet.</p>
           <p className="mt-1 text-xs text-muted-foreground">Be the first to respond to this review.</p>
@@ -299,89 +300,58 @@ export default function ReviewCommentsPanel({
   );
 
   const form = isAuthenticated ? (
-    isInline ? (
-      <div className="space-y-2">
-        <motion.div
-          animate={{
-            borderRadius: composerIsMultiline ? 18 : 999,
-            scale: composerIsMultiline && !shouldReduceMotion ? 1.004 : 1,
-          }}
-          className="flex items-end gap-2 border border-border/42 bg-muted/58 px-2 py-2 transition-colors duration-100 ease-out focus-within:border-border/60 focus-within:bg-muted/70 md:border-border/34 md:bg-muted/48"
-          initial={false}
-          transition={
-            shouldReduceMotion
-              ? { duration: 0 }
-              : { type: "spring", duration: 0.18, bounce: 0 }
+    <motion.div
+      animate={{
+        borderRadius: composerIsMultiline ? 18 : 999,
+        scale: composerIsMultiline && !shouldReduceMotion ? 1.004 : 1,
+      }}
+      className={cn(
+        "flex items-end gap-2 border border-border/42 bg-muted/58 px-2 py-2 transition-colors duration-100 ease-out focus-within:border-border/60 focus-within:bg-muted/70 md:border-border/34 md:bg-muted/48",
+        !isInline && "w-full",
+      )}
+      initial={false}
+      transition={
+        shouldReduceMotion
+          ? { duration: 0 }
+          : { type: "spring", duration: 0.18, bounce: 0 }
+      }
+    >
+      <UserAvatar
+        avatarUrl={viewer?.avatar_url}
+        displayName={viewer?.display_name ?? null}
+        username={viewer?.username ?? null}
+        className="size-8"
+        fallbackClassName="text-[11px]"
+      />
+      <Textarea
+        id={composerId}
+        ref={textareaRef}
+        value={body}
+        onChange={(event) => setBody(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
+            return;
           }
-        >
-          <UserAvatar
-            avatarUrl={viewer?.avatar_url}
-            displayName={viewer?.display_name ?? null}
-            username={viewer?.username ?? null}
-            className="size-8"
-            fallbackClassName="text-[11px]"
-          />
-          <Textarea
-            id={composerId}
-            ref={textareaRef}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
-                return;
-              }
 
-              event.preventDefault();
-              void handleSubmit();
-            }}
-            placeholder={replyPlaceholder}
-            className="max-h-28 min-h-8 flex-1 border-0 bg-transparent px-0 py-1.5 text-[13px] leading-5 shadow-none placeholder:text-muted-foreground/82 focus-visible:border-transparent focus-visible:ring-0"
-            maxLength={1000}
-            rows={1}
-          />
-          <Button
-            type="button"
-            size="icon"
-            onClick={handleSubmit}
-            disabled={!trimmedBody || isPosting}
-            className="size-8 shrink-0 rounded-full"
-            aria-label="Post comment"
-          >
-            {isPosting ? <Spinner className="size-3.5" /> : <Send className="size-3.5" />}
-          </Button>
-        </motion.div>
-        {commentsCount > 0 ? (
-          <p className="px-1 text-[11px] text-muted-foreground/68">
-            {commentsCount} {commentsCount === 1 ? "reply" : "replies"}
-          </p>
-        ) : null}
-      </div>
-    ) : (
-      <div className="space-y-3">
-        <Textarea
-          ref={textareaRef}
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          placeholder="Add a short comment..."
-          className="min-h-28"
-          maxLength={1000}
-        />
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
-            {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
-          </p>
-          <Button
-            size="sm"
-            onClick={handleSubmit}
-            disabled={!trimmedBody || isPosting}
-            className="gap-2"
-          >
-            <Send className="size-3.5" />
-            {isPosting ? "Posting..." : "Post comment"}
-          </Button>
-        </div>
-      </div>
-    )
+          event.preventDefault();
+          void handleSubmit();
+        }}
+        placeholder={replyPlaceholder}
+        className="max-h-28 min-h-8 flex-1 border-0 bg-transparent px-0 py-1.5 text-[13px] leading-5 shadow-none placeholder:text-muted-foreground/82 focus-visible:border-transparent focus-visible:ring-0"
+        maxLength={1000}
+        rows={1}
+      />
+      <Button
+        type="button"
+        size="icon"
+        onClick={handleSubmit}
+        disabled={!trimmedBody || isPosting}
+        className="size-8 shrink-0 rounded-full"
+        aria-label="Post comment"
+      >
+        {isPosting ? <Spinner className="size-3.5" /> : <Send className="size-3.5" />}
+      </Button>
+    </motion.div>
   ) : (
     <div
       className={cn(
@@ -429,11 +399,11 @@ export default function ReviewCommentsPanel({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <ScrollArea className="min-h-0 flex-1 px-4">
+      <ScrollArea className="min-h-0 flex-1">
         {commentsList}
       </ScrollArea>
 
-      <div className="border-t border-border/36 px-4 py-4 md:border-border/30">
+      <div className="border-t border-border/30 px-3 py-3 md:border-border/24">
         {!hideForm ? form : null}
       </div>
     </div>
