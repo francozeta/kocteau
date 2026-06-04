@@ -14,7 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import UserAvatar from "@/components/user-avatar";
 import { helpFooterLinks } from "@/lib/help";
 import type { StarterTrack } from "@/lib/starter";
-import { getStarterRailQueryPath } from "@/lib/starter/surface";
+import {
+  getStarterRailQueryPath,
+  getStarterSurfaceFromPathname,
+} from "@/lib/starter/surface";
 import { fetchJson } from "@/queries/http";
 import { activeProfilesQueryOptions } from "@/queries/profiles";
 
@@ -26,7 +29,8 @@ type StarterRailResponse = {
   tracks: StarterTrack[];
 };
 
-const stableStarterRailQueryPath = "/api/starter/rail?surface=app&context=global";
+const starterRailDisplayLimit = 6;
+const starterRailFetchLimit = 12;
 const railFooterLinks = [
   ...helpFooterLinks,
   {
@@ -55,6 +59,48 @@ function useDesktopRail() {
   }, []);
 
   return isDesktop;
+}
+
+function withStarterRailLimit(path: string) {
+  const separator = path.includes("?") ? "&" : "?";
+
+  return `${path}${separator}limit=${starterRailFetchLimit}`;
+}
+
+function getAuthenticatedStarterRailQueryPath(pathname: string | null) {
+  const surface = getStarterSurfaceFromPathname(pathname);
+  const params = new URLSearchParams({
+    surface,
+    context: `${surface}:rail`,
+    limit: String(starterRailFetchLimit),
+  });
+
+  return `/api/starter/rail?${params.toString()}`;
+}
+
+function hashStarterRailKey(value: string) {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+
+  return hash;
+}
+
+function rotateStarterTracks(
+  tracks: StarterTrack[],
+  contextKey: string,
+  limit: number,
+) {
+  if (tracks.length <= limit) {
+    return tracks.slice(0, limit);
+  }
+
+  const offset = hashStarterRailKey(contextKey) % tracks.length;
+  const rotatedTracks = [...tracks.slice(offset), ...tracks.slice(0, offset)];
+
+  return rotatedTracks.slice(0, limit);
 }
 
 function StarterPickReviewTrigger({
@@ -121,11 +167,15 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
   const customRailContent = useSecondaryRailContent();
   const hasCustomRailContent = customRailContent !== null;
   const publicStarterRailQueryPath = useMemo(
-    () => getStarterRailQueryPath(pathname),
+    () => withStarterRailLimit(getStarterRailQueryPath(pathname)),
+    [pathname],
+  );
+  const authenticatedStarterRailQueryPath = useMemo(
+    () => getAuthenticatedStarterRailQueryPath(pathname),
     [pathname],
   );
   const starterRailQueryPath = isAuthenticated
-    ? stableStarterRailQueryPath
+    ? authenticatedStarterRailQueryPath
     : publicStarterRailQueryPath;
   const { data, isLoading } = useQuery({
     ...activeProfilesQueryOptions(3),
@@ -135,7 +185,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
     queryKey: [
       "starter",
       "rail",
-      isAuthenticated ? "global" : starterRailQueryPath,
+      starterRailQueryPath,
     ],
     queryFn: () => fetchJson<StarterRailResponse>(starterRailQueryPath),
     enabled: isDesktop && !isStudioRoute,
@@ -143,7 +193,15 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
     gcTime: 30 * 60 * 1000,
   });
   const profiles = data?.profiles ?? [];
-  const visibleStarterTracks = (starterRail?.tracks ?? []).slice(0, 6);
+  const visibleStarterTracks = useMemo(
+    () =>
+      rotateStarterTracks(
+        starterRail?.tracks ?? [],
+        starterRailQueryPath,
+        starterRailDisplayLimit,
+      ),
+    [starterRail?.tracks, starterRailQueryPath],
+  );
   const showStarterRail =
     !hasCustomRailContent &&
     !isStudioRoute &&
