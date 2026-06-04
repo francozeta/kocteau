@@ -185,8 +185,10 @@ You are helping Kocteau draft missing starter pick metadata.
 - Return JSON only.
 - Use only existing tag slugs from the available tag list.
 - Do not auto-apply genre. You may suggest genre candidates, but mark them for human review.
+- Do not mark the packet as reviewed. Leave humanReviewed false until a maintainer reviews it.
 - Keep prompts short: one question, 80 characters or fewer when possible.
 - Keep editorial notes short: one sentence, calm and music-native.
+- Treat six non-genre signals as ready. Suggest up to twelve only when each signal adds real precision.
 - Favor non-mainstream framing. Familiar artists should usually be treated as deep cuts, contrast picks, or familiar entry points.
 - Do not invent facts such as release years, scenes, or obscure biographical claims if the input does not support them.
 - Use confidence: "low", "medium", or "high".
@@ -195,6 +197,9 @@ You are helping Kocteau draft missing starter pick metadata.
 
 \`\`\`json
 {
+  "humanReviewed": false,
+  "reviewedBy": "",
+  "reviewedAt": "",
   "drafts": [
     {
       "starterTrackId": "uuid",
@@ -227,6 +232,9 @@ ${trackText}
 
 function buildOutputTemplate(tracks) {
   return {
+    humanReviewed: false,
+    reviewedBy: "",
+    reviewedAt: "",
     drafts: tracks.map((track) => ({
       starterTrackId: track.starterTrackId,
       prompt: "",
