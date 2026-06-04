@@ -56,10 +56,8 @@ export default function TrackMoreToHear({
         ariaLabel="More like this"
         compactControls
         contentClassName="gap-3.5"
-        controlClassName="opacity-100 [--kocteau-carousel-cover-size:7.05rem]"
-        fadeClassName="kocteau-carousel-mask-r-from-tight"
-        itemClassName="basis-[7.05rem] sm:basis-[7.45rem] md:basis-[7.75rem]"
-        viewportClassName="-mr-3 pr-3"
+        controlClassName="left-2 right-2 [--kocteau-carousel-cover-size:8.05rem] lg:[--kocteau-carousel-cover-size:8.25rem]"
+        itemClassName="basis-[8.05rem] sm:basis-[8.35rem] lg:basis-[8.25rem]"
       >
         {recommendations.map((recommendation) => (
           <RecommendationTile
