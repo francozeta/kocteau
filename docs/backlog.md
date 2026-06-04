@@ -40,6 +40,7 @@ These items should not be reopened unless a maintainer finds a regression or sta
 | Starter Studio workflow polish | done | Catalog filters, readiness labels, editorial notes, and archive confirmation are merged. |
 | Anti-mainstream candidate finder V0 | done | Deezer can propose related/deep-cut candidates without writing to the database. |
 | Editorial candidate queue V1 | done | Curators can persist, revisit, approve, and dismiss candidate suggestions before promoting starter picks. |
+| Review card routing and reply entry | done | Review cards open detail routes, track identity links to track pages, and review detail pages include an inline reply entry point. |
 
 ## Near-Term Priorities
 
@@ -51,13 +52,17 @@ These are the next useful moves after enabling public contribution.
 | P0 | Confirm the `v0.2.0` tag and GitHub Release are created after the release PR merges. | ready | `chore`, `area:ci` |
 | P0 | Pin the public repository description, topics, website URL, and social preview image in GitHub settings. | ready | `docs`, `area:docs` |
 | P0 | Make recommendations visible on track pages so new visitors can see "what to hear next." | needs design | `feature`, `area:web`, `area:recommendations` |
-| P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | ready | `feature`, `area:web`, `area:ui` |
+| P0 | Fix desktop scroll dead zones so the page still scrolls when the pointer is over the secondary rail or empty desktop space. | ready | `fix`, `area:web`, `area:ui` |
+| P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | done | `feature`, `area:web`, `area:ui` |
 | P0 | Fix mobile toast placement so feedback is centered and clears the bottom navigation. | ready | `fix`, `area:web`, `area:ui` |
+| P1 | Harden Deezer-backed search with retry, clearer empty/error copy, and non-blocking fallbacks. | ready | `fix`, `area:web`, `area:search` |
 | P1 | Open 6-10 curated GitHub issues from this backlog before broader public sharing. | ready | `docs`, `help wanted` |
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
 | P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | ready | `docs`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
-| P1 | Improve review pages with a reply composer and mobile social discovery carousel. | needs design | `feature`, `area:web`, `area:ui` |
+| P1 | Add a mobile social discovery carousel near review detail pages. | needs design | `feature`, `area:web`, `area:ui` |
+| P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design | `feature`, `area:web`, `area:recommendations` |
+| P1 | Explore a compact feed view for scanning more reviews without replacing the editorial default. | needs design | `feature`, `area:web`, `area:ui` |
 | P2 | Design Kocteau-first search across tracks, artists, albums, users, and categories. | needs maintainer decision | `feature`, `area:web`, `area:search`, `area:recommendations` |
 | P1 | Keep branch protection advisory until the first public PRs prove the flow. | needs maintainer decision | `chore`, `area:ci` |
 | P2 | Enable `Verify` as a required status check after 1-2 stable contribution weeks. | needs maintainer decision | `chore`, `area:ci` |
@@ -272,6 +277,7 @@ State: `needs design`. This is the highest-impact response to feedback that Koct
   - Deezer artist, album, or related-track context when Kocteau has sparse data
   - editorial starter fallback when there is no local match yet
 - Show a short reason for each recommendation, such as `same mood`, `near this artist`, `curated starter`, or `deeper path`.
+- Reuse the Starter Studio candidate-finder idea for public discovery: external metadata can propose candidates, but Kocteau filters, labels, and explains them before the listener sees them.
 - Keep the module honest when data is sparse. Do not pretend to know the listener's taste before the user has reviewed, saved, followed, or set preferences.
 - Reuse the product principle from Starter Studio: `Deezer proposes -> Kocteau filters -> listener or curator decides`.
 
@@ -284,6 +290,52 @@ Acceptance criteria:
 - The module does not block the track page render if external data is slow.
 - Sparse track pages still show useful editorial fallback instead of an empty or misleading module.
 - The implementation avoids heavy ML, embeddings, fake reviews, or fake engagement.
+
+### Listener Candidate Finder V0
+
+Suggested issue: `feat(web): add curated similar-track finder`
+
+State: `needs design`. This is the user-facing counterpart to Starter Studio's candidate finder. Instead of asking a visitor to trust a black-box recommendation, Kocteau should let them start from a track, artist, review, or taste signal and browse curated candidates with clear reasons.
+
+Core principle:
+
+```text
+External catalog proposes -> Kocteau filters -> listener chooses what to open, save, or review
+```
+
+Candidate seeds:
+
+- current track page, such as `Find more like this`
+- a reviewed track in the feed or on `/review/[id]`
+- a user's own reviewed or saved tracks when signed in
+- explicit taste tags from onboarding or editable preferences
+- a typed query from Explore when the user wants to steer the search
+
+Candidate filters:
+
+- prefer Kocteau-known tracks, starter picks, and reviewed entities before external-only items
+- use Deezer related artists, artist top tracks, album context, and search fallback only as candidate sources
+- demote obvious chart-first matches when the seed asks for discovery
+- allow famous artists through deep-cut, contrast, or influence paths instead of excluding them completely
+- dedupe tracks already reviewed, saved, shown in the same session, or active in starter picks when the context would make repeats feel stale
+
+Candidate UI:
+
+- show cover, title, artist, and one concise reason
+- include a source label such as `same scene`, `shared mood`, `deep cut`, `near this artist`, `curated starter`, or `from your taste`
+- offer clear actions: open track, review, save, or pass
+- keep signed-out visitors able to browse; require auth only when saving, reviewing, or using private taste history
+
+Suggested labels: `feature`, `area:web`, `area:recommendations`, `area:search`, `needs design review`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- A visitor can open a track page and see a way to find related music without first setting preferences.
+- A signed-in user can seed candidates from their own reviews, saved tracks, or taste tags when those signals exist.
+- Each candidate has an explainable reason and does not look like a raw Deezer chart result.
+- External API failure does not break the page; the UI falls back to local Kocteau picks or a calm empty state.
+- The first version stays in the existing Next.js, Supabase, and Deezer stack; no embeddings, Rust worker, graph engine, or heavy ML.
+- Any analytics added for candidate open/pass/save follows the signal contract and avoids private metadata.
 
 ### Track Page Depth
 
@@ -359,6 +411,66 @@ Acceptance criteria:
 - Toasts do not cover the bottom navigation or review action.
 - Existing desktop bottom-right behavior remains intact.
 - Screenshots are included for mobile and desktop.
+
+### Desktop Scroll And Wide Layout Ergonomics
+
+Suggested issue: `fix(web): make desktop feed scrolling work outside the main column`
+
+State: `ready`. Current desktop layouts can feel stuck when the pointer is over the secondary rail or empty layout space because the document itself is locked and only the main column scrolls.
+
+- Route wheel/scroll behavior so desktop users can keep moving the main content even when their pointer is over the secondary rail or wide empty space.
+- Preserve the sidebar and rail layout stability.
+- Do not make the rail compete with the feed; it should remain an editorial companion.
+- Use extra wide-screen space carefully for contextual discovery, not dashboard density.
+
+Suggested labels: `fix`, `area:web`, `area:ui`, `help wanted`
+
+Acceptance criteria:
+
+- On desktop, scrolling over the main column, secondary rail, and neutral page space moves the expected reading surface.
+- Mobile scroll behavior is unchanged.
+- The fix does not introduce layout shift, nested-scroll traps, or broken keyboard focus.
+- Desktop and narrow viewport smoke checks are included.
+
+### Deezer Search Resilience
+
+Suggested issue: `fix(web): harden Deezer search fallbacks and error copy`
+
+State: `ready`. Deezer-backed search can work most of the time and still feel broken to a first-time visitor if one request returns `Deezer request failed`.
+
+- Add a small retry or retry-after strategy for transient Deezer failures.
+- Keep stale previous results visible while a new query is updating when possible.
+- Replace raw failure copy with calm product copy and a retry action.
+- Prefer local Kocteau results when Deezer is slow or unavailable.
+- Log enough safe context for maintainers to tell whether failures are external API errors, validation errors, or Supabase enrichment issues.
+
+Suggested labels: `fix`, `area:web`, `area:search`, `area:recommendations`
+
+Acceptance criteria:
+
+- A transient external failure does not make the whole search experience feel dead.
+- Users can retry without closing the composer or leaving search.
+- Existing review creation still works when Deezer returns results.
+- No sensitive request metadata is stored.
+
+### Compact Feed View
+
+Suggested issue: `feat(web): explore a compact feed view`
+
+State: `needs design`. Some users may want to scan more reviews per viewport, but the default should remain editorial and review-led.
+
+- Add a design-only proposal for a compact review card variant or feed density toggle.
+- Preserve cover, track identity, reviewer, rating, and the written take.
+- Avoid turning reviews into a table, dashboard, or generic activity stream.
+- Consider applying compact mode only to search, explore, or secondary feed modes before making it a global preference.
+
+Suggested labels: `feature`, `area:web`, `area:ui`, `needs design review`
+
+Acceptance criteria:
+
+- The proposal explains where compact mode appears and how users opt into it.
+- The default feed remains readable and editorial.
+- Mobile and desktop density are evaluated separately.
 
 ### Notifications and Activity
 

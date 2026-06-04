@@ -327,6 +327,33 @@ Track pages should start with a lightweight `More to hear` module:
 - show a short reason for every recommendation
 - avoid pretending sparse data is personalized
 
+This phase should also introduce a listener-facing candidate finder. The model mirrors Starter Studio, but the user job is different: a listener is not curating the starter catalog; they are asking Kocteau for a better next path from something they already like, read, saved, or searched.
+
+The listener candidate finder should support seeds such as:
+
+- the current track
+- a reviewed track
+- an artist name
+- a user's saved or reviewed tracks when signed in
+- a taste tag, scene, mood, era, or format
+- a free-form search query from Explore
+
+The first version should stay explainable:
+
+- Deezer can propose raw candidates through search, artist, album, or related metadata.
+- Kocteau should filter with local tags, starter picks, reviewed entities, editorial candidates, and anti-mainstream heuristics.
+- Known artists are allowed, but the route should prefer deep cuts, influence paths, contrast picks, or less obvious neighboring tracks.
+- Each recommendation needs a reason label that a listener can understand and analytics can measure.
+- Signed-out users can browse public candidates. Signed-in users can get stronger seeds from reviews, saves, follows, and taste preferences.
+
+The product contract is:
+
+```text
+External catalog proposes -> Kocteau filters -> listener decides
+```
+
+This keeps discovery human-led while still making the recommendation promise visible.
+
 Search should become Kocteau-first:
 
 - query local profiles, entities, reviewed tracks, and starter picks before external fallback
