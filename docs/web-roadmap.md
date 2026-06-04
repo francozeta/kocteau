@@ -223,13 +223,13 @@ In progress. For You and recommendation v2 are live. The next job is measurement
   - top rated this week
   - recently active tracks
 - Rework search so it transitions naturally into discovery and review creation.
-- Make search Kocteau-first before Deezer-first:
+- Extend the first Kocteau-first search layer beyond tracks:
   - local users
   - local entities
   - reviewed tracks
   - starter picks
   - Deezer fallback
-- Re-rank external search results by listener intent so exact artist, album, and track matches beat unrelated trend-biased matches.
+- Keep the V1 re-ranker covered by tests so exact artist, album, and track matches beat unrelated trend-biased matches.
 - Use analytics events to tune the feed:
   - For You loads
   - actions per loaded review

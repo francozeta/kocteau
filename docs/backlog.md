@@ -51,7 +51,7 @@ These are the next useful moves after enabling public contribution.
 | P0 | Review and merge the Release Please PR if the generated changelog is accurate. | ready | `chore`, `area:ci` |
 | P0 | Confirm the `v0.2.0` tag and GitHub Release are created after the release PR merges. | ready | `chore`, `area:ci` |
 | P0 | Pin the public repository description, topics, website URL, and social preview image in GitHub settings. | ready | `docs`, `area:docs` |
-| P0 | Make recommendations visible on track pages so new visitors can see "what to hear next." | needs design | `feature`, `area:web`, `area:recommendations` |
+| P0 | Make recommendations visible on track pages so new visitors can see "what to hear next." | done | `feature`, `area:web`, `area:recommendations` |
 | P0 | Fix desktop scroll dead zones so the page still scrolls when the pointer is over the secondary rail or empty desktop space. | ready | `fix`, `area:web`, `area:ui` |
 | P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | done | `feature`, `area:web`, `area:ui` |
 | P0 | Fix mobile toast placement so feedback is centered and clears the bottom navigation. | ready | `fix`, `area:web`, `area:ui` |
@@ -63,7 +63,7 @@ These are the next useful moves after enabling public contribution.
 | P1 | Add a mobile social discovery carousel near review detail pages. | needs design | `feature`, `area:web`, `area:ui` |
 | P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design | `feature`, `area:web`, `area:recommendations` |
 | P1 | Explore a compact feed view for scanning more reviews without replacing the editorial default. | needs design | `feature`, `area:web`, `area:ui` |
-| P2 | Design Kocteau-first search across tracks, artists, albums, users, and categories. | needs maintainer decision | `feature`, `area:web`, `area:search`, `area:recommendations` |
+| P2 | Expand Kocteau-first search to artists, albums, users, and categories. | needs design | `feature`, `area:web`, `area:search`, `area:recommendations` |
 | P1 | Keep branch protection advisory until the first public PRs prove the flow. | needs maintainer decision | `chore`, `area:ci` |
 | P2 | Enable `Verify` as a required status check after 1-2 stable contribution weeks. | needs maintainer decision | `chore`, `area:ci` |
 
@@ -237,38 +237,35 @@ Acceptance criteria:
 
 Suggested issue: `feat(search): add Kocteau-first unified search`
 
-State: `needs maintainer decision`. The current search relies on Deezer track ranking, which can surface trend-biased false positives such as a song titled like an artist before the intended artist.
+State: `partial done`. Track search now goes through a Kocteau-first API that merges local entities, starter picks, Deezer artist matches, and Deezer track fallback before ranking results. The current implementation fixes trend-biased false positives such as a song titled like an artist before the intended artist.
 
-- Create a unified search path that can return tracks, artists, albums, users, and category/tag matches.
-- Prefer Kocteau-known objects before external fallback:
-  - profiles
-  - local entities
-  - reviewed tracks
-  - starter picks
-  - Deezer tracks, artists, and albums
-- Add a small intent re-ranker before showing results:
-  - exact artist match should outrank a title-only match
-  - exact title or album match should outrank fuzzy popularity
-  - starts-with and full-word matches should outrank partial substring matches
-  - Deezer popularity/rank should be a tie-breaker, not the primary product decision
-- Activate the existing disabled tabs only when they return real data.
-- Add category search later through Kocteau tags, such as genres, moods, scenes, eras, and formats.
+- Done in V1:
+  - `/api/search` returns track results from local entities, starter picks, Deezer artist-top tracks, and Deezer track fallback.
+  - Exact artist intent outranks unrelated title-only matches.
+  - Local Kocteau results and starter picks receive source labels in the shared result UI.
+  - Deezer rank is only a tie-breaker after Kocteau and intent signals.
+  - Deezer failures can still return Kocteau fallback results when local data exists.
+- Still needed for V2:
+  - Return profiles, artists, albums, and category/tag matches.
+  - Group results into `Best match`, `Artists`, `Tracks`, `Albums`, `Users`, and eventually `Categories`.
+  - Activate the existing disabled tabs only when they return real data.
+  - Add category search through Kocteau tags, such as genres, moods, scenes, eras, and formats.
 
-Suggested labels: `feature`, `area:web`, `area:search`, `area:recommendations`, `needs maintainer decision`
+Suggested labels: `feature`, `area:web`, `area:search`, `area:recommendations`
 
 Acceptance criteria:
 
-- Searching `The Cure` prioritizes the artist or tracks by the artist before unrelated title-only matches.
-- Search results can be grouped into `Best match`, `Artists`, `Tracks`, `Albums`, `Users`, and eventually `Categories`.
-- Search still supports review creation without forcing auth just to browse.
+- Searching `The Cure` prioritizes tracks by the artist before unrelated title-only matches.
+- Search still supports public browsing without forcing auth.
+- Review creation and Starter Studio keep using raw Deezer search where curator/source fidelity matters.
 - Local Kocteau results and Deezer fallback are clearly typed and can share one UI surface.
-- The ranking rules are documented enough for contributors to add tests.
+- The ranking rules are covered by tests so contributors can extend them safely.
 
 ### Track Page Recommendations V0
 
 Suggested issue: `feat(web): add more-to-hear recommendations on track pages`
 
-State: `needs design`. This is the highest-impact response to feedback that Kocteau's recommendations are not visible enough at first glance.
+State: `done`. This was implemented as a first visible recommendation layer on track pages.
 
 - Add a `More to hear` module on `/track/[id]` and `/track/deezer/[providerId]`.
 - Start with readable sources before heavier recommendation logic:

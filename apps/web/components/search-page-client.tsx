@@ -10,8 +10,8 @@ import TrackContextMenu from "@/components/track-context-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useKocteauSearch, type KocteauSearchResult } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useDeezerSearch, type DeezerSearchResult } from "@/hooks/use-deezer-search";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
 import type { SearchEntityType } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
@@ -116,7 +116,7 @@ function formatDate(value: string) {
   });
 }
 
-function getResultHref(result: DeezerSearchResult) {
+function getResultHref(result: KocteauSearchResult) {
   return result.entity_id ? `/track/${result.entity_id}` : `/track/deezer/${result.provider_id}`;
 }
 
@@ -294,12 +294,12 @@ export default function SearchPageClient({
     () => parseRecentSearchesSnapshot(recentSearchesSnapshot),
     [recentSearchesSnapshot],
   );
-  const { data = [], isFetching, error, refetch: retrySearch } = useDeezerSearch({
+  const { data = [], isFetching, error, refetch: retrySearch } = useKocteauSearch({
     query,
     type: searchType,
     enabled: searchType === "track",
   });
-  const results = data as DeezerSearchResult[];
+  const results = data as KocteauSearchResult[];
   const activeResultKey = useMemo(
     () =>
       [
@@ -646,7 +646,7 @@ export default function SearchPageClient({
                                 <Disc3 className="size-3" />
                                 <span>Track</span>
                                 <span aria-hidden="true">·</span>
-                                <span>{result.entity_id ? "In library" : "Deezer"}</span>
+                                <span>{result.source_label ?? (result.entity_id ? "Kocteau" : "Deezer")}</span>
                               </div>
                             </div>
                           </div>
