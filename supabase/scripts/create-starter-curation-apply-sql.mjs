@@ -13,7 +13,13 @@ const genreReviewPath = path.resolve(
   repoRoot,
   args.genreOutput ?? "tmp/starter-curation/genre-candidates-for-review.md",
 );
+const reviewReportPath = path.resolve(
+  repoRoot,
+  args.reviewOutput ?? "tmp/starter-curation/curation-review-report.md",
+);
 const tagInputPath = path.resolve(repoRoot, args.tagInput ?? "tmp/starter-curation/draft-input.json");
+const maxSignals = parsePositiveInt(args.maxSignals, 12);
+const targetSignals = parsePositiveInt(args.targetSignals, 6);
 
 if (args.help) {
   printHelp();
@@ -32,13 +38,18 @@ try {
 }
 
 const drafts = normalizeDrafts(payload);
+const reviewState = normalizeReviewState(payload);
 
 if (drafts.length === 0) {
   console.error("No drafts found. Expected a JSON object with a non-empty `drafts` array.");
   process.exit(1);
 }
 
+let safetyReport;
+
 try {
+  validateHumanReview(reviewState, Boolean(args.allowUnreviewed));
+  safetyReport = validateDraftSafety(drafts, { maxSignals, targetSignals });
   await validateDraftTagSlugs(drafts, tagInputPath, Boolean(args.tagInput));
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
@@ -46,11 +57,13 @@ try {
 }
 
 await fs.mkdir(path.dirname(outputPath), { recursive: true });
-await fs.writeFile(outputPath, buildApplySql(drafts), "utf8");
+await fs.writeFile(outputPath, buildApplySql(drafts, reviewState), "utf8");
 await fs.writeFile(genreReviewPath, buildGenreReview(drafts), "utf8");
+await fs.writeFile(reviewReportPath, buildReviewReport(drafts, safetyReport), "utf8");
 
 console.log(`Created ${path.relative(repoRoot, outputPath)}.`);
 console.log(`Created ${path.relative(repoRoot, genreReviewPath)}.`);
+console.log(`Created ${path.relative(repoRoot, reviewReportPath)}.`);
 console.log(`Drafts included: ${drafts.length}`);
 
 function parseArgs(argv) {
@@ -89,6 +102,29 @@ function parseArgs(argv) {
     if (arg === "--tag-input") {
       parsed.tagInput = argv[index + 1];
       index += 1;
+      continue;
+    }
+
+    if (arg === "--review-output") {
+      parsed.reviewOutput = argv[index + 1];
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--max-signals") {
+      parsed.maxSignals = argv[index + 1];
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--target-signals") {
+      parsed.targetSignals = argv[index + 1];
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--allow-unreviewed") {
+      parsed.allowUnreviewed = true;
     }
   }
 
@@ -100,6 +136,7 @@ function printHelp() {
   pnpm curate:starter:sql
   pnpm curate:starter:sql -- --input tmp/starter-curation/draft-output.json
   pnpm curate:starter:sql -- --tag-input tmp/starter-curation/draft-input.json
+  pnpm curate:starter:sql -- --allow-unreviewed
 
 Input:
   tmp/starter-curation/draft-output.json
@@ -107,15 +144,108 @@ Input:
 Output:
   tmp/starter-curation/apply-starter-curation-drafts.sql
   tmp/starter-curation/genre-candidates-for-review.md
+  tmp/starter-curation/curation-review-report.md
 
 The generated SQL:
   - updates prompt and editorial_note
   - inserts existing non-genre starter tags
   - preserves existing manual tags
+  - requires humanReviewed=true and reviewedBy unless --allow-unreviewed is passed
+  - fails when a draft exceeds the configured max signal count
   - validates suggested tag slugs against available tags by kind when draft-input.json exists
   - refuses to run when a starter track id or suggested tag slug is unknown
   - does not apply genre candidates automatically
 `);
+}
+
+function parsePositiveInt(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function normalizeReviewState(payload) {
+  return {
+    humanReviewed: payload?.humanReviewed === true || payload?.human_reviewed === true,
+    reviewedBy: nullableString(payload?.reviewedBy ?? payload?.reviewed_by),
+    reviewedAt: nullableString(payload?.reviewedAt ?? payload?.reviewed_at),
+  };
+}
+
+function validateHumanReview(reviewState, allowUnreviewed) {
+  if (allowUnreviewed) {
+    return;
+  }
+
+  if (!reviewState.humanReviewed || !reviewState.reviewedBy) {
+    throw new Error(
+      [
+        "Starter curation drafts must be human-reviewed before SQL is generated.",
+        "Set humanReviewed to true and reviewedBy to the maintainer name in draft-output.json.",
+        "Use --allow-unreviewed only for local fixture tests, not for Supabase Cloud patches.",
+      ].join("\n"),
+    );
+  }
+}
+
+function validateDraftSafety(drafts, { maxSignals, targetSignals }) {
+  const errors = [];
+  const warnings = [];
+  const validConfidence = new Set(["low", "medium", "high"]);
+
+  for (const draft of drafts) {
+    const signalCount = countSuggestedSignals(draft);
+
+    if (signalCount > maxSignals) {
+      errors.push(`${draft.starterTrackId}: ${signalCount} non-genre signals exceeds max ${maxSignals}.`);
+    } else if (signalCount > targetSignals) {
+      warnings.push(`${draft.starterTrackId}: ${signalCount} non-genre signals; review for over-tagging.`);
+    }
+
+    if (draft.prompt && draft.prompt.length > 160) {
+      errors.push(`${draft.starterTrackId}: prompt is ${draft.prompt.length} characters; max is 160.`);
+    }
+
+    if (draft.editorialNote && draft.editorialNote.length > 240) {
+      errors.push(`${draft.starterTrackId}: editorialNote is ${draft.editorialNote.length} characters; max is 240.`);
+    }
+
+    if (draft.confidence && !validConfidence.has(draft.confidence)) {
+      errors.push(`${draft.starterTrackId}: confidence must be low, medium, or high.`);
+    }
+
+    if (!draft.rationale) {
+      warnings.push(`${draft.starterTrackId}: rationale is empty.`);
+    }
+
+    if (
+      !draft.prompt &&
+      !draft.editorialNote &&
+      signalCount === 0 &&
+      draft.genreCandidatesForHumanReview.length === 0
+    ) {
+      warnings.push(`${draft.starterTrackId}: draft has no copy, tags, or genre candidates.`);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `Starter curation draft failed safety validation:\n${errors.map((error) => `- ${error}`).join("\n")}`,
+    );
+  }
+
+  return {
+    maxSignals,
+    targetSignals,
+    warnings,
+  };
+}
+
+function countSuggestedSignals(draft) {
+  return Object.values(draft.suggestedTagSlugs).reduce(
+    (count, slugs) => count + slugs.length,
+    0,
+  );
 }
 
 async function validateDraftTagSlugs(drafts, inputPath, isExplicitInput) {
@@ -227,13 +357,17 @@ function nullableString(value) {
   return normalized.length > 0 ? normalized : null;
 }
 
-function buildApplySql(drafts) {
+function buildApplySql(drafts, reviewState) {
   const values = drafts.map(toDraftSqlValue).join(",\n");
+  const reviewedBy = reviewState.reviewedBy ?? "unreviewed override";
+  const reviewedAt = reviewState.reviewedAt ?? new Date().toISOString();
 
   return `-- Apply approved starter curation drafts.
 --
 -- Generated by supabase/scripts/create-starter-curation-apply-sql.mjs.
 -- Review before running in the Supabase SQL editor.
+-- Human-reviewed by: ${reviewedBy}
+-- Review timestamp: ${reviewedAt}
 --
 -- Safety rules:
 -- - This script preserves existing starter tags.
@@ -407,5 +541,37 @@ These genre candidates were intentionally not applied to Supabase.
 Review them manually in Starter Studio or create a separate human-approved SQL patch.
 
 ${rows.length > 0 ? rows.join("\n") : "No genre candidates were included in this draft output.\n"}
+`;
+}
+
+function buildReviewReport(drafts, safetyReport) {
+  const warningRows = safetyReport.warnings.map((warning) => `- ${warning}`);
+  const signalRows = drafts.map((draft) => {
+    const signalCount = countSuggestedSignals(draft);
+    const status = signalCount > safetyReport.targetSignals ? "review" : "ok";
+
+    return `| ${draft.starterTrackId} | ${signalCount} | ${status} | ${draft.confidence ?? "unknown"} |`;
+  });
+
+  return `# Starter Curation Review Report
+
+Generated by \`supabase/scripts/create-starter-curation-apply-sql.mjs\`.
+
+## Guardrails
+
+- Target non-genre signals per track: ${safetyReport.targetSignals}
+- Maximum non-genre signals per track: ${safetyReport.maxSignals}
+- Genre candidates are not applied by SQL.
+- SQL generation requires \`humanReviewed: true\` and \`reviewedBy\` unless explicitly bypassed.
+
+## Warnings
+
+${warningRows.length > 0 ? warningRows.join("\n") : "No warnings."}
+
+## Signal Counts
+
+| starterTrackId | signals | status | confidence |
+| --- | ---: | --- | --- |
+${signalRows.join("\n")}
 `;
 }

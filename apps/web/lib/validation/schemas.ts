@@ -238,7 +238,7 @@ export const starterTrackUpsertSchema = z.object({
   is_active: z.boolean().optional().default(true),
   tag_ids: z
     .array(z.string().uuid("Invalid starter tag."))
-    .max(6, "Choose 6 starter tags or fewer.")
+    .max(12, "Choose 12 starter signals or fewer.")
     .optional()
     .default([]),
   collection_slug: z

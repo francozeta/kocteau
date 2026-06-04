@@ -70,7 +70,8 @@ type StarterDraftTrack = Pick<
 >;
 
 const defaultPrompt = "What should people pay attention to here?";
-const starterTagLimit = 6;
+const starterSignalTarget = 6;
+const starterTagLimit = 12;
 const starterTagKinds = preferenceKindOrder;
 const starterTagKindSet = new Set<PreferenceKind>(starterTagKinds);
 const requiredEditorialKinds = ["era", "format"] as const satisfies readonly PreferenceKind[];
@@ -195,6 +196,22 @@ function getTrackStatus(track: StarterTrackWithTags) {
   }
 
   return "Ready";
+}
+
+function formatSignalCount(count: number) {
+  if (count >= starterSignalTarget) {
+    return `${count} signal${count === 1 ? "" : "s"}`;
+  }
+
+  return `${count}/${starterSignalTarget}`;
+}
+
+function formatSelectedSignalCount(count: number) {
+  if (count >= starterSignalTarget) {
+    return `${count} selected`;
+  }
+
+  return `${count}/${starterSignalTarget} selected`;
 }
 
 export default function StarterStudioClient() {
@@ -399,7 +416,7 @@ export default function StarterStudioClient() {
       }
 
       if (next.size >= starterTagLimit) {
-        toast.error(`Choose ${starterTagLimit} starter tags or fewer.`);
+        toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
         return current;
       }
 
@@ -826,7 +843,7 @@ export default function StarterStudioClient() {
               <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
                 <p className="text-muted-foreground">Signals</p>
                 <p className="mt-1 tabular-nums text-foreground">
-                  {inspectedTags.length}/{starterTagLimit}
+                  {formatSignalCount(inspectedTags.length)}
                 </p>
               </div>
               <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
@@ -1073,7 +1090,7 @@ export default function StarterStudioClient() {
                   {inspectedStatus}
                 </Badge>
                 <span className="text-xs tabular-nums text-muted-foreground">
-                  {inspectedTags.length}/{starterTagLimit}
+                  {formatSignalCount(inspectedTags.length)}
                 </span>
               </div>
             </div>
@@ -1150,7 +1167,7 @@ export default function StarterStudioClient() {
           <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
             <span>{starterTracks.length} picks</span>
             <span className="size-1 rounded-full bg-muted-foreground/30" />
-            <span>{selectedTagIds.size}/{starterTagLimit} selected</span>
+            <span>{formatSelectedSignalCount(selectedTagIds.size)}</span>
           </div>
         </div>
 
@@ -1229,7 +1246,7 @@ export default function StarterStudioClient() {
                 </div>
               ) : (
                 <p className="px-1 py-1.5 text-xs text-muted-foreground">
-                  Pick up to six signals before adding or updating a starter pick.
+                  Six signals is ready. Add more only when they sharpen the pick.
                 </p>
               )}
             </div>

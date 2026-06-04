@@ -18,7 +18,7 @@ function getRailLimit(req: Request) {
     return 6;
   }
 
-  return Math.max(1, Math.min(Math.trunc(parsedLimit), 8));
+  return Math.max(1, Math.min(Math.trunc(parsedLimit), 12));
 }
 
 function getRailSurface(req: Request): StarterSurface {
