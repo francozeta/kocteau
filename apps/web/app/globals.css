@@ -566,6 +566,11 @@
     background: var(--kocteau-surface-raised-hover);
   }
 
+  .kocteau-review-card [data-prevent-review-link="true"] {
+    position: relative;
+    z-index: 2;
+  }
+
   .kocteau-review-card-featured {
     background: var(--kocteau-surface-featured);
   }
