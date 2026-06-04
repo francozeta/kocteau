@@ -166,7 +166,7 @@ function NewReviewFormState({
   const suggestedSearches = ["Radiohead", "Björk", "Bad Bunny", "Frank Ocean", "Massive Attack", "The Cure"];
   const searchEnabled = step === "search";
   const normalizedQuery = query.trim();
-  const { data, isFetching, error: searchError } = useDeezerSearch({
+  const { data, isFetching, error: searchError, refetch: retrySearch } = useDeezerSearch({
     query,
     type: "track",
     enabled: searchEnabled,
@@ -570,9 +570,21 @@ function NewReviewFormState({
           ) : null}
 
           {searchError ? (
-            <Alert variant="destructive" className="mb-4 shrink-0">
-              <AlertTitle>We could not search</AlertTitle>
-              <AlertDescription>{searchError.message}</AlertDescription>
+            <Alert className="mb-4 shrink-0 border-border/28 bg-card/22 pr-24">
+              <AlertTitle>Music search is slow</AlertTitle>
+              <AlertDescription>
+                {searchError.message || "Music search is taking longer than usual. Try again in a moment."}
+              </AlertDescription>
+              <button
+                type="button"
+                onClick={() => {
+                  void retrySearch();
+                }}
+                disabled={isFetching}
+                className="absolute top-1/2 right-2 inline-flex h-7 -translate-y-1/2 items-center rounded-full border border-border/28 px-2.5 text-[11px] font-medium text-foreground/88 transition hover:bg-foreground/[0.055] disabled:pointer-events-none disabled:opacity-55"
+              >
+                {isFetching ? "Retrying" : "Retry"}
+              </button>
             </Alert>
           ) : null}
           <FieldError>{fieldErrors.selected}</FieldError>
