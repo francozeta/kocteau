@@ -52,7 +52,7 @@ These are the next useful moves after enabling public contribution.
 | P0 | Confirm the `v0.2.0` tag and GitHub Release are created after the release PR merges. | ready | `chore`, `area:ci` |
 | P0 | Pin the public repository description, topics, website URL, and social preview image in GitHub settings. | ready | `docs`, `area:docs` |
 | P0 | Make recommendations visible on track pages so new visitors can see "what to hear next." | done | `feature`, `area:web`, `area:recommendations` |
-| P0 | Fix desktop scroll dead zones so the page still scrolls when the pointer is over the secondary rail or empty desktop space. | ready | `fix`, `area:web`, `area:ui` |
+| P0 | Fix desktop scroll dead zones so the page still scrolls when the pointer is over the secondary rail or empty desktop space. | done | `fix`, `area:web`, `area:ui` |
 | P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | done | `feature`, `area:web`, `area:ui` |
 | P0 | Fix mobile toast placement so feedback is centered and clears the bottom navigation. | ready | `fix`, `area:web`, `area:ui` |
 | P1 | Harden Deezer-backed search with retry, clearer empty/error copy, and non-blocking fallbacks. | ready | `fix`, `area:web`, `area:search` |
@@ -417,7 +417,7 @@ Acceptance criteria:
 
 Suggested issue: `fix(web): make desktop feed scrolling work outside the main column`
 
-State: `ready`. Current desktop layouts can feel stuck when the pointer is over the secondary rail or empty layout space because the document itself is locked and only the main column scrolls.
+State: `done`. Current desktop layouts can feel stuck when the pointer is over the secondary rail or empty layout space because the document itself is locked and only the main column scrolls.
 
 - Route wheel/scroll behavior so desktop users can keep moving the main content even when their pointer is over the secondary rail or wide empty space.
 - Preserve the sidebar and rail layout stability.
