@@ -10,7 +10,6 @@ import DesktopScrollBridge from "@/components/desktop-scroll-bridge";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import { getCurrentOnboardingState, getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { getStarterCuratorAccess } from "@/lib/queries/curation";
-import type { SidebarOwnedReview } from "@/lib/types/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +19,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     getCurrentOnboardingState(),
   ]);
   const initialUnreadCount = 0;
-  const ownedReviews: SidebarOwnedReview[] = [];
 
   if (user && onboardingState && !onboardingState.profileOnboarded) {
     redirect("/onboarding");
@@ -46,7 +44,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       >
         <AppSidebar
           profile={safeProfile}
-          ownedReviews={ownedReviews}
           unreadCount={initialUnreadCount}
           canAccessStudio={canAccessStudio}
         />

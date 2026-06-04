@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { IconType } from "react-icons";
+import { BsAppleMusic } from "react-icons/bs";
+import { FaDeezer, FaSpotify } from "react-icons/fa";
 import { ExternalLink } from "@/components/ui/icons";
 import CreatorPerksCard from "@/components/creator-perks-card";
 import FollowProfileButton from "@/components/follow-profile-button";
@@ -36,6 +39,12 @@ type ProfilePageHeaderProps = {
     unlockedAt: string;
     v0ReferralUrl: string | null;
   } | null;
+};
+
+type ProfileExternalLink = {
+  label: string;
+  url: string;
+  icon: IconType;
 };
 
 function getProfilePageHeaderStateKey(profile: ProfilePageHeaderProfile) {
@@ -90,21 +99,24 @@ function ProfilePageHeaderState({
           ? {
               label: "Spotify",
               url: localProfile.spotify_url,
+              icon: FaSpotify,
             }
           : null,
         localProfile.apple_music_url
           ? {
               label: "Apple Music",
               url: localProfile.apple_music_url,
+              icon: BsAppleMusic,
             }
           : null,
         localProfile.deezer_url
           ? {
               label: "Deezer",
               url: localProfile.deezer_url,
+              icon: FaDeezer,
             }
           : null,
-      ].filter((link): link is { label: string; url: string } => Boolean(link)),
+      ].filter((link): link is ProfileExternalLink => Boolean(link)),
     [localProfile.apple_music_url, localProfile.deezer_url, localProfile.spotify_url],
   );
 
@@ -205,16 +217,7 @@ function ProfilePageHeaderState({
           {externalLinks.length > 0 ? (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted-foreground">
               {externalLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
-                >
-                  {link.label}
-                  <ExternalLink className="size-3" />
-                </a>
+                <ProfileExternalLinkAnchor key={link.label} link={link} />
               ))}
             </div>
           ) : null}
@@ -270,5 +273,22 @@ function ProfilePageHeaderState({
         </div>
       </div>
     </section>
+  );
+}
+
+function ProfileExternalLinkAnchor({ link }: { link: ProfileExternalLink }) {
+  const Icon = link.icon;
+
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noreferrer"
+      className="group inline-flex min-h-7 items-center gap-1.5 rounded-full px-0.5 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+    >
+      <Icon className="size-3.5 shrink-0 text-foreground/68 transition-colors group-hover:text-foreground" />
+      <span>{link.label}</span>
+      <ExternalLink className="size-3 shrink-0 text-muted-foreground/62 transition-colors group-hover:text-foreground/76" />
+    </a>
   );
 }

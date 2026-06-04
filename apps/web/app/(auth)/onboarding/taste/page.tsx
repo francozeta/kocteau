@@ -20,10 +20,11 @@ export const metadata = createPageMetadata({
 export default async function TasteOnboardingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ edit?: string; next?: string }>;
 }) {
   const params = await searchParams;
   const nextPath = safeInternalPath(params.next);
+  const isEditMode = params.edit === "1" || params.edit === "true";
   const supabase = await supabaseServer();
   const {
     data: { user },
@@ -49,7 +50,7 @@ export default async function TasteOnboardingPage({
     redirect(appendInternalNext("/onboarding", nextPath));
   }
 
-  if (profile?.taste_onboarded) {
+  if (profile?.taste_onboarded && !isEditMode) {
     redirect(nextPath ?? "/");
   }
 
@@ -73,6 +74,7 @@ export default async function TasteOnboardingPage({
       <TasteOnboardingForm
         tags={(tags ?? []) as PreferenceTag[]}
         initialSelectedTagIds={(selectedTags ?? []).map((tag) => tag.tag_id)}
+        mode={isEditMode ? "edit" : "onboarding"}
         nextPath={nextPath}
       />
     </ReactQueryProvider>

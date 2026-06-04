@@ -71,7 +71,7 @@ export default function ReviewCommentsButton({
 
       const composerId = inlineTarget.composerId;
 
-      if (isAuthenticated && composerId) {
+      if (isAuthenticated && composerId && !isMobile) {
         window.requestAnimationFrame(() => {
           document.getElementById(composerId)?.focus();
         });
@@ -127,7 +127,7 @@ export default function ReviewCommentsButton({
           <DrawerContent className="flex h-[88vh] max-h-[88vh] flex-col p-0 text-foreground before:inset-0 before:rounded-t-[1.35rem] before:border-x before:border-b-0 before:border-t before:border-border/36 before:bg-background">
             <DrawerHeader className="border-b border-border/24 px-4 py-3 text-left">
               <DrawerTitle>Comments</DrawerTitle>
-              <DrawerDescription>{commentsDescription}</DrawerDescription>
+              <DrawerDescription className="sr-only">{commentsDescription}</DrawerDescription>
             </DrawerHeader>
             <ReviewCommentsPanel
               reviewId={reviewId}
@@ -135,7 +135,7 @@ export default function ReviewCommentsButton({
               isAuthenticated={isAuthenticated}
               viewer={viewer}
               variant="dialog"
-              autoFocusComposer={open}
+              autoFocusComposer={open && !isMobile}
             />
           </DrawerContent>
         </Drawer>
@@ -154,7 +154,7 @@ export default function ReviewCommentsButton({
         >
           <SheetHeader className="border-b border-border/24 px-4 py-3 pr-12">
             <SheetTitle>Comments</SheetTitle>
-            <SheetDescription>{commentsDescription}</SheetDescription>
+            <SheetDescription className="sr-only">{commentsDescription}</SheetDescription>
           </SheetHeader>
           <ReviewCommentsPanel
             reviewId={reviewId}

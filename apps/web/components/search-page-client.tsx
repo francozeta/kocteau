@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Disc3, LoaderCircle, Music2, Search } from "@/components/ui/icons";
+import { Disc3, GearSixIcon, LoaderCircle, Music2, Search } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { Kbd } from "@/components/ui/kbd";
 import PrefetchLink from "@/components/prefetch-link";
@@ -172,6 +172,28 @@ function getSearchTabHref(value: SearchEntityType, query: string) {
   const next = params.toString();
 
   return next ? `/search?${next}` : "/search";
+}
+
+function getTasteSettingsHref(query: string, type: SearchEntityType) {
+  const nextParams = new URLSearchParams();
+  const normalized = query.trim();
+
+  if (normalized) {
+    nextParams.set("q", normalized);
+  }
+
+  if (type !== "track") {
+    nextParams.set("type", type);
+  }
+
+  const nextSearch = nextParams.toString();
+  const nextPath = nextSearch ? `/search?${nextSearch}` : "/search";
+  const params = new URLSearchParams({
+    edit: "1",
+    next: nextPath,
+  });
+
+  return `/onboarding/taste?${params.toString()}`;
 }
 
 function SearchTypeTabs({
@@ -382,6 +404,7 @@ export default function SearchPageClient({
     error instanceof Error && error.message
       ? error.message
       : "Music search is taking longer than usual. Try again in a moment.";
+  const tasteSettingsHref = getTasteSettingsHref(normalizedQuery, searchType);
 
   function persistRecentSearch(nextQuery: string) {
     const label = nextQuery.trim();
@@ -445,18 +468,28 @@ export default function SearchPageClient({
     <div className="mx-auto w-full max-w-5xl lg:mx-0 lg:max-w-none">
       <div className="min-w-0 space-y-5 sm:space-y-6">
           <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-            <div className="relative min-w-0">
-              <Search className="pointer-events-none absolute top-1/2 left-3.5 z-10 size-4 -translate-y-1/2 text-muted-foreground/78" />
-              <Input
-                data-global-search-input="true"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={handleInputKeyDown}
-                placeholder="Search tracks to explore…"
-                className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/72"
-                autoFocus={!isMobile}
-                maxLength={80}
-              />
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.5rem] gap-2.5">
+              <div className="relative min-w-0">
+                <Search className="pointer-events-none absolute top-1/2 left-3.5 z-10 size-4 -translate-y-1/2 text-muted-foreground/78" />
+                <Input
+                  data-global-search-input="true"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={handleInputKeyDown}
+                  placeholder="Search tracks to explore…"
+                  className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/72"
+                  autoFocus={!isMobile}
+                  maxLength={80}
+                />
+              </div>
+              <PrefetchLink
+                href={tasteSettingsHref}
+                aria-label="Tune your taste"
+                title="Tune your taste"
+                className="mobile-liquid-panel inline-flex size-10 items-center justify-center rounded-[0.82rem] border border-border/24 bg-[var(--kocteau-surface-control)] text-muted-foreground/82 shadow-none transition-[background-color,color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              >
+                <GearSixIcon className="size-[1.15rem]" weight="regular" />
+              </PrefetchLink>
             </div>
 
             <SearchTypeTabs activeType={searchType} query={normalizedQuery} />

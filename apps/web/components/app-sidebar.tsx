@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
-import { NavOwnedReviews } from "@/components/nav-owned-reviews";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { NavMain } from "@/components/nav-main";
@@ -22,8 +21,6 @@ import { NavSecondary } from "@/components/nav-secondary";
 import { Kbd } from "@/components/ui/kbd";
 import { NavUser } from "@/components/nav-user";
 import { notificationsUnreadCountKey } from "@/hooks/use-notifications";
-import type { SidebarOwnedReview } from "@/lib/types/sidebar";
-import { fetchJson } from "@/queries/http";
 import {
   Sidebar,
   SidebarContent,
@@ -49,14 +46,12 @@ type AppSidebarProfile = {
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
-  ownedReviews?: SidebarOwnedReview[];
   unreadCount?: number;
   canAccessStudio?: boolean;
 };
 
 export default function AppSidebar({
   profile,
-  ownedReviews = [],
   unreadCount: initialUnreadCount = 0,
   canAccessStudio = false,
   ...props
@@ -69,23 +64,6 @@ export default function AppSidebar({
     queryFn: async () => initialUnreadCount,
     enabled: false,
     placeholderData: initialUnreadCount,
-  });
-  const { data: sidebarReviews = ownedReviews } = useQuery({
-    queryKey: ["viewer", "sidebar-reviews"],
-    queryFn: async () => {
-      const payload = await fetchJson<{ reviews?: SidebarOwnedReview[] }>(
-        "/api/viewer/sidebar-reviews",
-      );
-
-      return Array.isArray(payload.reviews) ? payload.reviews : [];
-    },
-    initialData: ownedReviews,
-    enabled: Boolean(profile),
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    staleTime: 60_000,
-    gcTime: 10 * 60_000,
   });
 
   const closeMobileSidebar = useCallback(() => {
@@ -164,7 +142,6 @@ export default function AppSidebar({
       ]
     : [];
 
-  const canShowOwnedReviews = Boolean(profile) && sidebarReviews.length > 0;
   const reviewEntryLabel = profile ? "New review" : "Find a track";
 
   return (
@@ -218,7 +195,6 @@ export default function AppSidebar({
               onNavigate={closeMobileSidebar}
             />
           ) : null}
-          {canShowOwnedReviews ? <NavOwnedReviews items={sidebarReviews} onNavigate={closeMobileSidebar} /> : null}
         </SidebarContent>
 
         <SidebarFooter className="px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">

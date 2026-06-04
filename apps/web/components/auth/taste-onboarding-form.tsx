@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 type TasteOnboardingFormProps = {
   tags: PreferenceTag[];
   initialSelectedTagIds?: string[];
+  mode?: "onboarding" | "edit";
   nextPath?: string | null;
 };
 
@@ -40,12 +41,21 @@ const tasteSteps = [
   },
 ] as const;
 
+const tasteEditStep = {
+  id: "signals",
+  section: "Taste",
+  title: "Tune your taste.",
+  description: undefined,
+} as const;
+
 export function TasteOnboardingForm({
   tags,
   initialSelectedTagIds = [],
+  mode = "onboarding",
   nextPath = null,
 }: TasteOnboardingFormProps) {
   const router = useRouter();
+  const isEditMode = mode === "edit";
   const visibleTagIds = useMemo(() => new Set(tags.map((tag) => tag.id)), [tags]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedIds, setSelectedIds] = useState(
@@ -54,8 +64,11 @@ export function TasteOnboardingForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [redirectTo, setRedirectTo] = useState(nextPath ?? "/?welcome=kocteau");
-  const currentStep = tasteSteps[currentStepIndex];
+  const [redirectTo, setRedirectTo] = useState(
+    nextPath ?? (isEditMode ? "/search" : "/?welcome=kocteau"),
+  );
+  const currentStep = isEditMode ? tasteEditStep : tasteSteps[currentStepIndex];
+  const totalSteps = isEditMode ? 1 : tasteSteps.length;
   const selectedCount = selectedIds.size;
   const missingCount = Math.max(tasteOnboardingMinTags - selectedCount, 0);
   const submitLabel =
@@ -63,7 +76,9 @@ export function TasteOnboardingForm({
       ? "Skip for now"
       : isSaving
         ? "Saving"
-        : "Continue";
+        : isEditMode
+          ? "Save taste"
+          : "Continue";
 
   function toggleTag(tagId: string) {
     setError(null);
@@ -116,7 +131,18 @@ export function TasteOnboardingForm({
         throw new Error(data.error || "We could not save your taste profile.");
       }
 
-      setRedirectTo(nextPath ?? data.redirectTo ?? "/?welcome=kocteau");
+      const nextRedirect =
+        nextPath ?? data.redirectTo ?? (isEditMode ? "/search" : "/?welcome=kocteau");
+
+      if (isEditMode) {
+        startTransition(() => {
+          router.replace(nextRedirect);
+          router.refresh();
+        });
+        return;
+      }
+
+      setRedirectTo(nextRedirect);
       setCurrentStepIndex(1);
     } catch (submitError) {
       setError(
@@ -144,21 +170,33 @@ export function TasteOnboardingForm({
     <OnboardingStepFrame
       section={currentStep.section}
       currentStep={currentStepIndex + 1}
-      totalSteps={tasteSteps.length}
+      totalSteps={totalSteps}
       title={currentStep.title}
       description={currentStep.description}
       error={error}
       onSubmit={handleSubmit}
       onBack={() => {
         setError(null);
+        if (isEditMode) {
+          router.replace(redirectTo);
+          return;
+        }
+
         setCurrentStepIndex((index) => Math.max(index - 1, 0));
       }}
       submitLabel={submitLabel}
       submitDisabled={tags.length === 0}
       submitLoading={isSaving}
       submitIcon={currentStep.id === "signals" ? <ArrowRight className="size-4" /> : null}
-      controlClassName={currentStep.id === "signals" ? "max-w-[30rem]" : undefined}
-      liveMessage={`${currentStep.section}, step ${currentStepIndex + 1} of ${tasteSteps.length}.`}
+      compact={isEditMode}
+      controlClassName={
+        currentStep.id === "signals"
+          ? isEditMode
+            ? "max-w-[24rem] py-0"
+            : "max-w-[30rem]"
+          : undefined
+      }
+      liveMessage={`${currentStep.section}, step ${currentStepIndex + 1} of ${totalSteps}.`}
     >
       {currentStep.id === "signals" ? (
         <TasteSignalCloud
@@ -198,11 +236,11 @@ function TasteSignalCloud({
 
   return (
     <div className="w-full space-y-3">
-      <div className="flex justify-end text-xs tabular-nums text-muted-foreground">
-        {selectedCount} / {tasteOnboardingMaxTags}
-        {missingCount > 0 ? ` - ${missingCount} left` : " - ready"}
+      <div className="flex justify-end text-[11px] tabular-nums leading-none text-muted-foreground/78">
+        {selectedCount}/{tasteOnboardingMaxTags}
+        {missingCount > 0 ? ` · ${missingCount} left` : null}
       </div>
-      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-1.5">
         {tags.map((tag) => {
           const isSelected = selectedIds.has(tag.id);
 
@@ -213,13 +251,13 @@ function TasteSignalCloud({
               aria-pressed={isSelected}
               onClick={() => onToggle(tag.id)}
               className={cn(
-                "min-h-9 rounded-full bg-[var(--kocteau-surface-control)] px-3 text-sm text-muted-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 sm:min-h-10 sm:px-3.5",
+                "min-h-7 rounded-full bg-[var(--kocteau-surface-control)] px-2 text-[12px] font-normal leading-none text-muted-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 sm:min-h-7 sm:px-2.5",
                 isSelected &&
                   "bg-foreground text-background shadow-none hover:bg-foreground hover:text-background",
               )}
             >
               <span>{tag.label}</span>
-              {isSelected ? <Check className="ml-1 inline size-3" /> : null}
+              {isSelected ? <Check className="ml-1 inline size-2.5 align-[-0.08em]" /> : null}
             </button>
           );
         })}
