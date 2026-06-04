@@ -61,5 +61,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Misc
+tmp/
 .DS_Store
 *.pem
