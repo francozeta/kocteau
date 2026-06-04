@@ -223,6 +223,13 @@ In progress. For You and recommendation v2 are live. The next job is measurement
   - top rated this week
   - recently active tracks
 - Rework search so it transitions naturally into discovery and review creation.
+- Make search Kocteau-first before Deezer-first:
+  - local users
+  - local entities
+  - reviewed tracks
+  - starter picks
+  - Deezer fallback
+- Re-rank external search results by listener intent so exact artist, album, and track matches beat unrelated trend-biased matches.
 - Use analytics events to tune the feed:
   - For You loads
   - actions per loaded review
@@ -269,6 +276,7 @@ Turn detail pages into destinations that express taste and invite deeper browsin
   - recent reviews
   - review distribution
   - community summary or key stats
+- Add a lightweight `More to hear` module on track pages so recommendations are visible before the larger taste graph exists.
 - Improve track CTAs:
   - write your take
   - see your review
@@ -280,6 +288,8 @@ Turn detail pages into destinations that express taste and invite deeper browsin
   - recent activity
 - Decide whether saved reviews should remain a separate private space only.
 - Strengthen review page context so comments feel anchored to a meaningful object.
+- Make review cards open `/review/[id]` from the readable card surface while preserving nested actions.
+- Add a compact reply composer on review detail pages and a mobile social discovery carousel when it strengthens interaction.
 
 ### Likely Files
 

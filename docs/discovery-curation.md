@@ -313,7 +313,41 @@ Known or mainstream music policy:
 - Treat rating-only or low-context reviews of familiar songs as weak discovery material.
 - For editorial starter picks, known artists should usually enter through deep cuts, contrast picks, or strong context rather than obvious hits.
 
-### Phase 6: Taste Graph
+### Phase 6: Visible Recommendation Surfaces
+
+Make recommendations visible where users naturally ask for them: track pages, search, and review detail pages.
+
+This phase responds to a product perception gap: Kocteau may have starter picks, feed ranking, and curator signals, but a new visitor can still ask "where are the recommendations?" if a track page only shows the selected track and reviews.
+
+Track pages should start with a lightweight `More to hear` module:
+
+- use local entity tags when available
+- match against starter picks and reviewed entities with overlapping tags
+- fall back to Deezer artist, album, or related metadata when local data is sparse
+- show a short reason for every recommendation
+- avoid pretending sparse data is personalized
+
+Search should become Kocteau-first:
+
+- query local profiles, entities, reviewed tracks, and starter picks before external fallback
+- support tracks, artists, albums, users, and future category/tag matches
+- re-rank Deezer results by intent so exact artist matches beat unrelated title-only matches
+- use external popularity as a tie-breaker rather than the main product decision
+
+Review detail pages should support deeper interaction:
+
+- review cards should open the review route from the readable card surface
+- comments should feel anchored to the reviewed track and writer
+- mobile should include a small social discovery path, such as writers or listeners near the review context
+
+Constraints:
+
+- keep V0 in the existing web and Supabase stack
+- do not add embeddings, vector search, or a graph engine for this phase
+- do not create fake recommendations, fake reviews, or fake activity
+- keep explanation labels readable enough for analytics and future health checks
+
+### Phase 7: Taste Graph
 
 Add manual entity relationships before embeddings.
 
@@ -327,7 +361,7 @@ Possible relationship types:
 
 This can power track pages, Explore, and future recommendation explainability.
 
-### Phase 7: Cover Visual Signals
+### Phase 8: Cover Visual Signals
 
 Cover color can become a lightweight taste signal after starter curation proves useful.
 
@@ -340,7 +374,7 @@ The preferred model is hybrid:
 
 Do not index the whole Deezer catalog for color. Kocteau should only analyze music that enters the local editorial or review layer.
 
-### Phase 8: Taste Atlas
+### Phase 9: Taste Atlas
 
 Design a native Kocteau discovery surface that lets listeners move through taste relationships instead of only scrolling a feed or searching directly.
 

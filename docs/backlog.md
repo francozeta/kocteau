@@ -50,9 +50,15 @@ These are the next useful moves after enabling public contribution.
 | P0 | Review and merge the Release Please PR if the generated changelog is accurate. | ready | `chore`, `area:ci` |
 | P0 | Confirm the `v0.2.0` tag and GitHub Release are created after the release PR merges. | ready | `chore`, `area:ci` |
 | P0 | Pin the public repository description, topics, website URL, and social preview image in GitHub settings. | ready | `docs`, `area:docs` |
+| P0 | Make recommendations visible on track pages so new visitors can see "what to hear next." | needs design | `feature`, `area:web`, `area:recommendations` |
+| P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | ready | `feature`, `area:web`, `area:ui` |
+| P0 | Fix mobile toast placement so feedback is centered and clears the bottom navigation. | ready | `fix`, `area:web`, `area:ui` |
 | P1 | Open 6-10 curated GitHub issues from this backlog before broader public sharing. | ready | `docs`, `help wanted` |
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
 | P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | ready | `docs`, `area:recommendations`, `needs maintainer decision` |
+| P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
+| P1 | Improve review pages with a reply composer and mobile social discovery carousel. | needs design | `feature`, `area:web`, `area:ui` |
+| P2 | Design Kocteau-first search across tracks, artists, albums, users, and categories. | needs maintainer decision | `feature`, `area:web`, `area:search`, `area:recommendations` |
 | P1 | Keep branch protection advisory until the first public PRs prove the flow. | needs maintainer decision | `chore`, `area:ci` |
 | P2 | Enable `Verify` as a required status check after 1-2 stable contribution weeks. | needs maintainer decision | `chore`, `area:ci` |
 
@@ -222,6 +228,63 @@ Acceptance criteria:
 - Explore has a clear first version.
 - Data queries stay understandable and measurable.
 
+### Kocteau-First Search V1
+
+Suggested issue: `feat(search): add Kocteau-first unified search`
+
+State: `needs maintainer decision`. The current search relies on Deezer track ranking, which can surface trend-biased false positives such as a song titled like an artist before the intended artist.
+
+- Create a unified search path that can return tracks, artists, albums, users, and category/tag matches.
+- Prefer Kocteau-known objects before external fallback:
+  - profiles
+  - local entities
+  - reviewed tracks
+  - starter picks
+  - Deezer tracks, artists, and albums
+- Add a small intent re-ranker before showing results:
+  - exact artist match should outrank a title-only match
+  - exact title or album match should outrank fuzzy popularity
+  - starts-with and full-word matches should outrank partial substring matches
+  - Deezer popularity/rank should be a tie-breaker, not the primary product decision
+- Activate the existing disabled tabs only when they return real data.
+- Add category search later through Kocteau tags, such as genres, moods, scenes, eras, and formats.
+
+Suggested labels: `feature`, `area:web`, `area:search`, `area:recommendations`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- Searching `The Cure` prioritizes the artist or tracks by the artist before unrelated title-only matches.
+- Search results can be grouped into `Best match`, `Artists`, `Tracks`, `Albums`, `Users`, and eventually `Categories`.
+- Search still supports review creation without forcing auth just to browse.
+- Local Kocteau results and Deezer fallback are clearly typed and can share one UI surface.
+- The ranking rules are documented enough for contributors to add tests.
+
+### Track Page Recommendations V0
+
+Suggested issue: `feat(web): add more-to-hear recommendations on track pages`
+
+State: `needs design`. This is the highest-impact response to feedback that Kocteau's recommendations are not visible enough at first glance.
+
+- Add a `More to hear` module on `/track/[id]` and `/track/deezer/[providerId]`.
+- Start with readable sources before heavier recommendation logic:
+  - local Kocteau entity tags when available
+  - starter picks with overlapping tags
+  - Deezer artist, album, or related-track context when Kocteau has sparse data
+  - editorial starter fallback when there is no local match yet
+- Show a short reason for each recommendation, such as `same mood`, `near this artist`, `curated starter`, or `deeper path`.
+- Keep the module honest when data is sparse. Do not pretend to know the listener's taste before the user has reviewed, saved, followed, or set preferences.
+- Reuse the product principle from Starter Studio: `Deezer proposes -> Kocteau filters -> listener or curator decides`.
+
+Suggested labels: `feature`, `area:web`, `area:recommendations`, `needs design review`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- A visitor opening a Deezer-backed track page can see related music without signing in.
+- Recommendations include track identity, cover, artist, and a concise reason.
+- The module does not block the track page render if external data is slow.
+- Sparse track pages still show useful editorial fallback instead of an empty or misleading module.
+- The implementation avoids heavy ML, embeddings, fake reviews, or fake engagement.
+
 ### Track Page Depth
 
 Suggested issue: `feat(web): make track pages stronger discovery destinations`
@@ -236,6 +299,66 @@ Acceptance criteria:
 
 - Track pages answer why a user should keep reading.
 - The page remains fast and readable.
+
+### Review Route Interaction V0
+
+Suggested issue: `feat(web): make review detail pages easier to open and reply to`
+
+- Make review cards navigate to `/review/[id]` from the main readable surface.
+- Keep nested controls isolated so like, bookmark, comment, menu, and profile links do not trigger review navigation accidentally.
+- Add a compact reply composer on `/review/[id]` below the review:
+  - viewer avatar
+  - placeholder such as `Reply to @username...`
+  - future-safe affordances for media, GIF, or expanded composer if those features are not active yet
+- Add a mobile social discovery module near review pages, such as a horizontal `Writers to notice` carousel or listeners who recently reviewed related music.
+- Keep the first version focused on interaction clarity rather than adding new social mechanics.
+
+Suggested labels: `feature`, `area:web`, `area:ui`, `needs design review`
+
+Acceptance criteria:
+
+- Review cards are clearly clickable without making action buttons unreliable.
+- `/review/[id]` has a visible path to reply or comment.
+- The reply entry point works on mobile and desktop.
+- Any unavailable media/GIF actions are either omitted or clearly non-interactive; no fake composer features.
+- The page remains centered on the review and track, not a generic social feed.
+
+### Editable Taste Preferences
+
+Suggested issue: `feat(web): let users edit taste preferences after onboarding`
+
+- Add a clear path from profile/settings or taste onboarding to update initial taste signals.
+- Reuse the existing taste tag model before introducing new preference types.
+- Show current selected tags and allow adding/removing genres, moods, scenes, styles, eras, or formats as the product supports them.
+- Explain that these signals shape For You, starter picks, and future recommendation surfaces.
+- Keep auth and onboarding routing unchanged unless the implementation explicitly scopes those changes.
+
+Suggested labels: `feature`, `area:web`, `area:recommendations`, `needs design review`, `needs maintainer decision`
+
+Acceptance criteria:
+
+- A signed-in user can find and update their taste signals after onboarding.
+- Existing onboarding users are not forced through setup again.
+- Recommendation code can read the updated preferences through the existing user preference path.
+- Empty or sparse preference states have calm copy and do not block browsing.
+
+### Mobile Toast And Feedback Placement
+
+Suggested issue: `fix(web): polish mobile toast placement above bottom navigation`
+
+- Revisit global toast placement on mobile.
+- Keep action toasts centered horizontally and close enough to the bottom bar to feel attached, but not overlapping it.
+- Reduce visual noise from borders while preserving success, warning, and destructive tone.
+- Verify on narrow mobile viewport and desktop.
+
+Suggested labels: `fix`, `area:web`, `area:ui`, `good first issue`
+
+Acceptance criteria:
+
+- Toasts no longer look offset from the mobile content area.
+- Toasts do not cover the bottom navigation or review action.
+- Existing desktop bottom-right behavior remains intact.
+- Screenshots are included for mobile and desktop.
 
 ### Notifications and Activity
 
