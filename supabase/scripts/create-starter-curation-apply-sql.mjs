@@ -13,6 +13,7 @@ const genreReviewPath = path.resolve(
   repoRoot,
   args.genreOutput ?? "tmp/starter-curation/genre-candidates-for-review.md",
 );
+const tagInputPath = path.resolve(repoRoot, args.tagInput ?? "tmp/starter-curation/draft-input.json");
 
 if (args.help) {
   printHelp();
@@ -34,6 +35,13 @@ const drafts = normalizeDrafts(payload);
 
 if (drafts.length === 0) {
   console.error("No drafts found. Expected a JSON object with a non-empty `drafts` array.");
+  process.exit(1);
+}
+
+try {
+  await validateDraftTagSlugs(drafts, tagInputPath, Boolean(args.tagInput));
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 }
 
@@ -75,6 +83,12 @@ function parseArgs(argv) {
     if (arg === "--genre-output") {
       parsed.genreOutput = argv[index + 1];
       index += 1;
+      continue;
+    }
+
+    if (arg === "--tag-input") {
+      parsed.tagInput = argv[index + 1];
+      index += 1;
     }
   }
 
@@ -85,6 +99,7 @@ function printHelp() {
   console.log(`Usage:
   pnpm curate:starter:sql
   pnpm curate:starter:sql -- --input tmp/starter-curation/draft-output.json
+  pnpm curate:starter:sql -- --tag-input tmp/starter-curation/draft-input.json
 
 Input:
   tmp/starter-curation/draft-output.json
@@ -97,9 +112,63 @@ The generated SQL:
   - updates prompt and editorial_note
   - inserts existing non-genre starter tags
   - preserves existing manual tags
+  - validates suggested tag slugs against available tags by kind when draft-input.json exists
   - refuses to run when a starter track id or suggested tag slug is unknown
   - does not apply genre candidates automatically
 `);
+}
+
+async function validateDraftTagSlugs(drafts, inputPath, isExplicitInput) {
+  let inputPayload;
+
+  try {
+    inputPayload = JSON.parse(await fs.readFile(inputPath, "utf8"));
+  } catch (error) {
+    if (!isExplicitInput && error?.code === "ENOENT") {
+      return;
+    }
+
+    throw new Error(
+      `Could not read ${path.relative(repoRoot, inputPath)} for tag validation. ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+
+  const availableTags = inputPayload?.availableTags;
+
+  if (!availableTags || typeof availableTags !== "object") {
+    return;
+  }
+
+  const tagsByKind = new Map(
+    Object.entries(availableTags).map(([kind, tags]) => [
+      kind,
+      new Set(Array.isArray(tags) ? tags.map((tag) => String(tag.slug ?? "").trim()).filter(Boolean) : []),
+    ]),
+  );
+
+  const unknownTags = [];
+
+  for (const draft of drafts) {
+    for (const [kind, slugs] of Object.entries(draft.suggestedTagSlugs)) {
+      const allowedSlugs = tagsByKind.get(kind);
+
+      for (const slug of slugs) {
+        if (!allowedSlugs?.has(slug)) {
+          unknownTags.push(`${draft.starterTrackId}: ${kind}:${slug}`);
+        }
+      }
+    }
+  }
+
+  if (unknownTags.length > 0) {
+    throw new Error(
+      `Draft contains tag slugs that are not available for their kind:\n${unknownTags
+        .map((tag) => `- ${tag}`)
+        .join("\n")}`,
+    );
+  }
 }
 
 function normalizeDrafts(payload) {
