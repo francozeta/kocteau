@@ -577,9 +577,9 @@
   .kocteau-toast {
     --kocteau-toast-accent: color-mix(in oklch, var(--foreground) 56%, transparent);
     --kocteau-toast-bg: color-mix(in oklch, var(--kocteau-surface) 82%, black);
-    --kocteau-toast-border: color-mix(in oklch, var(--kocteau-toast-accent) 42%, var(--kocteau-line));
+    --kocteau-toast-border: color-mix(in oklch, var(--kocteau-toast-accent) 28%, var(--kocteau-line-soft));
     --kocteau-toast-fg: var(--foreground);
-    width: min(20rem, calc(100vw - 2rem)) !important;
+    width: min(17.5rem, calc(100vw - 3rem)) !important;
     border: 1px solid var(--kocteau-toast-border) !important;
     border-radius: 999px !important;
     background: var(--kocteau-toast-bg) !important;
@@ -605,17 +605,17 @@
 
   .kocteau-toast-success {
     --kocteau-toast-accent: oklch(0.84 0.12 152);
-    --kocteau-toast-bg: color-mix(in oklch, oklch(0.84 0.12 152) 9%, var(--kocteau-canvas));
+    --kocteau-toast-bg: color-mix(in oklch, oklch(0.84 0.12 152) 7%, var(--kocteau-canvas));
   }
 
   .kocteau-toast-warning {
     --kocteau-toast-accent: oklch(0.84 0.14 78);
-    --kocteau-toast-bg: color-mix(in oklch, oklch(0.84 0.14 78) 11%, var(--kocteau-canvas));
+    --kocteau-toast-bg: color-mix(in oklch, oklch(0.84 0.14 78) 8%, var(--kocteau-canvas));
   }
 
   .kocteau-toast-error {
     --kocteau-toast-accent: oklch(0.72 0.2 22);
-    --kocteau-toast-bg: color-mix(in oklch, oklch(0.72 0.2 22) 13%, var(--kocteau-canvas));
+    --kocteau-toast-bg: color-mix(in oklch, oklch(0.72 0.2 22) 9%, var(--kocteau-canvas));
   }
 
   .kocteau-toast-icon {
@@ -797,7 +797,7 @@
     }
 
     .kocteau-toast {
-      width: min(20rem, calc(100vw - 2rem)) !important;
+      width: min(17.5rem, calc(100vw - 3rem)) !important;
       min-height: 2.35rem;
       padding: 0.42rem 0.55rem !important;
     }
