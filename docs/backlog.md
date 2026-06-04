@@ -55,7 +55,7 @@ These are the next useful moves after enabling public contribution.
 | P0 | Fix desktop scroll dead zones so the page still scrolls when the pointer is over the secondary rail or empty desktop space. | done | `fix`, `area:web`, `area:ui` |
 | P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | done | `feature`, `area:web`, `area:ui` |
 | P0 | Fix mobile toast placement so feedback is centered and clears the bottom navigation. | ready | `fix`, `area:web`, `area:ui` |
-| P1 | Harden Deezer-backed search with retry, clearer empty/error copy, and non-blocking fallbacks. | ready | `fix`, `area:web`, `area:search` |
+| P1 | Harden Deezer-backed search with retry, clearer empty/error copy, and non-blocking fallbacks. | done | `fix`, `area:web`, `area:search` |
 | P1 | Open 6-10 curated GitHub issues from this backlog before broader public sharing. | ready | `docs`, `help wanted` |
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
 | P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | ready | `docs`, `area:recommendations`, `needs maintainer decision` |
@@ -437,7 +437,7 @@ Acceptance criteria:
 
 Suggested issue: `fix(web): harden Deezer search fallbacks and error copy`
 
-State: `ready`. Deezer-backed search can work most of the time and still feel broken to a first-time visitor if one request returns `Deezer request failed`.
+State: `done`. Deezer-backed search can work most of the time and still feel broken to a first-time visitor if one request returns `Deezer request failed`.
 
 - Add a small retry or retry-after strategy for transient Deezer failures.
 - Keep stale previous results visible while a new query is updating when possible.

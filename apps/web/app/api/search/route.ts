@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
-  DeezerRequestError,
   getDeezerArtistTopTracks,
+  getDeezerErrorDetails,
   searchDeezerArtists,
   searchDeezerTracks,
   type DeezerTrackResult,
@@ -358,8 +358,7 @@ export async function GET(req: Request) {
     console.error("[search.deezer] failed with no fallback", {
       type,
       queryLength: q.length,
-      status: firstError instanceof DeezerRequestError ? firstError.status : null,
-      message: firstError instanceof Error ? firstError.message : "Unknown Deezer search error",
+      ...getDeezerErrorDetails(firstError),
     });
 
     return NextResponse.json(

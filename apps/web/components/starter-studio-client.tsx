@@ -264,6 +264,7 @@ export default function StarterStudioClient() {
     data: searchResults,
     isFetching: searchFetching,
     error: searchError,
+    refetch: retrySearch,
   } = useDeezerSearch({
     query,
     type: "track",
@@ -1782,9 +1783,24 @@ export default function StarterStudioClient() {
 
             <div className="space-y-2">
               {searchError ? (
-                <p className="rounded-lg border border-destructive/34 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {searchError.message}
-                </p>
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-border/28 bg-card/18 px-3 py-2 text-sm text-muted-foreground">
+                  <span className="min-w-0">
+                    {searchError.message ||
+                      "Music search is taking longer than usual. Try again in a moment."}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={searchFetching}
+                    onClick={() => {
+                      void retrySearch();
+                    }}
+                    className="h-7 shrink-0 rounded-full px-2.5 text-[11px]"
+                  >
+                    {searchFetching ? "Retrying" : "Retry"}
+                  </Button>
+                </div>
               ) : null}
 
               {normalizedQuery.length < 2 ? (

@@ -3,7 +3,7 @@ import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import type { ReviewCardAuthor, ReviewCardData } from "@/components/review-card";
 import type { DiscoveryTrack } from "@/lib/types/discovery";
 import type { SearchEntityType } from "@/lib/search-types";
-import { fetchJson } from "@/queries/http";
+import { fetchJson, isRetryableFetchJsonError } from "@/queries/http";
 
 export type TrackEntity = {
   id: string;
@@ -106,6 +106,8 @@ export function deezerTrackSearchQueryOptions(
     staleTime: 60_000,
     gcTime: 10 * 60_000,
     placeholderData: keepPreviousData,
+    retry: (failureCount, error) =>
+      failureCount < 1 && isRetryableFetchJsonError(error),
   });
 }
 
@@ -130,6 +132,8 @@ export function kocteauTrackSearchQueryOptions(
     staleTime: 60_000,
     gcTime: 10 * 60_000,
     placeholderData: keepPreviousData,
+    retry: (failureCount, error) =>
+      failureCount < 1 && isRetryableFetchJsonError(error),
   });
 }
 
