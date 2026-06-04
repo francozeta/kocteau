@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import FeedReviewCta from "@/components/feed-review-cta";
@@ -45,6 +45,12 @@ const recommendationReasonLabels = {
   NonNullable<FeedBundleReview["recommendation_reason"]>,
   string
 >>;
+
+const reviewReadThresholds = [
+  { depth: 50, eventType: "review_read_50" },
+  { depth: 90, eventType: "review_read_90" },
+] as const;
+const minimumReadDwellMs = 1200;
 
 function getRecommendationEyebrow(review: FeedBundleReview, view: FeedView) {
   if (view !== "for-you" || !review.recommendation_reason) {
@@ -139,6 +145,9 @@ export default function FeedReviewList({
 }: FeedReviewListProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const trackedPageKeysRef = useRef(new Set<string>());
+  const reviewNodeRefs = useRef(new Map<string, HTMLDivElement>());
+  const trackedReadThresholdsRef = useRef(new Set<string>());
+  const reviewVisibleSinceRef = useRef(new Map<string, number>());
   const feedQuery = useInfiniteQuery({
     ...feedInfiniteQueryOptions(view),
     initialData: {
@@ -190,6 +199,27 @@ export default function FeedReviewList({
           ),
       ),
     [reviewedStarterKeys, starterTracks],
+  );
+  const forYouReadAnalyticsReviews = useMemo(
+    () =>
+      reviews.map((review, position) => ({
+        id: review.id,
+        entityId: review.entities?.id ?? null,
+        reason: review.recommendation_reason ?? null,
+        position,
+      })),
+    [reviews],
+  );
+  const setReviewNodeRef = useCallback(
+    (reviewId: string) => (node: HTMLDivElement | null) => {
+      if (node) {
+        reviewNodeRefs.current.set(reviewId, node);
+        return;
+      }
+
+      reviewNodeRefs.current.delete(reviewId);
+    },
+    [],
   );
 
   useEffect(() => {
@@ -244,6 +274,130 @@ export default function FeedReviewList({
       });
     });
   }, [data?.pages, isAuthenticated, view, visibleStarterTracks.length]);
+
+  useEffect(() => {
+    if (view !== "for-you" || !isAuthenticated || forYouReadAnalyticsReviews.length === 0) {
+      return;
+    }
+
+    const scrollRoot = document.querySelector<HTMLElement>("[data-kocteau-scroll-main]");
+    const reviewById = new Map(forYouReadAnalyticsReviews.map((review) => [review.id, review]));
+    let frame = 0;
+    let dwellTimer = 0;
+
+    function getViewportBounds() {
+      if (scrollRoot) {
+        const rect = scrollRoot.getBoundingClientRect();
+        return {
+          top: rect.top,
+          bottom: rect.bottom,
+        };
+      }
+
+      return {
+        top: 0,
+        bottom: window.innerHeight,
+      };
+    }
+
+    function measureReadDepth() {
+      frame = 0;
+      const now = performance.now();
+      const viewport = getViewportBounds();
+
+      for (const review of reviewById.values()) {
+        const node = reviewNodeRefs.current.get(review.id);
+
+        if (!node) {
+          continue;
+        }
+
+        const rect = node.getBoundingClientRect();
+
+        if (rect.height <= 0 || rect.bottom <= viewport.top || rect.top >= viewport.bottom) {
+          reviewVisibleSinceRef.current.delete(review.id);
+          continue;
+        }
+
+        if (!reviewVisibleSinceRef.current.has(review.id)) {
+          reviewVisibleSinceRef.current.set(review.id, now);
+        }
+
+        const visibleFor = now - (reviewVisibleSinceRef.current.get(review.id) ?? now);
+
+        const progress = Math.max(
+          0,
+          Math.min(1, (viewport.bottom - rect.top) / rect.height),
+        );
+
+        for (const threshold of reviewReadThresholds) {
+          if (progress < threshold.depth / 100) {
+            continue;
+          }
+
+          if (visibleFor < minimumReadDwellMs) {
+            scheduleMeasureReadDepthAfter(minimumReadDwellMs - visibleFor);
+            continue;
+          }
+
+          const thresholdKey = `${review.id}:${threshold.depth}`;
+
+          if (trackedReadThresholdsRef.current.has(thresholdKey)) {
+            continue;
+          }
+
+          trackedReadThresholdsRef.current.add(thresholdKey);
+          trackAnalyticsEvent({
+            eventType: threshold.eventType,
+            source: "feed:for-you",
+            metadata: {
+              review_id: review.id,
+              entity_id: review.entityId,
+              reason: review.reason,
+              position: review.position,
+              read_depth: threshold.depth,
+            },
+          });
+        }
+      }
+    }
+
+    function scheduleMeasureReadDepthAfter(delay: number) {
+      if (dwellTimer) {
+        return;
+      }
+
+      dwellTimer = window.setTimeout(() => {
+        dwellTimer = 0;
+        scheduleMeasureReadDepth();
+      }, Math.max(0, delay));
+    }
+
+    function scheduleMeasureReadDepth() {
+      if (frame) {
+        return;
+      }
+
+      frame = window.requestAnimationFrame(measureReadDepth);
+    }
+
+    scheduleMeasureReadDepth();
+    window.addEventListener("resize", scheduleMeasureReadDepth);
+    scrollRoot?.addEventListener("scroll", scheduleMeasureReadDepth, { passive: true });
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      if (dwellTimer) {
+        window.clearTimeout(dwellTimer);
+      }
+
+      window.removeEventListener("resize", scheduleMeasureReadDepth);
+      scrollRoot?.removeEventListener("scroll", scheduleMeasureReadDepth);
+    };
+  }, [forYouReadAnalyticsReviews, isAuthenticated, view]);
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -318,7 +472,7 @@ export default function FeedReviewList({
         const author = review.author;
 
         return (
-          <div key={review.id}>
+          <div key={review.id} ref={setReviewNodeRef(review.id)}>
             <FeedReviewCard
               review={review}
               entity={review.entities}
