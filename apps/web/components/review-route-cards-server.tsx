@@ -20,6 +20,10 @@ export type ReviewCardBehaviorOptions = {
   showInteractionBar?: boolean;
   showContextMenu?: boolean;
   openReviewLink?: boolean;
+  commentInlineTarget?: {
+    targetId: string;
+    composerId?: string;
+  } | null;
 };
 
 export type ReviewCardPermissions = {
@@ -210,6 +214,7 @@ async function RoutedReviewCardServer({
     showInteractionBar = true,
     showContextMenu = canUseReviewMenus,
     openReviewLink = true,
+    commentInlineTarget = null,
   } = behavior ?? {};
   const viewerProfile =
     isAuthenticated && showInteractionBar
@@ -261,6 +266,7 @@ async function RoutedReviewCardServer({
           <ReviewCardInteractionBar
             review={review}
             isAuthenticated={isAuthenticated}
+            commentInlineTarget={commentInlineTarget}
             viewer={
               viewerProfile
                 ? {
@@ -368,7 +374,13 @@ export async function ReviewPageCard({
       entity={entity}
       author={author}
       display={buildReviewPageCardDisplay()}
-      behavior={{ openReviewLink: false }}
+      behavior={{
+        openReviewLink: false,
+        commentInlineTarget: {
+          targetId: "review-replies",
+          composerId: "review-reply-composer",
+        },
+      }}
       permissions={{ isAuthenticated, canManage }}
     />
   );

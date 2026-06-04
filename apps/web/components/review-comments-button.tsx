@@ -34,6 +34,10 @@ type ReviewCommentsButtonProps = {
     display_name: string | null;
     avatar_url: string | null;
   } | null;
+  inlineTarget?: {
+    targetId: string;
+    composerId?: string;
+  } | null;
 };
 
 export default function ReviewCommentsButton({
@@ -42,6 +46,7 @@ export default function ReviewCommentsButton({
   isAuthenticated,
   analyticsSource = null,
   viewer = null,
+  inlineTarget = null,
 }: ReviewCommentsButtonProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -52,6 +57,25 @@ export default function ReviewCommentsButton({
   });
 
   function handleTriggerClick() {
+    if (inlineTarget) {
+      const target = document.getElementById(inlineTarget.targetId);
+
+      target?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const composerId = inlineTarget.composerId;
+
+      if (isAuthenticated && composerId) {
+        window.requestAnimationFrame(() => {
+          document.getElementById(composerId)?.focus();
+        });
+      }
+
+      return;
+    }
+
     if (!isAuthenticated) {
       toastAuthRequired("comment");
       return;
@@ -79,8 +103,8 @@ export default function ReviewCommentsButton({
     <button
       type="button"
       onClick={handleTriggerClick}
-      aria-label={open ? "Close comments" : "Open comments"}
-      aria-expanded={open}
+      aria-label={inlineTarget ? "Reply to this review" : open ? "Close comments" : "Open comments"}
+      aria-expanded={inlineTarget ? undefined : open}
       className={cn(
         "inline-flex min-h-8 items-center gap-1 rounded-md border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-foreground/[0.055] hover:text-foreground active:scale-[0.96]",
         open && "text-foreground",

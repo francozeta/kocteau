@@ -33,6 +33,8 @@ type ReviewCommentsPanelProps = {
   hideForm?: boolean;
   autoFocusComposer?: boolean;
   replyTarget?: string | null;
+  anchorId?: string;
+  composerId?: string;
 };
 
 function formatDate(value: string) {
@@ -51,6 +53,8 @@ export default function ReviewCommentsPanel({
   hideForm = false,
   autoFocusComposer = false,
   replyTarget = null,
+  anchorId,
+  composerId,
 }: ReviewCommentsPanelProps) {
   const [body, setBody] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -245,14 +249,12 @@ export default function ReviewCommentsPanel({
           );
         })
       ) : (
-        <div
-          className={cn(
-            "text-sm text-muted-foreground",
-            isInline
-              ? "border-b border-border/24 px-1 py-4"
-              : "rounded-xl border border-dashed border-border/48 bg-card/36 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] md:border-border/40 md:bg-card/30",
-          )}
-        >
+        <div className={cn(
+          "text-sm text-muted-foreground",
+          isInline
+            ? "px-1 py-4"
+            : "rounded-xl border border-dashed border-border/48 bg-card/36 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] md:border-border/40 md:bg-card/30",
+        )}>
           <p className="font-medium text-foreground/86">No replies yet.</p>
           <p className="mt-1 text-xs text-muted-foreground">Be the first to respond to this review.</p>
         </div>
@@ -263,7 +265,7 @@ export default function ReviewCommentsPanel({
   const form = isAuthenticated ? (
     isInline ? (
       <div className="space-y-2">
-        <div className="flex items-end gap-2 rounded-full border border-border/36 bg-card/42 px-2 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/28 md:bg-card/34">
+        <div className="flex items-end gap-2 rounded-[1.15rem] border border-border/42 bg-muted/58 px-2 py-2 transition-colors focus-within:border-border/60 focus-within:bg-muted/70 md:border-border/34 md:bg-muted/48">
           <UserAvatar
             avatarUrl={viewer?.avatar_url}
             displayName={viewer?.display_name ?? null}
@@ -272,6 +274,7 @@ export default function ReviewCommentsPanel({
             fallbackClassName="text-[11px]"
           />
           <Textarea
+            id={composerId}
             ref={textareaRef}
             value={body}
             onChange={(event) => setBody(event.target.value)}
@@ -284,7 +287,7 @@ export default function ReviewCommentsPanel({
               void handleSubmit();
             }}
             placeholder={replyPlaceholder}
-            className="max-h-28 min-h-8 flex-1 border-0 bg-transparent px-0 py-1.5 text-[13px] leading-5 shadow-none focus-visible:border-transparent focus-visible:ring-0"
+            className="max-h-28 min-h-8 flex-1 border-0 bg-transparent px-0 py-1.5 text-[13px] leading-5 shadow-none placeholder:text-muted-foreground/82 focus-visible:border-transparent focus-visible:ring-0"
             maxLength={1000}
             rows={1}
           />
@@ -299,9 +302,11 @@ export default function ReviewCommentsPanel({
             {isPosting ? <Spinner className="size-3.5" /> : <Send className="size-3.5" />}
           </Button>
         </div>
-        <p className="px-1 text-[11px] text-muted-foreground/68">
-          {commentsCount} {commentsCount === 1 ? "reply" : "replies"}
-        </p>
+        {commentsCount > 0 ? (
+          <p className="px-1 text-[11px] text-muted-foreground/68">
+            {commentsCount} {commentsCount === 1 ? "reply" : "replies"}
+          </p>
+        ) : null}
       </div>
     ) : (
       <div className="space-y-3">
@@ -333,7 +338,7 @@ export default function ReviewCommentsPanel({
     <div
       className={cn(
         "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
-        isInline && "rounded-full border border-border/36 bg-card/42 px-3 py-2 md:border-border/28 md:bg-card/34",
+        isInline && "rounded-full border border-border/42 bg-muted/58 px-3 py-2 md:border-border/34 md:bg-muted/48",
       )}
     >
       <div className={cn("space-y-1", isInline && "min-w-0")}>
@@ -364,11 +369,12 @@ export default function ReviewCommentsPanel({
   if (isInline) {
     return (
       <section
+        id={anchorId}
         aria-label="Review replies"
-        className="kocteau-review-card overflow-hidden rounded-[var(--kocteau-radius-card)] px-3.5 py-3 sm:px-4 sm:py-3.5"
+        className="space-y-3 px-1"
       >
+        {!hideForm ? form : null}
         {commentsList}
-        {!hideForm ? <div className="pt-3">{form}</div> : null}
       </section>
     );
   }

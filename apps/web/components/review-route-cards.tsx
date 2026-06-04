@@ -22,6 +22,10 @@ export type ReviewCardBehaviorOptions = {
   showInteractionBar?: boolean;
   showContextMenu?: boolean;
   openReviewLink?: boolean;
+  commentInlineTarget?: {
+    targetId: string;
+    composerId?: string;
+  } | null;
 };
 
 export type ReviewCardPermissions = {
@@ -212,6 +216,7 @@ function RoutedReviewCard({
     showInteractionBar = true,
     showContextMenu = true,
     openReviewLink = true,
+    commentInlineTarget = null,
   } = behavior ?? {};
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
   const initialBookmarked = Boolean(review.viewer_has_bookmarked);
@@ -284,6 +289,7 @@ function RoutedReviewCard({
             isAuthenticated={isAuthenticated}
             viewer={viewer}
             analyticsSource={analyticsSource}
+            commentInlineTarget={commentInlineTarget}
           />
         ) : null,
       }}
@@ -415,7 +421,13 @@ export function ReviewPageCard({
       entity={entity}
       author={author}
       display={buildReviewPageCardDisplay()}
-      behavior={{ openReviewLink: false }}
+      behavior={{
+        openReviewLink: false,
+        commentInlineTarget: {
+          targetId: "review-replies",
+          composerId: "review-reply-composer",
+        },
+      }}
       permissions={{ isAuthenticated, canManage }}
       viewer={viewer}
     />

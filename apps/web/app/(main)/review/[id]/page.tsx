@@ -124,7 +124,7 @@ export default async function ReviewPage({
   const headerTitle = getTrackLabel(review);
 
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-4 pb-4 sm:space-y-5">
+    <section className="mx-auto w-full max-w-3xl space-y-3 pb-4 sm:space-y-4">
       <JsonLd data={buildReviewPageJsonLd(review)} id="review-structured-data" />
       <ReviewPageHeaderBridge
         reviewId={review.id}
@@ -159,6 +159,9 @@ export default async function ReviewPage({
         }
         variant="inline"
         replyTarget={author?.username ?? null}
+        anchorId="review-replies"
+        composerId="review-reply-composer"
+        autoFocusComposer
       />
     </section>
   );
