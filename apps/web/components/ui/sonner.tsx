@@ -7,9 +7,9 @@ import { IconCircleCheck, IconInfoCircle, IconAlertTriangle, IconAlertOctagon } 
 import { Spinner } from "@/components/ui/spinner"
 
 const Toaster = ({
-  position = "bottom-center",
-  offset = { bottom: "1.25rem" },
-  mobileOffset = { bottom: "calc(env(safe-area-inset-bottom) + 6.35rem)" },
+  position = "bottom-right",
+  offset = { bottom: "1.25rem", right: "1.25rem" },
+  mobileOffset = { bottom: "calc(env(safe-area-inset-bottom) + 4.8rem)" },
   ...props
 }: ToasterProps) => {
   const { theme = "system" } = useTheme()
@@ -42,7 +42,7 @@ const Toaster = ({
       }}
       style={
         {
-          "--width": "20rem",
+          "--width": "17.5rem",
           "--normal-bg": "color-mix(in oklch, var(--kocteau-surface) 88%, black)",
           "--normal-text": "var(--foreground)",
           "--normal-border": "var(--kocteau-line)",
