@@ -38,6 +38,7 @@
     "supabase:types": "node supabase/scripts/generate-types.mjs",
     "supabase:types:linked": "node supabase/scripts/generate-types.mjs --linked",
     "curate:starter:draft": "node supabase/scripts/create-starter-curation-draft.mjs",
+    "curate:starter:sql": "node supabase/scripts/create-starter-curation-apply-sql.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "check": "pnpm lint && pnpm --filter web build"

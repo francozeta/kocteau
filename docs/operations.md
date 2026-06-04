@@ -179,6 +179,8 @@ Use `supabase/scripts/maintenance/starter-curation-readiness-audit.sql` before a
 
 For assisted drafting, run `supabase/scripts/maintenance/starter-curation-draft-export.sql` from the SQL editor, copy the JSON cell into `tmp/starter-curation-export.json`, then run `pnpm curate:starter:draft`. The command writes `tmp/starter-curation/draft-input.json`, `draft-prompt.md`, and `draft-output-template.json`. This step still does not write to Supabase; it prepares reviewable input for a human or LLM-assisted curation pass.
 
+After reviewing and filling `tmp/starter-curation/draft-output.json`, run `pnpm curate:starter:sql`. The generated `tmp/starter-curation/apply-starter-curation-drafts.sql` is the SQL Editor patch. It updates prompts and editorial notes, adds existing non-genre tags, preserves manual tags, and refuses to run if any starter track id or tag slug is unknown. Genre candidates are written separately to `genre-candidates-for-review.md` for human review.
+
 The easiest way to seed starter picks is the internal route:
 
 ```text
