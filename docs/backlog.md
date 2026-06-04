@@ -63,7 +63,11 @@ These are the next useful moves after enabling public contribution.
 | P1 | Add a mobile social discovery carousel near review detail pages. | needs design | `feature`, `area:web`, `area:ui` |
 | P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design | `feature`, `area:web`, `area:recommendations` |
 | P1 | Explore a compact feed view for scanning more reviews without replacing the editorial default. | needs design | `feature`, `area:web`, `area:ui` |
+| P1 | Emit real review read-depth analytics from the For You feed. | done | `fix`, `area:web`, `area:analytics`, `area:recommendations` |
+| P1 | Add a top-rated feed index for `rating DESC, created_at DESC, id DESC`. | done | `chore`, `area:supabase`, `area:performance` |
+| P1 | Remove generated orphan components from `apps/web/components`. | done | `chore`, `area:web`, `area:maintenance` |
 | P2 | Expand Kocteau-first search to artists, albums, users, and categories. | needs design | `feature`, `area:web`, `area:search`, `area:recommendations` |
+| P2 | Tune recommendation reason precedence so social follows are not hidden by weak entity taste matches. | needs baseline | `feature`, `area:supabase`, `area:recommendations`, `area:analytics` |
 | P1 | Keep branch protection advisory until the first public PRs prove the flow. | needs maintainer decision | `chore`, `area:ci` |
 | P2 | Enable `Verify` as a required status check after 1-2 stable contribution weeks. | needs maintainer decision | `chore`, `area:ci` |
 
@@ -661,6 +665,12 @@ Acceptance criteria:
 - The SQL remains readable and has indexes for the new access pattern if needed.
 - Recommendation reason labels still map cleanly to the web UI.
 - Sparse-data users still receive useful editorial fallback.
+
+Technical audit notes:
+
+- `revalidateTag(tag, "max")` is intentional for the installed Next.js 16 cache API. Do not remove the second argument as a cleanup; the single-argument form is deprecated.
+- `review_read_50` and `review_read_90` are now emitted from authenticated For You feed review cards when the user scrolls through 50% and 90% of a card.
+- The `entity_taste` reason precedence may still need tuning, but it should be changed only after read-depth and feed health baselines exist.
 
 ### SEO Indexability Health
 
