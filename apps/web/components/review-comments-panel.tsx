@@ -32,6 +32,7 @@ type ReviewCommentsPanelProps = {
   variant?: "dialog" | "inline";
   hideForm?: boolean;
   autoFocusComposer?: boolean;
+  replyTarget?: string | null;
 };
 
 function formatDate(value: string) {
@@ -49,6 +50,7 @@ export default function ReviewCommentsPanel({
   variant = "dialog",
   hideForm = false,
   autoFocusComposer = false,
+  replyTarget = null,
 }: ReviewCommentsPanelProps) {
   const [body, setBody] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -77,6 +79,7 @@ export default function ReviewCommentsPanel({
 
   const trimmedBody = useMemo(() => body.trim(), [body]);
   const isInline = variant === "inline";
+  const replyPlaceholder = replyTarget ? `Reply to @${replyTarget}...` : "Reply to this review...";
 
   useEffect(() => {
     if (!autoFocusComposer || hideForm || !isAuthenticated) {
@@ -138,7 +141,7 @@ export default function ReviewCommentsPanel({
   }
 
   const commentsList = (
-    <div className={cn("space-y-4", isInline ? "py-0" : "py-5")}>
+    <div className={cn(isInline ? "space-y-0" : "space-y-4 py-5")}>
       {isLoading ? (
         <div className="flex justify-center py-10">
           <Spinner className="size-4 text-muted-foreground/70" />
@@ -157,7 +160,9 @@ export default function ReviewCommentsPanel({
               key={comment.id}
               id={`comment-${comment.id}`}
               className={cn(
-                "rounded-xl border border-border/40 bg-card/46 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-opacity md:border-border/30 md:bg-card/40",
+                isInline
+                  ? "border-b border-border/24 py-4 transition-opacity last:border-b-0"
+                  : "rounded-xl border border-border/40 bg-card/46 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-opacity md:border-border/30 md:bg-card/40",
                 comment.optimistic && "opacity-70",
               )}
             >
@@ -170,9 +175,18 @@ export default function ReviewCommentsPanel({
                     className="size-8"
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {authorLabel}
-                    </p>
+                    {author?.username ? (
+                      <Link
+                        href={`/u/${author.username}`}
+                        className="block truncate text-sm font-medium text-foreground transition-colors hover:text-foreground/82 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                      >
+                        {authorLabel}
+                      </Link>
+                    ) : (
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {authorLabel}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {comment.optimistic ? "Posting..." : formatDate(comment.created_at)}
                     </p>
@@ -231,65 +245,131 @@ export default function ReviewCommentsPanel({
           );
         })
       ) : (
-        <div className="rounded-xl border border-dashed border-border/48 bg-card/36 p-6 text-sm text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] md:border-border/40 md:bg-card/30">
-          No comments yet. Start the conversation around this review.
+        <div
+          className={cn(
+            "text-sm text-muted-foreground",
+            isInline
+              ? "border-b border-border/24 px-1 py-4"
+              : "rounded-xl border border-dashed border-border/48 bg-card/36 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] md:border-border/40 md:bg-card/30",
+          )}
+        >
+          <p className="font-medium text-foreground/86">No replies yet.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Be the first to respond to this review.</p>
         </div>
       )}
     </div>
   );
 
   const form = isAuthenticated ? (
-    <div className="space-y-3">
-      <Textarea
-        ref={textareaRef}
-        value={body}
-        onChange={(event) => setBody(event.target.value)}
-        placeholder="Add a short comment..."
-        className={cn("min-h-24", !isInline && "min-h-28")}
-        maxLength={1000}
-      />
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground">
-          {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
+    isInline ? (
+      <div className="space-y-2">
+        <div className="flex items-end gap-2 rounded-full border border-border/36 bg-card/42 px-2 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:border-border/28 md:bg-card/34">
+          <UserAvatar
+            avatarUrl={viewer?.avatar_url}
+            displayName={viewer?.display_name ?? null}
+            username={viewer?.username ?? null}
+            className="size-8"
+            fallbackClassName="text-[11px]"
+          />
+          <Textarea
+            ref={textareaRef}
+            value={body}
+            onChange={(event) => setBody(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
+                return;
+              }
+
+              event.preventDefault();
+              void handleSubmit();
+            }}
+            placeholder={replyPlaceholder}
+            className="max-h-28 min-h-8 flex-1 border-0 bg-transparent px-0 py-1.5 text-[13px] leading-5 shadow-none focus-visible:border-transparent focus-visible:ring-0"
+            maxLength={1000}
+            rows={1}
+          />
+          <Button
+            type="button"
+            size="icon"
+            onClick={handleSubmit}
+            disabled={!trimmedBody || isPosting}
+            className="size-8 shrink-0 rounded-full"
+            aria-label="Post comment"
+          >
+            {isPosting ? <Spinner className="size-3.5" /> : <Send className="size-3.5" />}
+          </Button>
+        </div>
+        <p className="px-1 text-[11px] text-muted-foreground/68">
+          {commentsCount} {commentsCount === 1 ? "reply" : "replies"}
         </p>
-        <Button
-          size="sm"
-          onClick={handleSubmit}
-          disabled={!trimmedBody || isPosting}
-          className="gap-2"
-        >
-          <Send className="size-3.5" />
-          {isPosting ? "Posting..." : "Post comment"}
-        </Button>
       </div>
-    </div>
+    ) : (
+      <div className="space-y-3">
+        <Textarea
+          ref={textareaRef}
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder="Add a short comment..."
+          className="min-h-28"
+          maxLength={1000}
+        />
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
+          </p>
+          <Button
+            size="sm"
+            onClick={handleSubmit}
+            disabled={!trimmedBody || isPosting}
+            className="gap-2"
+          >
+            <Send className="size-3.5" />
+            {isPosting ? "Posting..." : "Post comment"}
+          </Button>
+        </div>
+      </div>
+    )
   ) : (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">Sign in to comment</p>
-        <p className="text-xs text-muted-foreground">
-          You can read comments already, but posting requires an account.
+    <div
+      className={cn(
+        "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+        isInline && "rounded-full border border-border/36 bg-card/42 px-3 py-2 md:border-border/28 md:bg-card/34",
+      )}
+    >
+      <div className={cn("space-y-1", isInline && "min-w-0")}>
+        <p className={cn("text-sm font-medium text-foreground", isInline && "truncate text-[13px]")}>
+          Log in to reply
         </p>
+        {!isInline ? (
+          <p className="text-xs text-muted-foreground">
+            You can read comments already, but posting requires an account.
+          </p>
+        ) : null}
       </div>
       <div className="flex gap-2">
-        <Link href="/login">
-          <Button size="sm">Log in</Button>
+        <Link href={`/login?next=${encodeURIComponent(`/review/${reviewId}`)}`}>
+          <Button size="sm" className={cn(isInline && "h-8 rounded-full px-4")}>Log in</Button>
         </Link>
-        <Link href="/signup">
+        {!isInline ? (
+          <Link href="/signup">
           <Button size="sm" variant="outline">
             Create account
           </Button>
-        </Link>
+          </Link>
+        ) : null}
       </div>
     </div>
   );
 
   if (isInline) {
     return (
-      <div className="space-y-5">
+      <section
+        aria-label="Review replies"
+        className="kocteau-review-card overflow-hidden rounded-[var(--kocteau-radius-card)] px-3.5 py-3 sm:px-4 sm:py-3.5"
+      >
         {commentsList}
-        {!hideForm ? <div className="border-t border-border/28 pt-4 md:border-border/20">{form}</div> : null}
-      </div>
+        {!hideForm ? <div className="pt-3">{form}</div> : null}
+      </section>
     );
   }
 

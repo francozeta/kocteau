@@ -116,6 +116,22 @@ function getReviewLinkLabel(
   return `Open ${subject} by ${getAuthorLabel(author)}`;
 }
 
+function LinkedAuthorName({ author }: { author: ReviewCardAuthor | null | undefined }) {
+  if (!author) {
+    return null;
+  }
+
+  return (
+    <PrefetchLink
+      href={`/u/${author.username}`}
+      data-prevent-review-link="true"
+      className="relative z-[2] text-xs font-medium text-foreground transition-colors hover:underline sm:text-sm"
+    >
+      {getAuthorLabel(author)}
+    </PrefetchLink>
+  );
+}
+
 function LinkedEntitySummary({
   entity,
   mode,
@@ -236,6 +252,7 @@ function RoutedReviewCard({
       reviewHref={openReviewLink ? `/review/${review.id}` : null}
       reviewLinkLabel={getReviewLinkLabel(entity, author)}
       slots={{
+        authorName: author ? <LinkedAuthorName author={author} /> : undefined,
         entity: entity ? (
           <LinkedEntitySummary
             entity={entity}

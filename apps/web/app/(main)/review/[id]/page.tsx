@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
+import ReviewCommentsPanel from "@/components/review-comments-panel";
 import ReviewPageHeaderBridge from "@/components/review-page-header-bridge";
 import { ReviewPageCard } from "@/components/review-route-cards-server";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata, createReviewDescription } from "@/lib/metadata";
 import {
   getPublicReviewById,
@@ -105,6 +106,7 @@ export default async function ReviewPage({
   }
 
   const user = await getCurrentUser();
+  const viewerProfile = user ? await getCurrentViewerProfile() : null;
   const bundle = await getReviewPageBundle(parsedParams.data.reviewId, user?.id);
 
   if (!bundle) {
@@ -139,6 +141,24 @@ export default async function ReviewPage({
         author={author}
         isAuthenticated={Boolean(user)}
         canManage={canManage}
+      />
+
+      <ReviewCommentsPanel
+        reviewId={review.id}
+        initialCount={review.comments_count}
+        isAuthenticated={Boolean(user)}
+        viewer={
+          viewerProfile
+            ? {
+                id: viewerProfile.id,
+                username: viewerProfile.username,
+                display_name: viewerProfile.display_name,
+                avatar_url: viewerProfile.avatar_url,
+              }
+            : null
+        }
+        variant="inline"
+        replyTarget={author?.username ?? null}
       />
     </section>
   );
