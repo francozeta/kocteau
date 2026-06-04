@@ -21,6 +21,11 @@ export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
   showInteractionBar?: boolean;
   showContextMenu?: boolean;
+  openReviewLink?: boolean;
+  commentInlineTarget?: {
+    targetId: string;
+    composerId?: string;
+  } | null;
 };
 
 export type ReviewCardPermissions = {
@@ -98,11 +103,21 @@ function buildSavedReviewCardDisplay(): ReviewCardDisplayOptions {
 function buildReviewPageCardDisplay(): ReviewCardDisplayOptions {
   return {
     entityMode: "cover",
+    entityHeadingLevel: 1,
   };
 }
 
 function getAuthorLabel(author: ReviewCardAuthor | null | undefined) {
   return author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
+}
+
+function getReviewLinkLabel(
+  entity: ReviewCardEntity | null,
+  author: ReviewCardAuthor | null | undefined,
+) {
+  const subject = entity?.title ? `${entity.title} review` : "review";
+
+  return `Open ${subject} by ${getAuthorLabel(author)}`;
 }
 
 function LinkedAuthorName({ author }: { author: ReviewCardAuthor | null | undefined }) {
@@ -114,7 +129,7 @@ function LinkedAuthorName({ author }: { author: ReviewCardAuthor | null | undefi
     <PrefetchLink
       href={`/u/${author.username}`}
       data-prevent-review-link="true"
-      className="text-xs font-medium text-foreground transition-colors hover:underline sm:text-sm"
+      className="relative z-[2] text-xs font-medium text-foreground transition-colors hover:underline sm:text-sm"
     >
       {getAuthorLabel(author)}
     </PrefetchLink>
@@ -126,18 +141,20 @@ function LinkedEntitySummary({
   mode,
   priority = false,
   tone = "default",
+  headingLevel,
 }: {
   entity: ReviewCardEntity | null;
   mode: "full" | "inline" | "cover";
   priority?: boolean;
   tone?: "default" | "balanced";
+  headingLevel?: 1 | 2 | 3;
 }) {
   if (!entity) {
     return null;
   }
 
   return (
-    <div data-prevent-review-link="true">
+    <div data-prevent-review-link="true" className="relative z-[2]">
       <PrefetchLink
         href={`/track/${entity.id}`}
         queryWarmup={{ kind: "track", id: entity.id }}
@@ -149,6 +166,7 @@ function LinkedEntitySummary({
           interactive
           priority={priority}
           tone={tone}
+          headingLevel={headingLevel}
         />
       </PrefetchLink>
     </div>
@@ -167,7 +185,7 @@ function LinkedEntityCover({
   }
 
   return (
-    <div data-prevent-review-link="true">
+    <div data-prevent-review-link="true" className="relative z-[2]">
       <PrefetchLink
         href={`/track/${entity.id}`}
         queryWarmup={{ kind: "track", id: entity.id }}
@@ -190,12 +208,15 @@ function RoutedReviewCard({
   viewer = null,
 }: RoutedReviewCardProps) {
   const { entityMode = "full" } = display ?? {};
+  const entityHeadingLevel = display?.entityHeadingLevel;
   const entityPriority = Boolean(display?.featured || display?.imagePriority);
   const copyTone = getReviewCardCopyTone(review);
   const {
     showHeaderActions = true,
     showInteractionBar = true,
     showContextMenu = true,
+    openReviewLink = true,
+    commentInlineTarget = null,
   } = behavior ?? {};
   const { isAuthenticated = false, canManage = false } = permissions ?? {};
   const initialBookmarked = Boolean(review.viewer_has_bookmarked);
@@ -227,56 +248,52 @@ function RoutedReviewCard({
   };
 
   const card = (
-    <div>
-      <PrefetchLink
-        href={`/review/${review.id}`}
-        className="sr-only focus:not-sr-only focus:mb-2 focus:inline-flex focus:h-8 focus:items-center focus:rounded-[0.55rem] focus:border focus:border-border/35 focus:bg-muted/18 focus:px-3 focus:text-xs focus:font-medium focus:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
-      >
-        Open review
-      </PrefetchLink>
-      <ReviewCard
-        review={review}
-        entity={entity}
-        author={author}
-        display={display}
-        rootProps={rootProps}
-        slots={{
-          authorName: author ? <LinkedAuthorName author={author} /> : undefined,
-          entity: entity ? (
-            <LinkedEntitySummary
-              entity={entity}
-              mode={entityMode}
-              priority={entityPriority}
-              tone={copyTone}
-            />
+    <ReviewCard
+      review={review}
+      entity={entity}
+      author={author}
+      display={display}
+      rootProps={rootProps}
+      reviewHref={openReviewLink ? `/review/${review.id}` : null}
+      reviewLinkLabel={getReviewLinkLabel(entity, author)}
+      slots={{
+        authorName: author ? <LinkedAuthorName author={author} /> : undefined,
+        entity: entity ? (
+          <LinkedEntitySummary
+            entity={entity}
+            mode={entityMode}
+            priority={entityPriority}
+            tone={copyTone}
+            headingLevel={entityHeadingLevel}
+          />
+        ) : undefined,
+        entityCover:
+          entity && entityMode === "cover" ? (
+            <LinkedEntityCover entity={entity} priority={entityPriority} />
           ) : undefined,
-          entityCover:
-            entity && entityMode === "cover" ? (
-              <LinkedEntityCover entity={entity} priority={entityPriority} />
-            ) : undefined,
-          headerActions: showHeaderActions ? (
-            <ReviewActionsMenu
-              reviewId={review.id}
-              reviewTitle={review.title}
-              entityTitle={entity?.title ?? null}
-              entityId={entity?.id ?? null}
-              canManage={canManage}
-              editSeed={editSeed}
-              initialBookmarked={initialBookmarked}
-              isAuthenticated={isAuthenticated}
-            />
-          ) : null,
-          footer: showInteractionBar ? (
-            <ReviewCardInteractionBar
-              review={review}
-              isAuthenticated={isAuthenticated}
-              viewer={viewer}
-              analyticsSource={analyticsSource}
-            />
-          ) : null,
-        }}
-      />
-    </div>
+        headerActions: showHeaderActions ? (
+          <ReviewActionsMenu
+            reviewId={review.id}
+            reviewTitle={review.title}
+            entityTitle={entity?.title ?? null}
+            entityId={entity?.id ?? null}
+            canManage={canManage}
+            editSeed={editSeed}
+            initialBookmarked={initialBookmarked}
+            isAuthenticated={isAuthenticated}
+          />
+        ) : null,
+        footer: showInteractionBar ? (
+          <ReviewCardInteractionBar
+            review={review}
+            isAuthenticated={isAuthenticated}
+            viewer={viewer}
+            analyticsSource={analyticsSource}
+            commentInlineTarget={commentInlineTarget}
+          />
+        ) : null,
+      }}
+    />
   );
 
   if (!showContextMenu) {
@@ -404,6 +421,13 @@ export function ReviewPageCard({
       entity={entity}
       author={author}
       display={buildReviewPageCardDisplay()}
+      behavior={{
+        openReviewLink: false,
+        commentInlineTarget: {
+          targetId: "review-replies",
+          composerId: "review-reply-composer",
+        },
+      }}
       permissions={{ isAuthenticated, canManage }}
       viewer={viewer}
     />

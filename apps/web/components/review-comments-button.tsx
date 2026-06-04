@@ -34,6 +34,10 @@ type ReviewCommentsButtonProps = {
     display_name: string | null;
     avatar_url: string | null;
   } | null;
+  inlineTarget?: {
+    targetId: string;
+    composerId?: string;
+  } | null;
 };
 
 export default function ReviewCommentsButton({
@@ -42,6 +46,7 @@ export default function ReviewCommentsButton({
   isAuthenticated,
   analyticsSource = null,
   viewer = null,
+  inlineTarget = null,
 }: ReviewCommentsButtonProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -50,8 +55,31 @@ export default function ReviewCommentsButton({
     initialCount,
     enabled: open,
   });
+  const commentsDescription =
+    commentsCount > 0
+      ? `${commentsCount} ${commentsCount === 1 ? "reply" : "replies"}`
+      : "No replies yet";
 
   function handleTriggerClick() {
+    if (inlineTarget) {
+      const target = document.getElementById(inlineTarget.targetId);
+
+      target?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const composerId = inlineTarget.composerId;
+
+      if (isAuthenticated && composerId) {
+        window.requestAnimationFrame(() => {
+          document.getElementById(composerId)?.focus();
+        });
+      }
+
+      return;
+    }
+
     if (!isAuthenticated) {
       toastAuthRequired("comment");
       return;
@@ -79,8 +107,8 @@ export default function ReviewCommentsButton({
     <button
       type="button"
       onClick={handleTriggerClick}
-      aria-label={open ? "Close comments" : "Open comments"}
-      aria-expanded={open}
+      aria-label={inlineTarget ? "Reply to this review" : open ? "Close comments" : "Open comments"}
+      aria-expanded={inlineTarget ? undefined : open}
       className={cn(
         "inline-flex min-h-8 items-center gap-1 rounded-md border border-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-foreground/[0.055] hover:text-foreground active:scale-[0.96]",
         open && "text-foreground",
@@ -96,12 +124,10 @@ export default function ReviewCommentsButton({
       <>
         {trigger}
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent className="flex h-[88vh] max-h-[88vh] flex-col border-border/30">
-            <DrawerHeader className="border-b border-border/30 text-left">
+          <DrawerContent className="flex h-[88vh] max-h-[88vh] flex-col p-0 text-foreground before:inset-0 before:rounded-t-[1.35rem] before:border-x before:border-b-0 before:border-t before:border-border/36 before:bg-background">
+            <DrawerHeader className="border-b border-border/24 px-4 py-3 text-left">
               <DrawerTitle>Comments</DrawerTitle>
-              <DrawerDescription>
-                {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
-              </DrawerDescription>
+              <DrawerDescription>{commentsDescription}</DrawerDescription>
             </DrawerHeader>
             <ReviewCommentsPanel
               reviewId={reviewId}
@@ -124,13 +150,11 @@ export default function ReviewCommentsButton({
         <SheetContent
           side="right"
           showOverlay={false}
-          className="border-border/30 bg-background/95 p-0 supports-backdrop-filter:backdrop-blur-xl data-[side=right]:w-[min(21.5rem,calc(100vw-0.75rem))] data-[side=right]:rounded-l-[1.5rem] data-[side=right]:sm:max-w-[21.5rem]"
+          className="border-border/30 bg-background/98 p-0 shadow-none ring-0 supports-backdrop-filter:backdrop-blur-xl data-[side=right]:w-[min(24rem,calc(100vw-0.75rem))] data-[side=right]:rounded-none data-[side=right]:sm:max-w-[24rem]"
         >
-          <SheetHeader className="border-b border-border/30 px-4 py-4 pr-12">
+          <SheetHeader className="border-b border-border/24 px-4 py-3 pr-12">
             <SheetTitle>Comments</SheetTitle>
-            <SheetDescription>
-              {commentsCount} {commentsCount === 1 ? "comment" : "comments"}
-            </SheetDescription>
+            <SheetDescription>{commentsDescription}</SheetDescription>
           </SheetHeader>
           <ReviewCommentsPanel
             reviewId={reviewId}

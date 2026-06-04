@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import Link from "next/link";
 import { Star } from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import EntityCoverImage from "@/components/entity-cover-image";
@@ -44,6 +45,7 @@ export type ReviewCardDisplayOptions = {
   showEntity?: boolean;
   showRatingBadge?: boolean;
   entityMode?: "full" | "inline" | "cover";
+  entityHeadingLevel?: 1 | 2 | 3;
   eyebrow?: string;
   featured?: boolean;
   imagePriority?: boolean;
@@ -65,6 +67,7 @@ export type ReviewCardEntitySummaryProps = {
   className?: string;
   priority?: boolean;
   tone?: ReviewCardCopyTone;
+  headingLevel?: 1 | 2 | 3;
 };
 
 type ReviewCardProps = {
@@ -74,6 +77,8 @@ type ReviewCardProps = {
   display?: ReviewCardDisplayOptions;
   slots?: ReviewCardSlots;
   rootProps?: ComponentPropsWithoutRef<"article">;
+  reviewHref?: string | null;
+  reviewLinkLabel?: string;
 };
 
 function formatDate(value: string) {
@@ -106,12 +111,16 @@ export function ReviewCardEntitySummary({
   className,
   priority = false,
   tone = "default",
+  headingLevel,
 }: ReviewCardEntitySummaryProps) {
   if (!entity) {
     return null;
   }
 
   if (mode === "cover") {
+    const EntityTitle =
+      headingLevel === 1 ? "h1" : headingLevel === 2 ? "h2" : headingLevel === 3 ? "h3" : "p";
+
     return (
       <div
         className={cn(
@@ -119,7 +128,7 @@ export function ReviewCardEntitySummary({
           className,
         )}
       >
-        <p
+        <EntityTitle
           className={cn(
             "line-clamp-2 font-serif font-semibold tracking-normal text-foreground",
             tone === "balanced"
@@ -128,7 +137,7 @@ export function ReviewCardEntitySummary({
           )}
         >
           {entity.title}
-        </p>
+        </EntityTitle>
         <p
           className={cn(
             "line-clamp-1 text-muted-foreground/88",
@@ -229,12 +238,15 @@ export default function ReviewCard({
   display,
   slots,
   rootProps,
+  reviewHref = null,
+  reviewLinkLabel = "Open review",
 }: ReviewCardProps) {
   const {
     showAuthor = true,
     showEntity = true,
     showRatingBadge = true,
     entityMode = "full",
+    entityHeadingLevel,
     eyebrow,
     featured = false,
     bodyClampLines,
@@ -252,11 +264,20 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "kocteau-review-card overflow-hidden rounded-[var(--kocteau-radius-card)]",
+        "kocteau-review-card relative isolate overflow-hidden rounded-[var(--kocteau-radius-card)]",
+        reviewHref && "cursor-pointer",
         featured && "kocteau-review-card-featured",
         className,
       )}
     >
+      {reviewHref ? (
+        <Link
+          href={reviewHref}
+          aria-label={reviewLinkLabel}
+          className="absolute inset-0 z-[1] rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-ring/38 focus-visible:ring-inset"
+        />
+      ) : null}
+
       <div className="space-y-3.5 p-3.5 sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
@@ -304,7 +325,11 @@ export default function ReviewCard({
                   {review.rating.toFixed(1)}
                 </div>
               ) : null}
-              {headerActions}
+              {headerActions ? (
+                <div data-prevent-review-link="true" className="relative z-[2] flex items-center">
+                  {headerActions}
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -321,7 +346,14 @@ export default function ReviewCard({
             </div>
 
             <div className={cn("min-w-0 self-start", usesBalancedCopy ? "space-y-2.5" : "space-y-3")}>
-              {slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode="cover" tone={copyTone} />}
+              {slots?.entity ?? (
+                <ReviewCardEntitySummary
+                  entity={entity}
+                  mode="cover"
+                  tone={copyTone}
+                  headingLevel={entityHeadingLevel}
+                />
+              )}
 
               {hasTitle ? (
                 <h3
@@ -377,7 +409,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="flex items-center justify-between gap-3 pt-0.5"
+            className="relative z-[2] flex items-center justify-between gap-3 pt-0.5"
           >
             {footer}
           </div>

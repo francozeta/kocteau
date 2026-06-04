@@ -67,7 +67,7 @@ export default function ReviewCardBody({
       {canToggle ? (
         <button
           aria-expanded={expanded}
-          className="inline-flex h-8 items-center rounded-[0.48rem] pr-2 text-[12.5px] font-medium text-muted-foreground/82 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+          className="relative z-[2] inline-flex h-8 items-center rounded-[0.48rem] pr-2 text-[12.5px] font-medium text-muted-foreground/82 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
           data-prevent-review-link="true"
           onClick={(event) => {
             event.preventDefault();

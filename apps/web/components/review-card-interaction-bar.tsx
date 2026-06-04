@@ -11,6 +11,10 @@ type ReviewCardInteractionBarProps = {
   isAuthenticated?: boolean;
   bookmarkButtonRef?: Ref<HTMLButtonElement>;
   analyticsSource?: string | null;
+  commentInlineTarget?: {
+    targetId: string;
+    composerId?: string;
+  } | null;
   viewer?: {
     id: string;
     username: string;
@@ -24,6 +28,7 @@ export default function ReviewCardInteractionBar({
   isAuthenticated = false,
   bookmarkButtonRef,
   analyticsSource = null,
+  commentInlineTarget = null,
   viewer = null,
 }: ReviewCardInteractionBarProps) {
   return (
@@ -41,6 +46,7 @@ export default function ReviewCardInteractionBar({
         isAuthenticated={isAuthenticated}
         analyticsSource={analyticsSource}
         viewer={viewer}
+        inlineTarget={commentInlineTarget}
       />
       <ReviewBookmarkButton
         reviewId={review.id}
