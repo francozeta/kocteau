@@ -218,7 +218,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
             {customRailContent}
           </div>
         ) : !isStudioRoute ? (
-          <section className="min-h-[11.25rem] space-y-3 overflow-hidden" aria-label="Writers to notice">
+          <section className="min-h-[13.6rem] space-y-3" aria-label="Writers to notice">
             <p className="px-1 text-[12px] font-medium leading-none text-muted-foreground/70">
               Writers to notice
             </p>
@@ -286,7 +286,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
         )}
 
         {showStarterRail ? (
-          <section className="mt-6 min-h-[12.25rem] space-y-3" aria-label="Starter picks">
+          <section className="mt-auto min-h-[12.25rem] shrink-0 space-y-3 pt-8" aria-label="Starter picks">
             <p className="px-1 text-[12px] font-medium leading-none text-muted-foreground/70">
               Starter picks
             </p>
@@ -313,7 +313,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
           </section>
         ) : null}
 
-        <footer className="mt-5 px-1 pb-8 pt-1 text-[11px] leading-5 text-muted-foreground/52">
+        <footer className="mt-4 px-1 pb-8 pt-1 text-[11px] leading-5 text-muted-foreground/52">
           <div className="flex flex-wrap gap-x-2 gap-y-0.5">
             {railFooterLinks.map((link) => {
               const isExternal = link.href.startsWith("http");

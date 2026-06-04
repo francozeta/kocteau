@@ -42,19 +42,6 @@ export type ViewerReview = {
 };
 
 const publicReviewLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
-const ownedSidebarReviewLoaders = new Map<string, () => Promise<OwnedSidebarReview[]>>();
-
-export type OwnedSidebarReview = {
-  id: string;
-  title: string | null;
-  body: string | null;
-  rating: number;
-  likes_count?: number | null;
-  comments_count?: number | null;
-  created_at: string;
-  is_pinned?: boolean;
-  entities: ReviewPageEntity | null;
-};
 
 function normalizeReviewPageReview(review: ReviewPageReview): ReviewPageReview {
   return {
@@ -65,7 +52,7 @@ function normalizeReviewPageReview(review: ReviewPageReview): ReviewPageReview {
 }
 
 function logQueryFallbackError(
-  scope: "getOwnedSidebarReviews" | "getViewerReview",
+  scope: "getViewerReview",
   error: {
     code?: string | null;
     message?: string | null;
@@ -162,69 +149,6 @@ export async function getReviewPageBundle(
     review,
     ...viewerState,
   };
-}
-
-export async function getOwnedSidebarReviews(
-  authorId: string,
-  limit = 4,
-): Promise<OwnedSidebarReview[]> {
-  return getOrCreateLoader(
-    ownedSidebarReviewLoaders,
-    ["owned-sidebar-reviews", authorId, limit],
-    () =>
-      unstable_cache(
-        async () =>
-          measureServerTask(
-            "getOwnedSidebarReviews",
-            async () => {
-              const supabase = supabasePublic();
-              const { data, error } = await supabase
-                .from("reviews")
-                .select(`
-                  id,
-                  title,
-                  body,
-                  rating,
-                  is_pinned,
-                  created_at,
-                  entities (
-                    id,
-                    provider,
-                    provider_id,
-                    type,
-                    title,
-                    artist_name,
-                    cover_url,
-                    deezer_url
-                  )
-                `)
-                .eq("author_id", authorId)
-                .order("created_at", { ascending: false })
-                .limit(limit);
-
-              if (error) {
-                logQueryFallbackError("getOwnedSidebarReviews", error, {
-                  authorId,
-                  limit,
-                });
-                return [] satisfies OwnedSidebarReview[];
-              }
-
-              return ((data as OwnedSidebarReview[] | null) ?? []).map((review) => ({
-                ...review,
-                is_pinned: Boolean(review.is_pinned),
-                entities: normalizeRelation(review.entities),
-              }));
-            },
-            { authorId, limit },
-          ),
-        ["owned-sidebar-reviews", authorId, String(limit)],
-        {
-          revalidate: 60,
-          tags: ["reviews", `profile:${authorId}:reviews`, `owned-sidebar-reviews:${authorId}:${limit}`],
-        },
-      ),
-  )();
 }
 
 export async function getViewerReview(
