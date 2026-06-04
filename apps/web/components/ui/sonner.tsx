@@ -1,16 +1,28 @@
 "use client"
 
+import type { CSSProperties } from "react"
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { IconCircleCheck, IconInfoCircle, IconAlertTriangle, IconAlertOctagon, IconLoader } from "@/components/ui/icons"
+import { IconCircleCheck, IconInfoCircle, IconAlertTriangle, IconAlertOctagon } from "@/components/ui/icons"
+import { Spinner } from "@/components/ui/spinner"
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({
+  position = "bottom-center",
+  offset = { bottom: "1.25rem" },
+  mobileOffset = { bottom: "calc(env(safe-area-inset-bottom) + 6.35rem)" },
+  ...props
+}: ToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group"
+      className="kocteau-toaster group"
+      position={position}
+      offset={offset}
+      mobileOffset={mobileOffset}
+      gap={8}
+      visibleToasts={3}
       icons={{
         success: (
           <IconCircleCheck className="size-4" />
@@ -25,20 +37,33 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <IconAlertOctagon className="size-4" />
         ),
         loading: (
-          <IconLoader className="size-4 animate-spin" />
+          <Spinner className="size-4" />
         ),
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
+          "--width": "20rem",
+          "--normal-bg": "color-mix(in oklch, var(--kocteau-surface) 88%, black)",
+          "--normal-text": "var(--foreground)",
+          "--normal-border": "var(--kocteau-line)",
+          "--border-radius": "999px",
+        } as CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "kocteau-toast",
+          title: "kocteau-toast-title",
+          description: "kocteau-toast-description",
+          icon: "kocteau-toast-icon",
+          actionButton: "kocteau-toast-action",
+          cancelButton: "kocteau-toast-cancel",
+          closeButton: "kocteau-toast-close",
+          default: "kocteau-toast-default",
+          success: "kocteau-toast-success",
+          info: "kocteau-toast-info",
+          warning: "kocteau-toast-warning",
+          error: "kocteau-toast-error",
+          loading: "kocteau-toast-loading",
         },
       }}
       {...props}
