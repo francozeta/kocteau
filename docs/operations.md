@@ -175,6 +175,8 @@ Apply `supabase/migrations/20260601211257_starter_tag_taxonomy.sql` when Starter
 
 Use `supabase/scripts/maintenance/starter-tag-coverage-check.sql` to find preference tags with no active starter picks. Zero coverage is not a database error; it means the vocabulary exists before the curated catalog has caught up.
 
+Use `supabase/scripts/maintenance/starter-curation-readiness-audit.sql` before assisted starter metadata work. It is read-only and reports active starter picks missing prompts, editorial notes, `era`, `format`, or broader taste tags. Treat `genre` suggestions as human-reviewed taxonomy; prompts, editorial notes, moods, scenes, styles, eras, and formats are safer candidates for assisted drafting.
+
 The easiest way to seed starter picks is the internal route:
 
 ```text
