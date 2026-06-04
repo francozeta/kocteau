@@ -3,11 +3,13 @@ import { Music2 } from "@/components/ui/icons";
 import { notFound, redirect } from "next/navigation";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
 import TrackPageHero from "@/components/track-page-hero";
+import TrackMoreToHear from "@/components/track-more-to-hear";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { getCurrentUser } from "@/lib/auth/server";
 import { getDeezerTrack } from "@/lib/deezer";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import { findEntityByProvider } from "@/lib/queries/entities";
+import { getTrackRecommendations } from "@/lib/queries/track-recommendations";
 
 export async function generateMetadata({
   params,
@@ -57,6 +59,13 @@ export default async function DeezerTrackResolverPage({
     notFound();
   }
 
+  const recommendations = await getTrackRecommendations({
+    currentProviderId: track.provider_id,
+    title: track.title,
+    artistName: track.artist_name,
+    limit: 18,
+  });
+
   return (
     <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
       <TrackPageHeaderBridge
@@ -79,6 +88,8 @@ export default async function DeezerTrackResolverPage({
         isAuthenticated={Boolean(user)}
         viewerReview={null}
       />
+
+      <TrackMoreToHear groups={recommendations} />
 
       <Empty className="rounded-[1.45rem] border-border/28 bg-card/20 px-6 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
         <EmptyHeader>

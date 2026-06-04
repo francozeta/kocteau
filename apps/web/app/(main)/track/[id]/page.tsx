@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
 import TrackPageHero from "@/components/track-page-hero";
+import TrackMoreToHear from "@/components/track-more-to-hear";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { TrackReviewCard } from "@/components/review-route-cards-server";
 import { getCurrentUser } from "@/lib/auth/server";
@@ -14,6 +15,7 @@ import {
   getTrackPublicBundle,
   getTrackViewerState,
 } from "@/lib/queries/entities";
+import { getTrackRecommendations } from "@/lib/queries/track-recommendations";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildTrackPageJsonLd } from "@/lib/structured-data";
 import { trackKeys } from "@/queries/tracks";
@@ -83,6 +85,14 @@ export default async function TrackPage({
   queryClient.setQueryData(trackKeys.detail(id), trackData);
 
   const { entity, reviews: trackReviews } = trackData;
+  const recommendations = await getTrackRecommendations({
+    currentEntityId: entity.id,
+    currentProviderId: entity.provider_id,
+    title: entity.title,
+    artistName: entity.artist_name,
+    tags: trackData.tags,
+    limit: 18,
+  });
   const { viewerReviewId } = trackData;
   const viewerReview =
     viewerReviewId
@@ -150,6 +160,8 @@ export default async function TrackPage({
           }
           shouldOpenViewerEditor={shouldOpenViewerEditor}
         />
+
+        <TrackMoreToHear groups={recommendations} />
 
         <div className="space-y-4">
 
