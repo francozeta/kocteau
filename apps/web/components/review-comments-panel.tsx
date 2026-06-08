@@ -306,7 +306,7 @@ export default function ReviewCommentsPanel({
         scale: composerIsMultiline && !shouldReduceMotion ? 1.004 : 1,
       }}
       className={cn(
-        "flex items-end gap-2 border border-border/42 bg-muted/58 px-2 py-2 transition-[background-color,border-color,box-shadow] duration-100 ease-out focus-within:border-white/32 focus-within:bg-muted/72 focus-within:shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_0_0_4px_rgba(255,255,255,0.035)] md:border-border/34 md:bg-muted/48 md:focus-within:border-white/34",
+        "flex items-end gap-2 border border-border/42 bg-muted/58 px-2 py-2 transition-[border-color] duration-100 ease-out focus-within:border-white/42 md:border-border/34 md:bg-muted/48 md:focus-within:border-white/42",
         !isInline && "w-full",
       )}
       initial={false}
