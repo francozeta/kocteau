@@ -83,7 +83,7 @@ export default function NotificationsInbox({
             </EmptyMedia>
             <EmptyTitle>No notifications yet</EmptyTitle>
             <EmptyDescription>
-              New replies, follows, and review activity will appear here.
+              New likes and replies to your reviews will appear here.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

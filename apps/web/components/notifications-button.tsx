@@ -185,7 +185,7 @@ export default function NotificationsButton({
                   No notifications yet
                 </p>
                 <p className="max-w-[16rem] text-[11px] text-sidebar-foreground/58 text-balance">
-                  New replies, follows, and review activity will appear here.
+                  New likes and replies to your reviews will appear here.
                 </p>
               </div>
             )}
