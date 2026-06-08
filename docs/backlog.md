@@ -56,20 +56,34 @@ These are the next useful moves after enabling public contribution.
 | P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | done | `feature`, `area:web`, `area:ui` |
 | P0 | Fix mobile toast placement so feedback is centered and clears the bottom navigation. | ready | `fix`, `area:web`, `area:ui` |
 | P1 | Harden Deezer-backed search with retry, clearer empty/error copy, and non-blocking fallbacks. | done | `fix`, `area:web`, `area:search` |
-| P1 | Open 6-10 curated GitHub issues from this backlog before broader public sharing. | ready | `docs`, `help wanted` |
+| P1 | Open 6-10 curated GitHub issues from this backlog before broader public sharing. | done | `docs`, `help wanted` |
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
-| P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | ready | `docs`, `area:recommendations`, `needs maintainer decision` |
+| P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | done | `docs`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
-| P1 | Add a mobile social discovery carousel near review detail pages. | needs design | `feature`, `area:web`, `area:ui` |
-| P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design | `feature`, `area:web`, `area:recommendations` |
-| P1 | Explore a compact feed view for scanning more reviews without replacing the editorial default. | needs design | `feature`, `area:web`, `area:ui` |
+| P1 | Add a mobile social discovery carousel near review detail pages. | needs design ([#90](https://github.com/francozeta/kocteau/issues/90)) | `feature`, `area:web`, `area:ui` |
+| P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design ([#89](https://github.com/francozeta/kocteau/issues/89)) | `feature`, `area:web`, `area:recommendations` |
+| P1 | Explore a compact feed view for scanning more reviews without replacing the editorial default. | needs design ([#91](https://github.com/francozeta/kocteau/issues/91)) | `feature`, `area:web`, `area:ui` |
 | P1 | Emit real review read-depth analytics from the For You feed. | done | `fix`, `area:web`, `area:analytics`, `area:recommendations` |
 | P1 | Add a top-rated feed index for `rating DESC, created_at DESC, id DESC`. | done | `chore`, `area:supabase`, `area:performance` |
 | P1 | Remove generated orphan components from `apps/web/components`. | done | `chore`, `area:web`, `area:maintenance` |
-| P2 | Expand Kocteau-first search to artists, albums, users, and categories. | needs design | `feature`, `area:web`, `area:search`, `area:recommendations` |
+| P2 | Expand Kocteau-first search to artists, albums, users, and categories. | needs design ([#88](https://github.com/francozeta/kocteau/issues/88)) | `feature`, `area:web`, `area:search`, `area:recommendations` |
 | P2 | Tune recommendation reason precedence so social follows are not hidden by weak entity taste matches. | needs baseline | `feature`, `area:supabase`, `area:recommendations`, `area:analytics` |
 | P1 | Keep branch protection advisory until the first public PRs prove the flow. | needs maintainer decision | `chore`, `area:ci` |
 | P2 | Enable `Verify` as a required status check after 1-2 stable contribution weeks. | needs maintainer decision | `chore`, `area:ci` |
+
+### Public Contributor Issues
+
+Open backlog issues contributors can pick up:
+
+- [#84 docs: document screenshot expectations for visual PRs](https://github.com/francozeta/kocteau/issues/84)
+- [#85 docs: add examples to the discovery signal contract](https://github.com/francozeta/kocteau/issues/85)
+- [#86 fix(web): polish empty states across saved reviews and notifications](https://github.com/francozeta/kocteau/issues/86)
+- [#87 fix(web): tighten loading states for core web surfaces](https://github.com/francozeta/kocteau/issues/87)
+- [#88 feat(web): expand Kocteau-first search to artists albums users and categories](https://github.com/francozeta/kocteau/issues/88)
+- [#89 feat(web): design a listener-facing candidate finder for similar songs](https://github.com/francozeta/kocteau/issues/89)
+- [#90 feat(web): add a mobile social discovery module near review pages](https://github.com/francozeta/kocteau/issues/90)
+- [#91 feat(web): explore a compact feed view](https://github.com/francozeta/kocteau/issues/91)
+- [#92 feat(web): evaluate contextual starter rail diversity](https://github.com/francozeta/kocteau/issues/92)
 
 ## Ready for First Contributors
 
@@ -94,6 +108,8 @@ Acceptance criteria:
 
 Suggested issue: `docs: document screenshot expectations for visual PRs`
 
+GitHub issue: [#84](https://github.com/francozeta/kocteau/issues/84)
+
 - Add a short guide for before/after screenshots or recordings.
 - Include examples for desktop and narrow/mobile viewports.
 - Keep it lightweight, not bureaucratic.
@@ -109,6 +125,8 @@ Acceptance criteria:
 
 Suggested issue: `fix(web): polish empty states across saved reviews and notifications`
 
+GitHub issue: [#86](https://github.com/francozeta/kocteau/issues/86)
+
 - Review empty states for saved reviews, notifications, profile reviews, and search results.
 - Improve copy and visual hierarchy without changing data behavior.
 - Avoid touching auth, Supabase, or recommendation logic.
@@ -123,6 +141,8 @@ Acceptance criteria:
 ### Loading State Audit
 
 Suggested issue: `fix(web): tighten loading states for core web surfaces`
+
+GitHub issue: [#87](https://github.com/francozeta/kocteau/issues/87)
 
 - Review skeletons, spinners, and pending UI on feed, search, track, profile, and notifications.
 - Keep dimensions stable so content does not jump when loaded.
@@ -167,6 +187,8 @@ Acceptance criteria:
 ### Discovery Documentation Examples
 
 Suggested issue: `docs: add examples to the discovery signal contract`
+
+GitHub issue: [#85](https://github.com/francozeta/kocteau/issues/85)
 
 - Expand `docs/discovery-curation.md` with 2-3 concrete examples of analytics event payloads.
 - Include examples for a For You review impression, a starter pick pass, and a review read-depth event.
@@ -241,6 +263,8 @@ Acceptance criteria:
 
 Suggested issue: `feat(search): add Kocteau-first unified search`
 
+GitHub issue: [#88](https://github.com/francozeta/kocteau/issues/88)
+
 State: `partial done`. Track search now goes through a Kocteau-first API that merges local entities, starter picks, Deezer artist matches, and Deezer track fallback before ranking results. The current implementation fixes trend-biased false positives such as a song titled like an artist before the intended artist.
 
 - Done in V1:
@@ -295,6 +319,8 @@ Acceptance criteria:
 ### Listener Candidate Finder V0
 
 Suggested issue: `feat(web): add curated similar-track finder`
+
+GitHub issue: [#89](https://github.com/francozeta/kocteau/issues/89)
 
 State: `needs design`. This is the user-facing counterpart to Starter Studio's candidate finder. Instead of asking a visitor to trust a black-box recommendation, Kocteau should let them start from a track, artist, review, or taste signal and browse curated candidates with clear reasons.
 
@@ -356,6 +382,8 @@ Acceptance criteria:
 ### Review Route Interaction V0
 
 Suggested issue: `feat(web): make review detail pages easier to open and reply to`
+
+Related GitHub issue: [#90](https://github.com/francozeta/kocteau/issues/90)
 
 - Make review cards navigate to `/review/[id]` from the main readable surface.
 - Keep nested controls isolated so like, bookmark, comment, menu, and profile links do not trigger review navigation accidentally.
@@ -457,6 +485,8 @@ Acceptance criteria:
 ### Compact Feed View
 
 Suggested issue: `feat(web): explore a compact feed view`
+
+GitHub issue: [#91](https://github.com/francozeta/kocteau/issues/91)
 
 State: `needs design`. Some users may want to scan more reviews per viewport, but the default should remain editorial and review-led.
 
@@ -605,6 +635,8 @@ Acceptance criteria:
 ### Starter Rail Diversity Follow-Up
 
 Suggested issue: `feat(web): evaluate contextual starter rail diversity`
+
+GitHub issue: [#92](https://github.com/francozeta/kocteau/issues/92)
 
 - Review the contextual starter rail across home, profile, track, saved, and Studio surfaces after `get_starter_tracks_for_surface()` is live.
 - Compare SQL editor checks, production logs, and screenshots from desktop/narrow viewports.
