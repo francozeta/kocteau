@@ -67,7 +67,7 @@ export default async function SavedReviewsPage() {
               <Bookmark className="size-4" />
             </EmptyMedia>
             <EmptyTitle>No saved reviews yet</EmptyTitle>
-            <EmptyDescription>Save a review to keep it here.</EmptyDescription>
+            <EmptyDescription>Save reviews you want to revisit.</EmptyDescription>
           </EmptyHeader>
           <CardContent className="p-0 pt-2">
             <PrefetchLink

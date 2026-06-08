@@ -184,6 +184,9 @@ export default function NotificationsButton({
                 <p className="text-[13px] font-medium text-sidebar-foreground">
                   No notifications yet
                 </p>
+                <p className="max-w-[16rem] text-[11px] text-sidebar-foreground/58 text-balance">
+                  New likes and replies to your reviews will appear here.
+                </p>
               </div>
             )}
           </div>

@@ -745,6 +745,9 @@ export default function SearchPageClient({
                       <Music2 className="size-4" />
                     </EmptyMedia>
                     <EmptyTitle>No tracks yet</EmptyTitle>
+                    <EmptyDescription>
+                      New reviews will surface here as the community grows.
+                    </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               )}
