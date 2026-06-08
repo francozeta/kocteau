@@ -1,6 +1,61 @@
-# Kocteau
+<p align="center">
+  <img src="./apps/web/public/logo.svg" width="88" alt="Kocteau logo" />
+</p>
 
-Kocteau is a social music app for reviews, taste discovery, and human-led recommendations. The current product loop is simple: enter with email OTP, complete a profile, choose initial taste signals, review music, and discover new reviews through a personalized For You feed.
+<h1 align="center">Kocteau</h1>
+
+<p align="center">
+  Music reviews by real listeners. Human taste, quiet discovery, and editorial starter picks.
+</p>
+
+<p align="center">
+  <a href="./LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-f5f5f5?style=flat-square&labelColor=111111" /></a>
+  <a href="https://nextjs.org"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs&logoColor=white" /></a>
+  <a href="https://supabase.com"><img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-3FCF8E?style=flat-square&logo=supabase&logoColor=white&labelColor=111111" /></a>
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-typed-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=111111" />
+  <a href="https://github.com/francozeta/kocteau/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/francozeta/kocteau?style=flat-square&label=contributors&labelColor=111111&color=f5f5f5" /></a>
+  <a href="https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22"><img alt="Good first issues" src="https://img.shields.io/github/issues/francozeta/kocteau/good%20first%20issue?style=flat-square&label=good%20first%20issues&labelColor=111111&color=f5f5f5" /></a>
+</p>
+
+<p align="center">
+  <a href="https://kocteau.com">Website</a>
+  ·
+  <a href="./CONTRIBUTING.md">Contributing</a>
+  ·
+  <a href="./docs/backlog.md">Backlog</a>
+  ·
+  <a href="https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22">Good first issues</a>
+  ·
+  <a href="./docs/README.md">Docs</a>
+</p>
+
+<p align="center">
+  <img src="./apps/web/public/og/kocteau.webp" alt="Kocteau preview: Music reviews by real listeners" width="100%" />
+</p>
+
+Kocteau is an open-source music review and taste discovery app. The current product loop is simple: enter with email OTP, complete a profile, choose initial taste signals, review music, and discover new reviews through a personalized For You feed.
+
+## Start Here
+
+| If you want to... | Go here |
+| --- | --- |
+| Try the app | [kocteau.com](https://kocteau.com) |
+| Make a first contribution | [Good first issues](https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22) |
+| Understand the product direction | [docs/web-roadmap.md](./docs/web-roadmap.md) |
+| Read the contributor guide | [CONTRIBUTING.md](./CONTRIBUTING.md) |
+| Browse the public backlog | [docs/backlog.md](./docs/backlog.md) |
+
+## First Contribution Path
+
+Good first PRs are usually docs, copy, accessibility, empty states, loading states, or small web UI polish.
+
+1. Pick a scoped issue from [good first issues](https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22) or [help wanted](https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22help%20wanted%22).
+2. Read [CONTRIBUTING.md](./CONTRIBUTING.md).
+3. Run the local web app with the local Supabase stack.
+4. Keep the PR focused and include screenshots for visible UI changes.
+5. Run the checks listed below before opening the PR.
+
+Ask before starting work that touches auth, Supabase, recommendations, analytics, CI, release behavior, or production credentials.
 
 ## Current Status
 
@@ -247,7 +302,9 @@ Maintainer and craft docs:
 
 Kocteau is open to public contributions, with a web-first focus for now. Good first contributions include docs, copy, accessibility, loading states, empty states, and small web UI polish.
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR. The public backlog in [docs/backlog.md](./docs/backlog.md) lists near-term work that can be turned into issues. Contributors do not need to edit `CHANGELOG.md`; Release Please generates version bumps, release notes, tags, and GitHub Releases from PR titles and squash commits.
+Start with [good first issues](https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22), [help wanted](https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22help%20wanted%22), or the public [backlog](./docs/backlog.md). Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR.
+
+Contributors do not need to edit `CHANGELOG.md`; Release Please generates version bumps, release notes, tags, and GitHub Releases from PR titles and squash commits.
 
 ## Current Product Direction
 
