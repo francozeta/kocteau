@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <img src="./apps/web/public/og/kocteau.webp" alt="Kocteau preview: Music reviews by real listeners" width="100%" />
+  <img src="./docs/assets/kocteau-production-readme-preview.png" alt="Kocteau production preview: feed, reviews, and discovery rail" width="100%" />
 </p>
 
 Kocteau is an open-source music review and taste discovery app. The current product loop is simple: enter with email OTP, complete a profile, choose initial taste signals, review music, and discover new reviews through a personalized For You feed.
