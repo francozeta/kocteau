@@ -201,7 +201,11 @@ export default async function UserProfilePage({
             <Empty className="rounded-[1.65rem] border-border/32 bg-card/24 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/20 md:bg-card/18">
               <EmptyHeader>
                 <EmptyTitle>No reviews yet</EmptyTitle>
-                <EmptyDescription>Nothing here yet.</EmptyDescription>
+                <EmptyDescription>
+                  {isOwnProfile
+                    ? "When you review tracks, they'll show up here."
+                    : "This listener hasn't published any reviews yet."}
+                </EmptyDescription>
               </EmptyHeader>
             </Empty>
         ) : null}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { PencilLine } from "@/components/ui/icons";
 import FollowProfileButton from "@/components/follow-profile-button";
 import { WhoToFollowRailSkeleton } from "@/components/feed-loading-skeletons";
 import NewReviewDialog from "@/components/new-review-dialog";
@@ -276,8 +277,16 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
                 })}
               </div>
             ) : (
-              <div className="px-1 py-3 text-[13px] text-muted-foreground/78">
-                No writers to notice yet.
+              <div className="flex flex-col items-center gap-2 px-1 py-6 text-center">
+                <span className="flex size-8 items-center justify-center rounded-full bg-muted/50 text-muted-foreground/70">
+                  <PencilLine className="size-4" />
+                </span>
+                <p className="text-[13px] font-medium text-foreground/80">
+                  No writers to notice yet
+                </p>
+                <p className="max-w-[14rem] text-[11px] leading-relaxed text-muted-foreground/60 text-balance">
+                  Active reviewers will appear here as the community grows.
+                </p>
               </div>
             )}
           </section>
