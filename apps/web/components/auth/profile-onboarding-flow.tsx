@@ -74,7 +74,7 @@ const profileSteps = [
     id: "avatar",
     section: "Profile",
     title: "Choose a profile image.",
-    description: "Use a photo or a Kocteau disc.",
+    description: "Pick a disc, or upload a photo.",
   },
   {
     id: "bio",
@@ -83,6 +83,11 @@ const profileSteps = [
     description: "Optional. Add one line now, or leave it for later.",
   },
 ] as const satisfies ProfileStep[];
+
+const onboardingFocusVisibleClass =
+  "focus-visible:border-white/42 focus-visible:ring-0 focus-visible:shadow-none";
+const onboardingFocusWithinClass =
+  "focus-within:border-white/42 focus-within:ring-0 focus-within:shadow-none";
 
 function normalizeUsername(value: string) {
   return value
@@ -548,14 +553,22 @@ function renderProfileStepControl({
           clearStepErrors();
         }}
         placeholder="Fran Cocteau"
-        className="h-11 w-full rounded-[var(--kocteau-radius-control)] border-0 bg-[var(--kocteau-surface-control)] px-4 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-ring/30"
+        className={cn(
+          "h-11 w-full rounded-[var(--kocteau-radius-control)] border border-transparent bg-[var(--kocteau-surface-control)] px-4 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55",
+          onboardingFocusVisibleClass,
+        )}
       />
     );
   }
 
   if (stepId === "handle") {
     return (
-      <div className="flex h-11 w-full items-center rounded-[var(--kocteau-radius-control)] bg-[var(--kocteau-surface-control)] px-4 shadow-[var(--kocteau-shadow-control)] focus-within:ring-2 focus-within:ring-ring/30">
+      <div
+        className={cn(
+          "flex h-11 w-full items-center rounded-[var(--kocteau-radius-control)] border border-transparent bg-[var(--kocteau-surface-control)] px-4 shadow-[var(--kocteau-shadow-control)]",
+          onboardingFocusWithinClass,
+        )}
+      >
         <span className="select-none text-base text-muted-foreground">@</span>
         <input
           autoFocus
@@ -596,7 +609,10 @@ function renderProfileStepControl({
         clearStepErrors();
       }}
       placeholder="Dream pop, noisy guitars, late-night pop records."
-      className="min-h-28 w-full resize-none rounded-[var(--kocteau-radius-control)] border-0 bg-[var(--kocteau-surface-control)] p-4 text-base leading-6 shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-ring/30"
+      className={cn(
+        "min-h-28 w-full resize-none rounded-[var(--kocteau-radius-control)] border border-transparent bg-[var(--kocteau-surface-control)] p-4 text-base leading-6 shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55",
+        onboardingFocusVisibleClass,
+      )}
     />
   );
 }
@@ -636,8 +652,9 @@ function ProfileAvatarControl({
           onDragOver={onAvatarDragOver}
           onDrop={onAvatarDrop}
           className={cn(
-            "group relative flex size-28 cursor-pointer items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] p-1.5 shadow-[var(--kocteau-shadow-control),0_14px_42px_rgba(0,0,0,0.22)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:shadow-[var(--kocteau-shadow-card-hover),0_18px_52px_rgba(0,0,0,0.28)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
-            isDragging && "bg-[var(--kocteau-surface-control-hover)] ring-2 ring-ring/35",
+            "group relative flex size-28 cursor-pointer items-center justify-center rounded-full border border-transparent bg-[var(--kocteau-surface-control)] p-1.5 transition-[background-color,border-color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
+            onboardingFocusVisibleClass,
+            isDragging && "border-white/42 bg-[var(--kocteau-surface-control-hover)]",
           )}
         >
           <span className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-background outline outline-1 outline-white/10">
@@ -660,7 +677,8 @@ function ProfileAvatarControl({
           aria-expanded={isDiscPickerOpen}
           onClick={() => setIsDiscPickerOpen((open) => !open)}
           className={cn(
-            "absolute -right-1 bottom-1 flex size-9 items-center justify-center rounded-full bg-background text-foreground shadow-[0_0_0_3px_var(--background),var(--kocteau-shadow-card-hover)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+            "absolute -right-1 bottom-1 flex size-9 items-center justify-center rounded-full border border-transparent bg-background text-foreground ring-4 ring-background transition-[background-color,border-color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
+            onboardingFocusVisibleClass,
             isDiscPickerOpen && "bg-foreground text-background",
           )}
         >
@@ -689,7 +707,8 @@ function ProfileAvatarControl({
                     setIsDiscPickerOpen(false);
                   }}
                   className={cn(
-                    "group relative flex aspect-square min-h-[4rem] items-center justify-center rounded-[0.85rem] bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                    "group relative flex aspect-square min-h-[4rem] items-center justify-center rounded-[0.85rem] border border-transparent bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
+                    onboardingFocusVisibleClass,
                     isSelected &&
                       "bg-[var(--kocteau-surface-featured)] shadow-[var(--kocteau-shadow-card-hover)]",
                   )}

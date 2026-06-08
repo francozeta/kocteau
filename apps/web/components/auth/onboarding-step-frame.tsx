@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import type { FormEvent, ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowLeft } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
+import { OnboardingProgressBar } from "@/components/auth/onboarding-progress-bar";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -45,51 +45,28 @@ export default function OnboardingStepFrame({
   submitDisabled = false,
   submitLoading = false,
   submitIcon,
-  compact = false,
   controlClassName,
   panelClassName,
   liveMessage,
 }: OnboardingStepFrameProps) {
   const prefersReducedMotion = useReducedMotion();
   const progress = (currentStep / totalSteps) * 100;
+  const canGoBack = Boolean(onBack) && !backDisabled && !submitLoading;
 
   return (
-    <main className="flex h-svh overflow-hidden flex-col bg-background text-foreground">
+    <main className="relative isolate flex h-svh overflow-hidden flex-col bg-background text-foreground">
+      <OnboardingProgressBar value={progress} />
       <header
         className={cn(
-          "mx-auto flex w-full max-w-[32rem] shrink-0 flex-col px-5 sm:px-8",
-          compact ? "gap-2 pt-3 sm:pt-4" : "gap-3 pt-4 sm:pt-6",
+          "relative z-10 mx-auto flex w-full max-w-[31rem] shrink-0 flex-col px-5 sm:px-8",
+          "pt-5 sm:pt-6",
         )}
       >
         <div className="flex justify-center">
-          <Link
-            href="/"
-            className="inline-flex h-8 w-8 items-center justify-center text-foreground transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-            aria-label="Go to Kocteau home"
-          >
+          <div className="inline-flex h-8 w-8 items-center justify-center text-foreground">
             <BrandLogo
               priority
-              iconClassName={compact ? "h-[1.05rem] w-[1.05rem]" : "h-[1.35rem] w-[1.35rem]"}
-            />
-          </Link>
-        </div>
-
-        <div className={compact ? "space-y-2" : "space-y-3"}>
-          <div
-            className={cn(
-              "flex items-end justify-between gap-4",
-              compact ? "text-[12px]" : "text-sm",
-            )}
-          >
-            <span className="font-medium text-foreground">{section}</span>
-            <span className="tabular-nums text-muted-foreground">
-              {currentStep} / {totalSteps}
-            </span>
-          </div>
-          <div className="h-px overflow-hidden bg-border/45" aria-hidden="true">
-            <div
-              className="h-full bg-foreground transition-[width] duration-200 ease-out"
-              style={{ width: `${progress}%` }}
+              iconClassName="h-[1.35rem] w-[1.35rem]"
             />
           </div>
         </div>
@@ -102,7 +79,7 @@ export default function OnboardingStepFrame({
         <section
           className={cn(
             "flex min-h-0 items-center justify-center px-5 sm:px-8",
-            compact ? "py-1.5 sm:py-3" : "py-3 sm:py-5",
+            "py-2 sm:py-3",
           )}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -113,25 +90,19 @@ export default function OnboardingStepFrame({
               exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
               className={cn(
-                "flex h-full w-full max-w-[32rem] flex-col justify-center",
-                compact
-                  ? "max-h-[28rem] min-h-[20rem] gap-2"
-                  : "max-h-[32rem] min-h-[25rem] gap-3",
+                "flex h-full min-h-0 w-full max-w-[32rem] flex-col justify-center gap-3",
                 panelClassName,
               )}
             >
               <div
                 className={cn(
                   "mx-auto max-w-[24rem] text-center",
-                  compact ? "space-y-0.5" : "space-y-1.5",
+                  "space-y-1.5",
                 )}
               >
                 <h1
                   className={cn(
-                    "text-balance font-heading font-bold leading-tight tracking-tight text-foreground",
-                    compact
-                      ? "text-[1.25rem] sm:text-[1.35rem]"
-                      : "text-[1.55rem] sm:text-[1.65rem]",
+                    "text-balance font-heading text-[1.55rem] font-bold leading-tight tracking-tight text-foreground sm:text-[1.65rem]",
                   )}
                 >
                   {title}
@@ -139,8 +110,7 @@ export default function OnboardingStepFrame({
                 {description ? (
                   <p
                     className={cn(
-                      "text-pretty text-muted-foreground",
-                      compact ? "text-[12px] leading-4" : "text-sm leading-5",
+                      "text-pretty text-sm leading-5 text-muted-foreground",
                     )}
                   >
                     {description}
@@ -166,21 +136,23 @@ export default function OnboardingStepFrame({
 
         <footer
           className={cn(
-            "mx-auto flex w-full max-w-[32rem] shrink-0 items-center justify-between gap-4 px-5 sm:px-8",
-            compact ? "h-24 pb-12 sm:h-16 sm:pb-5" : "h-28 pb-14 sm:h-20 sm:pb-7",
+            "mx-auto flex h-[4.75rem] w-full max-w-[32rem] shrink-0 items-center justify-between gap-4 pb-5 pl-5 pr-[5.5rem] sm:h-[4.5rem] sm:px-8 sm:pb-5",
           )}
         >
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-lg"
-            onClick={onBack}
-            disabled={backDisabled || submitLoading}
-            aria-label="Go back"
-            className="size-10 rounded-full bg-foreground/[0.04] text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-foreground/[0.08] hover:text-foreground active:scale-[0.96]"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
+          {canGoBack ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              onClick={onBack}
+              aria-label="Go back"
+              className="size-10 rounded-full bg-foreground/[0.04] text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-foreground/[0.08] hover:text-foreground active:scale-[0.96]"
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+          ) : (
+            <div className="size-10" aria-hidden="true" />
+          )}
 
           <div className="min-w-0 flex-1" aria-hidden="true" />
 
@@ -189,8 +161,7 @@ export default function OnboardingStepFrame({
             size="lg"
             disabled={submitDisabled || submitLoading}
             className={cn(
-              "rounded-full transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.96]",
-              compact ? "h-9 min-w-[7.75rem] px-4 text-[13px]" : "h-10 min-w-[8.75rem] px-5 text-sm",
+              "h-10 min-w-[8.75rem] rounded-full px-5 text-sm transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.96]",
             )}
           >
             {submitLoading ? <Spinner className="size-3.5" /> : null}

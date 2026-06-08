@@ -1,5 +1,5 @@
-import { OnboardingFlowPreview } from "@/components/auth/onboarding-flow-preview";
 import ReactQueryProvider from "@/app/providers/react-query-provider";
+import { OnboardingPreviewSwitcher } from "@/components/auth/onboarding-preview-switcher";
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata = createPageMetadata({
@@ -12,7 +12,7 @@ export const metadata = createPageMetadata({
 export default function OnboardingPreviewPage() {
   return (
     <ReactQueryProvider>
-      <OnboardingFlowPreview />
+      <OnboardingPreviewSwitcher />
     </ReactQueryProvider>
   );
 }

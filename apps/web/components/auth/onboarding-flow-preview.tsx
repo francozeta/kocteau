@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, Disc3 } from "@/components/ui/icons";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { OnboardingProgressBar } from "@/components/auth/onboarding-progress-bar";
 import { PrimaryGrowButton } from "@/components/ui/grow-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,8 +39,7 @@ type PreviewStep = {
     | "bio"
     | "signals"
     | "rooms"
-    | "track"
-    | "finish";
+    | "track";
   section: "Profile" | "Taste" | "Review";
   question: string;
   helper?: string;
@@ -63,7 +62,7 @@ const steps = [
     id: "avatar",
     section: "Profile",
     question: "Choose a profile image.",
-    helper: "Use a photo or a Kocteau disc.",
+    helper: "Pick a disc, or upload a photo.",
   },
   {
     id: "bio",
@@ -87,13 +86,7 @@ const steps = [
     id: "track",
     section: "Review",
     question: "Start with a track to review.",
-    helper: "Review now, or skip and start with your feed.",
-  },
-  {
-    id: "finish",
-    section: "Review",
-    question: "Your For You feed starts here.",
-    helper: "A final check before this becomes the real onboarding flow.",
+    helper: "Review now, or start using Kocteau.",
   },
 ] as const satisfies PreviewStep[];
 
@@ -155,6 +148,11 @@ const initialDraft: PreviewDraft = {
   starterTrack: null,
 };
 
+const previewFocusVisibleClass =
+  "focus-visible:border-white/42 focus-visible:ring-0 focus-visible:shadow-none";
+const previewFocusWithinClass =
+  "focus-within:border-white/42 focus-within:ring-0 focus-within:shadow-none";
+
 function normalizeUsername(value: string) {
   return value
     .toLowerCase()
@@ -192,6 +190,7 @@ export function OnboardingFlowPreview() {
 
   const stepError = getStepError(currentStep.id, draft);
   const showStepError = attemptedStepId === currentStep.id && Boolean(stepError);
+  const canGoBack = currentStepIndex > 0;
   const isLastStep = currentStepIndex === steps.length - 1;
 
   function updateDraft(nextDraft: Partial<PreviewDraft>) {
@@ -233,30 +232,12 @@ export function OnboardingFlowPreview() {
   }
 
   return (
-    <main className="flex h-svh overflow-hidden flex-col bg-background text-foreground">
-      <header className="mx-auto flex w-full max-w-[32rem] shrink-0 flex-col gap-3 px-5 pt-4 sm:px-8 sm:pt-6">
+    <main className="relative isolate flex h-svh overflow-hidden flex-col bg-background text-foreground">
+      <OnboardingProgressBar value={progress} />
+      <header className="relative z-10 mx-auto flex w-full max-w-[31rem] shrink-0 flex-col px-5 pt-5 sm:px-8 sm:pt-6">
         <div className="flex justify-center">
-          <Link
-            href="/"
-            className="inline-flex h-8 w-8 items-center justify-center text-foreground transition-[opacity,transform] duration-150 ease-out hover:opacity-80 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-            aria-label="Go to Kocteau home"
-          >
+          <div className="inline-flex h-8 w-8 items-center justify-center text-foreground">
             <BrandLogo priority iconClassName="h-[1.35rem] w-[1.35rem]" />
-          </Link>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-end justify-between gap-4 text-sm">
-            <span className="font-medium text-foreground">{currentStep.section}</span>
-            <span className="tabular-nums text-muted-foreground">
-              {currentStepIndex + 1} / {steps.length}
-            </span>
-          </div>
-          <div className="h-px overflow-hidden bg-border/45" aria-hidden="true">
-            <div
-              className="h-full bg-foreground transition-[width] duration-200 ease-out"
-              style={{ width: `${progress}%` }}
-            />
           </div>
         </div>
       </header>
@@ -266,7 +247,7 @@ export function OnboardingFlowPreview() {
         onSubmit={goNext}
         className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto]"
       >
-        <section className="flex min-h-0 items-center justify-center px-5 py-3 sm:px-8 sm:py-5">
+        <section className="flex min-h-0 items-center justify-center px-5 py-2 sm:px-8 sm:py-3">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentStep.id}
@@ -274,7 +255,7 @@ export function OnboardingFlowPreview() {
               animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex h-full max-h-[32rem] min-h-[25rem] w-full max-w-[32rem] flex-col justify-center gap-3"
+              className="flex h-full min-h-0 w-full max-w-[32rem] flex-col justify-center gap-3"
             >
               <div className="mx-auto max-w-[24rem] space-y-1.5 text-center">
                 <h1 className="text-balance font-heading text-[1.55rem] font-bold leading-tight tracking-tight text-foreground sm:text-[1.65rem]">
@@ -298,18 +279,21 @@ export function OnboardingFlowPreview() {
           </AnimatePresence>
         </section>
 
-        <footer className="mx-auto flex h-28 w-full max-w-[32rem] shrink-0 items-center justify-between gap-4 px-5 pb-14 sm:h-20 sm:px-8 sm:pb-7">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-lg"
-            onClick={goBack}
-            disabled={currentStepIndex === 0}
-            aria-label="Go back"
-            className="size-10 rounded-full bg-foreground/[0.04] text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-foreground/[0.08] hover:text-foreground active:scale-[0.96]"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
+        <footer className="mx-auto flex h-[4.75rem] w-full max-w-[32rem] shrink-0 items-center justify-between gap-4 pb-5 pl-5 pr-[5.5rem] sm:h-[4.5rem] sm:px-8 sm:pb-5">
+          {canGoBack ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              onClick={goBack}
+              aria-label="Go back"
+              className="size-10 rounded-full bg-foreground/[0.04] text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-foreground/[0.08] hover:text-foreground active:scale-[0.96]"
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+          ) : (
+            <div className="size-10" aria-hidden="true" />
+          )}
 
           <div className="min-w-0 flex-1" aria-hidden="true" />
 
@@ -318,7 +302,7 @@ export function OnboardingFlowPreview() {
             size="lg"
             className="h-10 min-w-[8.75rem] rounded-full px-5 text-sm transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.96]"
           >
-            {isLastStep ? "Finish preview" : currentStep.id === "track" ? "Skip for now" : "Continue"}
+            {currentStep.id === "track" ? "Start using app" : "Continue"}
             {!isLastStep && currentStep.id !== "track" ? <ArrowRight className="size-4" /> : null}
           </Button>
         </footer>
@@ -372,14 +356,22 @@ function renderStepControl(
         value={draft.displayName}
         onChange={(event) => updateDraft({ displayName: event.target.value })}
         placeholder="Fran Cocteau"
-        className="h-11 w-full rounded-[var(--kocteau-radius-control)] border-0 bg-[var(--kocteau-surface-control)] px-4 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-ring/30"
+        className={cn(
+          "h-11 w-full rounded-[var(--kocteau-radius-control)] border border-transparent bg-[var(--kocteau-surface-control)] px-4 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55",
+          previewFocusVisibleClass,
+        )}
       />
     );
   }
 
   if (stepId === "handle") {
     return (
-      <div className="flex h-11 w-full items-center rounded-[var(--kocteau-radius-control)] bg-[var(--kocteau-surface-control)] px-4 shadow-[var(--kocteau-shadow-control)] focus-within:ring-2 focus-within:ring-ring/30">
+      <div
+        className={cn(
+          "flex h-11 w-full items-center rounded-[var(--kocteau-radius-control)] border border-transparent bg-[var(--kocteau-surface-control)] px-4 shadow-[var(--kocteau-shadow-control)]",
+          previewFocusWithinClass,
+        )}
+      >
         <span className="select-none text-base text-muted-foreground">@</span>
         <input
           autoFocus
@@ -403,7 +395,10 @@ function renderStepControl(
         value={draft.bio}
         onChange={(event) => updateDraft({ bio: event.target.value.slice(0, 180) })}
         placeholder="Dream pop, noisy guitars, late-night pop records."
-        className="min-h-28 w-full resize-none rounded-[var(--kocteau-radius-control)] border-0 bg-[var(--kocteau-surface-control)] p-4 text-base leading-6 shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55 focus-visible:ring-2 focus-visible:ring-ring/30"
+        className={cn(
+          "min-h-28 w-full resize-none rounded-[var(--kocteau-radius-control)] border border-transparent bg-[var(--kocteau-surface-control)] p-4 text-base leading-6 shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/55",
+          previewFocusVisibleClass,
+        )}
       />
     );
   }
@@ -416,7 +411,6 @@ function renderStepControl(
         onToggle={(value) =>
           updateDraft({ signals: toggleLimitedValue(draft.signals, value, 5) })
         }
-        counter={`${draft.signals.length} / 5`}
       />
     );
   }
@@ -429,7 +423,6 @@ function renderStepControl(
         onToggle={(value) =>
           updateDraft({ scenes: toggleLimitedValue(draft.scenes, value, 4) })
         }
-        counter={`${draft.scenes.length} / 4`}
       />
     );
   }
@@ -456,13 +449,13 @@ function renderStepControl(
           onSuccess={() => updateDraft({ starterTrack: starterTracks[0].id })}
         />
         <p className="text-center text-xs leading-4 text-muted-foreground">
-          Optional. You can skip and review later.
+          Create a review now, or continue into your feed.
         </p>
       </div>
     );
   }
 
-  return <PreviewSummary draft={draft} />;
+  return null;
 }
 
 function AvatarStepControl({
@@ -497,7 +490,10 @@ function AvatarStepControl({
       <div className="relative">
         <label
           aria-label="Upload profile image"
-          className="group relative flex size-28 cursor-pointer items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] p-1.5 shadow-[var(--kocteau-shadow-control),0_14px_42px_rgba(0,0,0,0.22)] transition-[box-shadow,transform,background-color] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:shadow-[var(--kocteau-shadow-card-hover),0_18px_52px_rgba(0,0,0,0.28)] active:scale-[0.96] focus-within:ring-2 focus-within:ring-ring/35"
+          className={cn(
+            "group relative flex size-28 cursor-pointer items-center justify-center rounded-full border border-transparent bg-[var(--kocteau-surface-control)] p-1.5 transition-[background-color,border-color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96]",
+            previewFocusWithinClass,
+          )}
         >
           <span className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-background outline outline-1 outline-white/10">
             <Image
@@ -527,7 +523,8 @@ function AvatarStepControl({
           aria-expanded={isDiscPickerOpen}
           onClick={() => setIsDiscPickerOpen((open) => !open)}
           className={cn(
-            "absolute -right-1 bottom-1 flex size-9 items-center justify-center rounded-full bg-background text-foreground shadow-[0_0_0_3px_var(--background),var(--kocteau-shadow-card-hover)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+            "absolute -right-1 bottom-1 flex size-9 items-center justify-center rounded-full border border-transparent bg-background text-foreground ring-4 ring-background transition-[background-color,border-color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
+            previewFocusVisibleClass,
             isDiscPickerOpen && "bg-foreground text-background",
           )}
         >
@@ -567,7 +564,8 @@ function AvatarStepControl({
                       setIsDiscPickerOpen(false);
                     }}
                     className={cn(
-                      "group relative flex aspect-square min-h-[4rem] items-center justify-center rounded-[0.85rem] bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      "group relative flex aspect-square min-h-[4rem] items-center justify-center rounded-[0.85rem] border border-transparent bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
+                      previewFocusVisibleClass,
                       isSelected &&
                         "bg-[var(--kocteau-surface-featured)] shadow-[var(--kocteau-shadow-card-hover)]",
                     )}
@@ -600,19 +598,14 @@ function ChoiceCloud({
   values,
   selectedValues,
   onToggle,
-  counter,
 }: {
   values: string[];
   selectedValues: string[];
   onToggle: (value: string) => void;
-  counter: string;
 }) {
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end text-xs tabular-nums text-muted-foreground">
-        {counter}
-      </div>
-      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+    <div className="space-y-2.5">
+      <div className="flex flex-wrap justify-center gap-1.5">
         {values.map((value) => {
           const isSelected = selectedValues.includes(value);
 
@@ -623,7 +616,8 @@ function ChoiceCloud({
               aria-pressed={isSelected}
               onClick={() => onToggle(value)}
               className={cn(
-                "min-h-9 rounded-full bg-[var(--kocteau-surface-control)] px-3 text-sm text-muted-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 sm:min-h-10 sm:px-3.5",
+                "min-h-7 rounded-full border border-transparent bg-[var(--kocteau-surface-control)] px-2.5 text-[12px] font-normal leading-none text-muted-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none",
+                previewFocusVisibleClass,
                 isSelected && "bg-foreground text-background shadow-none hover:bg-foreground hover:text-background",
               )}
             >
@@ -631,64 +625,6 @@ function ChoiceCloud({
             </button>
           );
         })}
-      </div>
-    </div>
-  );
-}
-
-function PreviewSummary({ draft }: { draft: PreviewDraft }) {
-  const selectedTrack =
-    starterTracks.find((track) => track.id === draft.starterTrack) ?? null;
-
-  return (
-    <div className="space-y-4 rounded-[1.15rem] bg-[var(--kocteau-surface-control)] p-4 shadow-[var(--kocteau-shadow-control)]">
-      <div className="flex items-center gap-3">
-        <Image
-          src={
-            draft.uploadedAvatarUrl ??
-            createAvatarPresetDataUrl(draft.avatarPresetId ?? "silver-haze", 180)
-          }
-          alt="Selected profile image"
-          width={64}
-          height={64}
-          unoptimized
-          className="size-14 rounded-full object-cover outline outline-1 outline-white/10"
-        />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-foreground">
-            {draft.displayName}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">@{draft.username}</p>
-        </div>
-      </div>
-
-      <p className="text-pretty text-sm leading-6 text-muted-foreground">
-        {draft.bio.trim() || "Taste note can come later."}
-      </p>
-
-      <div className="flex flex-wrap gap-1.5">
-        {[...draft.signals, ...draft.scenes].slice(0, 8).map((item) => (
-          <span
-            key={item}
-            className="rounded-full bg-background px-2.5 py-1 text-xs text-muted-foreground"
-          >
-            {item}
-          </span>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-3 rounded-[0.8rem] bg-background p-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-          <Disc3 className="size-4" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-foreground">
-            {selectedTrack ? selectedTrack.title : "First review"}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">
-            {selectedTrack ? `first review prompt - ${selectedTrack.artist}` : "optional after onboarding"}
-          </p>
-        </div>
       </div>
     </div>
   );

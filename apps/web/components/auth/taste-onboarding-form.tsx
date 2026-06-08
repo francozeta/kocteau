@@ -1,6 +1,13 @@
 "use client";
 
-import { startTransition, useMemo, useState, type FormEvent } from "react";
+import {
+  startTransition,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check } from "@/components/ui/icons";
 import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
@@ -8,6 +15,8 @@ import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { PrimaryGrowButton } from "@/components/ui/grow-button";
 import {
+  groupPreferenceTags,
+  preferenceKindLabels,
   tasteOnboardingMaxTags,
   tasteOnboardingMinTags,
   type PreferenceTag,
@@ -37,7 +46,7 @@ const tasteSteps = [
     id: "review",
     section: "Review",
     title: "Start with a track to review.",
-    description: "Review now, or skip and start with your feed.",
+    description: "Review now, or start using Kocteau.",
   },
 ] as const;
 
@@ -47,6 +56,9 @@ const tasteEditStep = {
   title: "Tune your taste.",
   description: undefined,
 } as const;
+
+const onboardingFocusVisibleClass =
+  "focus-visible:border-white/42 focus-visible:ring-0 focus-visible:shadow-none";
 
 export function TasteOnboardingForm({
   tags,
@@ -70,10 +82,9 @@ export function TasteOnboardingForm({
   const currentStep = isEditMode ? tasteEditStep : tasteSteps[currentStepIndex];
   const totalSteps = isEditMode ? 1 : tasteSteps.length;
   const selectedCount = selectedIds.size;
-  const missingCount = Math.max(tasteOnboardingMinTags - selectedCount, 0);
   const submitLabel =
     currentStep.id === "review"
-      ? "Skip for now"
+      ? "Start using app"
       : isSaving
         ? "Saving"
         : isEditMode
@@ -111,7 +122,7 @@ export function TasteOnboardingForm({
     setError(null);
 
     if (selectedCount < tasteOnboardingMinTags) {
-      setError(`Choose ${missingCount} more to continue.`);
+      setError("Choose at least three signals.");
       return;
     }
 
@@ -191,9 +202,7 @@ export function TasteOnboardingForm({
       compact={isEditMode}
       controlClassName={
         currentStep.id === "signals"
-          ? isEditMode
-            ? "max-w-[24rem] py-0"
-            : "max-w-[30rem]"
+          ? "max-w-[28rem] py-0"
           : undefined
       }
       liveMessage={`${currentStep.section}, step ${currentStepIndex + 1} of ${totalSteps}.`}
@@ -202,8 +211,6 @@ export function TasteOnboardingForm({
         <TasteSignalCloud
           tags={tags}
           selectedIds={selectedIds}
-          selectedCount={selectedCount}
-          missingCount={missingCount}
           onToggle={toggleTag}
         />
       ) : (
@@ -216,16 +223,37 @@ export function TasteOnboardingForm({
 function TasteSignalCloud({
   tags,
   selectedIds,
-  selectedCount,
-  missingCount,
   onToggle,
 }: {
   tags: PreferenceTag[];
   selectedIds: Set<string>;
-  selectedCount: number;
-  missingCount: number;
   onToggle: (tagId: string) => void;
 }) {
+  const groupedTags = useMemo(() => groupPreferenceTags(tags), [tags]);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const [scrollEdges, setScrollEdges] = useState({
+    hasBottomOverflow: false,
+    hasTopOverflow: false,
+  });
+
+  function updateScrollEdges() {
+    const element = scrollAreaRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    setScrollEdges({
+      hasBottomOverflow:
+        element.scrollTop + element.clientHeight < element.scrollHeight - 4,
+      hasTopOverflow: element.scrollTop > 4,
+    });
+  }
+
+  useEffect(() => {
+    updateScrollEdges();
+  }, [tags.length]);
+
   if (tags.length === 0) {
     return (
       <p className="max-w-[22rem] text-center text-sm leading-5 text-muted-foreground">
@@ -235,32 +263,66 @@ function TasteSignalCloud({
   }
 
   return (
-    <div className="w-full space-y-3">
-      <div className="flex justify-end text-[11px] tabular-nums leading-none text-muted-foreground/78">
-        {selectedCount}/{tasteOnboardingMaxTags}
-        {missingCount > 0 ? ` · ${missingCount} left` : null}
-      </div>
-      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-1.5">
-        {tags.map((tag) => {
-          const isSelected = selectedIds.has(tag.id);
+    <div className="relative w-full max-w-[31rem]">
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 z-10 h-5 bg-gradient-to-b from-background via-background/72 to-transparent opacity-0 transition-opacity duration-150 ease-out",
+          scrollEdges.hasTopOverflow && "opacity-100",
+        )}
+      />
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-gradient-to-t from-background via-background/78 to-transparent opacity-0 transition-opacity duration-150 ease-out",
+          scrollEdges.hasBottomOverflow && "opacity-100",
+        )}
+      />
+      <div
+        ref={scrollAreaRef}
+        onScroll={updateScrollEdges}
+        className="max-h-[min(19rem,52dvh)] overflow-y-auto overscroll-contain px-1.5 py-5 pr-2 [scrollbar-color:var(--scrollbar-thumb)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-[3px] [&::-webkit-scrollbar-thumb]:bg-[var(--scrollbar-thumb)] [&::-webkit-scrollbar-thumb:hover]:bg-[var(--scrollbar-thumb-hover)]"
+      >
+        <div className="space-y-2.5">
+          {Array.from(groupedTags.entries()).map(([kind, kindTags]) => {
+            if (kindTags.length === 0) {
+              return null;
+            }
 
-          return (
-            <button
-              key={tag.id}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => onToggle(tag.id)}
-              className={cn(
-                "min-h-7 rounded-full bg-[var(--kocteau-surface-control)] px-2 text-[12px] font-normal leading-none text-muted-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 sm:min-h-7 sm:px-2.5",
-                isSelected &&
-                  "bg-foreground text-background shadow-none hover:bg-foreground hover:text-background",
-              )}
-            >
-              <span>{tag.label}</span>
-              {isSelected ? <Check className="ml-1 inline size-2.5 align-[-0.08em]" /> : null}
-            </button>
-          );
-        })}
+            return (
+              <section key={kind} className="space-y-1.5">
+                <h2 className="text-center text-[10px] font-medium leading-none text-muted-foreground/55">
+                  {preferenceKindLabels[kind].toLowerCase()}
+                </h2>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {kindTags.map((tag) => {
+                    const isSelected = selectedIds.has(tag.id);
+
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => onToggle(tag.id)}
+                        className={cn(
+                          "min-h-7 rounded-full border border-transparent bg-[var(--kocteau-surface-control)] px-2.5 text-[12px] font-normal leading-none text-muted-foreground shadow-[var(--kocteau-shadow-control)] transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none",
+                          onboardingFocusVisibleClass,
+                          isSelected &&
+                            "bg-foreground text-background shadow-none hover:bg-foreground hover:text-background",
+                        )}
+                      >
+                        <span>{tag.label}</span>
+                        {isSelected ? (
+                          <Check className="ml-1 inline size-2.5 align-[-0.08em]" />
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -288,7 +350,7 @@ function ReviewStarterControl({ redirectTo }: { redirectTo: string }) {
         }
       />
       <p className="text-center text-xs leading-4 text-muted-foreground">
-        Optional. You can skip and review later.
+        Create a review now, or continue into your feed.
       </p>
     </div>
   );
