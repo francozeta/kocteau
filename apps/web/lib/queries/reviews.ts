@@ -136,7 +136,8 @@ export async function getPublicReviewByRouteId(routeId: string) {
             async () => {
               const supabase = supabasePublic();
               const review = await runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
-                supabase
+                {
+                  let query = supabase
                   .from("reviews")
                   .select(
                     buildReviewHydrationSelect(mode, {
@@ -144,9 +145,15 @@ export async function getPublicReviewByRouteId(routeId: string) {
                       includeEntity: true,
                       includePinned: true,
                     }),
-                  )
-                  .in("short_id", routeIdCandidates)
-                  .maybeSingle(),
+                  );
+
+                  query =
+                    normalizedRouteId.length === 8
+                      ? query.like("short_id", `${normalizedRouteId}%`)
+                      : query.in("short_id", routeIdCandidates);
+
+                  return query.maybeSingle();
+                },
               );
 
               return review ? normalizeReviewPageReview(review) : null;

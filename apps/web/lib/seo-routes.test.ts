@@ -63,7 +63,7 @@ describe("seo route helpers", () => {
     assert.equal(getShortRouteId("E9CFE82B-5A2B-4324-9E85-A861FDBBDDF4"), "e9cfe82b5a2b");
     assert.equal(isSeoRouteId("e9cfe82b5a2b"), true);
     assert.equal(isSeoRouteId("e9cfe82b-5a2b-4324-9e85-a861fdbbddf4"), true);
-    assert.equal(isSeoRouteId("e9cfe82b"), false);
+    assert.equal(isSeoRouteId("e9cfe82b"), true);
     assert.equal(isSeoRouteId("not-a-track"), false);
   });
 

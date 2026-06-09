@@ -17,7 +17,7 @@ export type SeoReviewRouteInput = {
 const fallbackSlug = "music";
 const shortRouteIdLength = 12;
 const fullUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const shortUuidPrefixPattern = /^[0-9a-f]{12}$/i;
+const shortUuidPrefixPattern = /^(?:[0-9a-f]{8}|[0-9a-f]{12})$/i;
 
 const entityRouteRoots: Record<Extract<SeoEntityType, "track">, string> = {
   track: "tracks",

@@ -154,11 +154,16 @@ export async function getEntityPageByRouteId(routeId: string) {
             "getEntityPageByRouteId",
             async () => {
               const supabase = supabasePublic();
-              const { data, error } = await supabase
+              let query = supabase
                 .from("entities")
-                .select(entityPageSelect)
-                .in("short_id", routeIdCandidates)
-                .maybeSingle<EntityPage>();
+                .select(entityPageSelect);
+
+              query =
+                normalizedRouteId.length === 8
+                  ? query.like("short_id", `${normalizedRouteId}%`)
+                  : query.in("short_id", routeIdCandidates);
+
+              const { data, error } = await query.maybeSingle<EntityPage>();
 
               if (error) {
                 logEntitiesQueryError("getEntityPageByRouteId", error, {
