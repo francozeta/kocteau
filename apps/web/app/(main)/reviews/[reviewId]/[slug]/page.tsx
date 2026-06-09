@@ -8,7 +8,7 @@ import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata, createReviewDescription } from "@/lib/metadata";
 import {
   getPublicReviewByRouteId,
-  getReviewPageBundle,
+  getReviewViewerState,
   type ReviewPageReview,
 } from "@/lib/queries/reviews";
 import { buildReviewCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
@@ -109,30 +109,30 @@ export default async function ReviewPage({
     notFound();
   }
 
-  const user = await getCurrentUser();
-  const viewerProfile = user ? await getCurrentViewerProfile() : null;
-  const routeReview = await getPublicReviewByRouteId(reviewId);
+  const [user, routeReview] = await Promise.all([
+    getCurrentUser(),
+    getPublicReviewByRouteId(reviewId),
+  ]);
 
   if (!routeReview) {
     notFound();
   }
 
-  const bundle = await getReviewPageBundle(routeReview.id, user?.id);
+  const [viewerProfile, viewerState] = await Promise.all([
+    user ? getCurrentViewerProfile() : null,
+    getReviewViewerState(user?.id, routeReview.id),
+  ]);
 
-  if (!bundle) {
-    notFound();
-  }
-
-  const canonicalPath = buildReviewCanonicalPath(bundle.review);
+  const canonicalPath = buildReviewCanonicalPath(routeReview);
 
   if (canonicalPath !== `/reviews/${reviewId}/${slug}`) {
     permanentRedirect(canonicalPath);
   }
 
   const review = {
-    ...bundle.review,
-    viewer_has_liked: bundle.liked,
-    viewer_has_bookmarked: bundle.bookmarked,
+    ...routeReview,
+    viewer_has_liked: viewerState.liked,
+    viewer_has_bookmarked: viewerState.bookmarked,
   };
   const entity = review.entities;
   const author = review.author;
