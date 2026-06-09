@@ -11,6 +11,8 @@ type ReviewCardContextMenuFrameProps = {
   reviewTitle: string | null;
   entityTitle: string | null;
   entityId?: string | null;
+  reviewPath?: string | null;
+  entityPath?: string | null;
   canManage?: boolean;
   editSeed?: EditReviewDialogSeed | null;
   initialBookmarked?: boolean;
@@ -23,6 +25,8 @@ export default function ReviewCardContextMenuFrame({
   reviewTitle,
   entityTitle,
   entityId = null,
+  reviewPath = null,
+  entityPath = null,
   canManage = false,
   editSeed = null,
   initialBookmarked = false,
@@ -38,6 +42,8 @@ export default function ReviewCardContextMenuFrame({
         reviewTitle={reviewTitle}
         entityTitle={entityTitle}
         entityId={entityId}
+        reviewPath={reviewPath}
+        entityPath={entityPath}
         canManage={canManage}
         editSeed={editSeed}
         initialBookmarked={initialBookmarked}

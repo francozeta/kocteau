@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
 import ReviewPageHeaderBridge from "@/components/review-page-header-bridge";
@@ -7,12 +7,12 @@ import { ReviewPageCard } from "@/components/review-route-cards-server";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata, createReviewDescription } from "@/lib/metadata";
 import {
-  getPublicReviewById,
+  getPublicReviewByRouteId,
   getReviewPageBundle,
   type ReviewPageReview,
 } from "@/lib/queries/reviews";
+import { buildReviewCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
 import { buildReviewPageJsonLd } from "@/lib/structured-data";
-import { reviewIdParamsSchema } from "@/lib/validation/schemas";
 
 function getAuthorLabel(review: ReviewPageReview) {
   const author = review.author;
@@ -22,6 +22,16 @@ function getAuthorLabel(review: ReviewPageReview) {
   }
 
   return author.display_name?.trim() || `@${author.username}`;
+}
+
+function getTrackLabel(review: ReviewPageReview) {
+  const entity = review.entities;
+
+  if (!entity) {
+    return "Review";
+  }
+
+  return entity.artist_name ? `${entity.title} by ${entity.artist_name}` : entity.title;
 }
 
 function getReviewTitle(review: ReviewPageReview) {
@@ -40,44 +50,39 @@ function getReviewTitle(review: ReviewPageReview) {
   return `Review by ${authorLabel}`;
 }
 
-function getTrackLabel(review: ReviewPageReview) {
-  const entity = review.entities;
-
-  if (!entity) {
-    return "Review";
-  }
-
-  return entity.artist_name ? `${entity.title} by ${entity.artist_name}` : entity.title;
-}
+type ReviewRouteParams = {
+  reviewId: string;
+  slug: string;
+};
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<ReviewRouteParams>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const parsedParams = reviewIdParamsSchema.safeParse({ reviewId: id });
+  const { reviewId } = await params;
 
-  if (!parsedParams.success) {
+  if (!isSeoRouteId(reviewId)) {
     return createPageMetadata({
       title: "Review",
       description: "A public music review on Kocteau.",
-      path: `/review/${id}`,
+      path: `/reviews/${reviewId}`,
       noIndex: true,
     });
   }
 
-  const review = await getPublicReviewById(parsedParams.data.reviewId);
+  const review = await getPublicReviewByRouteId(reviewId);
 
   if (!review?.entities) {
     return createPageMetadata({
       title: "Review",
       description: "A public music review on Kocteau.",
-      path: `/review/${id}`,
+      path: `/reviews/${reviewId}`,
     });
   }
 
   const authorLabel = getAuthorLabel(review);
+  const canonicalPath = buildReviewCanonicalPath(review);
 
   return createPageMetadata({
     title: getReviewTitle(review),
@@ -88,7 +93,7 @@ export async function generateMetadata({
       artistName: review.entities.artist_name,
       authorLabel,
     }),
-    path: `/review/${review.id}`,
+    path: canonicalPath,
     image: `/api/og/track/${review.entities.id}`,
   });
 }
@@ -96,21 +101,32 @@ export async function generateMetadata({
 export default async function ReviewPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<ReviewRouteParams>;
 }) {
-  const { id } = await params;
-  const parsedParams = reviewIdParamsSchema.safeParse({ reviewId: id });
+  const { reviewId, slug } = await params;
 
-  if (!parsedParams.success) {
+  if (!isSeoRouteId(reviewId)) {
     notFound();
   }
 
   const user = await getCurrentUser();
   const viewerProfile = user ? await getCurrentViewerProfile() : null;
-  const bundle = await getReviewPageBundle(parsedParams.data.reviewId, user?.id);
+  const routeReview = await getPublicReviewByRouteId(reviewId);
+
+  if (!routeReview) {
+    notFound();
+  }
+
+  const bundle = await getReviewPageBundle(routeReview.id, user?.id);
 
   if (!bundle) {
     notFound();
+  }
+
+  const canonicalPath = buildReviewCanonicalPath(bundle.review);
+
+  if (canonicalPath !== `/reviews/${reviewId}/${slug}`) {
+    permanentRedirect(canonicalPath);
   }
 
   const review = {
@@ -133,6 +149,7 @@ export default async function ReviewPage({
         title={headerTitle}
         entityTitle={entity?.title}
         artistName={entity?.artist_name}
+        sharePath={canonicalPath}
       />
 
       <ReviewPageCard

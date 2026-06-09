@@ -8,6 +8,7 @@ import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { createPageMetadata } from "@/lib/metadata";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
+import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import { cn } from "@/lib/utils";
 
 function formatDate(value: string) {
@@ -56,43 +57,54 @@ export default async function TrackIndexPage() {
 
       {tracks.length > 0 ? (
         <div className="grid gap-3 xl:grid-cols-2">
-          {tracks.map((track) => (
-            <TrackContextMenu
-              key={track.entityId}
-              href={`/track/${track.entityId}`}
-              title={track.title}
-              artistName={track.artistName}
-            >
-              <PrefetchLink
-                href={`/track/${track.entityId}`}
-                queryWarmup={{ kind: "track", id: track.entityId }}
-                className="group flex items-center gap-4 rounded-[1.65rem] border border-border/20 bg-card/20 px-3.5 py-3.5 transition-colors hover:bg-card/35"
+          {tracks.map((track) => {
+            const trackPath = buildEntityCanonicalPath({
+              id: track.entityId,
+              provider: track.provider,
+              provider_id: track.providerId,
+              type: track.type,
+              title: track.title,
+              artist_name: track.artistName,
+            });
+
+            return (
+              <TrackContextMenu
+                key={track.entityId}
+                href={trackPath}
+                title={track.title}
+                artistName={track.artistName}
               >
-                <EntityCoverImage
-                  src={track.coverUrl}
-                  alt={track.title}
-                  sizes="64px"
-                  quality={56}
-                  className="h-16 w-16 shrink-0 rounded-[1.2rem] bg-muted"
-                  iconClassName="size-5"
-                />
+                <PrefetchLink
+                  href={trackPath}
+                  queryWarmup={{ kind: "track", id: track.entityId }}
+                  className="group flex items-center gap-4 rounded-[1.65rem] border border-border/20 bg-card/20 px-3.5 py-3.5 transition-colors hover:bg-card/35"
+                >
+                  <EntityCoverImage
+                    src={track.coverUrl}
+                    alt={track.title}
+                    sizes="64px"
+                    quality={56}
+                    className="h-16 w-16 shrink-0 rounded-[1.2rem] bg-muted"
+                    iconClassName="size-5"
+                  />
 
-                <div className="min-w-0 flex-1 space-y-1">
-                  <h2 className="line-clamp-1 text-base font-medium text-foreground">
-                    {track.title}
-                  </h2>
-                  <p className="line-clamp-1 text-sm text-muted-foreground">
-                    {track.artistName ?? "Unknown artist"}
-                  </p>
-                </div>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <h2 className="line-clamp-1 text-base font-medium text-foreground">
+                      {track.title}
+                    </h2>
+                    <p className="line-clamp-1 text-sm text-muted-foreground">
+                      {track.artistName ?? "Unknown artist"}
+                    </p>
+                  </div>
 
-                <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                  <span>{formatDate(track.latestReviewAt)}</span>
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </PrefetchLink>
-            </TrackContextMenu>
-          ))}
+                  <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                    <span>{formatDate(track.latestReviewAt)}</span>
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </PrefetchLink>
+              </TrackContextMenu>
+            );
+          })}
         </div>
       ) : (
         <Empty className="rounded-[1.75rem] border-border/25 bg-card/20 px-6 py-10">

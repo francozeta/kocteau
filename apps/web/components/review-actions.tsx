@@ -28,6 +28,8 @@ export type ReviewActionTarget = {
   reviewTitle: string | null;
   entityTitle: string | null;
   entityId?: string | null;
+  reviewPath?: string | null;
+  entityPath?: string | null;
 };
 
 export function useReviewActions({
@@ -35,6 +37,8 @@ export function useReviewActions({
   reviewTitle,
   entityTitle,
   entityId = null,
+  reviewPath = null,
+  entityPath = null,
 }: ReviewActionTarget) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -60,9 +64,9 @@ export function useReviewActions({
       return "";
     }
 
-    const pathname = `/review/${reviewId}`;
+    const pathname = reviewPath ?? `/review/${reviewId}`;
     return new URL(pathname, window.location.origin).toString();
-  }, [reviewId]);
+  }, [reviewId, reviewPath]);
 
   async function copyReviewLink() {
     try {
@@ -86,8 +90,10 @@ export function useReviewActions({
       return;
     }
 
-    router.prefetch(`/track/${entityId}`);
-    router.push(`/track/${entityId}`);
+    const pathname = entityPath ?? `/track/${entityId}`;
+
+    router.prefetch(pathname);
+    router.push(pathname);
   }
 
   function requestDeleteReview() {

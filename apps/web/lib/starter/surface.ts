@@ -70,6 +70,10 @@ export function getStarterSurfaceFromPathname(
     return "review";
   }
 
+  if (section === "tracks") {
+    return "track";
+  }
+
   if (isStarterSurface(section)) {
     return section;
   }
@@ -95,6 +99,12 @@ export function getStarterContextKey(pathname: string | null | undefined) {
 
   if (section === "track") {
     return detail ? `track:${detail}` : "track";
+  }
+
+  if (section === "tracks") {
+    const stableTrackKey = segments.length === 3 ? segments[2] : segments[2] ?? detail;
+
+    return stableTrackKey ? `track:${stableTrackKey}` : "track";
   }
 
   if (section === "review" || section === "reviews") {

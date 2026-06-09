@@ -8,6 +8,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
+import { isFullUuid, isShortUuidPrefix } from "@/lib/seo-routes";
 import type {
   ReviewCardAuthor,
   ReviewCardData,
@@ -60,12 +61,20 @@ function getHydratedAuthorId(author: EntityReview["author"]) {
 }
 
 const entityPageLoaders = new Map<string, () => Promise<EntityPage | null>>();
+const entityPageByRouteIdLoaders = new Map<string, () => Promise<EntityPage | null>>();
+const entityPageByProviderLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | null>>();
 const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
 const entityTasteTagLoaders = new Map<string, () => Promise<EntityTasteTag[]>>();
 
+const entityPageSelect = "id, provider, provider_id, title, artist_name, cover_url, deezer_url, type";
+
 function logEntitiesQueryError(
-  scope: "getEntityPageById" | "findEntityByProvider",
+  scope:
+    | "getEntityPageById"
+    | "getEntityPageByRouteId"
+    | "getEntityPageByProvider"
+    | "findEntityByProvider",
   error: {
     code?: string | null;
     message?: string | null;
@@ -97,7 +106,7 @@ export async function getEntityPageById(entityId: string) {
 
               const { data, error } = await supabase
                 .from("entities")
-                .select("id, provider, provider_id, title, artist_name, cover_url, deezer_url, type")
+                .select(entityPageSelect)
                 .eq("id", entityId)
                 .maybeSingle<EntityPage>();
 
@@ -116,6 +125,99 @@ export async function getEntityPageById(entityId: string) {
         {
           revalidate: 120,
           tags: ["entities", `entity:${entityId}`],
+        },
+      ),
+  )();
+}
+
+export async function getEntityPageByRouteId(routeId: string) {
+  if (isFullUuid(routeId)) {
+    return getEntityPageById(routeId);
+  }
+
+  if (!isShortUuidPrefix(routeId)) {
+    return null;
+  }
+
+  const normalizedRouteId = routeId.toLowerCase();
+
+  return getOrCreateLoader(
+    entityPageByRouteIdLoaders,
+    ["entity-page-route-id", normalizedRouteId],
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getEntityPageByRouteId",
+            async () => {
+              const supabase = supabasePublic();
+              const { data, error } = await supabase
+                .from("entities")
+                .select(entityPageSelect)
+                .eq("short_id", normalizedRouteId)
+                .maybeSingle<EntityPage>();
+
+              if (error) {
+                logEntitiesQueryError("getEntityPageByRouteId", error, {
+                  routeId: normalizedRouteId,
+                });
+                return null;
+              }
+
+              return data;
+            },
+            { routeId: normalizedRouteId },
+          ),
+        ["entity-page-route-id", normalizedRouteId],
+        {
+          revalidate: 120,
+          tags: ["entities", `entity-route:${normalizedRouteId}`],
+        },
+      ),
+  )();
+}
+
+export async function getEntityPageByProvider(
+  provider: string,
+  type: EntityPage["type"],
+  providerId: string,
+) {
+  return getOrCreateLoader(
+    entityPageByProviderLoaders,
+    ["entity-page-by-provider", provider, type, providerId],
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getEntityPageByProvider",
+            async () => {
+              const supabase = supabasePublic();
+
+              const { data, error } = await supabase
+                .from("entities")
+                .select(entityPageSelect)
+                .eq("provider", provider)
+                .eq("type", type)
+                .eq("provider_id", providerId)
+                .maybeSingle<EntityPage>();
+
+              if (error) {
+                logEntitiesQueryError("getEntityPageByProvider", error, {
+                  provider,
+                  type,
+                  providerId,
+                });
+                return null;
+              }
+
+              return data;
+            },
+            { provider, type, providerId },
+          ),
+        ["entity-page-by-provider", provider, type, providerId],
+        {
+          revalidate: 120,
+          tags: ["entities", `entity-provider:${provider}:${type}:${providerId}`],
         },
       ),
   )();

@@ -253,6 +253,7 @@ export type Database = {
           id: string
           provider: string
           provider_id: string
+          short_id: string
           title: string
           type: Database["public"]["Enums"]["entity_type"]
           updated_at: string
@@ -265,6 +266,7 @@ export type Database = {
           id?: string
           provider?: string
           provider_id: string
+          short_id?: never
           title: string
           type?: Database["public"]["Enums"]["entity_type"]
           updated_at?: string
@@ -277,6 +279,7 @@ export type Database = {
           id?: string
           provider?: string
           provider_id?: string
+          short_id?: never
           title?: string
           type?: Database["public"]["Enums"]["entity_type"]
           updated_at?: string
@@ -716,6 +719,7 @@ export type Database = {
           is_pinned: boolean
           likes_count: number
           rating: number
+          short_id: string
           title: string | null
           updated_at: string
         }
@@ -729,6 +733,7 @@ export type Database = {
           is_pinned?: boolean
           likes_count?: number
           rating: number
+          short_id?: never
           title?: string | null
           updated_at?: string
         }
@@ -742,6 +747,7 @@ export type Database = {
           is_pinned?: boolean
           likes_count?: number
           rating?: number
+          short_id?: never
           title?: string | null
           updated_at?: string
         }

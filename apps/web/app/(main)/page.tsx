@@ -108,6 +108,9 @@ export default async function HomePage({
           rating: review.rating,
           entity: {
             id: entity.id,
+            provider: entity.provider,
+            providerId: entity.provider_id,
+            type: entity.type,
             title: entity.title,
             artistName: entity.artist_name,
             coverUrl: entity.cover_url,

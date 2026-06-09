@@ -57,8 +57,11 @@ export default function Header({
   const pathname = usePathname();
   const router = useRouter();
   const { detailHeader } = useRouteHeader();
-  const isMobileReviewRoute = /^\/review\/[^/]+$/.test(pathname);
-  const isTrackDetailRoute = /^\/track\/[^/]+$/.test(pathname);
+  const isMobileReviewRoute = /^\/review\/[^/]+$/.test(pathname) || /^\/reviews\/[^/]+\/[^/]+$/.test(pathname);
+  const isTrackDetailRoute =
+    /^\/track\/[^/]+$/.test(pathname) ||
+    /^\/tracks\/[^/]+\/[^/]+$/.test(pathname) ||
+    /^\/tracks\/[^/]+\/[^/]+\/[^/]+$/.test(pathname);
   const isProfileDetailRoute = /^\/u\/[^/]+$/.test(pathname);
   const shouldUseContextualHeader = isTrackDetailRoute || isProfileDetailRoute || isMobileReviewRoute;
   const isSearchRoute = pathname.startsWith("/search");
@@ -96,7 +99,7 @@ export default function Header({
       return "Activity";
     }
 
-    if (pathname.startsWith("/review/")) {
+    if (pathname.startsWith("/review/") || pathname.startsWith("/reviews/")) {
       return "Review";
     }
 

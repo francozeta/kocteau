@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { helpRoutes } from "@/lib/help";
 import { getMetadataBase } from "@/lib/metadata";
+import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
 import { supabasePublic } from "@/lib/supabase/public";
 
 type SitemapProfile = {
@@ -9,25 +10,23 @@ type SitemapProfile = {
   updated_at: string;
 };
 
+type SitemapEntity = {
+  id: string;
+  provider: string;
+  provider_id: string;
+  created_at: string;
+  updated_at: string;
+  type: string;
+  title: string;
+  artist_name: string | null;
+};
+
 type SitemapReview = {
   id: string;
   entity_id: string;
   created_at: string;
   updated_at: string;
-  entities:
-    | {
-        id: string;
-        created_at: string;
-        updated_at: string;
-        type: string;
-      }
-    | Array<{
-        id: string;
-        created_at: string;
-        updated_at: string;
-        type: string;
-      }>
-    | null;
+  entities: SitemapEntity | SitemapEntity[] | null;
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -50,9 +49,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         updated_at,
         entities (
           id,
+          provider,
+          provider_id,
           created_at,
           updated_at,
-          type
+          type,
+          title,
+          artist_name
         )
       `)
       .order("updated_at", { ascending: false })
@@ -61,7 +64,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const profiles = (profilesResult.data ?? []) as SitemapProfile[];
   const reviews = (reviewsResult.data ?? []) as SitemapReview[];
-  const reviewedTracks = new Map<string, Date>();
+  const reviewedTracks = new Map<
+    string,
+    {
+      entity: SitemapEntity;
+      lastModified: Date;
+    }
+  >();
 
   for (const review of reviews) {
     const entity = Array.isArray(review.entities)
@@ -72,13 +81,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       continue;
     }
 
-    const currentDate = reviewedTracks.get(entity.id);
+    const currentTrack = reviewedTracks.get(entity.id);
     const reviewDate = new Date(review.updated_at ?? review.created_at);
     const entityDate = new Date(entity.updated_at ?? entity.created_at);
     const latestDate = reviewDate > entityDate ? reviewDate : entityDate;
 
-    if (!currentDate || latestDate > currentDate) {
-      reviewedTracks.set(entity.id, latestDate);
+    if (!currentTrack || latestDate > currentTrack.lastModified) {
+      reviewedTracks.set(entity.id, {
+        entity,
+        lastModified: latestDate,
+      });
     }
   }
 
@@ -125,15 +137,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   const reviewRoutes: MetadataRoute.Sitemap = reviews.map((review) => ({
-    url: new URL(`/review/${review.id}`, metadataBase).toString(),
+    url: new URL(
+      buildReviewCanonicalPath({
+        id: review.id,
+        entities: Array.isArray(review.entities)
+          ? review.entities[0] ?? null
+          : review.entities,
+      }),
+      metadataBase,
+    ).toString(),
     lastModified: new Date(review.updated_at ?? review.created_at),
     changeFrequency: "weekly",
     priority: 0.78,
   }));
 
-  const trackRoutes: MetadataRoute.Sitemap = Array.from(reviewedTracks, ([trackId, lastModified]) => ({
-    url: new URL(`/track/${trackId}`, metadataBase).toString(),
-    lastModified,
+  const trackRoutes: MetadataRoute.Sitemap = Array.from(reviewedTracks, ([, track]) => ({
+    url: new URL(buildEntityCanonicalPath(track.entity), metadataBase).toString(),
+    lastModified: track.lastModified,
     changeFrequency: "daily",
     priority: 0.8,
   }));

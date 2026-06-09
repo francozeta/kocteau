@@ -8,6 +8,7 @@ type ReviewPageHeaderBridgeProps = {
   reviewId: string;
   entityId?: string | null;
   isAuthenticated?: boolean;
+  sharePath?: string;
   title: string;
   entityTitle?: string | null;
   artistName?: string | null;
@@ -17,6 +18,7 @@ export default function ReviewPageHeaderBridge({
   reviewId,
   entityId,
   isAuthenticated = false,
+  sharePath,
   title,
   entityTitle,
   artistName,
@@ -34,14 +36,14 @@ export default function ReviewPageHeaderBridge({
       kind: "review",
       title,
       shareLabel: title.trim() || trackLabel,
-      sharePath: `/review/${reviewId}`,
+      sharePath: sharePath ?? `/review/${reviewId}`,
       externalLinks: [],
     });
 
     return () => {
       setDetailHeader(null);
     };
-  }, [artistName, entityTitle, reviewId, setDetailHeader, title]);
+  }, [artistName, entityTitle, reviewId, setDetailHeader, sharePath, title]);
 
   useEffect(() => {
     if (!isAuthenticated) {

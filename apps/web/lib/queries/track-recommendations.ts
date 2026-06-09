@@ -20,13 +20,18 @@ import {
 } from "@/lib/recommendations/track-recommendation-ranking";
 import { buildStarterCandidateTracks } from "@/lib/starter/candidates";
 import { supabasePublic } from "@/lib/supabase/public";
+import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 
 export type TrackRecommendation = TrackRecommendationCandidate;
 export type { TrackRecommendationGroup };
 
 type EntityLinkRow = {
   id: string;
+  provider: string;
   provider_id: string;
+  type: "track" | "album";
+  title: string;
+  artist_name: string | null;
 };
 
 type LocalSignalRow = {
@@ -187,7 +192,7 @@ async function getLocalSignalCandidates({
       artist_name: entity.artist_name,
       cover_url: entity.cover_url,
       deezer_url: entity.deezer_url,
-      href: `/track/${entity.id}`,
+      href: buildEntityCanonicalPath(entity),
       reason: getSignalMatchReason(labels),
       source: "local-signal",
       sourceLabel: "Kocteau signal",
@@ -302,7 +307,7 @@ async function resolveRecommendationLinks(groups: TrackRecommendationGroup[]) {
   const supabase = supabasePublic();
   const { data, error } = await supabase
     .from("entities")
-    .select("id, provider_id")
+    .select("id, provider, provider_id, type, title, artist_name")
     .eq("provider", "deezer")
     .eq("type", "track")
     .in("provider_id", providerIds)
@@ -318,22 +323,20 @@ async function resolveRecommendationLinks(groups: TrackRecommendationGroup[]) {
     return groups;
   }
 
-  const localEntityByProviderId = new Map(
-    (data ?? []).map((entity) => [entity.provider_id, entity.id]),
-  );
+  const localEntityByProviderId = new Map((data ?? []).map((entity) => [entity.provider_id, entity]));
 
   return groups.map((group) => ({
     ...group,
     recommendations: group.recommendations.map((track) => {
-      const entityId = localEntityByProviderId.get(track.provider_id);
+      const entity = localEntityByProviderId.get(track.provider_id);
 
-      if (!entityId) {
+      if (!entity) {
         return track;
       }
 
       return {
         ...track,
-        href: `/track/${entityId}`,
+        href: buildEntityCanonicalPath(entity),
       };
     }),
   }));

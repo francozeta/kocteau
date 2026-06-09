@@ -14,6 +14,7 @@ import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
+import { isFullUuid, isShortUuidPrefix } from "@/lib/seo-routes";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -31,9 +32,9 @@ export type ReviewPageReview = {
 };
 
 export type ReviewPageEntity = ReviewCardEntity & {
-  provider: "deezer";
+  provider: string;
   provider_id: string;
-  type: "track";
+  type: "track" | "album";
   deezer_url: string | null;
 };
 
@@ -42,6 +43,7 @@ export type ViewerReview = {
 };
 
 const publicReviewLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
+const publicReviewByRouteIdLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
 
 function normalizeReviewPageReview(review: ReviewPageReview): ReviewPageReview {
   return {
@@ -104,6 +106,54 @@ export async function getPublicReviewById(reviewId: string) {
         {
           revalidate: 60,
           tags: ["reviews", `review:${reviewId}`],
+        },
+      ),
+  )();
+}
+
+export async function getPublicReviewByRouteId(routeId: string) {
+  if (isFullUuid(routeId)) {
+    return getPublicReviewById(routeId);
+  }
+
+  if (!isShortUuidPrefix(routeId)) {
+    return null;
+  }
+
+  const normalizedRouteId = routeId.toLowerCase();
+
+  return getOrCreateLoader(
+    publicReviewByRouteIdLoaders,
+    ["review-route-id", normalizedRouteId],
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getPublicReviewByRouteId",
+            async () => {
+              const supabase = supabasePublic();
+              const review = await runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
+                supabase
+                  .from("reviews")
+                  .select(
+                    buildReviewHydrationSelect(mode, {
+                      includeAuthor: true,
+                      includeEntity: true,
+                      includePinned: true,
+                    }),
+                  )
+                  .eq("short_id", normalizedRouteId)
+                  .maybeSingle(),
+              );
+
+              return review ? normalizeReviewPageReview(review) : null;
+            },
+            { routeId: normalizedRouteId },
+          ),
+        ["review-route-id", normalizedRouteId],
+        {
+          revalidate: 60,
+          tags: ["reviews", `review-route:${normalizedRouteId}`],
         },
       ),
   )();
