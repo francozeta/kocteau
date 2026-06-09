@@ -14,6 +14,7 @@ import ReviewActionsMenu from "@/components/review-actions-menu";
 import ReviewCardContextMenuFrame from "@/components/review-card-context-menu-frame";
 import ReviewCardInteractionBar from "@/components/review-card-interaction-bar";
 import { getCurrentViewerProfile } from "@/lib/auth/server";
+import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
 
 export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
@@ -161,7 +162,7 @@ function LinkedEntitySummary({
 
   return (
     <div data-prevent-review-link="true" className="relative z-[2]">
-      <Link href={`/track/${entity.id}`} className="block">
+      <Link href={buildEntityCanonicalPath(entity)} className="block">
         <ReviewCardEntitySummary
           entity={entity}
           mode={mode}
@@ -188,7 +189,7 @@ function LinkedEntityCover({
 
   return (
     <div data-prevent-review-link="true" className="relative z-[2]">
-      <Link href={`/track/${entity.id}`} className="block">
+      <Link href={buildEntityCanonicalPath(entity)} className="block">
         <ReviewCardEntityCover entity={entity} priority={priority} />
       </Link>
     </div>
@@ -225,6 +226,8 @@ async function RoutedReviewCardServer({
     id: `review-${review.id}`,
   };
   const initialBookmarked = Boolean(review.viewer_has_bookmarked);
+  const entityPath = entity ? buildEntityCanonicalPath(entity) : null;
+  const reviewPath = buildReviewCanonicalPath({ id: review.id, entities: entity });
 
   const card = (
     <ReviewCard
@@ -233,7 +236,7 @@ async function RoutedReviewCardServer({
       author={author}
       display={display}
       rootProps={rootProps}
-      reviewHref={openReviewLink ? `/review/${review.id}` : null}
+      reviewHref={openReviewLink ? reviewPath : null}
       reviewLinkLabel={getReviewLinkLabel(entity, author)}
       slots={{
         authorName: author ? <LinkedAuthorName author={author} /> : undefined,
@@ -256,6 +259,8 @@ async function RoutedReviewCardServer({
             reviewTitle={review.title}
             entityTitle={entity?.title ?? null}
             entityId={entity?.id ?? null}
+            reviewPath={reviewPath}
+            entityPath={entityPath}
             canManage={canManage}
             editSeed={editSeed}
             initialBookmarked={initialBookmarked}
@@ -293,6 +298,8 @@ async function RoutedReviewCardServer({
       reviewTitle={review.title}
       entityTitle={entity?.title ?? null}
       entityId={entity?.id ?? null}
+      reviewPath={reviewPath}
+      entityPath={entityPath}
       canManage={canManage}
       editSeed={editSeed}
       initialBookmarked={initialBookmarked}

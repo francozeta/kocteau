@@ -22,6 +22,7 @@ import {
   readPendingReviewDraft,
   savePendingReviewDraft,
 } from "@/lib/pending-review-draft";
+import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import { cn } from "@/lib/utils";
 import { ApiError, createApiError, getFirstFieldError } from "@/lib/validation/errors";
 import { createReviewSchema, updateReviewSchema } from "@/lib/validation/schemas";
@@ -255,7 +256,16 @@ function NewReviewFormState({
   }
 
   function getResultHref(result: DeezerResult) {
-    return result.entity_id ? `/track/${result.entity_id}` : `/track/deezer/${result.provider_id}`;
+    return result.entity_id
+      ? buildEntityCanonicalPath({
+          id: result.entity_id,
+          provider: result.provider,
+          provider_id: result.provider_id,
+          type: result.type,
+          title: result.title,
+          artist_name: result.artist_name,
+        })
+      : `/track/deezer/${result.provider_id}`;
   }
 
   function openTrack(result: DeezerResult) {
@@ -402,8 +412,20 @@ function NewReviewFormState({
 
       router.prefetch("/");
 
+      const resultTrackHref =
+        payload.entityId && selected
+          ? buildEntityCanonicalPath({
+              id: payload.entityId,
+              provider: selected.provider,
+              provider_id: selected.provider_id,
+              type: selected.type,
+              title: selected.title,
+              artist_name: selected.artist_name,
+            })
+          : null;
+
       if (payload.entityId) {
-        router.prefetch(`/track/${payload.entityId}`);
+        router.prefetch(resultTrackHref ?? `/track/${payload.entityId}`);
       }
 
       if (payload.authorUsername) {
@@ -449,7 +471,7 @@ function NewReviewFormState({
         if (redirectToOnSuccess) {
           router.push(redirectToOnSuccess);
         } else if (shouldRedirectToCreatedTrack && payload.entityId) {
-          router.push(`/track/${payload.entityId}`);
+          router.push(resultTrackHref ?? `/track/${payload.entityId}`);
         }
       });
 
@@ -482,7 +504,12 @@ function NewReviewFormState({
             : null;
 
         if (existingEntityId) {
-          router.prefetch(`/track/${existingEntityId}?editReview=${existingReviewId}`);
+          const existingReviewHref = `${getResultHref({
+            ...selected,
+            entity_id: existingEntityId,
+          })}?editReview=${existingReviewId}`;
+
+          router.prefetch(existingReviewHref);
         }
 
         toast.error(reviewError.message, {
@@ -490,7 +517,10 @@ function NewReviewFormState({
             label: existingEntityId ? "Open track" : "Dismiss",
             onClick: () => {
               if (existingEntityId) {
-                router.push(`/track/${existingEntityId}?editReview=${existingReviewId}`);
+                router.push(`${getResultHref({
+                  ...selected,
+                  entity_id: existingEntityId,
+                })}?editReview=${existingReviewId}`);
               }
             },
           },

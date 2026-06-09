@@ -14,15 +14,21 @@ type DiscoveryRow = {
   created_at: string;
   entity_id: string;
   rating: number;
-  entities:
+      entities:
     | {
         id: string;
+        provider: string;
+        provider_id: string;
+        type: "track" | "album";
         title: string;
         artist_name: string | null;
         cover_url: string | null;
       }
     | {
         id: string;
+        provider: string;
+        provider_id: string;
+        type: "track" | "album";
         title: string;
         artist_name: string | null;
         cover_url: string | null;
@@ -56,6 +62,9 @@ function getRecentlyDiscussedTracksLoader(limit: number) {
                   rating,
                   entities!inner (
                     id,
+                    provider,
+                    provider_id,
+                    type,
                     title,
                     artist_name,
                     cover_url
@@ -79,6 +88,9 @@ function getRecentlyDiscussedTracksLoader(limit: number) {
                 recentEntityIds.push(entity.id);
                 tracks.push({
                   entityId: entity.id,
+                  provider: entity.provider,
+                  providerId: entity.provider_id,
+                  type: entity.type,
                   title: entity.title,
                   artistName: entity.artist_name,
                   coverUrl: entity.cover_url,

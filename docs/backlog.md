@@ -62,6 +62,8 @@ These are the next useful moves after enabling public contribution.
 | P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
 | P1 | Add a mobile social discovery carousel near review detail pages. | needs design ([#90](https://github.com/francozeta/kocteau/issues/90)) | `feature`, `area:web`, `area:ui` |
 | P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design ([#89](https://github.com/francozeta/kocteau/issues/89)) | `feature`, `area:web`, `area:recommendations` |
+| P1 | Redesign track detail pages around verified track identity, reviews, and editorial recommendations. | needs design | `feature`, `area:web`, `area:ui`, `area:seo` |
+| P1 | Audit track and review empty states so they feel editorial without fake or weak taste signals. | needs design | `feature`, `area:web`, `area:ui` |
 | P1 | Explore a compact feed view for scanning more reviews without replacing the editorial default. | needs design ([#91](https://github.com/francozeta/kocteau/issues/91)) | `feature`, `area:web`, `area:ui` |
 | P1 | Emit real review read-depth analytics from the For You feed. | done | `fix`, `area:web`, `area:analytics`, `area:recommendations` |
 | P1 | Add a top-rated feed index for `rating DESC, created_at DESC, id DESC`. | done | `chore`, `area:supabase`, `area:performance` |
@@ -258,6 +260,39 @@ Acceptance criteria:
 
 - Explore has a clear first version.
 - Data queries stay understandable and measurable.
+
+### Track Detail Editorial Redesign
+
+Suggested issue: `feat(web): redesign track detail as an editorial music page`
+
+- Make the track cover, title, artist, and review entry point the first visual priority.
+- Keep inferred taste tags out of the hero unless they are clearly verified or curator-backed.
+- Move reviews and recommendations into a calmer reading flow below the track identity.
+- Preserve canonical URL, sitemap, and structured data behavior from the URL contract work.
+
+Suggested labels: `feature`, `area:web`, `area:ui`, `area:seo`, `needs design review`
+
+Acceptance criteria:
+
+- Track pages feel like music pages, not metadata panels.
+- The hero does not show filler tags or signals that are not clearly tied to the track.
+- The PR includes desktop and narrow viewport screenshots.
+
+### Track And Review Empty States
+
+Suggested issue: `fix(web): make track and review empty states feel editorial`
+
+- Rework empty copy for tracks without reviews, review detail side content, and sparse recommendation sections.
+- Avoid fake activity, fake tags, or placeholder social proof.
+- Provide a clear next action such as reviewing the track or browsing related music.
+
+Suggested labels: `feature`, `area:web`, `area:ui`, `good first issue`
+
+Acceptance criteria:
+
+- Empty states explain the product moment without sounding technical.
+- Sparse data does not make the page feel unfinished.
+- Mobile and desktop layouts hold without oversized cards.
 
 ### Kocteau-First Search V1
 

@@ -4,6 +4,7 @@ import { Star } from "@/components/ui/icons";
 import TrackCarousel from "@/components/track-carousel";
 import TrackTile from "@/components/track-tile";
 import type { ReviewCardData, ReviewCardEntity } from "@/components/review-card";
+import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 
 type ProfileRecentReview = ReviewCardData & {
   entities: ReviewCardEntity | null;
@@ -17,10 +18,11 @@ type ProfileRecentReviewsSectionProps = {
 function RecentReviewTile({ review }: { review: ProfileRecentReview }) {
   const entity = review.entities;
   const entityId = entity?.id ?? null;
+  const entityHref = entity ? buildEntityCanonicalPath(entity) : undefined;
 
   return (
     <TrackTile
-      href={entityId ? `/track/${entityId}` : undefined}
+      href={entityHref}
       queryWarmup={entityId ? { kind: "track", id: entityId } : undefined}
       title={entity?.title ?? "Untitled track"}
       artistName={entity?.artist_name}

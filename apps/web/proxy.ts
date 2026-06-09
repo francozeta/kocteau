@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { getShortRouteId, isFullUuid } from "@/lib/seo-routes";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 function isMetadataRequest(pathname: string) {
@@ -22,12 +23,33 @@ function canReceiveAuthCallback(pathname: string) {
   );
 }
 
+function getShortIdRedirectPath(pathname: string) {
+  const trackMatch = pathname.match(/^\/tracks\/([^/]+)\/([^/]+)\/?$/);
+  if (trackMatch?.[1] && trackMatch[2] && isFullUuid(trackMatch[2])) {
+    return `/tracks/${trackMatch[1]}/${getShortRouteId(trackMatch[2])}`;
+  }
+
+  const reviewMatch = pathname.match(/^\/reviews\/([^/]+)\/([^/]+)\/?$/);
+  if (reviewMatch?.[1] && reviewMatch[2] && isFullUuid(reviewMatch[1])) {
+    return `/reviews/${getShortRouteId(reviewMatch[1])}/${reviewMatch[2]}`;
+  }
+
+  return null;
+}
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
   if (isMetadataRequest(pathname)) {
     return response;
+  }
+
+  const shortIdRedirectPath = getShortIdRedirectPath(pathname);
+  if (shortIdRedirectPath) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = shortIdRedirectPath;
+    return NextResponse.redirect(redirectUrl, 308);
   }
 
   if (canReceiveAuthCallback(pathname) && request.nextUrl.searchParams.has("code")) {

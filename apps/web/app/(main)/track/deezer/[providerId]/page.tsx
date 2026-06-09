@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Music2 } from "@/components/ui/icons";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
 import TrackPageHero from "@/components/track-page-hero";
 import TrackMoreToHear from "@/components/track-more-to-hear";
@@ -8,8 +8,9 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { getCurrentUser } from "@/lib/auth/server";
 import { getDeezerTrack } from "@/lib/deezer";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
-import { findEntityByProvider } from "@/lib/queries/entities";
+import { getEntityPageByProvider } from "@/lib/queries/entities";
 import { getTrackRecommendations } from "@/lib/queries/track-recommendations";
+import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 
 export async function generateMetadata({
   params,
@@ -46,11 +47,11 @@ export default async function DeezerTrackResolverPage({
   const { providerId } = await params;
   const [user, existingEntity] = await Promise.all([
     getCurrentUser(),
-    findEntityByProvider("deezer", "track", providerId),
+    getEntityPageByProvider("deezer", "track", providerId),
   ]);
 
   if (existingEntity) {
-    redirect(`/track/${existingEntity.id}`);
+    permanentRedirect(buildEntityCanonicalPath(existingEntity));
   }
 
   const track = await getDeezerTrack(providerId);

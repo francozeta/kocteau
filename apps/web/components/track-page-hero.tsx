@@ -1,13 +1,14 @@
 "use client";
 
-import { ExternalLink, Share2 } from "@/components/ui/icons";
+import { FaDeezer } from "react-icons/fa";
+
+import { Share2 } from "@/components/ui/icons";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
-import type { EntityTasteTag } from "@/lib/queries/entities";
 
 type TrackPageHeroProps = {
   entity: {
@@ -18,7 +19,6 @@ type TrackPageHeroProps = {
     cover_url: string | null;
     deezer_url: string | null;
   };
-  tags?: EntityTasteTag[];
   isAuthenticated: boolean;
   sharePath?: string;
   viewerReview: {
@@ -32,14 +32,13 @@ type TrackPageHeroProps = {
 };
 
 const primaryActionClassName =
-  "inline-flex h-10 min-w-[10.5rem] items-center justify-center gap-2 rounded-[0.9rem] border border-border/28 bg-[var(--kocteau-surface-control)] px-4 text-sm font-medium text-foreground shadow-none transition hover:bg-[var(--kocteau-surface-control-hover)] sm:h-11 sm:min-w-[11.5rem]";
+  "inline-flex h-10 min-w-[10.5rem] items-center justify-center gap-2 rounded-[0.9rem] border border-white/60 bg-foreground px-4 text-sm font-semibold text-background shadow-none transition-[background-color,border-color,transform] duration-150 hover:border-white hover:bg-foreground/90 active:scale-[0.96] sm:h-11 sm:min-w-[11.5rem]";
 
 const sideActionClassName =
   "size-10 rounded-full border border-border/28 bg-card/18 text-muted-foreground shadow-none hover:bg-card/30 hover:text-foreground max-md:bg-card/20 max-md:backdrop-blur-md max-md:backdrop-saturate-100 sm:size-11";
 
 export default function TrackPageHero({
   entity,
-  tags = [],
   isAuthenticated,
   sharePath,
   viewerReview,
@@ -51,8 +50,6 @@ export default function TrackPageHero({
         url: entity.deezer_url,
       }
     : null;
-  const visibleTags = tags.slice(0, 5);
-  const remainingTagCount = Math.max(tags.length - visibleTags.length, 0);
   const createSelection = {
     provider: "deezer" as const,
     provider_id: entity.provider_id,
@@ -124,8 +121,8 @@ export default function TrackPageHero({
         />
 
         <div className="min-w-0 text-center md:text-left">
-          <p className="text-[0.68rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Track
+          <p className="text-[0.72rem] font-medium text-muted-foreground">
+            track
           </p>
           <h1 className="mt-2.5 font-serif text-[1.95rem] font-semibold leading-none text-balance sm:text-[2.25rem] lg:text-[2.7rem]">
             {entity.title}
@@ -171,7 +168,7 @@ export default function TrackPageHero({
                 trigger={
                   <button type="button" className={primaryActionClassName}>
                     <ReviewGlyphIcon className="size-4" />
-                    Create review
+                    Review track
                   </button>
                 }
                 triggerLabelClassName="sr-only"
@@ -190,9 +187,9 @@ export default function TrackPageHero({
                   href={deezerLink.url}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label={`Open in ${deezerLink.label}`}
+                  aria-label={`Open on ${deezerLink.label}`}
                 >
-                  <ExternalLink className="size-4" />
+                  <FaDeezer className="size-4" aria-hidden="true" />
                 </a>
               </Button>
             ) : (
@@ -200,35 +197,19 @@ export default function TrackPageHero({
             )}
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[0.66rem] font-medium uppercase tracking-[0.16em] text-muted-foreground md:justify-start">
-            <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150">
-              Notes
-            </span>
-            {visibleTags.map((tag) => (
-              <span
-                key={tag.id}
-                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 text-foreground/78 max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150"
-                title={`Taste signal: ${tag.kind}`}
-              >
-                {tag.label}
-              </span>
-            ))}
-            {remainingTagCount > 0 ? (
-              <span className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150">
-                +{remainingTagCount}
-              </span>
-            ) : null}
-            {deezerLink ? (
+          {deezerLink ? (
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[0.72rem] font-medium text-muted-foreground md:justify-start">
               <a
                 href={deezerLink.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-border/24 bg-card/18 px-2.5 py-1 transition hover:border-border/45 hover:bg-card/30 hover:text-foreground max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/24 bg-card/18 px-2.5 py-1 transition-[background-color,border-color,color] hover:border-border/45 hover:bg-card/30 hover:text-foreground max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150"
               >
-                {deezerLink.label}
+                <FaDeezer className="size-3.5" aria-hidden="true" />
+                <span>Deezer</span>
               </a>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

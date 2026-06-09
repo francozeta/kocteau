@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { Music2 } from "@/components/ui/icons";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
 import TrackPageHero from "@/components/track-page-hero";
@@ -11,38 +11,60 @@ import { TrackReviewCard } from "@/components/review-route-cards-server";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {
-  getEntityPageById,
+  getEntityPageByRouteId,
   getTrackPublicBundle,
   getTrackViewerState,
 } from "@/lib/queries/entities";
 import { getTrackRecommendations } from "@/lib/queries/track-recommendations";
 import { createServerQueryClient } from "@/lib/react-query/server";
+import { buildEntityCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
 import { buildTrackPageJsonLd } from "@/lib/structured-data";
 import { trackKeys } from "@/queries/tracks";
+
+type TrackRouteParams = {
+  slug: string;
+  id: string;
+};
+
+function getRoutePath({ slug, id }: TrackRouteParams) {
+  return `/tracks/${slug}/${id}`;
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<TrackRouteParams>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const entity = await getEntityPageById(id);
+  const routeParams = await params;
+
+  if (!isSeoRouteId(routeParams.id)) {
+    return createPageMetadata({
+      title: "Track",
+      description: "Track reviews and notes on Kocteau.",
+      path: getRoutePath(routeParams),
+      noIndex: true,
+    });
+  }
+
+  const entity = await getEntityPageByRouteId(routeParams.id);
 
   if (!entity) {
     return createPageMetadata({
       title: "Track",
       description: "Track reviews and notes on Kocteau.",
-      path: `/track/${id}`,
+      path: getRoutePath(routeParams),
+      noIndex: true,
     });
   }
 
   const title = entity.artist_name ? `${entity.title} — ${entity.artist_name}` : entity.title;
+  const canonicalPath = buildEntityCanonicalPath(entity);
 
   return createPageMetadata({
     title,
     description: createTrackDescription(entity.title, entity.artist_name),
-    path: `/track/${id}`,
-    image: `/api/og/track/${id}`,
+    path: canonicalPath,
+    image: `/api/og/track/${entity.id}`,
   });
 }
 
@@ -50,20 +72,37 @@ export default async function TrackPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<TrackRouteParams>;
   searchParams: Promise<{ editReview?: string }>;
 }) {
-  const { id } = await params;
+  const routeParams = await params;
   const query = await searchParams;
+
+  if (!isSeoRouteId(routeParams.id)) {
+    notFound();
+  }
+
+  const entityPage = await getEntityPageByRouteId(routeParams.id);
+
+  if (!entityPage) {
+    notFound();
+  }
+
+  const canonicalPath = buildEntityCanonicalPath(entityPage);
+
+  if (canonicalPath !== getRoutePath(routeParams)) {
+    permanentRedirect(canonicalPath);
+  }
+
   const userPromise = getCurrentUser();
-  const publicBundlePromise = getTrackPublicBundle(id);
+  const publicBundlePromise = getTrackPublicBundle(entityPage.id);
   const [user, bundle] = await Promise.all([userPromise, publicBundlePromise]);
 
   if (!bundle) notFound();
 
   const viewerState =
     user?.id && bundle.reviews.length > 0
-      ? await getTrackViewerState(user.id, id, bundle.reviews)
+      ? await getTrackViewerState(user.id, entityPage.id, bundle.reviews)
       : {
           likedReviewIds: new Set<string>(),
           bookmarkedReviewIds: new Set<string>(),
@@ -82,7 +121,7 @@ export default async function TrackPage({
     })),
   };
 
-  queryClient.setQueryData(trackKeys.detail(id), trackData);
+  queryClient.setQueryData(trackKeys.detail(entityPage.id), trackData);
 
   const { entity, reviews: trackReviews } = trackData;
   const recommendations = await getTrackRecommendations({
@@ -141,11 +180,11 @@ export default async function TrackPage({
           title={entity.title}
           artistName={entity.artist_name}
           deezerUrl={entity.deezer_url}
+          sharePath={canonicalPath}
         />
 
         <TrackPageHero
           entity={entity}
-          tags={trackData.tags}
           isAuthenticated={Boolean(user)}
           viewerReview={
             viewerReview
@@ -158,13 +197,13 @@ export default async function TrackPage({
                 }
               : null
           }
+          sharePath={canonicalPath}
           shouldOpenViewerEditor={shouldOpenViewerEditor}
         />
 
         <TrackMoreToHear groups={recommendations} />
 
         <div className="space-y-4">
-
           {trackReviews.length > 0 ? (
             <div className="space-y-4">
               {trackReviews.map((review) => {

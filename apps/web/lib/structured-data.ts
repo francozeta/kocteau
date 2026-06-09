@@ -3,6 +3,7 @@ import type { EntityPage } from "@/lib/queries/entities";
 import type { PublicProfile } from "@/lib/queries/profiles";
 import type { ReviewPageReview } from "@/lib/queries/reviews";
 import { getMetadataBase } from "@/lib/metadata";
+import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
 
 type FeedStructuredDataEntry = {
   reviewId: FeedReview["id"];
@@ -11,6 +12,9 @@ type FeedStructuredDataEntry = {
   rating: FeedReview["rating"];
   entity: {
     id: string;
+    provider?: string | null;
+    providerId?: string | null;
+    type?: string | null;
     title: string;
     artistName?: string | null;
     coverUrl?: string | null;
@@ -29,6 +33,9 @@ type StructuredReviewEntry = {
   created_at?: string | null;
   entity: {
     id: string;
+    provider?: string | null;
+    providerId?: string | null;
+    type?: string | null;
     title: string;
     artistName?: string | null;
     coverUrl?: string | null;
@@ -49,10 +56,32 @@ function authorName(author: StructuredReviewEntry["author"]) {
 }
 
 function buildReviewNode(entry: StructuredReviewEntry) {
+  const itemReviewedType = entry.entity.type === "album" ? "MusicAlbum" : "MusicRecording";
+  const itemReviewedFragment = itemReviewedType === "MusicAlbum" ? "album" : "recording";
+  const entityPath = buildEntityCanonicalPath({
+    id: entry.entity.id,
+    provider: entry.entity.provider,
+    provider_id: entry.entity.providerId,
+    type: entry.entity.type,
+    title: entry.entity.title,
+    artist_name: entry.entity.artistName,
+  });
+  const reviewPath = buildReviewCanonicalPath({
+    id: entry.id,
+    entities: {
+      id: entry.entity.id,
+      provider: entry.entity.provider,
+      provider_id: entry.entity.providerId,
+      type: entry.entity.type,
+      title: entry.entity.title,
+      artist_name: entry.entity.artistName,
+    },
+  });
+
   return {
     "@type": "Review",
-    "@id": `${absoluteUrl(`/review/${entry.id}`)}#review`,
-    url: absoluteUrl(`/review/${entry.id}`),
+    "@id": `${absoluteUrl(reviewPath)}#review`,
+    url: absoluteUrl(reviewPath),
     name: entry.title?.trim() || `${entry.entity.title} review`,
     reviewBody: entry.body?.trim() || undefined,
     datePublished: entry.created_at || undefined,
@@ -68,10 +97,10 @@ function buildReviewNode(entry: StructuredReviewEntry) {
       url: absoluteUrl(`/u/${entry.author.username}`),
     },
     itemReviewed: {
-      "@type": "MusicRecording",
-      "@id": `${absoluteUrl(`/track/${entry.entity.id}`)}#recording`,
+      "@type": itemReviewedType,
+      "@id": `${absoluteUrl(entityPath)}#${itemReviewedFragment}`,
       name: entry.entity.title,
-      url: absoluteUrl(`/track/${entry.entity.id}`),
+      url: absoluteUrl(entityPath),
       image: entry.entity.coverUrl || undefined,
       sameAs: entry.entity.deezerUrl || undefined,
       byArtist: entry.entity.artistName
@@ -154,7 +183,17 @@ export function buildFeedPageJsonLd(entries: FeedStructuredDataEntry[]) {
       itemListElement: entries.map((entry, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        url: absoluteUrl(`/review/${entry.reviewId}`),
+        url: absoluteUrl(buildReviewCanonicalPath({
+          id: entry.reviewId,
+          entities: {
+            id: entry.entity.id,
+            provider: entry.entity.provider,
+            provider_id: entry.entity.providerId,
+            type: entry.entity.type,
+            title: entry.entity.title,
+            artist_name: entry.entity.artistName,
+          },
+        })),
         item: buildReviewNode({
           id: entry.reviewId,
           title: entry.reviewTitle,
@@ -193,7 +232,17 @@ export function buildReviewsPageJsonLd(entries: FeedStructuredDataEntry[]) {
       itemListElement: entries.map((entry, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        url: absoluteUrl(`/review/${entry.reviewId}`),
+        url: absoluteUrl(buildReviewCanonicalPath({
+          id: entry.reviewId,
+          entities: {
+            id: entry.entity.id,
+            provider: entry.entity.provider,
+            provider_id: entry.entity.providerId,
+            type: entry.entity.type,
+            title: entry.entity.title,
+            artist_name: entry.entity.artistName,
+          },
+        })),
         item: buildReviewNode({
           id: entry.reviewId,
           title: entry.reviewTitle,
@@ -228,7 +277,8 @@ export function buildTrackPageJsonLd({
     } | null;
   }>;
 }) {
-  const url = absoluteUrl(`/track/${entity.id}`);
+  const entityPath = buildEntityCanonicalPath(entity);
+  const url = absoluteUrl(entityPath);
 
   return {
     "@context": "https://schema.org",
@@ -247,7 +297,7 @@ export function buildTrackPageJsonLd({
         breadcrumb: buildBreadcrumbList([
           { name: "Kocteau", path: "/" },
           { name: "Tracks", path: "/track" },
-          { name: entity.title, path: `/track/${entity.id}` },
+          { name: entity.title, path: entityPath },
         ]),
       },
       {
@@ -284,6 +334,9 @@ export function buildTrackPageJsonLd({
               created_at: review.created_at,
               entity: {
                 id: entity.id,
+                provider: entity.provider,
+                providerId: entity.provider_id,
+                type: entity.type,
                 title: entity.title,
                 artistName: entity.artist_name,
                 coverUrl: entity.cover_url,
@@ -303,7 +356,7 @@ export function buildTrackPageJsonLd({
 export function buildReviewPageJsonLd(review: ReviewPageReview) {
   const entity = review.entities;
   const author = review.author;
-  const url = absoluteUrl(`/review/${review.id}`);
+  const url = absoluteUrl(buildReviewCanonicalPath(review));
 
   if (!entity || !author?.username) {
     return {
@@ -335,7 +388,7 @@ export function buildReviewPageJsonLd(review: ReviewPageReview) {
         breadcrumb: buildBreadcrumbList([
           { name: "Kocteau", path: "/" },
           { name: "Reviews", path: "/reviews" },
-          { name: entity.title, path: `/track/${entity.id}` },
+          { name: entity.title, path: buildEntityCanonicalPath(entity) },
         ]),
       },
       buildReviewNode({
@@ -346,6 +399,9 @@ export function buildReviewPageJsonLd(review: ReviewPageReview) {
         created_at: review.created_at,
         entity: {
           id: entity.id,
+          provider: entity.provider,
+          providerId: entity.provider_id,
+          type: entity.type,
           title: entity.title,
           artistName: entity.artist_name,
           coverUrl: entity.cover_url,

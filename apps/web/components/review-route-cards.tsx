@@ -16,6 +16,7 @@ import ReviewCardContextMenu from "@/components/review-card-context-menu";
 import ReviewCardInteractionBar from "@/components/review-card-interaction-bar";
 import PrefetchLink from "@/components/prefetch-link";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
 
 export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
@@ -156,7 +157,7 @@ function LinkedEntitySummary({
   return (
     <div data-prevent-review-link="true" className="relative z-[2]">
       <PrefetchLink
-        href={`/track/${entity.id}`}
+        href={buildEntityCanonicalPath(entity)}
         queryWarmup={{ kind: "track", id: entity.id }}
         className="block"
       >
@@ -187,7 +188,7 @@ function LinkedEntityCover({
   return (
     <div data-prevent-review-link="true" className="relative z-[2]">
       <PrefetchLink
-        href={`/track/${entity.id}`}
+        href={buildEntityCanonicalPath(entity)}
         queryWarmup={{ kind: "track", id: entity.id }}
         className="block"
       >
@@ -246,6 +247,8 @@ function RoutedReviewCard({
   const rootProps: ComponentPropsWithoutRef<"article"> = {
     id: `review-${review.id}`,
   };
+  const entityPath = entity ? buildEntityCanonicalPath(entity) : null;
+  const reviewPath = buildReviewCanonicalPath({ id: review.id, entities: entity });
 
   const card = (
     <ReviewCard
@@ -254,7 +257,7 @@ function RoutedReviewCard({
       author={author}
       display={display}
       rootProps={rootProps}
-      reviewHref={openReviewLink ? `/review/${review.id}` : null}
+      reviewHref={openReviewLink ? reviewPath : null}
       reviewLinkLabel={getReviewLinkLabel(entity, author)}
       slots={{
         authorName: author ? <LinkedAuthorName author={author} /> : undefined,
@@ -277,6 +280,8 @@ function RoutedReviewCard({
             reviewTitle={review.title}
             entityTitle={entity?.title ?? null}
             entityId={entity?.id ?? null}
+            reviewPath={reviewPath}
+            entityPath={entityPath}
             canManage={canManage}
             editSeed={editSeed}
             initialBookmarked={initialBookmarked}
@@ -310,6 +315,8 @@ function RoutedReviewCard({
         reviewTitle={review.title}
         entityTitle={entity?.title ?? null}
         entityId={entity?.id ?? null}
+        reviewPath={reviewPath}
+        entityPath={entityPath}
         canManage={canManage}
         editSeed={editSeed}
         initialBookmarked={initialBookmarked}

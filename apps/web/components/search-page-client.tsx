@@ -14,6 +14,7 @@ import { useKocteauSearch, type KocteauSearchResult } from "@/hooks/use-kocteau-
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
 import type { SearchEntityType } from "@/lib/search-types";
+import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import { cn } from "@/lib/utils";
 
 type SearchPageClientProps = {
@@ -117,7 +118,16 @@ function formatDate(value: string) {
 }
 
 function getResultHref(result: KocteauSearchResult) {
-  return result.entity_id ? `/track/${result.entity_id}` : `/track/deezer/${result.provider_id}`;
+  return result.entity_id
+    ? buildEntityCanonicalPath({
+        id: result.entity_id,
+        provider: result.provider,
+        provider_id: result.provider_id,
+        type: result.type,
+        title: result.title,
+        artist_name: result.artist_name,
+      })
+    : `/track/deezer/${result.provider_id}`;
 }
 
 function escapeRegExp(value: string) {
@@ -698,45 +708,56 @@ export default function SearchPageClient({
 
               {highlights.length > 0 ? (
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                  {highlights.map((track) => (
-                    <TrackContextMenu
-                      key={track.entityId}
-                      href={`/track/${track.entityId}`}
-                      title={track.title}
-                      artistName={track.artistName}
-                    >
-                      <PrefetchLink
-                        href={`/track/${track.entityId}`}
-                        queryWarmup={{ kind: "track", id: track.entityId }}
-                        className="block overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/22 bg-[var(--kocteau-surface)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] hover:bg-[var(--kocteau-surface-raised)]"
-                      >
-                        <div className="space-y-2.5">
-                          <EntityCoverImage
-                            src={track.coverUrl}
-                            alt={track.title}
-                            sizes="(max-width: 639px) 46vw, (max-width: 1023px) 30vw, 220px"
-                            quality={82}
-                            variant="card"
-                            className="aspect-square w-full rounded-[0.68rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
-                            iconClassName="size-6"
-                          />
+                  {highlights.map((track) => {
+                    const trackPath = buildEntityCanonicalPath({
+                      id: track.entityId,
+                      provider: track.provider,
+                      provider_id: track.providerId,
+                      type: track.type,
+                      title: track.title,
+                      artist_name: track.artistName,
+                    });
 
-                          <div className="min-w-0 px-0.5 pb-0.5">
-                            <div className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/62">
-                              <Disc3 className="size-3" />
-                              <span>{formatDate(track.latestReviewAt)}</span>
+                    return (
+                      <TrackContextMenu
+                        key={track.entityId}
+                        href={trackPath}
+                        title={track.title}
+                        artistName={track.artistName}
+                      >
+                        <PrefetchLink
+                          href={trackPath}
+                          queryWarmup={{ kind: "track", id: track.entityId }}
+                          className="block overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/22 bg-[var(--kocteau-surface)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] hover:bg-[var(--kocteau-surface-raised)]"
+                        >
+                          <div className="space-y-2.5">
+                            <EntityCoverImage
+                              src={track.coverUrl}
+                              alt={track.title}
+                              sizes="(max-width: 639px) 46vw, (max-width: 1023px) 30vw, 220px"
+                              quality={82}
+                              variant="card"
+                              className="aspect-square w-full rounded-[0.68rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
+                              iconClassName="size-6"
+                            />
+
+                            <div className="min-w-0 px-0.5 pb-0.5">
+                              <div className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/62">
+                                <Disc3 className="size-3" />
+                                <span>{formatDate(track.latestReviewAt)}</span>
+                              </div>
+                              <h3 className="line-clamp-1 text-[14px] font-semibold text-foreground">
+                                {track.title}
+                              </h3>
+                              <p className="line-clamp-1 text-[13px] text-muted-foreground/84">
+                                {track.artistName ?? "Unknown artist"}
+                              </p>
                             </div>
-                            <h3 className="line-clamp-1 text-[14px] font-semibold text-foreground">
-                              {track.title}
-                            </h3>
-                            <p className="line-clamp-1 text-[13px] text-muted-foreground/84">
-                              {track.artistName ?? "Unknown artist"}
-                            </p>
                           </div>
-                        </div>
-                      </PrefetchLink>
-                    </TrackContextMenu>
-                  ))}
+                        </PrefetchLink>
+                      </TrackContextMenu>
+                    );
+                  })}
                 </div>
               ) : (
                 <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">

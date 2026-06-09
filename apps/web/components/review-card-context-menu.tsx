@@ -29,6 +29,8 @@ export default function ReviewCardContextMenu({
   reviewTitle,
   entityTitle,
   entityId = null,
+  reviewPath = null,
+  entityPath = null,
   canManage = false,
   editSeed = null,
   initialBookmarked = false,
@@ -57,6 +59,8 @@ export default function ReviewCardContextMenu({
     reviewTitle,
     entityTitle,
     entityId,
+    reviewPath,
+    entityPath,
   });
 
   async function handleBookmarkToggle() {
