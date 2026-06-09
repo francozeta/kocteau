@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.3.7](https://github.com/francozeta/kocteau/compare/v0.3.6...v0.3.7) (2026-06-09)
+
+
+### Features
+
+* **web:** add canonical short music urls ([361fa1b](https://github.com/francozeta/kocteau/commit/361fa1b5a56f9105eac8b8699e7fdf88d479c09d))
+* **web:** add canonical short music urls ([a048674](https://github.com/francozeta/kocteau/commit/a048674a3370b5c943def7138822e1b225218d9c))
+* **web:** polish onboarding core experience ([623feca](https://github.com/francozeta/kocteau/commit/623feca829b2bc5539450b95691e5599ff36681c))
+* **web:** polish onboarding core experience ([9b5fcab](https://github.com/francozeta/kocteau/commit/9b5fcab775a5717f902499fd8501da448b42bfd7))
+* **web:** refine editorial review cards ([24d0f3f](https://github.com/francozeta/kocteau/commit/24d0f3fb9cf6561d383f78f3f22e0f52976b25a5))
+* **web:** refine editorial review cards ([746f72b](https://github.com/francozeta/kocteau/commit/746f72b069597d73055b8c966bc6f6556adcbee4))
+
+
+### Bug Fixes
+
+* **web:** align notifications empty copy ([4b30d78](https://github.com/francozeta/kocteau/commit/4b30d7898cc84da3cfd7513cbfbcd5fa64686ada))
+* **web:** harden canonical url contract ([54e0695](https://github.com/francozeta/kocteau/commit/54e0695b2cfdcee241c006d679a96a427f6c2e43))
+* **web:** polish empty states across sparse surfaces ([913138c](https://github.com/francozeta/kocteau/commit/913138cac4c432d4e916d9f502bd31dbb5afa0f7))
+* **web:** preserve legacy short url redirects ([6459dfb](https://github.com/francozeta/kocteau/commit/6459dfb3d54bf768f5e78c1da416a24eaa85aad6))
+* **web:** reuse resolved review route data ([20722b6](https://github.com/francozeta/kocteau/commit/20722b6c4a8777dd5b3eb8681d268fcb92fe4d77))
+
+
+### Documentation
+
+* add production app preview to readme ([4f79985](https://github.com/francozeta/kocteau/commit/4f79985a568e0be7ba42c250810ef7d028314d6d))
+* link backlog issues ([e79f85e](https://github.com/francozeta/kocteau/commit/e79f85e3b53c8b0b01adc6fac63a181902eb5bc1))
+* refresh readme contributor entry ([926bf25](https://github.com/francozeta/kocteau/commit/926bf2501e20bbed8db5aa97b7c3e1d5c992bec5))
+* **web:** draft public changelog for v0.3.6 ([43cb25d](https://github.com/francozeta/kocteau/commit/43cb25d2258650cda8439dfcd9fe08c44ad25655))
+* **web:** draft public changelog for v0.3.6 ([0ce3850](https://github.com/francozeta/kocteau/commit/0ce3850e7497ab3f574bc0bf69e05d82410803e7))
+
 ## [0.3.6](https://github.com/francozeta/kocteau/compare/v0.3.5...v0.3.6) (2026-06-04)
 
 
