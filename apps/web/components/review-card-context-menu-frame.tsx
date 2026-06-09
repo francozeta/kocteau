@@ -35,7 +35,7 @@ export default function ReviewCardContextMenuFrame({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div className="h-full">{children}</div>
+        <div className="kocteau-review-card-frame h-full">{children}</div>
       </ContextMenuTrigger>
       <ReviewCardContextMenu
         reviewId={reviewId}

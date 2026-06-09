@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import Link from "next/link";
-import { Star } from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
+import { Star } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
 import ReviewCardBody from "@/components/review-card-body";
 import UserAvatar from "@/components/user-avatar";
@@ -231,6 +231,49 @@ export function ReviewCardEntityCover({
   );
 }
 
+function ReviewRatingStars({ rating, className }: { rating: number; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1 text-foreground tabular-nums",
+        className,
+      )}
+      aria-label={`Rating ${rating.toFixed(1)} out of 5`}
+    >
+      <span className="flex items-center gap-0.5" aria-hidden="true">
+        {Array.from({ length: 5 }).map((_, index) => {
+          const starNumber = index + 1;
+          const fillPercent =
+            rating >= starNumber ? 100 : rating >= starNumber - 0.5 ? 50 : 0;
+
+          return (
+            <span key={starNumber} className="relative block size-2.5 overflow-hidden sm:size-3 md:size-3.5">
+              <Star
+                className="absolute inset-0 size-full text-muted-foreground/30"
+                fill="none"
+                stroke="currentColor"
+              />
+              <span
+                className="absolute inset-y-0 left-0 overflow-hidden"
+                style={{ width: `${fillPercent}%` }}
+              >
+                <Star
+                  className="size-2.5 text-foreground sm:size-3 md:size-3.5"
+                  fill="currentColor"
+                  stroke="currentColor"
+                />
+              </span>
+            </span>
+          );
+        })}
+      </span>
+      <span className="text-[11px] font-medium leading-none text-muted-foreground/86 sm:text-[11.5px] md:text-xs">
+        {rating.toFixed(1)}
+      </span>
+    </div>
+  );
+}
+
 export default function ReviewCard({
   review,
   entity,
@@ -264,7 +307,7 @@ export default function ReviewCard({
     <article
       {...articleProps}
       className={cn(
-        "kocteau-review-card relative isolate overflow-hidden rounded-[var(--kocteau-radius-card)]",
+        "kocteau-review-card kocteau-review-card-editorial relative isolate overflow-hidden rounded-[var(--kocteau-radius-card)]",
         reviewHref && "cursor-pointer",
         featured && "kocteau-review-card-featured",
         className,
@@ -318,12 +361,9 @@ export default function ReviewCard({
           </div>
 
           {showRatingBadge || headerActions ? (
-            <div className="flex shrink-0 items-center gap-2">
-              {showRatingBadge ? (
-                <div className="inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full bg-background/38 px-2 text-[11px] font-medium tabular-nums text-foreground/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] md:bg-background/28">
-                  <Star className="size-3.5 fill-current text-amber-300" />
-                  {review.rating.toFixed(1)}
-                </div>
+            <div className="flex shrink-0 items-center gap-3 pr-1">
+              {showRatingBadge && !isCoverLedEntity ? (
+                <ReviewRatingStars rating={review.rating} className="hidden sm:flex" />
               ) : null}
               {headerActions ? (
                 <div data-prevent-review-link="true" className="relative z-[2] flex items-center">
@@ -335,33 +375,40 @@ export default function ReviewCard({
         </div>
 
         {isCoverLedEntity ? (
-          <div
-            className={cn(
-              "grid grid-cols-[5.75rem_minmax(0,1fr)] items-start gap-3.5 sm:grid-cols-[7.25rem_minmax(0,1fr)] lg:grid-cols-[7.75rem_minmax(0,1fr)] lg:gap-4",
-              featured && "grid-cols-[6.25rem_minmax(0,1fr)] sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.5rem_minmax(0,1fr)]",
-            )}
-          >
-            <div className="min-w-0">
-              {slots?.entityCover ?? <ReviewCardEntityCover entity={entity} priority={featured} />}
+          <>
+            <div
+              className={cn(
+                "grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-3.5 sm:grid-cols-[7.25rem_minmax(0,1fr)] lg:grid-cols-[7.75rem_minmax(0,1fr)] lg:gap-4",
+                featured && "grid-cols-[6.25rem_minmax(0,1fr)] sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.5rem_minmax(0,1fr)]",
+              )}
+            >
+              <div className="min-w-0">
+                {slots?.entityCover ?? <ReviewCardEntityCover entity={entity} priority={featured} />}
+              </div>
+
+              <div className="flex min-w-0 items-center justify-start self-center">
+                <div className={cn("min-w-0 max-w-[26rem]", usesBalancedCopy ? "space-y-2.5" : "space-y-3")}>
+                  {slots?.entity ?? (
+                    <ReviewCardEntitySummary
+                      entity={entity}
+                      mode="cover"
+                      tone={copyTone}
+                      headingLevel={entityHeadingLevel}
+                    />
+                  )}
+                  {showRatingBadge ? (
+                    <ReviewRatingStars rating={review.rating} className="mt-2" />
+                  ) : null}
+                </div>
+              </div>
             </div>
 
-            <div className={cn("min-w-0 self-start", usesBalancedCopy ? "space-y-2.5" : "space-y-3")}>
-              {slots?.entity ?? (
-                <ReviewCardEntitySummary
-                  entity={entity}
-                  mode="cover"
-                  tone={copyTone}
-                  headingLevel={entityHeadingLevel}
-                />
-              )}
-
+            <div className={cn("space-y-2", usesBalancedCopy ? "pt-0.5" : "pt-1")}>
               {hasTitle ? (
                 <h3
                   className={cn(
-                    "text-foreground/92",
-                    usesBalancedCopy
-                      ? "text-[0.9rem] font-medium leading-5 sm:text-[0.95rem]"
-                      : "text-[0.94rem] font-medium leading-5 sm:text-[0.98rem]",
+                    "font-serif text-pretty font-semibold leading-tight text-foreground",
+                    usesBalancedCopy ? "text-[1.02rem] sm:text-[1.12rem]" : "text-[1.12rem] sm:text-[1.24rem]",
                   )}
                 >
                   {review.title}
@@ -373,17 +420,17 @@ export default function ReviewCard({
                   body={review.body}
                   clampLines={bodyClampLines}
                   className={cn(
-                    "font-serif text-pretty text-foreground/86",
+                    "font-sans text-pretty text-foreground/84",
                     usesBalancedCopy
-                      ? "text-[14.5px] leading-[1.68] sm:text-[14.95px]"
-                      : "text-[14.8px] leading-[1.64] sm:text-[15.1px]",
+                      ? "text-[14px] leading-[1.62] sm:text-[14.45px]"
+                      : "text-[14.35px] leading-[1.6] sm:text-[14.8px]",
                   )}
                 />
               ) : (
                 <p className="text-[13.5px] leading-6 text-muted-foreground/78">Only a rating was left for this track.</p>
               )}
             </div>
-          </div>
+          </>
         ) : (
           <>
             {showEntity ? slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode={entityMode} /> : null}
@@ -398,7 +445,7 @@ export default function ReviewCard({
               <ReviewCardBody
                 body={review.body}
                 clampLines={bodyClampLines}
-                className="font-serif text-[14.95px] leading-[1.64] text-pretty text-foreground/84"
+                className="font-sans text-[14.45px] leading-[1.6] text-pretty text-foreground/84"
               />
             ) : (
               <p className="text-sm text-muted-foreground/78">Only a rating was left for this track.</p>
@@ -409,7 +456,7 @@ export default function ReviewCard({
         {footer ? (
           <div
             data-prevent-review-link="true"
-            className="relative z-[2] flex items-center justify-between gap-3 pt-0.5"
+            className="relative z-[2] flex w-full items-center gap-3 pt-0.5"
           >
             {footer}
           </div>

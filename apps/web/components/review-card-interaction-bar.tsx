@@ -32,7 +32,7 @@ export default function ReviewCardInteractionBar({
   viewer = null,
 }: ReviewCardInteractionBarProps) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="inline-flex items-center gap-0.5 rounded-full bg-[color-mix(in_oklch,var(--foreground)_7%,transparent)] p-1">
       <ReviewLikeButton
         reviewId={review.id}
         initialCount={review.likes_count}

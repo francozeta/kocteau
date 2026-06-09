@@ -579,6 +579,53 @@
     background: var(--kocteau-surface-featured-hover);
   }
 
+  .kocteau-review-card-editorial {
+    border: 0;
+    border-radius: 0 !important;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .kocteau-review-card-editorial:hover {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .kocteau-review-card-editorial.kocteau-review-card-featured,
+  .kocteau-review-card-editorial.kocteau-review-card-featured:hover {
+    background: transparent;
+  }
+
+  .kocteau-review-card-editorial + .kocteau-review-card-editorial,
+  .kocteau-review-card-frame + .kocteau-review-card-frame,
+  .kocteau-review-card-list-item + .kocteau-review-card-list-item {
+    margin-top: 0.55rem !important;
+  }
+
+  .kocteau-review-card-frame,
+  .kocteau-review-card-list-item {
+    position: relative;
+  }
+
+  .kocteau-review-card-editorial + .kocteau-review-card-editorial,
+  .kocteau-review-card-frame + .kocteau-review-card-frame .kocteau-review-card-editorial,
+  .kocteau-review-card-list-item + .kocteau-review-card-list-item .kocteau-review-card-editorial {
+    padding-top: 1.1rem;
+  }
+
+  .kocteau-review-card-editorial + .kocteau-review-card-editorial::before,
+  .kocteau-review-card-frame + .kocteau-review-card-frame .kocteau-review-card-editorial::before,
+  .kocteau-review-card-list-item + .kocteau-review-card-list-item .kocteau-review-card-editorial::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    border-radius: 0;
+    background: color-mix(in oklch, var(--foreground) 14%, transparent);
+    pointer-events: none;
+  }
+
   .kocteau-toast {
     --kocteau-toast-accent: color-mix(in oklch, var(--foreground) 56%, transparent);
     --kocteau-toast-bg: color-mix(in oklch, var(--kocteau-surface) 82%, black);
