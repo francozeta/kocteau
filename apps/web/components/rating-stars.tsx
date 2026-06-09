@@ -97,7 +97,8 @@ export default function RatingStars({
               type="button"
               disabled={disabled}
               className={cn(
-                "relative h-8 w-8 cursor-pointer outline-none transition-transform",
+                "relative h-8 w-8 appearance-none overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform",
+                !disabled && "cursor-pointer hover:bg-transparent active:bg-transparent",
                 !disabled && "hover:scale-105",
                 disabled && "cursor-not-allowed opacity-60"
               )}
@@ -108,20 +109,18 @@ export default function RatingStars({
               aria-checked={value === starNumber || value === starNumber - 0.5}
               aria-label={`${starNumber} estrellas`}
             >
-              {/* estrella base */}
               <Star
-                className="absolute inset-0 h-8 w-8 text-muted-foreground/40"
+                className="absolute inset-0 h-8 w-8 text-muted-foreground/34 transition-colors"
                 fill="none"
                 stroke="currentColor"
               />
 
-              {/* capa rellenada */}
               <div
                 className="absolute inset-y-0 left-0 overflow-hidden"
                 style={{ width: `${fillPercent}%` }}
               >
                 <Star
-                  className="h-8 w-8 text-amber-400"
+                  className="h-8 w-8 text-foreground drop-shadow-[0_0_10px_color-mix(in_oklch,var(--foreground)_22%,transparent)]"
                   fill="currentColor"
                   stroke="currentColor"
                 />

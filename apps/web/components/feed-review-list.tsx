@@ -472,7 +472,7 @@ export default function FeedReviewList({
         const author = review.author;
 
         return (
-          <div key={review.id} ref={setReviewNodeRef(review.id)}>
+          <div key={review.id} ref={setReviewNodeRef(review.id)} className="kocteau-review-card-list-item">
             <FeedReviewCard
               review={review}
               entity={review.entities}

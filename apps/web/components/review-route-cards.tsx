@@ -308,7 +308,7 @@ function RoutedReviewCard({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div className="h-full">{card}</div>
+        <div className="kocteau-review-card-frame h-full">{card}</div>
       </ContextMenuTrigger>
       <ReviewCardContextMenu
         reviewId={review.id}
