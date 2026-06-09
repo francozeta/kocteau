@@ -15,14 +15,12 @@ export type SeoReviewRouteInput = {
 };
 
 const fallbackSlug = "music";
-const shortRouteIdLength = 8;
+const shortRouteIdLength = 12;
 const fullUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const shortUuidPrefixPattern = /^[0-9a-f]{8}$/i;
+const shortUuidPrefixPattern = /^[0-9a-f]{12}$/i;
 
-const entityRouteRoots: Record<SeoEntityType, string> = {
+const entityRouteRoots: Record<Extract<SeoEntityType, "track">, string> = {
   track: "tracks",
-  album: "albums",
-  artist: "artists",
 };
 
 export function isSeoEntityType(value: string | null | undefined): value is SeoEntityType {
@@ -30,7 +28,7 @@ export function isSeoEntityType(value: string | null | undefined): value is SeoE
 }
 
 export function getEntityRouteRoot(type: string | null | undefined) {
-  return isSeoEntityType(type) ? entityRouteRoots[type] : entityRouteRoots.track;
+  return type === "track" || !type ? entityRouteRoots.track : null;
 }
 
 export function slugifyForUrl(value: string | null | undefined) {
@@ -60,7 +58,7 @@ export function getEntitySlug(entity: SeoEntityRouteInput | null | undefined) {
 }
 
 export function getShortRouteId(id: string) {
-  return id.slice(0, shortRouteIdLength).toLowerCase();
+  return id.replaceAll("-", "").slice(0, shortRouteIdLength).toLowerCase();
 }
 
 export function isFullUuid(value: string | null | undefined) {
@@ -79,15 +77,17 @@ export function buildEntityCanonicalPath(entity: SeoEntityRouteInput) {
   const routeRoot = getEntityRouteRoot(entity.type);
   const slug = getEntitySlug(entity);
 
-  if (entity.id) {
+  if (routeRoot && entity.id) {
     return `/${routeRoot}/${slug}/${encodeURIComponent(getShortRouteId(entity.id))}`;
   }
 
-  if (entity.type === "track" && entity.provider === "deezer" && entity.provider_id) {
+  if (routeRoot && entity.provider === "deezer" && entity.provider_id) {
     return `/track/deezer/${encodeURIComponent(entity.provider_id)}`;
   }
 
-  return `/${routeRoot}/${slug}`;
+  const searchQuery = [entity.title, entity.artist_name].filter(Boolean).join(" ") || fallbackSlug;
+
+  return `/search?q=${encodeURIComponent(searchQuery)}`;
 }
 
 export function buildEntityLegacyPath(entity: SeoEntityRouteInput) {

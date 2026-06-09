@@ -15,8 +15,6 @@ export function GET() {
     `- ${siteUrl}/reviews/{reviewId}/{entitySlug} — canonical page for a single public music review`,
     `- ${siteUrl}/track — recently discussed tracks`,
     `- ${siteUrl}/tracks/{slug}/{entityId} — canonical public track page with reviews and aggregate rating context`,
-    `- ${siteUrl}/albums/{slug}/{entityId} — future canonical album page pattern`,
-    `- ${siteUrl}/artists/{slug}/{entityId} — future canonical artist page pattern`,
     `- ${siteUrl}/u/{username} — public listener profile with reviews and taste links`,
     `- ${siteUrl}/search — public exploration entry point for tracks and active songs`,
     "",

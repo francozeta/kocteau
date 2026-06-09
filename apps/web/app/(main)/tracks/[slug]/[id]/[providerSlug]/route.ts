@@ -16,7 +16,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<ProviderTrackRouteParams> },
 ) {
-  const { slug: provider, id: providerId } = await params;
+  const { providerSlug: provider, id: providerId } = await params;
   const entity = await getEntityPageByProvider(provider, "track", providerId);
 
   if (!entity) {

@@ -140,6 +140,9 @@ export async function getEntityPageByRouteId(routeId: string) {
   }
 
   const normalizedRouteId = routeId.toLowerCase();
+  const routeIdCandidates = Array.from(
+    new Set([normalizedRouteId, normalizedRouteId.slice(0, 8)]),
+  );
 
   return getOrCreateLoader(
     entityPageByRouteIdLoaders,
@@ -154,7 +157,7 @@ export async function getEntityPageByRouteId(routeId: string) {
               const { data, error } = await supabase
                 .from("entities")
                 .select(entityPageSelect)
-                .eq("short_id", normalizedRouteId)
+                .in("short_id", routeIdCandidates)
                 .maybeSingle<EntityPage>();
 
               if (error) {

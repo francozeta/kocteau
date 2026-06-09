@@ -121,6 +121,9 @@ export async function getPublicReviewByRouteId(routeId: string) {
   }
 
   const normalizedRouteId = routeId.toLowerCase();
+  const routeIdCandidates = Array.from(
+    new Set([normalizedRouteId, normalizedRouteId.slice(0, 8)]),
+  );
 
   return getOrCreateLoader(
     publicReviewByRouteIdLoaders,
@@ -142,7 +145,7 @@ export async function getPublicReviewByRouteId(routeId: string) {
                       includePinned: true,
                     }),
                   )
-                  .eq("short_id", normalizedRouteId)
+                  .in("short_id", routeIdCandidates)
                   .maybeSingle(),
               );
 

@@ -56,6 +56,8 @@ function authorName(author: StructuredReviewEntry["author"]) {
 }
 
 function buildReviewNode(entry: StructuredReviewEntry) {
+  const itemReviewedType = entry.entity.type === "album" ? "MusicAlbum" : "MusicRecording";
+  const itemReviewedFragment = itemReviewedType === "MusicAlbum" ? "album" : "recording";
   const entityPath = buildEntityCanonicalPath({
     id: entry.entity.id,
     provider: entry.entity.provider,
@@ -95,8 +97,8 @@ function buildReviewNode(entry: StructuredReviewEntry) {
       url: absoluteUrl(`/u/${entry.author.username}`),
     },
     itemReviewed: {
-      "@type": "MusicRecording",
-      "@id": `${absoluteUrl(entityPath)}#recording`,
+      "@type": itemReviewedType,
+      "@id": `${absoluteUrl(entityPath)}#${itemReviewedFragment}`,
       name: entry.entity.title,
       url: absoluteUrl(entityPath),
       image: entry.entity.coverUrl || undefined,
@@ -397,6 +399,9 @@ export function buildReviewPageJsonLd(review: ReviewPageReview) {
         created_at: review.created_at,
         entity: {
           id: entity.id,
+          provider: entity.provider,
+          providerId: entity.provider_id,
+          type: entity.type,
           title: entity.title,
           artistName: entity.artist_name,
           coverUrl: entity.cover_url,
