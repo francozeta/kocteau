@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
-  getTrackRecommendationSeedLabel,
+  getTrackRecommendationQueryLabel,
   selectTrackRecommendationGroups,
   type TrackRecommendationCandidate,
 } from "./track-recommendation-ranking.ts";
@@ -11,6 +11,8 @@ function candidate(
   providerId: string,
   source: TrackRecommendationCandidate["source"],
   href = `/track/deezer/${providerId}`,
+  artistName = "Nearby Artist",
+  score = 50,
 ): TrackRecommendationCandidate {
   return {
     id: `${source}-${providerId}`,
@@ -18,21 +20,21 @@ function candidate(
     provider_id: providerId,
     type: "track",
     title: `Track ${providerId}`,
-    artist_name: "Seed Artist",
+    artist_name: artistName,
     cover_url: null,
     deezer_url: null,
     href,
     reason: "Related lane, quieter profile.",
     source,
-    sourceLabel: source === "editorial-fallback" ? "Curated" : "Related",
-    score: 50,
+    sourceLabel: source === "local-signal" ? "Kocteau signal" : "Nearby",
+    score,
   };
 }
 
 describe("track recommendation ranking", () => {
-  it("uses the artist name as the Deezer seed label when available", () => {
+  it("uses the artist name as the Deezer query label when available", () => {
     assert.equal(
-      getTrackRecommendationSeedLabel({
+      getTrackRecommendationQueryLabel({
         title: "The Cure",
         artistName: "Olivia Rodrigo",
       }),
@@ -44,14 +46,13 @@ describe("track recommendation ranking", () => {
     const groups = selectTrackRecommendationGroups({
       currentProviderId: "current",
       relatedCandidates: [
-        candidate("current", "related-seed"),
-        candidate("same", "related-seed"),
+        candidate("current", "deezer-related"),
+        candidate("same", "deezer-related"),
       ],
       localSignalCandidates: [
         candidate("same", "local-signal", "/track/local-entity"),
         candidate("local-only", "local-signal", "/track/local-only"),
       ],
-      editorialFallbackCandidates: [],
       perGroupLimit: 6,
     });
 
@@ -64,36 +65,33 @@ describe("track recommendation ranking", () => {
     );
   });
 
-  it("uses editorial fallback when related candidates are empty", () => {
-    const fallbackGroups = selectTrackRecommendationGroups({
+  it("does not fill track recommendations with editorial fallbacks", () => {
+    const groups = selectTrackRecommendationGroups({
       currentProviderId: "current",
       relatedCandidates: [],
       localSignalCandidates: [],
-      editorialFallbackCandidates: [candidate("fallback", "editorial-fallback")],
       perGroupLimit: 6,
     });
 
-    assert.equal(fallbackGroups.length, 1);
-    assert.equal(fallbackGroups[0]?.id, "fallback");
-    assert.deepEqual(
-      fallbackGroups.flatMap((group) =>
-        group.recommendations.map((track) => track.provider_id),
-      ),
-      ["fallback"],
-    );
+    assert.deepEqual(groups, []);
+  });
 
-    const candidateGroups = selectTrackRecommendationGroups({
+  it("keeps related candidates diverse before filling repeated artists", () => {
+    const groups = selectTrackRecommendationGroups({
       currentProviderId: "current",
-      relatedCandidates: [candidate("related", "related-seed")],
+      relatedCandidates: [
+        candidate("same-1", "deezer-related", "/track/deezer/same-1", "Same Artist", 100),
+        candidate("same-2", "deezer-related", "/track/deezer/same-2", "Same Artist", 95),
+        candidate("same-3", "deezer-related", "/track/deezer/same-3", "Same Artist", 90),
+        candidate("other-1", "deezer-related", "/track/deezer/other-1", "Other Artist", 70),
+      ],
       localSignalCandidates: [],
-      editorialFallbackCandidates: [candidate("fallback", "editorial-fallback")],
-      perGroupLimit: 6,
+      perGroupLimit: 3,
     });
 
-    assert.deepEqual(candidateGroups.map((group) => group.id), ["related"]);
     assert.deepEqual(
-      candidateGroups.flatMap((group) => group.recommendations.map((track) => track.provider_id)),
-      ["related"],
+      groups.flatMap((group) => group.recommendations.map((track) => track.provider_id)),
+      ["same-1", "same-2", "other-1"],
     );
   });
 });

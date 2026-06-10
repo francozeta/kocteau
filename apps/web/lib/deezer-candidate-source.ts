@@ -8,12 +8,14 @@ import {
   type DeezerArtistResult,
   type DeezerTrackResult,
 } from "@/lib/deezer";
-import type { StarterCandidateSource } from "@/lib/starter/candidates";
 
-export type DeezerCandidateSeedArtist = Pick<
+export type DeezerCandidateContextArtist = Pick<
   DeezerArtistResult,
   "id" | "name" | "fan_count"
 >;
+export type DeezerCandidateSourceMode = "related" | "related-seed" | "deep-cut";
+
+type DeezerCandidateSeedArtist = DeezerCandidateContextArtist;
 
 function dedupeArtists(artists: DeezerArtistResult[]) {
   const seenArtistIds = new Set<string>();
@@ -136,15 +138,19 @@ export async function getCandidateSourceTracks({
   query,
   limit,
   seedArtist,
+  contextArtist,
 }: {
-  mode: StarterCandidateSource;
+  mode: DeezerCandidateSourceMode;
   query: string;
   limit: number;
   seedArtist?: DeezerCandidateSeedArtist | null;
+  contextArtist?: DeezerCandidateContextArtist | null;
 }) {
+  const candidateArtist = contextArtist ?? seedArtist;
+
   if (mode === "deep-cut") {
-    return getDeepCutTracks({ query, limit, seedArtist });
+    return getDeepCutTracks({ query, limit, seedArtist: candidateArtist });
   }
 
-  return getRelatedSeedTracks({ query, limit, seedArtist });
+  return getRelatedSeedTracks({ query, limit, seedArtist: candidateArtist });
 }
