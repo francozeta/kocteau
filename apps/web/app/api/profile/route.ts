@@ -45,6 +45,7 @@ export async function POST(req: Request) {
   revalidateTag("reviews", "max");
   revalidateTag("feed", "max");
   revalidatePath("/");
+  revalidatePath("/library");
   revalidatePath("/saved");
   revalidatePath("/notifications");
   revalidatePath("/onboarding");

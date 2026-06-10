@@ -5,10 +5,15 @@ import { FaDeezer } from "react-icons/fa";
 import { Share2 } from "@/components/ui/icons";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
+import EntityLibraryActions from "@/components/entity-library-actions";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
+import {
+  type EntityLibraryState,
+  getEmptyEntityLibraryState,
+} from "@/lib/library/entity-library";
 
 type TrackPageHeroProps = {
   entity: {
@@ -29,6 +34,7 @@ type TrackPageHeroProps = {
     is_pinned: boolean;
   } | null;
   shouldOpenViewerEditor?: boolean;
+  initialLibraryState?: EntityLibraryState;
 };
 
 const primaryActionClassName =
@@ -43,6 +49,7 @@ export default function TrackPageHero({
   sharePath,
   viewerReview,
   shouldOpenViewerEditor = false,
+  initialLibraryState = getEmptyEntityLibraryState(),
 }: TrackPageHeroProps) {
   const deezerLink = entity.deezer_url
     ? {
@@ -59,6 +66,16 @@ export default function TrackPageHero({
     cover_url: entity.cover_url,
     deezer_url: entity.deezer_url,
     entity_id: entity.id ?? null,
+  };
+  const librarySelection = {
+    provider: "deezer" as const,
+    provider_id: entity.provider_id,
+    type: "track" as const,
+    title: entity.title,
+    artist_name: entity.artist_name,
+    cover_url: entity.cover_url,
+    deezer_url: entity.deezer_url,
+    id: entity.id ?? null,
   };
   const editSelection = entity.id
     ? {
@@ -210,6 +227,13 @@ export default function TrackPageHero({
               </a>
             </div>
           ) : null}
+
+          <EntityLibraryActions
+            entity={librarySelection}
+            initialState={initialLibraryState}
+            isAuthenticated={isAuthenticated}
+            className="mt-3"
+          />
         </div>
       </div>
     </section>

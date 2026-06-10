@@ -96,9 +96,9 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
             <UserCircleIcon className="size-4" />
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => router.push("/saved")}>
+          <DropdownMenuItem onSelect={() => router.push("/library")}>
             <BookmarkSimpleIcon className="size-4" />
-            Saved reviews
+            Library
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push("/notifications")}>
             <BellSimpleIcon className="size-4" />

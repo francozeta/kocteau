@@ -15,6 +15,10 @@ import {
   getTrackPublicBundle,
   getTrackViewerState,
 } from "@/lib/queries/entities";
+import {
+  getEntityLibraryStateOrEmpty,
+  getViewerEntityLibraryState,
+} from "@/lib/queries/entity-library";
 import { getTrackRecommendations } from "@/lib/queries/track-recommendations";
 import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildEntityCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
@@ -100,14 +104,23 @@ export default async function TrackPage({
 
   if (!bundle) notFound();
 
-  const viewerState =
+  const emptyViewerState = {
+    likedReviewIds: new Set<string>(),
+    bookmarkedReviewIds: new Set<string>(),
+    viewerReviewId: null as string | null,
+  };
+  const [viewerState, libraryStates] = await Promise.all([
     user?.id && bundle.reviews.length > 0
-      ? await getTrackViewerState(user.id, entityPage.id, bundle.reviews)
-      : {
-          likedReviewIds: new Set<string>(),
-          bookmarkedReviewIds: new Set<string>(),
-          viewerReviewId: null as string | null,
-        };
+      ? getTrackViewerState(user.id, entityPage.id, bundle.reviews)
+      : Promise.resolve(emptyViewerState),
+    user?.id
+      ? getViewerEntityLibraryState(user.id, [entityPage.id])
+      : Promise.resolve(new Map()),
+  ]);
+  const initialLibraryState = getEntityLibraryStateOrEmpty(
+    libraryStates,
+    entityPage.id,
+  );
 
   const queryClient = createServerQueryClient();
   const trackData = {
@@ -186,6 +199,7 @@ export default async function TrackPage({
         <TrackPageHero
           entity={entity}
           isAuthenticated={Boolean(user)}
+          initialLibraryState={initialLibraryState}
           viewerReview={
             viewerReview
               ? {

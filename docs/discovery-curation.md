@@ -374,6 +374,34 @@ Constraints:
 - do not create fake recommendations, fake reviews, or fake activity
 - keep explanation labels readable enough for analytics and future health checks
 
+### Phase 6B: Community Curation Signals
+
+Make Kocteau learn from intentional human actions before adding any AI layer.
+
+This phase treats reviews, saved intent, and future collections as curation material:
+
+- `listen_later`: the listener wants to hear this track later.
+- `review_later`: the listener thinks this track may deserve a written take.
+- saved reviews: the listener found another person's writing worth revisiting.
+- collections: a person groups tracks with a human meaning, not just a playlist shape.
+- collection tags and intent: the group explains why the tracks belong together.
+
+The first implementation should stay simple:
+
+1. Add private `listen_later` and `review_later` signals on track pages.
+2. Expose those signals in a private `Library` surface.
+3. Add public/private collections after the library intent model is stable.
+4. Let collections carry optional tags and intent labels.
+5. Derive track relationships from repeated co-curation, reviews, and explicit collection meaning.
+6. Show lightweight `Why this?` explanations only after the underlying signal is real.
+
+The AI posture is future-ready, not AI-dependent:
+
+- Today, Kocteau can use SQL, tags, reviews, saves, follows, and collections.
+- Later, an AI service can summarize collection intent, propose tags, or draft explanation copy.
+- AI should never write directly to production recommendation tables without maintainer review.
+- User-facing explanations should cite product signals, not hidden model confidence.
+
 ### Phase 7: Taste Graph
 
 Add manual entity relationships before embeddings.

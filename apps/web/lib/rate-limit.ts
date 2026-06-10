@@ -46,6 +46,11 @@ export const rateLimits = {
     limit: 90,
     windowMs: 60_000,
   },
+  setEntityLibraryItem: {
+    name: "entity:library",
+    limit: 90,
+    windowMs: 60_000,
+  },
   createComment: {
     name: "comment:create",
     limit: 20,
