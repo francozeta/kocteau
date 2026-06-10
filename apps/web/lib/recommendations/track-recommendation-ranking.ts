@@ -1,7 +1,4 @@
-export type TrackRecommendationSource =
-  | "local-signal"
-  | "related-seed"
-  | "editorial-fallback";
+export type TrackRecommendationSource = "local-signal" | "deezer-related";
 
 export type TrackRecommendationCandidate = {
   id: string;
@@ -20,7 +17,7 @@ export type TrackRecommendationCandidate = {
 };
 
 export type TrackRecommendationGroup = {
-  id: "related" | "fallback";
+  id: "related";
   label: string;
   description: string;
   recommendations: TrackRecommendationCandidate[];
@@ -30,17 +27,20 @@ type SelectTrackRecommendationGroupsOptions = {
   currentProviderId: string;
   relatedCandidates: TrackRecommendationCandidate[];
   localSignalCandidates: TrackRecommendationCandidate[];
-  editorialFallbackCandidates: TrackRecommendationCandidate[];
   perGroupLimit?: number;
 };
 
 const sourcePriority: Record<TrackRecommendationSource, number> = {
   "local-signal": 4,
-  "related-seed": 3,
-  "editorial-fallback": 1,
+  "deezer-related": 3,
 };
 
-export function getTrackRecommendationSeedLabel({
+const sourceScoreBonus: Record<TrackRecommendationSource, number> = {
+  "local-signal": 18,
+  "deezer-related": 10,
+};
+
+export function getTrackRecommendationQueryLabel({
   title,
   artistName,
 }: {
@@ -54,6 +54,57 @@ export function getTrackRecommendationSeedLabel({
 
 function getCandidateKey(candidate: TrackRecommendationCandidate) {
   return `${candidate.provider}:${candidate.type}:${candidate.provider_id}`;
+}
+
+function getArtistKey(candidate: TrackRecommendationCandidate) {
+  return candidate.artist_name?.trim().toLowerCase() || "unknown";
+}
+
+function getStableExplorationBonus(
+  candidate: TrackRecommendationCandidate,
+  currentProviderId: string,
+) {
+  const key = `${currentProviderId}:${candidate.provider_id}`;
+  let hash = 0;
+
+  for (let index = 0; index < key.length; index += 1) {
+    hash = (hash * 31 + key.charCodeAt(index)) % 997;
+  }
+
+  return (hash % 13) / 2;
+}
+
+function getExperimentalScore(candidate: TrackRecommendationCandidate, currentProviderId: string) {
+  return (
+    candidate.score +
+    sourceScoreBonus[candidate.source] +
+    getStableExplorationBonus(candidate, currentProviderId)
+  );
+}
+
+function diversifyByArtist(
+  candidates: TrackRecommendationCandidate[],
+  limit: number,
+) {
+  const selected: TrackRecommendationCandidate[] = [];
+  const deferred: TrackRecommendationCandidate[] = [];
+  const artistCounts = new Map<string, number>();
+  const softArtistLimit = 2;
+
+  candidates.forEach((candidate) => {
+    const artistKey = getArtistKey(candidate);
+    const artistCount = artistCounts.get(artistKey) ?? 0;
+
+    if (artistCount < softArtistLimit) {
+      selected.push(candidate);
+      artistCounts.set(artistKey, artistCount + 1);
+      return;
+    }
+
+    deferred.push(candidate);
+  });
+
+  return [...selected, ...deferred].slice(0, limit);
 }
 
 function selectCandidates({
@@ -89,24 +140,25 @@ function selectCandidates({
       }
     });
 
-  return Array.from(bestByKey.values())
-    .sort((left, right) => {
-      const priorityDelta = sourcePriority[right.source] - sourcePriority[left.source];
+  const ranked = Array.from(bestByKey.values()).sort((left, right) => {
+    const scoreDelta =
+      getExperimentalScore(right, currentProviderId) -
+      getExperimentalScore(left, currentProviderId);
 
-      if (priorityDelta !== 0) {
-        return priorityDelta;
-      }
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
 
-      return right.score - left.score;
-    })
-    .slice(0, limit);
+    return sourcePriority[right.source] - sourcePriority[left.source];
+  });
+
+  return diversifyByArtist(ranked, limit);
 }
 
 export function selectTrackRecommendationGroups({
   currentProviderId,
   relatedCandidates,
   localSignalCandidates,
-  editorialFallbackCandidates,
   perGroupLimit = 6,
 }: SelectTrackRecommendationGroupsOptions): TrackRecommendationGroup[] {
   const limit = Math.max(1, Math.min(perGroupLimit, 24));
@@ -117,22 +169,7 @@ export function selectTrackRecommendationGroups({
   });
 
   if (related.length === 0) {
-    const fallback = selectCandidates({
-      candidates: editorialFallbackCandidates,
-      currentProviderId,
-      limit,
-    });
-
-    return fallback.length > 0
-      ? [
-          {
-            id: "fallback",
-            label: "Curated starters",
-            description: "Editorial picks while this track gathers signals.",
-            recommendations: fallback,
-          },
-        ]
-      : [];
+    return [];
   }
 
   const groups: Array<TrackRecommendationGroup | null> = [

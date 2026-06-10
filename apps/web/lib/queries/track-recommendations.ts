@@ -2,7 +2,7 @@ import "server-only";
 
 import {
   getCandidateSourceTracks,
-  type DeezerCandidateSeedArtist,
+  type DeezerCandidateContextArtist,
 } from "@/lib/deezer-candidate-source";
 import {
   getDeezerErrorDetails,
@@ -10,15 +10,13 @@ import {
   type DeezerTrackResult,
 } from "@/lib/deezer";
 import { measureServerTask } from "@/lib/perf";
-import { getPublicStarterTracks } from "@/lib/queries/starter";
 import type { EntityTasteTag } from "@/lib/queries/entities";
 import {
-  getTrackRecommendationSeedLabel,
+  getTrackRecommendationQueryLabel,
   selectTrackRecommendationGroups,
   type TrackRecommendationCandidate,
   type TrackRecommendationGroup,
 } from "@/lib/recommendations/track-recommendation-ranking";
-import { buildStarterCandidateTracks } from "@/lib/starter/candidates";
 import { supabasePublic } from "@/lib/supabase/public";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 
@@ -64,7 +62,9 @@ type TrackRecommendationOptions = {
 
 const defaultRecommendationLimit = 18;
 
-function getSeedArtistFromTrack(track: DeezerTrackResult | null): DeezerCandidateSeedArtist | null {
+function getContextArtistFromTrack(
+  track: DeezerTrackResult | null,
+): DeezerCandidateContextArtist | null {
   if (!track?.artist_id || !track.artist_name) {
     return null;
   }
@@ -84,6 +84,71 @@ function getSignalMatchReason(labels: string[]) {
   }
 
   return `Also tagged ${primaryLabel.toLowerCase()}.`;
+}
+
+function getNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function isObviousCatalogCandidate(track: DeezerTrackResult) {
+  const rank = getNumber(track.rank);
+  const fanCount = getNumber(track.artist_fan_count);
+
+  return rank !== null && fanCount !== null && rank >= 900_000 && fanCount >= 750_000;
+}
+
+function getDeezerCandidateScore(track: DeezerTrackResult) {
+  const rank = getNumber(track.rank);
+  const fanCount = getNumber(track.artist_fan_count);
+  let score = 50;
+
+  if (fanCount !== null) {
+    if (fanCount <= 25_000) {
+      score += 18;
+    } else if (fanCount <= 250_000) {
+      score += 10;
+    } else if (fanCount >= 1_000_000) {
+      score -= 18;
+    }
+  }
+
+  if (rank !== null) {
+    if (rank <= 150_000) {
+      score += 8;
+    } else if (rank >= 750_000) {
+      score -= 14;
+    }
+  }
+
+  return score;
+}
+
+function getDeezerCandidateReason(track: DeezerTrackResult) {
+  const fanCount = getNumber(track.artist_fan_count);
+
+  if (fanCount !== null && fanCount <= 250_000) {
+    return "Nearby track with a quieter artist profile.";
+  }
+
+  return "Nearby track outside the obvious lane.";
+}
+
+function mapDeezerRelatedCandidate(track: DeezerTrackResult): TrackRecommendationCandidate {
+  return {
+    id: `deezer-related:${track.provider_id}`,
+    provider: "deezer",
+    provider_id: track.provider_id,
+    type: "track",
+    title: track.title,
+    artist_name: track.artist_name,
+    cover_url: track.cover_url,
+    deezer_url: track.deezer_url,
+    href: `/track/deezer/${track.provider_id}`,
+    reason: getDeezerCandidateReason(track),
+    source: "deezer-related",
+    sourceLabel: "Nearby",
+    score: getDeezerCandidateScore(track),
+  };
 }
 
 async function getLocalSignalCandidates({
@@ -200,95 +265,37 @@ async function getLocalSignalCandidates({
     }));
 }
 
-function mapDeezerCandidate({
-  candidate,
-  sourceLabel,
-}: {
-  candidate: ReturnType<typeof buildStarterCandidateTracks>[number];
-  sourceLabel: string;
-}): TrackRecommendationCandidate {
-  return {
-    id: candidate.candidate_id,
-    provider: "deezer",
-    provider_id: candidate.provider_id,
-    type: "track",
-    title: candidate.title,
-    artist_name: candidate.artist_name,
-    cover_url: candidate.cover_url,
-    deezer_url: candidate.deezer_url,
-    href: `/track/deezer/${candidate.provider_id}`,
-    reason: candidate.reason,
-    source: "related-seed",
-    sourceLabel,
-    score: candidate.score,
-  };
-}
-
 async function getDeezerCandidateRecommendations({
   currentProviderId,
   query,
   limit,
-  seedArtist,
+  contextArtist,
 }: {
   currentProviderId: string;
   query: string;
   limit: number;
-  seedArtist: DeezerCandidateSeedArtist | null;
+  contextArtist: DeezerCandidateContextArtist | null;
 }) {
   const sourceTracks = await getCandidateSourceTracks({
-    mode: "related-seed",
+    mode: "related",
     query,
     limit: Math.max(limit * 3, 12),
-    seedArtist,
+    contextArtist,
   });
-  const candidates = buildStarterCandidateTracks({
-    source: "related-seed",
-    seedLabel: sourceTracks.seedLabel,
-    tracks: sourceTracks.tracks,
-    existingProviderIds: new Set([currentProviderId]),
-    limit: Math.max(limit * 2, 12),
-  });
+  const seenProviderIds = new Set([currentProviderId]);
 
-  return candidates.map((candidate) =>
-    mapDeezerCandidate({
-      candidate,
-      sourceLabel: "Related",
-    }),
-  );
-}
+  return sourceTracks.tracks
+    .filter((track) => {
+      if (seenProviderIds.has(track.provider_id)) {
+        return false;
+      }
 
-async function getEditorialFallbackCandidates({
-  currentEntityId,
-  currentProviderId,
-  limit,
-}: {
-  currentEntityId?: string | null;
-  currentProviderId: string;
-  limit: number;
-}) {
-  const tracks = await getPublicStarterTracks({
-    limit: Math.max(limit * 2, 8),
-    seed: currentEntityId ?? currentProviderId,
-    contextKey: `track:${currentEntityId ?? currentProviderId}`,
-  });
-
-  return tracks
-    .filter((track) => track.provider_id !== currentProviderId)
-    .map((track) => ({
-      id: track.id,
-      provider: "deezer" as const,
-      provider_id: track.provider_id,
-      type: "track" as const,
-      title: track.title,
-      artist_name: track.artist_name,
-      cover_url: track.cover_url,
-      deezer_url: track.deezer_url,
-      href: `/track/deezer/${track.provider_id}`,
-      reason: "A curated starter pick from Kocteau.",
-      source: "editorial-fallback" as const,
-      sourceLabel: "Curated",
-      score: track.score,
-    }));
+      seenProviderIds.add(track.provider_id);
+      return !isObviousCatalogCandidate(track);
+    })
+    .map(mapDeezerRelatedCandidate)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, Math.max(limit * 2, 12));
 }
 
 async function resolveRecommendationLinks(groups: TrackRecommendationGroup[]) {
@@ -354,7 +361,7 @@ export async function getTrackRecommendations({
     "getTrackRecommendations",
     async () => {
       const requestedLimit = Math.max(1, Math.min(limit, 24));
-      const [seedTrack, localSignalCandidates] = await Promise.all([
+      const [catalogTrack, localSignalCandidates] = await Promise.all([
         getDeezerTrack(currentProviderId).catch(() => null),
         getLocalSignalCandidates({
           currentEntityId,
@@ -363,38 +370,29 @@ export async function getTrackRecommendations({
           limit: requestedLimit,
         }),
       ]);
-      const seedArtist = getSeedArtistFromTrack(seedTrack);
-      const seedLabel = getTrackRecommendationSeedLabel({
+      const contextArtist = getContextArtistFromTrack(catalogTrack);
+      const queryLabel = getTrackRecommendationQueryLabel({
         title,
-        artistName: seedArtist?.name ?? artistName,
+        artistName: contextArtist?.name ?? artistName,
       });
-      const [relatedCandidates, editorialFallbackCandidates] =
-        await Promise.all([
-          getDeezerCandidateRecommendations({
-            currentProviderId,
-            query: seedLabel,
-            limit: requestedLimit,
-            seedArtist,
-          }).catch((error) => {
-            console.warn("[track-recommendations.deezer] using editorial fallback", {
-              currentProviderId,
-              ...getDeezerErrorDetails(error),
-            });
+      const relatedCandidates = await getDeezerCandidateRecommendations({
+        currentProviderId,
+        query: queryLabel,
+        limit: requestedLimit,
+        contextArtist,
+      }).catch((error) => {
+        console.warn("[track-recommendations.deezer] skipped related candidates", {
+          currentProviderId,
+          ...getDeezerErrorDetails(error),
+        });
 
-            return [];
-          }),
-          getEditorialFallbackCandidates({
-            currentEntityId,
-            currentProviderId,
-            limit: requestedLimit,
-          }),
-        ]);
+        return [];
+      });
 
       const groups = selectTrackRecommendationGroups({
         currentProviderId,
         relatedCandidates,
         localSignalCandidates,
-        editorialFallbackCandidates,
         perGroupLimit: requestedLimit,
       });
 
