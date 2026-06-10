@@ -15,6 +15,7 @@ describe("starter rail surface helpers", () => {
     assert.equal(getStarterSurfaceFromPathname("/u/kocteau"), "profile");
     assert.equal(getStarterSurfaceFromPathname("/reviews/review-1"), "review");
     assert.equal(getStarterSurfaceFromPathname("/search"), "search");
+    assert.equal(getStarterSurfaceFromPathname("/library"), "library");
     assert.equal(getStarterSurfaceFromPathname("/saved"), "saved");
     assert.equal(getStarterSurfaceFromPathname("/studio/health"), "studio");
     assert.equal(getStarterSurfaceFromPathname("/notifications"), "notifications");

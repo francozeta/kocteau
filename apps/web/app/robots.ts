@@ -8,6 +8,7 @@ export default function robots(): MetadataRoute.Robots {
     "/login",
     "/signup",
     "/onboarding",
+    "/library",
     "/notifications",
     "/saved",
     "/api/",

@@ -91,8 +91,8 @@ export default function Header({
       return "Tracks";
     }
 
-    if (pathname.startsWith("/saved")) {
-      return "Saved";
+    if (pathname.startsWith("/library") || pathname.startsWith("/saved")) {
+      return "Library";
     }
 
     if (pathname.startsWith("/notifications")) {

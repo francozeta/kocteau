@@ -111,10 +111,10 @@ export default function AppSidebar({
   const secondaryItems = profile
     ? [
         {
-          title: "Saved",
-          url: "/saved",
+          title: "Library",
+          url: "/library",
           icon: BookmarkSimpleIcon,
-          isActive: pathname.startsWith("/saved"),
+          isActive: pathname.startsWith("/library") || pathname.startsWith("/saved"),
         },
         {
           title: "Activity",

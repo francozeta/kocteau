@@ -319,6 +319,48 @@ export type Database = {
           },
         ]
       }
+      entity_library_items: {
+        Row: {
+          created_at: string
+          entity_id: string
+          item_type: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          item_type: string
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          item_type?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_library_items_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_library_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_preference_tags: {
         Row: {
           created_at: string
@@ -1088,6 +1130,14 @@ export type Database = {
           review_id: string
         }[]
       }
+      get_viewer_entity_library_state: {
+        Args: { p_entity_ids: string[] }
+        Returns: {
+          entity_id: string
+          listen_later: boolean
+          review_later: boolean
+        }[]
+      }
       get_recommended_review_ids: {
         Args: {
           p_cursor_created_at?: string
@@ -1147,6 +1197,20 @@ export type Database = {
           score: number
           title: string
           type: Database["public"]["Enums"]["entity_type"]
+        }[]
+      }
+      set_entity_library_item: {
+        Args: {
+          p_active: boolean
+          p_entity_id: string
+          p_item_type: string
+          p_source?: string
+        }
+        Returns: {
+          active: boolean
+          created_at: string | null
+          entity_id: string
+          item_type: string
         }[]
       }
       get_viewer_review_collection_state: {

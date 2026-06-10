@@ -3,7 +3,13 @@
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/validation/errors";
 
-type AuthPromptAction = "comment" | "like" | "bookmark" | "follow" | "create-review";
+type AuthPromptAction =
+  | "comment"
+  | "like"
+  | "bookmark"
+  | "follow"
+  | "create-review"
+  | "library";
 
 const authPromptCopy: Record<
   AuthPromptAction,
@@ -28,6 +34,10 @@ const authPromptCopy: Record<
   "create-review": {
     title: "Log in to create a review",
     description: "Publish notes, ratings, and recommendations on Kocteau.",
+  },
+  library: {
+    title: "Log in to use your library",
+    description: "Keep tracks close for listening and reviewing later.",
   },
 };
 

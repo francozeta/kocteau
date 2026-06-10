@@ -146,11 +146,11 @@ export function NavUser({
                 <DropdownMenuItem
                   onSelect={() => {
                     onNavigate?.();
-                    router.push("/saved");
+                    router.push("/library");
                   }}
                 >
                   <BookmarkSimpleIcon className="size-4" />
-                  Saved reviews
+                  Library
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {

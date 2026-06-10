@@ -4,6 +4,7 @@ const starterSurfaces = [
   "profile",
   "review",
   "search",
+  "library",
   "saved",
   "studio",
   "notifications",

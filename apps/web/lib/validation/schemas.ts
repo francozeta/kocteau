@@ -7,6 +7,7 @@ import {
 import { searchableEntityTypes } from "@/lib/search-types";
 import { editorialCandidateStatuses } from "@/lib/starter/candidate-queue";
 import { tasteOnboardingMaxTags, tasteOnboardingMinTags } from "@/lib/taste";
+import { entityLibraryItemTypes } from "@/lib/library/entity-library";
 
 function optionalTrimmedString(maxLength: number) {
   return z
@@ -224,6 +225,29 @@ export const createReviewSchema = z.object({
   is_pinned: z.boolean().optional().default(false),
 });
 
+const libraryEntitySchema = z.object({
+  id: z.string().uuid("Invalid entity id.").nullable().optional().transform((value) => value ?? null),
+  provider: z.literal("deezer"),
+  provider_id: z.string().trim().min(1, "Missing provider track id."),
+  type: z.literal("track"),
+  title: z.string().trim().min(1, "Track title is required.").max(160, "Track title is too long."),
+  artist_name: optionalTrimmedString(160),
+  cover_url: z.string().trim().url("Cover URL must be valid.").nullable().optional().transform((value) => value ?? null),
+  deezer_url: z.string().trim().url("Deezer URL must be valid.").nullable().optional().transform((value) => value ?? null),
+});
+
+export const entityLibraryMutationSchema = z.object({
+  entity: libraryEntitySchema,
+  itemType: z.enum(entityLibraryItemTypes),
+  active: z.boolean(),
+  source: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9_:-]{2,80}$/, "Invalid library source.")
+    .optional()
+    .default("track:hero"),
+});
+
 export const starterTrackUpsertSchema = z.object({
   provider: z.literal("deezer"),
   provider_id: z.string().trim().min(1, "Missing provider track id."),
@@ -342,6 +366,7 @@ export type OtpCodeInput = z.infer<typeof otpCodeSchema>;
 export type ProfileEditorInput = z.infer<typeof profileEditorSchema>;
 export type TasteOnboardingInput = z.infer<typeof tasteOnboardingSchema>;
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
+export type EntityLibraryMutationInput = z.infer<typeof entityLibraryMutationSchema>;
 export type StarterTrackUpsertInput = z.infer<typeof starterTrackUpsertSchema>;
 export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>;
 export type StarterPreferenceTagInput = z.infer<typeof starterPreferenceTagSchema>;
