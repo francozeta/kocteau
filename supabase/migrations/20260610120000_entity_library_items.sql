@@ -177,6 +177,8 @@ REVOKE ALL ON FUNCTION public.set_entity_library_item(uuid, text, boolean, text)
 GRANT EXECUTE ON FUNCTION public.set_entity_library_item(uuid, text, boolean, text)
   TO authenticated;
 
+DROP FUNCTION IF EXISTS public.get_viewer_entity_library_state(uuid[]);
+
 CREATE OR REPLACE FUNCTION public.get_viewer_entity_library_state(
   p_entity_ids uuid[]
 )
