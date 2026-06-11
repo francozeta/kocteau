@@ -60,7 +60,7 @@ These are the next useful moves after enabling public contribution.
 | P1 | Open 6-10 curated GitHub issues from this backlog before broader public sharing. | done | `docs`, `help wanted` |
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
 | P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | done | `docs`, `area:recommendations`, `needs maintainer decision` |
-| P1 | Add private Listen later and Review later library signals on track pages. | in progress | `feature`, `area:web`, `area:supabase`, `area:recommendations` |
+| P1 | Add a private track library signal on track pages. | in progress | `feature`, `area:web`, `area:supabase`, `area:recommendations` |
 | P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
 | P1 | Add a mobile social discovery carousel near review detail pages. | needs design ([#90](https://github.com/francozeta/kocteau/issues/90)) | `feature`, `area:web`, `area:ui` |
 | P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design ([#89](https://github.com/francozeta/kocteau/issues/89)) | `feature`, `area:web`, `area:recommendations` |
@@ -95,7 +95,7 @@ This plan makes Kocteau learn from human taste without requiring an AI provider 
 
 | Stage | Task | State | Suggested labels |
 | --- | --- | --- | --- |
-| 1 | Add private `listen_later` and `review_later` track signals plus a `Library` surface. | in progress | `feature`, `area:web`, `area:supabase`, `area:recommendations` |
+| 1 | Add a private `library` track signal plus a `Library` surface. | in progress | `feature`, `area:web`, `area:supabase`, `area:recommendations` |
 | 2 | Design public/private collections as human curation objects, not playlists. | needs design | `feature`, `area:web`, `area:supabase`, `area:ui` |
 | 3 | Add collection tags and intent labels so grouped tracks have explainable meaning. | blocked | `feature`, `area:recommendations`, `area:supabase` |
 | 4 | Derive track relationships from repeated co-curation, reviews, and collection meaning. | blocked | `feature`, `area:recommendations`, `needs maintainer decision` |
@@ -103,7 +103,7 @@ This plan makes Kocteau learn from human taste without requiring an AI provider 
 
 Acceptance criteria for the loop:
 
-- A listener can save a track for listening or reviewing without writing a review immediately.
+- A listener can add a track to their library without writing a review immediately.
 - Collections later explain taste through title, description, visibility, tags, and intent.
 - Recommendation logic can read collection membership without treating every collection as equal.
 - Known artists remain allowed, but weak popularity-only signals should not dominate discovery.

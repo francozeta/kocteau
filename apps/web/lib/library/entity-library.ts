@@ -1,4 +1,4 @@
-export const entityLibraryItemTypes = ["listen_later", "review_later"] as const;
+export const entityLibraryItemTypes = ["library"] as const;
 
 export type EntityLibraryItemType = (typeof entityLibraryItemTypes)[number];
 
@@ -12,8 +12,7 @@ export function isEntityLibraryItemType(value: unknown): value is EntityLibraryI
 
 export function getEmptyEntityLibraryState(): EntityLibraryState {
   return {
-    listen_later: false,
-    review_later: false,
+    library: false,
   };
 }
 
@@ -29,5 +28,5 @@ export function getNextEntityLibraryState(
 }
 
 export function getEntityLibraryItemLabel(itemType: EntityLibraryItemType) {
-  return itemType === "listen_later" ? "Listen later" : "Review later";
+  return itemType === "library" ? "Library" : itemType;
 }

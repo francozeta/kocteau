@@ -42,8 +42,7 @@ type EntityLibraryRow = {
 
 type EntityLibraryStateRow = {
   entity_id: string;
-  listen_later: boolean | null;
-  review_later: boolean | null;
+  library: boolean | null;
 };
 
 function normalizeLibraryItem(row: EntityLibraryRow): ViewerEntityLibraryItem {
@@ -88,8 +87,7 @@ export async function getViewerEntityLibraryState(
     ((data ?? []) as EntityLibraryStateRow[]).map((row) => [
       row.entity_id,
       {
-        listen_later: Boolean(row.listen_later),
-        review_later: Boolean(row.review_later),
+        library: Boolean(row.library),
       },
     ]),
   );
@@ -130,16 +128,14 @@ export async function getViewerEntityLibraryItems(userId: string) {
         });
 
         return {
-          listenLater: [] satisfies ViewerEntityLibraryItem[],
-          reviewLater: [] satisfies ViewerEntityLibraryItem[],
+          tracks: [] satisfies ViewerEntityLibraryItem[],
         };
       }
 
       const items = (data ?? []).map(normalizeLibraryItem);
 
       return {
-        listenLater: items.filter((item) => item.item_type === "listen_later"),
-        reviewLater: items.filter((item) => item.item_type === "review_later"),
+        tracks: items.filter((item) => item.item_type === "library"),
       };
     },
     { userId },

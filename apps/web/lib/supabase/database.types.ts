@@ -1134,8 +1134,7 @@ export type Database = {
         Args: { p_entity_ids: string[] }
         Returns: {
           entity_id: string
-          listen_later: boolean
-          review_later: boolean
+          library: boolean
         }[]
       }
       get_recommended_review_ids: {

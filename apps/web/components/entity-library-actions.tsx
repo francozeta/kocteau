@@ -2,11 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bookmark, Music2 } from "@/components/ui/icons";
+import { Bookmark, Plus } from "@/components/ui/icons";
 import {
-  type EntityLibraryItemType,
   type EntityLibraryState,
-  getEntityLibraryItemLabel,
   getNextEntityLibraryState,
 } from "@/lib/library/entity-library";
 import { toastActionError, toastActionSuccess, toastAuthRequired } from "@/lib/feedback";
@@ -25,20 +23,6 @@ type EntityLibraryActionsProps = {
   className?: string;
 };
 
-const libraryActions: Array<{
-  itemType: EntityLibraryItemType;
-  icon: typeof Music2;
-}> = [
-  {
-    itemType: "listen_later",
-    icon: Music2,
-  },
-  {
-    itemType: "review_later",
-    icon: Bookmark,
-  },
-];
-
 export default function EntityLibraryActions({
   entity,
   initialState,
@@ -55,11 +39,7 @@ export default function EntityLibraryActions({
         getNextEntityLibraryState(current, result.itemType, result.active),
       );
       setEntityLibraryState(queryClient, result.entityId, result.itemType, result.active);
-      toastActionSuccess(
-        result.active
-          ? `${getEntityLibraryItemLabel(result.itemType)} saved`
-          : `${getEntityLibraryItemLabel(result.itemType)} removed`,
-      );
+      toastActionSuccess(result.active ? "Added to library" : "Removed from library");
     },
     onError: (error, variables) => {
       setLocalState((current) =>
@@ -78,13 +58,14 @@ export default function EntityLibraryActions({
     return queryClient.getQueryData<EntityLibraryState>(stateKey) ?? localState;
   }, [localState, queryClient, stateKey]);
 
-  function handleToggle(itemType: EntityLibraryItemType) {
+  function handleToggle() {
     if (!isAuthenticated) {
       toastAuthRequired("library");
       return;
     }
 
-    const active = !renderedState[itemType];
+    const itemType = "library" as const;
+    const active = !renderedState.library;
     setLocalState((current) => getNextEntityLibraryState(current, itemType, active));
     setEntityLibraryState(queryClient, entity.id, itemType, active);
     mutation.mutate({
@@ -102,29 +83,25 @@ export default function EntityLibraryActions({
         className,
       )}
     >
-      {libraryActions.map(({ itemType, icon: Icon }) => {
-        const active = renderedState[itemType];
-        const label = getEntityLibraryItemLabel(itemType);
-
-        return (
-          <button
-            key={itemType}
-            type="button"
-            onClick={() => handleToggle(itemType)}
-            disabled={mutation.isPending}
-            aria-pressed={active}
-            className={cn(
-              "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[0.72rem] font-medium transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60",
-              active
-                ? "border-foreground/55 bg-foreground text-background"
-                : "border-border/24 bg-card/18 text-muted-foreground hover:border-border/45 hover:bg-card/30 hover:text-foreground",
-            )}
-          >
-            <Icon className="size-3.5" aria-hidden="true" />
-            <span>{label}</span>
-          </button>
-        );
-      })}
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={mutation.isPending}
+        aria-pressed={renderedState.library}
+        className={cn(
+          "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[0.72rem] font-medium transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60",
+          renderedState.library
+            ? "border-foreground/55 bg-foreground text-background"
+            : "border-border/24 bg-card/18 text-muted-foreground hover:border-border/45 hover:bg-card/30 hover:text-foreground",
+        )}
+      >
+        {renderedState.library ? (
+          <Bookmark className="size-3.5" aria-hidden="true" />
+        ) : (
+          <Plus className="size-3.5" aria-hidden="true" />
+        )}
+        <span>{renderedState.library ? "In library" : "Add to library"}</span>
+      </button>
     </div>
   );
 }

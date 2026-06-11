@@ -9,10 +9,52 @@ CREATE TABLE IF NOT EXISTS public.entity_library_items (
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT entity_library_items_pkey PRIMARY KEY (user_id, entity_id, item_type),
   CONSTRAINT entity_library_items_item_type_check
-    CHECK (item_type IN ('listen_later', 'review_later')),
+    CHECK (item_type = 'library'),
   CONSTRAINT entity_library_items_source_check
     CHECK (source ~ '^[a-z0-9_:-]{2,80}$')
 );
+
+ALTER TABLE public.entity_library_items
+  DROP CONSTRAINT IF EXISTS entity_library_items_item_type_check;
+
+WITH legacy_items AS (
+  SELECT
+    user_id,
+    entity_id,
+    'library'::text AS item_type,
+    'migration:library_unified'::text AS source,
+    min(created_at) AS created_at,
+    max(updated_at) AS updated_at
+  FROM public.entity_library_items
+  WHERE item_type IN ('listen_later', 'review_later')
+  GROUP BY user_id, entity_id
+)
+INSERT INTO public.entity_library_items (
+  user_id,
+  entity_id,
+  item_type,
+  source,
+  created_at,
+  updated_at
+)
+SELECT
+  user_id,
+  entity_id,
+  item_type,
+  source,
+  created_at,
+  updated_at
+FROM legacy_items
+ON CONFLICT ON CONSTRAINT entity_library_items_pkey
+DO UPDATE SET
+  updated_at = greatest(public.entity_library_items.updated_at, EXCLUDED.updated_at);
+
+DELETE FROM public.entity_library_items
+WHERE item_type IN ('listen_later', 'review_later');
+
+ALTER TABLE public.entity_library_items
+  ADD CONSTRAINT entity_library_items_item_type_check
+  CHECK (item_type = 'library');
 
 CREATE INDEX IF NOT EXISTS entity_library_items_user_type_created_idx
   ON public.entity_library_items (user_id, item_type, created_at DESC);
@@ -86,7 +128,7 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  IF p_item_type NOT IN ('listen_later', 'review_later') THEN
+  IF p_item_type <> 'library' THEN
     RAISE EXCEPTION 'Unsupported library item type'
       USING ERRCODE = '22023';
   END IF;
@@ -140,8 +182,7 @@ CREATE OR REPLACE FUNCTION public.get_viewer_entity_library_state(
 )
 RETURNS TABLE (
   entity_id uuid,
-  listen_later boolean,
-  review_later boolean
+  library boolean
 )
 LANGUAGE sql
 SECURITY DEFINER
@@ -157,15 +198,8 @@ AS $$
       FROM public.entity_library_items item
       WHERE item.user_id = auth.uid()
         AND item.entity_id = requested.entity_id
-        AND item.item_type = 'listen_later'
-    ) AS listen_later,
-    EXISTS (
-      SELECT 1
-      FROM public.entity_library_items item
-      WHERE item.user_id = auth.uid()
-        AND item.entity_id = requested.entity_id
-        AND item.item_type = 'review_later'
-    ) AS review_later
+        AND item.item_type = 'library'
+    ) AS library
   FROM requested;
 $$;
 
