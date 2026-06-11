@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
-import { Bookmark, ChevronRight, Music2 } from "@/components/ui/icons";
+import { Bookmark, ChevronRight } from "@/components/ui/icons";
 import { redirect } from "next/navigation";
 import PrefetchLink from "@/components/prefetch-link";
 import SavedReviewsList from "@/components/saved-reviews-list";
@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 export const metadata = createPageMetadata({
   title: "Library",
-  description: "Private listening queue, review queue, and saved reviews on Kocteau.",
+  description: "Private track library and saved reviews on Kocteau.",
   path: "/library",
   noIndex: true,
 });
@@ -36,8 +36,7 @@ export default async function LibraryPage() {
     getViewerSavedReviewsBundle(user.id),
     getViewerEntityLibraryItems(user.id),
   ]);
-  const libraryCount =
-    savedReviews.length + libraryItems.listenLater.length + libraryItems.reviewLater.length;
+  const libraryCount = savedReviews.length + libraryItems.tracks.length;
 
   return (
     <section className="mx-auto w-full max-w-5xl space-y-7 sm:space-y-8">
@@ -47,7 +46,7 @@ export default async function LibraryPage() {
             Library
           </h1>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-            Tracks to hear, tracks to review, and writing worth coming back to.
+            Tracks you want to keep close, and writing worth coming back to.
           </p>
           <p className="text-xs font-medium text-muted-foreground/80">
             {libraryCount} {libraryCount === 1 ? "item" : "items"}
@@ -71,21 +70,12 @@ export default async function LibraryPage() {
       </div>
 
       <LibraryTrackShelf
-        title="Review later"
-        description="Tracks you want to sit with and write about."
-        items={libraryItems.reviewLater}
-        emptyTitle="No tracks waiting for review"
-        emptyDescription="Use Review later on a track page when something feels worth writing about."
+        title="Tracks"
+        description="Music you added to your Kocteau library."
+        items={libraryItems.tracks}
+        emptyTitle="No tracks in your library yet"
+        emptyDescription="Add a track to your library when it feels worth keeping close."
         emptyIcon={<Bookmark className="size-4" />}
-      />
-
-      <LibraryTrackShelf
-        title="Listen later"
-        description="Tracks saved for a quieter first listen."
-        items={libraryItems.listenLater}
-        emptyTitle="No listening queue yet"
-        emptyDescription="Use Listen later on a track page when you want to keep it close."
-        emptyIcon={<Music2 className="size-4" />}
       />
 
       <section className="space-y-3.5">

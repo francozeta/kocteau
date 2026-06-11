@@ -51,7 +51,7 @@ export function setEntityLibraryState(
     entityLibraryKeys.state(entityId),
     (current) =>
       getNextEntityLibraryState(
-        current ?? { listen_later: false, review_later: false },
+        current ?? { library: false },
         itemType,
         active,
       ),

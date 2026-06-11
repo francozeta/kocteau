@@ -378,18 +378,17 @@ Constraints:
 
 Make Kocteau learn from intentional human actions before adding any AI layer.
 
-This phase treats reviews, saved intent, and future collections as curation material:
+This phase treats reviews, library intent, and future collections as curation material:
 
-- `listen_later`: the listener wants to hear this track later.
-- `review_later`: the listener thinks this track may deserve a written take.
+- library tracks: the listener kept a track close without needing to write a review immediately.
 - saved reviews: the listener found another person's writing worth revisiting.
 - collections: a person groups tracks with a human meaning, not just a playlist shape.
 - collection tags and intent: the group explains why the tracks belong together.
 
 The first implementation should stay simple:
 
-1. Add private `listen_later` and `review_later` signals on track pages.
-2. Expose those signals in a private `Library` surface.
+1. Add a private `library` signal on track pages.
+2. Expose that signal in a private `Library` surface.
 3. Add public/private collections after the library intent model is stable.
 4. Let collections carry optional tags and intent labels.
 5. Derive track relationships from repeated co-curation, reviews, and explicit collection meaning.

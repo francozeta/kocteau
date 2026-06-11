@@ -37,7 +37,7 @@ const authPromptCopy: Record<
   },
   library: {
     title: "Log in to use your library",
-    description: "Keep tracks close for listening and reviewing later.",
+    description: "Keep tracks close and shape your taste on Kocteau.",
   },
 };
 

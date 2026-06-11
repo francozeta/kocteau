@@ -9,29 +9,30 @@ import {
 
 describe("entity library state", () => {
   it("accepts the supported library item types", () => {
-    assert.deepEqual(entityLibraryItemTypes, ["listen_later", "review_later"]);
-    assert.equal(isEntityLibraryItemType("listen_later"), true);
-    assert.equal(isEntityLibraryItemType("review_later"), true);
+    assert.deepEqual(entityLibraryItemTypes, ["library"]);
+    assert.equal(isEntityLibraryItemType("library"), true);
+    assert.equal(isEntityLibraryItemType("listen_later"), false);
+    assert.equal(isEntityLibraryItemType("review_later"), false);
     assert.equal(isEntityLibraryItemType("collection"), false);
   });
 
   it("updates only the requested item type", () => {
     assert.deepEqual(
       getNextEntityLibraryState(
-        { listen_later: false, review_later: true },
-        "listen_later",
+        { library: false },
+        "library",
         true,
       ),
-      { listen_later: true, review_later: true },
+      { library: true },
     );
 
     assert.deepEqual(
       getNextEntityLibraryState(
-        { listen_later: true, review_later: true },
-        "review_later",
+        { library: true },
+        "library",
         false,
       ),
-      { listen_later: true, review_later: false },
+      { library: false },
     );
   });
 });
