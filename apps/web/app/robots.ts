@@ -3,7 +3,7 @@ import { getMetadataBase } from "@/lib/metadata";
 
 export default function robots(): MetadataRoute.Robots {
   const metadataBase = getMetadataBase();
-  const publicAllow = ["/", "/api/og/"];
+  const publicAllow = ["/"];
   const privateDisallow = [
     "/login",
     "/signup",
@@ -13,17 +13,34 @@ export default function robots(): MetadataRoute.Robots {
     "/saved",
     "/api/",
     "/track/deezer/",
+    "/*opengraph-image*",
+    "/*twitter-image*",
+  ];
+  const aiCrawlerDisallow = [
+    "CCBot",
+    "ChatGPT-User",
+    "ClaudeBot",
+    "Claude-SearchBot",
+    "GPTBot",
+    "PerplexityBot",
+    "OAI-SearchBot",
+    "Bytespider",
+    "Applebot-Extended",
   ];
 
   return {
     rules: [
+      {
+        userAgent: aiCrawlerDisallow,
+        disallow: ["/"],
+      },
       {
         userAgent: "*",
         allow: publicAllow,
         disallow: privateDisallow,
       },
       {
-        userAgent: ["Googlebot", "OAI-SearchBot", "GPTBot", "ChatGPT-User"],
+        userAgent: "Googlebot",
         allow: publicAllow,
         disallow: privateDisallow,
       },

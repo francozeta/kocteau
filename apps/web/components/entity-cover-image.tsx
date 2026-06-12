@@ -46,6 +46,18 @@ function getOptimizedCoverSrc(
   }
 }
 
+function shouldBypassImageOptimization(src: string | null) {
+  if (!src) {
+    return false;
+  }
+
+  try {
+    return DEEZER_IMAGE_HOSTS.has(new URL(src).hostname);
+  } catch {
+    return false;
+  }
+}
+
 export default function EntityCoverImage({
   src,
   alt,
@@ -75,6 +87,7 @@ export default function EntityCoverImage({
           fill
           sizes={sizes}
           quality={resolvedQuality}
+          unoptimized={shouldBypassImageOptimization(resolvedSrc)}
           preload={priority}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
