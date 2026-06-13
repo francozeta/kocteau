@@ -37,7 +37,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         className="bg-[var(--kocteau-canvas)]"
         style={
           {
-            "--sidebar-width": "17rem",
+            "--sidebar-width": "15.25rem",
             "--sidebar-width-icon": "3.1rem",
           } as React.CSSProperties
         }

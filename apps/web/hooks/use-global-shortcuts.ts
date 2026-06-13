@@ -56,7 +56,13 @@ export function useGlobalShortcuts() {
         return;
       }
 
-      if (key === "n") {
+      if (key === "/") {
+        event.preventDefault();
+        handleOpenSearchLauncher();
+        return;
+      }
+
+      if (key === "c") {
         event.preventDefault();
         handleOpenCompose();
       }

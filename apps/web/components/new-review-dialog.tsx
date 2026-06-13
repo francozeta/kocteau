@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
-import { motion, useReducedMotion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Drawer,
@@ -98,7 +97,6 @@ export default function NewReviewDialog({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const prefersReducedMotion = useReducedMotion();
   const isSearchIntent = intent === "search";
   const usesUrlComposeState =
     listenToComposeUrl && !isSearchIntent && initialQuery === undefined && initialSelection === undefined;
@@ -138,7 +136,7 @@ export default function NewReviewDialog({
   const dialogTitle = isSearchIntent ? "Search" : "New review";
   const resolvedTriggerShortcut =
     triggerShortcut === undefined && triggerVariant === "search" && !isSearchIntent
-      ? "N"
+      ? "C"
       : triggerShortcut;
 
   const clearComposeParams = useCallback(() => {
@@ -211,37 +209,14 @@ export default function NewReviewDialog({
     );
   }
 
-  const surfaceMotionTransition = prefersReducedMotion
-    ? {
-        duration: 0,
-      }
-    : {
-        duration: 0.2,
-        ease: "easeOut" as const,
-      };
-
   const baseTrigger = trigger ?? (
     triggerVariant === "search" ? (
-      <motion.button
+      <button
         type="button"
         className={cn(
           "kocteau-control-surface flex h-10 w-full items-center gap-2.5 rounded-[var(--kocteau-radius-control)] px-3.5 text-left text-muted-foreground/88 hover:text-foreground",
           triggerClassName,
         )}
-        whileHover={
-          prefersReducedMotion
-            ? undefined
-            : {
-                y: -1,
-              }
-        }
-        whileTap={
-          prefersReducedMotion
-            ? undefined
-            : {
-                scale: 0.995,
-              }
-        }
       >
         <Search className="size-3.5 shrink-0 text-muted-foreground/78" />
         <span className={cn("min-w-0 flex-1 truncate text-[13px]", triggerLabelClassName)}>
@@ -252,7 +227,7 @@ export default function NewReviewDialog({
             {resolvedTriggerShortcut}
           </Kbd>
         ) : null}
-      </motion.button>
+      </button>
     ) : (
       <Button
         size="sm"
@@ -277,12 +252,7 @@ export default function NewReviewDialog({
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
         <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/24 bg-[var(--kocteau-surface)] p-2 before:rounded-t-[1rem] before:border-border/24 before:bg-[var(--kocteau-surface)] data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
-          <motion.div
-            className="flex h-full min-h-0 flex-col"
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={surfaceMotionTransition}
-          >
+          <div className="flex h-full min-h-0 flex-col">
             <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
               <div className="flex items-center justify-between gap-3">
                 <DrawerTitle className="flex items-center gap-2 text-sm font-semibold">
@@ -317,7 +287,7 @@ export default function NewReviewDialog({
                 }}
               />
             </div>
-          </motion.div>
+          </div>
         </DrawerContent>
       </Drawer>
     );
@@ -331,12 +301,7 @@ export default function NewReviewDialog({
         showCloseButton={false}
         className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
       >
-        <motion.div
-          className="flex h-full min-h-0 flex-col"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={surfaceMotionTransition}
-        >
+        <div className="flex h-full min-h-0 flex-col">
           <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
@@ -372,7 +337,7 @@ export default function NewReviewDialog({
               }}
             />
           </div>
-        </motion.div>
+        </div>
       </DialogContent>
     </Dialog>
   );

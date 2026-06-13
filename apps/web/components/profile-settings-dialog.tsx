@@ -3,10 +3,10 @@
 import { isValidElement, useMemo, useState } from "react";
 import {
   LinkIcon,
-  UserCircleIcon,
   VinylRecordIcon,
   type Icon,
 } from "@/components/ui/icons";
+import { KocteauProfileIcon } from "@/components/kocteau-icons";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DrawerBase,
@@ -75,7 +75,7 @@ export default function ProfileSettingsDialog({
         {
           id: "profile" as const,
           label: "Profile",
-          icon: UserCircleIcon,
+          icon: KocteauProfileIcon,
         },
         {
           id: "avatar" as const,
