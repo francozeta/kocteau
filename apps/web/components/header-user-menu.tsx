@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { WarningCircleIcon } from "@/components/ui/icons";
 import {
-  BellSimpleIcon,
-  BookmarkSimpleIcon,
-  GearSixIcon,
-  SignOutIcon,
-  UserCircleIcon,
-  WarningCircleIcon,
-} from "@/components/ui/icons";
+  KocteauActivityIcon,
+  KocteauEditProfileIcon,
+  KocteauLibraryIcon,
+  KocteauLogoutIcon,
+  KocteauProfileIcon,
+} from "@/components/kocteau-icons";
 import UserAvatar from "@/components/user-avatar";
 import {
   AlertDialog,
@@ -93,24 +93,24 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => router.push(`/u/${username}`)}>
-            <UserCircleIcon className="size-4" />
+            <KocteauProfileIcon className="size-4" />
             Profile
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push("/library")}>
-            <BookmarkSimpleIcon className="size-4" />
+            <KocteauLibraryIcon className="size-4" />
             Library
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push("/notifications")}>
-            <BellSimpleIcon className="size-4" />
+            <KocteauActivityIcon className="size-4" />
             Notifications
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
-            <GearSixIcon className="size-4" />
+            <KocteauEditProfileIcon className="size-4" />
             Edit profile
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setLogoutOpen(true)}>
-            <SignOutIcon className="size-4" />
+            <KocteauLogoutIcon className="size-4" />
             Log out
           </DropdownMenuItem>
         </DropdownMenuContent>

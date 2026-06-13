@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  BellSimpleIcon,
-  BookmarkSimpleIcon,
-  GearSixIcon,
-  SignOutIcon,
   SparkleIcon,
-  UserCircleIcon,
   WarningCircleIcon,
 } from "@/components/ui/icons";
+import {
+  KocteauActivityIcon,
+  KocteauEditProfileIcon,
+  KocteauLibraryIcon,
+  KocteauLogoutIcon,
+  KocteauProfileIcon,
+} from "@/components/kocteau-icons";
 import NotificationsButton from "@/components/notifications-button";
 import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import {
@@ -140,7 +142,7 @@ export function NavUser({
                     router.push(`/u/${username}`);
                   }}
                 >
-                  <UserCircleIcon className="size-4" />
+                  <KocteauProfileIcon className="size-4" />
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -149,7 +151,7 @@ export function NavUser({
                     router.push("/library");
                   }}
                 >
-                  <BookmarkSimpleIcon className="size-4" />
+                  <KocteauLibraryIcon className="size-4" />
                   Library
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -158,16 +160,16 @@ export function NavUser({
                     router.push("/notifications");
                   }}
                 >
-                  <BellSimpleIcon className="size-4" />
+                  <KocteauActivityIcon className="size-4" />
                   Activity
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
-                  <GearSixIcon className="size-4" />
+                  <KocteauEditProfileIcon className="size-4" />
                   Edit profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onSelect={() => setLogoutOpen(true)}>
-                  <SignOutIcon className="size-4" />
+                  <KocteauLogoutIcon className="size-4" />
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>

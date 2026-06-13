@@ -1,25 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import {
-  BellSimpleIcon,
-  BookmarkSimpleIcon,
   ChatCircleTextIcon,
-  GearSixIcon,
-  HouseIcon,
   MagnifyingGlassIcon,
-  Sparkles,
 } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
-import NewReviewDialog from "@/components/new-review-dialog";
+import {
+  KocteauActivityIcon,
+  KocteauHealthIcon,
+  KocteauHomeIcon,
+  KocteauLibraryIcon,
+  KocteauSearchIcon,
+  KocteauStarterIcon,
+  ReviewGlyphIcon,
+} from "@/components/kocteau-icons";
 import PrefetchLink from "@/components/prefetch-link";
-import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { Kbd } from "@/components/ui/kbd";
 import { NavUser } from "@/components/nav-user";
+import { OPEN_NEW_REVIEW_SHORTCUT_EVENT } from "@/hooks/use-global-shortcuts";
 import { notificationsUnreadCountKey } from "@/hooks/use-notifications";
 import {
   Sidebar,
@@ -29,7 +32,13 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 const FEEDBACK_URL = "https://github.com/francozeta/kocteau/issues/new";
 
@@ -49,6 +58,68 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   unreadCount?: number;
   canAccessStudio?: boolean;
 };
+
+function SidebarHeaderAction({
+  label,
+  shortcut,
+  emphasis = false,
+  href,
+  onClick,
+  children,
+}: {
+  label: string;
+  shortcut: string;
+  emphasis?: boolean;
+  href?: string;
+  onClick?: () => void;
+  children: ReactNode;
+}) {
+  const { isMobile, state } = useSidebar();
+  const tooltipSide = state === "collapsed" && !isMobile ? "right" : "bottom";
+  const actionClassName = cn(
+    "relative inline-flex size-8 shrink-0 items-center justify-center rounded-full text-sidebar-foreground outline-hidden transition-[background-color,border-color,color] duration-[180ms] ease-[var(--kocteau-ease)] after:absolute after:-inset-1 focus-visible:ring-2 focus-visible:ring-[var(--kocteau-focus-ring)]",
+    emphasis
+      ? "border border-sidebar-border/58 bg-sidebar-accent/78 text-sidebar-foreground hover:border-sidebar-border/78 hover:bg-sidebar-accent/94"
+      : "border border-transparent bg-transparent text-sidebar-foreground/56 hover:text-sidebar-foreground",
+  );
+  const action = href ? (
+    <PrefetchLink
+      href={href}
+      aria-label={`${label} (${shortcut})`}
+      onClick={onClick}
+      className={actionClassName}
+    >
+      {children}
+    </PrefetchLink>
+  ) : (
+    <button
+      type="button"
+      aria-label={`${label} (${shortcut})`}
+      onClick={onClick}
+      className={actionClassName}
+    >
+      {children}
+    </button>
+  );
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{action}</TooltipTrigger>
+      <TooltipContent
+        side={tooltipSide}
+        align="center"
+        sideOffset={tooltipSide === "right" ? 8 : 7}
+      >
+        <span className="inline-flex items-center gap-2.5">
+          <span>{label}</span>
+          <Kbd className="grid size-5 min-w-5 place-items-center rounded-full border-0 !bg-foreground/[0.12] p-0 text-center text-[0.62rem] font-semibold leading-none tabular-nums !text-foreground/90 shadow-none in-data-[slot=tooltip-content]:!bg-foreground/[0.12] in-data-[slot=tooltip-content]:!text-foreground/90">
+            <span className="block translate-y-px leading-none">{shortcut}</span>
+          </Kbd>
+        </span>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function AppSidebar({
   profile,
@@ -72,6 +143,11 @@ export default function AppSidebar({
     }
   }, [isMobile, setOpenMobile]);
 
+  const openNewReview = useCallback(() => {
+    window.dispatchEvent(new CustomEvent(OPEN_NEW_REVIEW_SHORTCUT_EVENT));
+    closeMobileSidebar();
+  }, [closeMobileSidebar]);
+
   useEffect(() => {
     if (!isMobile) {
       previousPathnameRef.current = pathname;
@@ -91,7 +167,7 @@ export default function AppSidebar({
     {
       title: "Feed",
       url: "/",
-      icon: HouseIcon,
+      icon: KocteauHomeIcon,
       isActive: pathname === "/",
     },
     {
@@ -113,13 +189,13 @@ export default function AppSidebar({
         {
           title: "Library",
           url: "/library",
-          icon: BookmarkSimpleIcon,
+          icon: KocteauLibraryIcon,
           isActive: pathname.startsWith("/library") || pathname.startsWith("/saved"),
         },
         {
           title: "Activity",
           url: "/notifications",
-          icon: BellSimpleIcon,
+          icon: KocteauActivityIcon,
           isActive: pathname.startsWith("/notifications"),
           badge: unreadCount,
         },
@@ -130,19 +206,17 @@ export default function AppSidebar({
         {
           title: "Starter",
           url: "/studio/starter",
-          icon: Sparkles,
+          icon: KocteauStarterIcon,
           isActive: pathname.startsWith("/studio/starter"),
         },
         {
           title: "Health",
           url: "/studio/health",
-          icon: GearSixIcon,
+          icon: KocteauHealthIcon,
           isActive: pathname.startsWith("/studio/health"),
         },
       ]
     : [];
-
-  const reviewEntryLabel = profile ? "New review" : "Find a track";
 
   return (
     <TooltipProvider delayDuration={80}>
@@ -152,37 +226,37 @@ export default function AppSidebar({
         className="group-data-[collapsible=icon]:border-none"
         {...props}
       >
-        <SidebarHeader className="gap-2.5 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
-          <PrefetchLink
-            href="/"
-            onClick={closeMobileSidebar}
-            queryWarmup={{ kind: "feed" }}
-            className="flex h-10 items-center justify-start rounded-xl px-2 transition-[background-color,transform,padding,width,height] duration-[180ms] ease-[var(--kocteau-ease)] hover:bg-sidebar-accent/70 active:scale-[0.96] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-          >
-            <BrandLogo priority iconClassName="h-5 w-5" />
-          </PrefetchLink>
+        <SidebarHeader className="gap-2 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
+          <div className="flex min-h-10 items-center justify-between gap-2 px-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0">
+            <PrefetchLink
+              href="/"
+              onClick={closeMobileSidebar}
+              queryWarmup={{ kind: "feed" }}
+              aria-label="Kocteau home"
+              className="flex size-9 shrink-0 items-center justify-start rounded-full transition-transform duration-[180ms] ease-[var(--kocteau-ease)] active:scale-[0.96] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:justify-center"
+            >
+              <BrandLogo priority iconClassName="h-5 w-5" />
+            </PrefetchLink>
 
-          <NewReviewDialog
-            isAuthenticated={Boolean(profile)}
-            intent="review"
-            trigger={
-              <button
-                type="button"
-                aria-label={reviewEntryLabel}
-                className="flex h-9 w-full items-center justify-start gap-2 overflow-hidden rounded-[0.7rem] border border-sidebar-border/70 bg-[var(--kocteau-surface-control)] px-2.5 text-[13px] font-medium text-sidebar-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[width,height,padding,gap,color,background-color,transform,box-shadow] duration-[180ms] ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-surface-control-hover)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.24)] active:scale-[0.96] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0"
+            <div className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
+              <SidebarHeaderAction
+                label="Search"
+                shortcut="/"
+                href="/search"
+                onClick={closeMobileSidebar}
               >
-                <span className="inline-flex min-w-0 items-center justify-center gap-2 transition-[gap] duration-[180ms] ease-[var(--kocteau-ease)] group-data-[collapsible=icon]:gap-0">
-                  <ReviewGlyphIcon className="size-4 shrink-0" />
-                  <span className="kocteau-sidebar-label">{reviewEntryLabel}</span>
-                </span>
-                <span className="kocteau-sidebar-shortcut">
-                  <Kbd className="border border-sidebar-border/80 bg-foreground/[0.06] px-1.5 text-[0.6rem] text-muted-foreground">
-                    N
-                  </Kbd>
-                </span>
-              </button>
-            }
-          />
+                <KocteauSearchIcon className="size-4" />
+              </SidebarHeaderAction>
+              <SidebarHeaderAction
+                label="Create new review"
+                shortcut="C"
+                emphasis
+                onClick={openNewReview}
+              >
+                <ReviewGlyphIcon className="size-4" />
+              </SidebarHeaderAction>
+            </div>
+          </div>
         </SidebarHeader>
 
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">

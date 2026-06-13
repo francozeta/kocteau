@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import NewReviewDialog from "@/components/new-review-dialog";
 import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
 import {
@@ -14,7 +15,7 @@ export default function GlobalShortcuts({
   isAuthenticated?: boolean;
 }) {
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const router = useRouter();
   useGlobalShortcuts();
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export default function GlobalShortcuts({
     }
 
     function handleOpenSearch() {
-      setSearchOpen(true);
+      router.push("/search");
     }
 
     window.addEventListener(OPEN_NEW_REVIEW_SHORTCUT_EVENT, handleOpenReview);
@@ -33,17 +34,10 @@ export default function GlobalShortcuts({
       window.removeEventListener(OPEN_NEW_REVIEW_SHORTCUT_EVENT, handleOpenReview);
       window.removeEventListener(OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT, handleOpenSearch);
     };
-  }, []);
+  }, [router]);
 
   return (
     <>
-      <NewReviewDialog
-        isAuthenticated={isAuthenticated}
-        intent="search"
-        open={searchOpen}
-        onOpenChange={setSearchOpen}
-        showTrigger={false}
-      />
       <NewReviewDialog
         isAuthenticated={isAuthenticated}
         open={reviewOpen}

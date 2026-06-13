@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { type Icon, MagnifyingGlassIcon } from "@/components/ui/icons";
 import {
-  BellSimpleIcon,
-  HouseIcon,
-  type Icon,
-  MagnifyingGlassIcon,
-  UserCircleIcon,
-} from "@/components/ui/icons";
+  KocteauActivityIcon,
+  KocteauHomeIcon,
+  KocteauProfileIcon,
+} from "@/components/kocteau-icons";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { cn } from "@/lib/utils";
@@ -75,7 +74,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
     {
       href: "/",
       label: "Feed",
-      icon: HouseIcon,
+      icon: KocteauHomeIcon,
       active: (current) => current === "/",
     },
     {
@@ -92,13 +91,13 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           {
             href: "/notifications",
             label: "Activity",
-            icon: BellSimpleIcon,
+            icon: KocteauActivityIcon,
             active: (current: string) => current.startsWith("/notifications"),
           },
           {
             href: `/u/${profile.username}`,
             label: "Profile",
-            icon: UserCircleIcon,
+            icon: KocteauProfileIcon,
             active: (current: string) => current.startsWith(`/u/${profile.username}`),
           },
         ]
@@ -106,7 +105,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           {
             href: "/login",
             label: "Log in",
-            icon: UserCircleIcon,
+            icon: KocteauProfileIcon,
             active: (current: string) =>
               current.startsWith("/login") || current.startsWith("/signup"),
           },
