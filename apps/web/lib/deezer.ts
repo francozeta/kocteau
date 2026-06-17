@@ -8,6 +8,7 @@ export type DeezerTrackResult = {
   artist_fan_count: number | null;
   cover_url: string | null;
   deezer_url: string | null;
+  release_date?: string | null;
   rank: number | null;
 };
 
@@ -42,7 +43,9 @@ type DeezerTrackApiItem = {
   album?: {
     cover_medium?: string | null;
     cover?: string | null;
+    release_date?: string | null;
   } | null;
+  release_date?: string | null;
 };
 
 type DeezerSearchResponse = {
@@ -232,6 +235,7 @@ function mapDeezerTrack(
       options.artist_fan_count ?? getOptionalNumber(item.artist?.nb_fan),
     cover_url: item.album?.cover_medium ?? item.album?.cover ?? options.cover_url ?? null,
     deezer_url: item.link ?? null,
+    release_date: item.release_date ?? item.album?.release_date ?? null,
     rank: getOptionalNumber(item.rank),
   };
 }

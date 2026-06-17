@@ -39,12 +39,15 @@
     "supabase:types:linked": "node supabase/scripts/generate-types.mjs --linked",
     "curate:starter:draft": "node supabase/scripts/create-starter-curation-draft.mjs",
     "curate:starter:sql": "node supabase/scripts/create-starter-curation-apply-sql.mjs",
+    "import:apple-playlist": "tsx apps/web/scripts/export-apple-music-playlist.ts",
+    "sync:apple-starter-source": "tsx apps/web/scripts/sync-apple-starter-source.ts",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "check": "pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
     "supabase": "^2.102.0",
+    "tsx": "^4.22.4",
     "turbo": "2.9.16"
   },
   "pnpm": {
