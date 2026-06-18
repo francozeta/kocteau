@@ -87,7 +87,7 @@ export async function getPublicStarterTracks({
     async () => {
       const supabase = await supabaseServer();
       const requestedLimit = Math.max(1, Math.min(limit, 12));
-      const lookupLimit = Math.max(12, Math.min(requestedLimit * 4, 36));
+      const lookupLimit = Math.max(24, Math.min(requestedLimit * 12, 120));
       const { data, error } = await supabase
         .from("starter_tracks")
         .select(`
