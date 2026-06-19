@@ -50,6 +50,11 @@ packages/*/.env.*.local
 supabase/.temp/
 supabase/.branches/
 
+# Local agent tooling
+.agents/
+skills-lock.json
+my-agent/
+
 # Vercel
 .vercel/
 apps/*/.vercel/

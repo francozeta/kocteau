@@ -39,6 +39,8 @@
     "supabase:types:linked": "node supabase/scripts/generate-types.mjs --linked",
     "curate:starter:draft": "node supabase/scripts/create-starter-curation-draft.mjs",
     "curate:starter:sql": "node supabase/scripts/create-starter-curation-apply-sql.mjs",
+    "curate:entity:draft": "node supabase/scripts/create-entity-curation-draft.mjs",
+    "curate:entity:sql": "node supabase/scripts/create-entity-curation-apply-sql.mjs",
     "import:apple-playlist": "tsx apps/web/scripts/export-apple-music-playlist.ts",
     "sync:apple-starter-source": "tsx apps/web/scripts/sync-apple-starter-source.ts",
     "build": "turbo run build",
