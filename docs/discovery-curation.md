@@ -397,7 +397,8 @@ The first implementation should stay simple:
 The AI posture is future-ready, not AI-dependent:
 
 - Today, Kocteau can use SQL, tags, reviews, saves, follows, and collections.
-- Later, an AI service can summarize collection intent, propose tags, or draft explanation copy.
+- Eve or another AI assistant can summarize collection intent, propose tags, score mainstream/discovery fit, or draft explanation copy.
+- The first AI-assisted implementation should stay local-only: export safe entity data, draft suggestions, require maintainer review, then apply SQL manually.
 - AI should never write directly to production recommendation tables without maintainer review.
 - User-facing explanations should cite product signals, not hidden model confidence.
 

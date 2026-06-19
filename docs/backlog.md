@@ -100,6 +100,7 @@ This plan makes Kocteau learn from human taste without requiring an AI provider 
 | 3 | Add collection tags and intent labels so grouped tracks have explainable meaning. | blocked | `feature`, `area:recommendations`, `area:supabase` |
 | 4 | Derive track relationships from repeated co-curation, reviews, and collection meaning. | blocked | `feature`, `area:recommendations`, `needs maintainer decision` |
 | 5 | Show `Why this?` explanations only when backed by real product signals. | blocked | `feature`, `area:web`, `area:recommendations`, `area:analytics` |
+| 6 | Add a local-only Eve curation copilot for entity tags and metadata drafts. | in progress | `feature`, `area:recommendations`, `area:supabase`, `area:maintenance` |
 
 Acceptance criteria for the loop:
 
@@ -108,6 +109,7 @@ Acceptance criteria for the loop:
 - Recommendation logic can read collection membership without treating every collection as equal.
 - Known artists remain allowed, but weak popularity-only signals should not dominate discovery.
 - Any future AI step drafts metadata or explanations for human review instead of writing directly to production recommendation tables.
+- Eve-assisted curation stays local-only until usage limits, approvals, and Studio UX are proven.
 
 ## Ready for First Contributors
 
