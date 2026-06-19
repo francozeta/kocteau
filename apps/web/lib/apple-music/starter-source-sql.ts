@@ -225,7 +225,7 @@ matched_starter_tracks AS (
     'What does ' || coalesce(incoming.matched_title, incoming.title) || ' open up for you?',
     ${sqlString(getStarterEditorialNote(importResult.playlist.title))},
     true,
-    false,
+    true,
     incoming.source_position,
     now()
   FROM matched_incoming incoming
@@ -238,6 +238,7 @@ matched_starter_tracks AS (
     prompt = coalesce(public.starter_tracks.prompt, EXCLUDED.prompt),
     editorial_note = coalesce(public.starter_tracks.editorial_note, EXCLUDED.editorial_note),
     is_active = true,
+    is_featured = true,
     sort_order = EXCLUDED.sort_order,
     updated_at = now()
   RETURNING id, provider_id
