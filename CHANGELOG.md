@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.3.8](https://github.com/francozeta/kocteau/compare/v0.3.7...v0.3.8) (2026-06-20)
+
+
+### Features
+
+* enhance NewReviewForm with starter track suggestions and improved search functionality ([9db4b31](https://github.com/francozeta/kocteau/commit/9db4b312ced54324c9a6baf46ca3d6631a3babce))
+* **starter:** import Apple Music playlist sources ([423b1a1](https://github.com/francozeta/kocteau/commit/423b1a1c5b95bd4eafef0bb7cadd81c609d3e9a5))
+* **starter:** import Apple Music playlist sources ([d4eb0ff](https://github.com/francozeta/kocteau/commit/d4eb0ffcbb3fefef33a8deebdf98ac8676cf8337))
+* **starter:** rotate imported source picks ([a6b3090](https://github.com/francozeta/kocteau/commit/a6b3090b372c6184f8f36c2af497ba3932151145))
+* **starter:** rotate imported source picks ([b908f37](https://github.com/francozeta/kocteau/commit/b908f37940f7b03752e2c87a8d31d3184b1e775c))
+* **supabase:** add entity curation copilot workflow ([9d89ff9](https://github.com/francozeta/kocteau/commit/9d89ff97df93f9b096c8a783216b81a31bb6515b))
+* **supabase:** add entity curation copilot workflow ([8cc2a85](https://github.com/francozeta/kocteau/commit/8cc2a85b70fafbc705ea8be0e73ccdce2f2b8e85))
+* **web:** add library later signals ([a404a14](https://github.com/francozeta/kocteau/commit/a404a1412b0af6f03b48de1f6413a99b3840e342))
+* **web:** add library later signals ([e4ef203](https://github.com/francozeta/kocteau/commit/e4ef203c648d9adf46279a3477d99142f152c824))
+* **web:** refine sidebar primary actions ([6bccb12](https://github.com/francozeta/kocteau/commit/6bccb12d39c978c318afe2a5d70455a44ad38945))
+* **web:** refine sidebar primary actions ([f2d0863](https://github.com/francozeta/kocteau/commit/f2d0863a725446c273cdcbe0774e67b8eeaaf753))
+* **web:** tune track recommendations ([36a0112](https://github.com/francozeta/kocteau/commit/36a011272fc2935bb3862659fa8ee436e494b3d3))
+* **web:** tune track recommendations ([42f26e6](https://github.com/francozeta/kocteau/commit/42f26e6fb97812dd8f09b90763a39753ad61e583))
+* **web:** use verified profile badge icon ([9943337](https://github.com/francozeta/kocteau/commit/99433370034075194ed38604d464426f19721d37))
+
+
+### Bug Fixes
+
+* **supabase:** feature imported starter tracks ([4fb7582](https://github.com/francozeta/kocteau/commit/4fb7582e6b38409006e897b9996a36b5a5597407))
+* **supabase:** recreate library state rpc ([ecb5bb6](https://github.com/francozeta/kocteau/commit/ecb5bb6584a722f3ad653847ac1ea0d3769c41a7))
+* **web:** align track recommendation carousel ([d6f29d3](https://github.com/francozeta/kocteau/commit/d6f29d384d8cd8622179ef653c515b4ebe73f8ff))
+* **web:** reduce external cover image usage ([2c4f210](https://github.com/francozeta/kocteau/commit/2c4f2105df07c71cc808eecba8ce59cb64de48fa))
+* **web:** reduce external cover image usage ([1a2f943](https://github.com/francozeta/kocteau/commit/1a2f943f28360802d306871184b9b99ff314aee9))
+* **web:** simplify track library signal ([80e24a7](https://github.com/francozeta/kocteau/commit/80e24a78bf8d862f071226da9cd3e9e26d2e2ac0))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.7 ([650b445](https://github.com/francozeta/kocteau/commit/650b445ab6cdf328864be138036e4cf83b4b4209))
+* **web:** draft public changelog for v0.3.7 ([ff49fbf](https://github.com/francozeta/kocteau/commit/ff49fbf45e5c5aea6ddd0af53ba09c125b34e34c))
+
 ## [0.3.7](https://github.com/francozeta/kocteau/compare/v0.3.6...v0.3.7) (2026-06-09)
 
 
