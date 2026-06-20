@@ -105,6 +105,96 @@ function createIcon(icon: IconSvgElement, displayName: string): Icon {
   return Component;
 }
 
+export const TrackDiscIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ strokeWidth = 1.5, ...props }, ref) => (
+    <svg ref={ref} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="9.25" stroke="currentColor" strokeWidth={strokeWidth} />
+      <path
+        d="M10.2473 6.26025C8.3406 6.84176 6.83684 8.3473 6.25781 10.2551M17.7418 13.7472C17.1622 15.6544 15.6584 17.1594 13.7518 17.7404"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth={strokeWidth}
+      />
+      <circle cx="12" cy="12" r="2.25" stroke="currentColor" strokeWidth={strokeWidth} />
+    </svg>
+  ),
+);
+TrackDiscIcon.displayName = "TrackDiscIcon";
+
+export const AlbumStackIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ strokeWidth = 1.5, ...props }, ref) => (
+    <svg ref={ref} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M18.25 3.75H5.75"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={strokeWidth}
+      />
+      <path
+        d="M19.25 7.75H4.75"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={strokeWidth}
+      />
+      <path
+        d="M5.78879 11.75H18.2112C19.5052 11.75 20.4586 12.9602 20.1556 14.2182L19.072 18.7182C18.8556 19.6168 18.0518 20.25 17.1276 20.25H6.87243C5.94823 20.25 5.14438 19.6168 4.92801 18.7182L3.84437 14.2182C3.54143 12.9602 4.49479 11.75 5.78879 11.75Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={strokeWidth}
+      />
+    </svg>
+  ),
+);
+AlbumStackIcon.displayName = "AlbumStackIcon";
+
+export const ComposeChevronLeftIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ strokeWidth = 1.5, ...props }, ref) => (
+    <svg ref={ref} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M13.5858 16L10.2929 12.7071C9.90237 12.3166 9.90237 11.6834 10.2929 11.2929L13.5858 8"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={strokeWidth}
+      />
+    </svg>
+  ),
+);
+ComposeChevronLeftIcon.displayName = "ComposeChevronLeftIcon";
+
+export const ComposeDesktopChevronLeftIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ strokeWidth = 1.5, ...props }, ref) => (
+    <svg ref={ref} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M14.5 18.25L8.25 12L14.5 5.75"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={strokeWidth}
+      />
+    </svg>
+  ),
+);
+ComposeDesktopChevronLeftIcon.displayName = "ComposeDesktopChevronLeftIcon";
+
+export const ComposeChevronRightIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ strokeWidth = 1.5, ...props }, ref) => (
+    <svg ref={ref} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M10 16L13.2929 12.7071C13.6834 12.3166 13.6834 11.6834 13.2929 11.2929L10 8"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={strokeWidth}
+      />
+    </svg>
+  ),
+);
+ComposeChevronRightIcon.displayName = "ComposeChevronRightIcon";
+
 export const Archive = createIcon(ArchiveIcon, "Archive");
 export const ArrowLeft = createIcon(ArrowLeft01Icon, "ArrowLeft");
 export const ArrowLeftIcon = ArrowLeft;

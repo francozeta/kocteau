@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useState } from "react";
+import { FaDeezer } from "react-icons/fa";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PencilLine } from "@/components/ui/icons";
 import {
@@ -20,9 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
 import NewReviewForm from "@/components/new-review-form";
-import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
@@ -122,18 +121,43 @@ export default function EditReviewDialog({
         {triggerLabel}
       </Button>
     );
+  const closeButton = (
+    <button
+      type="button"
+      onClick={() => handleOpenChange(false)}
+      className="inline-flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.065] px-2 text-[10px] font-medium text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/[0.11] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+      aria-label="Close review editor"
+    >
+      Esc
+    </button>
+  );
+  const headerTrackAction = initialSelection.deezer_url ? (
+    <Button
+      asChild
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="hidden h-7 w-7 shrink-0 rounded-md bg-foreground/[0.052] text-muted-foreground shadow-none transition-colors hover:bg-foreground/[0.095] hover:text-foreground sm:inline-flex"
+    >
+      <a href={initialSelection.deezer_url} target="_blank" rel="noreferrer" title="Open on Deezer">
+        <FaDeezer className="size-3.5" />
+        <span className="sr-only">Open on Deezer</span>
+      </a>
+    </Button>
+  ) : null;
 
   if (isMobile) {
     return (
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/24 bg-[var(--kocteau-surface)] p-2 before:rounded-t-[1rem] before:border-border/24 before:bg-[var(--kocteau-surface)] data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
+        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border border-b-0 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none before:hidden data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
           <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
-            <DrawerTitle className="flex items-center gap-2 text-sm font-semibold">
-              <ReviewGlyphIcon className="size-4" />
-              Edit review
-            </DrawerTitle>
+            <div className="relative flex min-h-7 items-center">
+              <DrawerTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
+                Edit review
+              </DrawerTitle>
+            </div>
             <DrawerDescription className="sr-only">Edit your review.</DrawerDescription>
           </DrawerHeader>
 
@@ -161,16 +185,16 @@ export default function EditReviewDialog({
     <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
       {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
 
-      <DialogContent showCloseButton={false} className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none">
+      <DialogContent showCloseButton={false} className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none">
         <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
-              <ReviewGlyphIcon className="size-4" />
+          <div className="relative flex min-h-7 items-center">
+            <DialogTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
               Edit review
             </DialogTitle>
-            <Kbd className="rounded-md border border-border/30 bg-foreground/[0.055] px-2 text-[0.625rem] text-muted-foreground">
-              Esc
-            </Kbd>
+            <div className="z-10 ml-auto flex items-center gap-3">
+              {headerTrackAction}
+              {closeButton}
+            </div>
           </div>
           <DialogDescription className="sr-only">Edit your review.</DialogDescription>
         </DialogHeader>

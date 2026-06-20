@@ -1,10 +1,9 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { FaDeezer } from "react-icons/fa";
-import { ArrowLeft, ChevronRight, Disc3, LoaderCircle, Search } from "@/components/ui/icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ComposeChevronRightIcon, LoaderCircle, Search, TrackDiscIcon, X } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import EntityCoverImage from "@/components/entity-cover-image";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import { toastActionSuccess } from "@/lib/feedback";
@@ -23,6 +21,7 @@ import {
   savePendingReviewDraft,
 } from "@/lib/pending-review-draft";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
+import type { StarterTrack } from "@/lib/starter";
 import { cn } from "@/lib/utils";
 import { ApiError, createApiError, getFirstFieldError } from "@/lib/validation/errors";
 import { createReviewSchema, updateReviewSchema } from "@/lib/validation/schemas";
@@ -65,6 +64,8 @@ export type NewReviewFormProps = {
   onSuccess?: (payload: PublishReviewResponse) => void;
   onCancel?: () => void;
   onSearchResultOpen?: () => void;
+  onBackActionChange?: (action: (() => void) | null) => void;
+  onSelectionChange?: (selection: DeezerResult | null) => void;
   onStepChange?: (step: NewReviewFormStep) => void;
   showCancelAction?: boolean;
   primaryActionFullWidth?: boolean;
@@ -112,6 +113,122 @@ function getNewReviewFormStateKey(props: NewReviewFormProps) {
   ].join("|");
 }
 
+const defaultFallbackSuggestedSearches = [
+  "Radiohead",
+  "Björk",
+  "Frank Ocean",
+  "Massive Attack",
+  "The Cure",
+  "Slowdive",
+];
+
+const fallbackSuggestedSearchGroups = [
+  defaultFallbackSuggestedSearches,
+  ["Cocteau Twins", "Portishead", "FKA twigs", "Beach House", "Sade", "Arca"],
+  ["Deftones", "Mazzy Star", "Devon Hendryx", "Erykah Badu", "Slow Pulp", "Aphex Twin"],
+];
+
+function starterTrackToResult(track: StarterTrack): DeezerResult | null {
+  if (track.provider !== "deezer" || track.type !== "track" || !track.provider_id) {
+    return null;
+  }
+
+  return {
+    provider: "deezer",
+    provider_id: track.provider_id,
+    type: "track",
+    title: track.title,
+    artist_name: track.artist_name,
+    cover_url: track.cover_url,
+    deezer_url: track.deezer_url,
+    entity_id: null,
+  };
+}
+
+function getFallbackSuggestedSearches(seed: string) {
+  const seedValue = Array.from(seed).reduce((sum, character) => sum + character.charCodeAt(0), 0);
+
+  return fallbackSuggestedSearchGroups[seedValue % fallbackSuggestedSearchGroups.length] ?? defaultFallbackSuggestedSearches;
+}
+
+async function fetchComposeStarterSuggestions(seed: string) {
+  const params = new URLSearchParams({
+    surface: "app",
+    context: `compose:suggested:${seed}`,
+    limit: "6",
+  });
+  const response = await fetch(`/api/starter/rail?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error("Could not load starter suggestions.");
+  }
+
+  const payload = (await response.json()) as { tracks?: StarterTrack[] };
+
+  return (payload.tracks ?? [])
+    .map(starterTrackToResult)
+    .filter((track): track is DeezerResult => Boolean(track));
+}
+
+function TrackResultButton({
+  result,
+  active = false,
+  buttonRef,
+  onClick,
+}: {
+  result: DeezerResult;
+  active?: boolean;
+  buttonRef?: (node: HTMLButtonElement | null) => void;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      ref={buttonRef}
+      onClick={onClick}
+      className="group flex min-h-16 w-full items-center gap-3 rounded-[0.72rem] border border-border/20 bg-foreground/[0.028] px-2.5 py-2 text-left transition-[background-color,border-color] duration-150 ease-[var(--kocteau-ease)] hover:border-border/34 hover:bg-foreground/[0.05] data-[active=true]:border-foreground/24 data-[active=true]:bg-foreground/[0.062] sm:min-h-[5rem] sm:rounded-[0.9rem] sm:px-3 sm:py-3"
+      data-active={active}
+    >
+      <EntityCoverImage
+        src={result.cover_url}
+        alt={result.title}
+        sizes="(max-width: 640px) 40px, 48px"
+        quality={58}
+        className="h-10 w-10 shrink-0 rounded-[0.52rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:h-12 sm:w-12 sm:rounded-[0.62rem]"
+        iconClassName="size-4"
+      />
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12.5px] font-semibold text-foreground sm:text-[13px]">{result.title}</p>
+        <p className="truncate text-[11.5px] text-muted-foreground/82 sm:text-xs">
+          {result.artist_name ?? "Unknown artist"}
+        </p>
+        <span className="mt-0.5 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/62 sm:mt-1">
+          <TrackDiscIcon className="size-3" />
+          Track
+        </span>
+      </div>
+      <span className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-foreground/[0.04] text-muted-foreground/48 transition-colors group-hover:bg-foreground/[0.075] group-hover:text-muted-foreground/82 sm:flex">
+        <ComposeChevronRightIcon className="size-4" />
+      </span>
+    </button>
+  );
+}
+
+function TrackResultSkeleton() {
+  return (
+    <div className="t-skel min-h-16 sm:min-h-[5rem]" aria-hidden="true">
+      <div className="t-skel-skeleton is-pulsing flex min-h-16 items-center gap-3 rounded-[0.72rem] border border-border/18 bg-foreground/[0.025] px-2.5 py-2 sm:min-h-[5rem] sm:rounded-[0.9rem] sm:px-3 sm:py-3">
+        <div className="h-10 w-10 shrink-0 rounded-[0.52rem] bg-foreground/[0.075] sm:h-12 sm:w-12 sm:rounded-[0.62rem]" />
+        <div className="grid min-w-0 flex-1 gap-2">
+          <div className="h-3.5 w-1/2 rounded-full bg-foreground/[0.07]" />
+          <div className="h-3 w-1/3 rounded-full bg-foreground/[0.052]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function NewReviewForm(props: NewReviewFormProps) {
   return <NewReviewFormState key={getNewReviewFormStateKey(props)} {...props} />;
 }
@@ -124,6 +241,8 @@ function NewReviewFormState({
   onSuccess,
   onCancel,
   onSearchResultOpen,
+  onBackActionChange,
+  onSelectionChange,
   onStepChange,
   showCancelAction = true,
   primaryActionFullWidth = false,
@@ -154,6 +273,13 @@ function NewReviewFormState({
   const [rating, setRating] = useState<number | null>(initialRating);
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
+  const [composeSuggestionSeed] = useState(() => {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID().slice(0, 8);
+    }
+
+    return Math.random().toString(36).slice(2, 10);
+  });
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
@@ -164,15 +290,50 @@ function NewReviewFormState({
   }>({});
   const [saving, setSaving] = useState(false);
 
-  const suggestedSearches = ["Radiohead", "Björk", "Bad Bunny", "Frank Ocean", "Massive Attack", "The Cure"];
   const searchEnabled = step === "search";
   const normalizedQuery = query.trim();
-  const { data, isFetching, error: searchError, refetch: retrySearch } = useDeezerSearch({
+  const shouldLoadStarterSuggestions =
+    searchEnabled && !isEditMode && normalizedQuery.length === 0;
+  const fallbackSuggestedSearches = useMemo(
+    () => getFallbackSuggestedSearches(composeSuggestionSeed),
+    [composeSuggestionSeed],
+  );
+  const {
+    data: suggestedTracks = [],
+    isFetching: isFetchingSuggestions,
+  } = useQuery({
+    queryKey: ["starter", "compose-suggestions", composeSuggestionSeed],
+    queryFn: () => fetchComposeStarterSuggestions(composeSuggestionSeed),
+    enabled: shouldLoadStarterSuggestions,
+    staleTime: 1000 * 60,
+  });
+  const {
+    data,
+    isFetching,
+    isPlaceholderData,
+    error: searchError,
+    refetch: retrySearch,
+    searchQuery,
+    isDebouncingSearch,
+  } = useDeezerSearch({
     query,
     type: "track",
     enabled: searchEnabled,
   });
-  const results = useMemo(() => (searchEnabled ? ((data ?? []) as DeezerResult[]) : []), [data, searchEnabled]);
+  const hasSearchInput = normalizedQuery.length >= 2;
+  const hasFreshSearchResults =
+    searchEnabled && hasSearchInput && searchQuery === normalizedQuery && !isPlaceholderData;
+  const results = useMemo(
+    () => (hasFreshSearchResults ? ((data ?? []) as DeezerResult[]) : []),
+    [data, hasFreshSearchResults],
+  );
+  const showSearchLoading =
+    searchEnabled &&
+    hasSearchInput &&
+    (isDebouncingSearch || isFetching || isPlaceholderData) &&
+    results.length === 0;
+  const showSearchUpdating =
+    searchEnabled && isFetching && !isDebouncingSearch && !isPlaceholderData && results.length > 0;
   const activeResultKey = useMemo(
     () =>
       [
@@ -216,6 +377,10 @@ function NewReviewFormState({
     onStepChange?.(step);
   }, [onStepChange, step]);
 
+  useEffect(() => {
+    onSelectionChange?.(selected);
+  }, [onSelectionChange, selected]);
+
   function resetAll() {
     setStep(isSearchIntent ? "search" : initialSelection ? "compose" : "search");
     setSelected(isSearchIntent ? null : initialSelection);
@@ -228,7 +393,7 @@ function NewReviewFormState({
     setActiveResultIndex(-1);
   }
 
-  function goBackToSearch() {
+  const goBackToSearch = useCallback(() => {
     if (isEditMode) {
       return;
     }
@@ -243,6 +408,22 @@ function NewReviewFormState({
     setSelected(null);
     setStep("search");
     setErrorMsg(null);
+  }, [initialSelection, isEditMode]);
+
+  useEffect(() => {
+    if (!onBackActionChange) {
+      return;
+    }
+
+    onBackActionChange(isEditMode ? null : goBackToSearch);
+
+    return () => onBackActionChange(null);
+  }, [goBackToSearch, isEditMode, onBackActionChange]);
+
+  function clearSearchQuery() {
+    setQuery("");
+    setFieldErrors((current) => ({ ...current, selected: undefined }));
+    setActiveResultIndex(-1);
   }
 
   function handleResultSelect(result: DeezerResult) {
@@ -542,15 +723,10 @@ function NewReviewFormState({
 
   const highlightedResult =
     step === "search" && activeResultIndex >= 0 ? (results[activeResultIndex] ?? null) : null;
-  const canContinue =
-    step === "search"
-      ? Boolean(highlightedResult)
-      : Boolean(selected) && rating !== null && !saving;
+  const canPublish = Boolean(selected) && rating !== null && !saving;
   const continueLabel = saving
     ? (isEditMode ? "Saving..." : "Publishing...")
-    : step === "search"
-      ? "Next"
-      : isEditMode
+    : isEditMode
         ? "Save"
         : "Publish";
 
@@ -573,10 +749,13 @@ function NewReviewFormState({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[var(--kocteau-surface)]">
-      {step === "search" ? (
-        <div className="flex min-h-0 flex-1 flex-col px-4 py-4 md:px-5">
-          <div className="relative mb-3 shrink-0">
-            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground/80" />
+      <div
+        className="t-page-slide min-h-0 flex-1 overflow-hidden"
+        data-page={step === "search" ? "1" : "2"}
+      >
+        <section className="t-page flex min-h-0 flex-col px-4 py-4 md:px-5" data-page-id="1">
+          <div className="relative mb-4 shrink-0">
+            <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground/82" />
             <Input
               value={query}
               onChange={(event) => {
@@ -587,9 +766,20 @@ function NewReviewFormState({
               placeholder="Search tracks to review…"
               disabled={saving}
               autoFocus
-              className="h-10 shrink-0 rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
+              className="kocteau-compose-search-field h-11 shrink-0 rounded-full pr-12 pl-11 text-[13px] shadow-none placeholder:text-muted-foreground/76 focus-visible:ring-0"
               maxLength={80}
             />
+            {query.length > 1 ? (
+              <button
+                type="button"
+                onClick={clearSearchQuery}
+                disabled={saving}
+                className="absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-foreground/[0.085] text-muted-foreground transition-[background-color,color] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/[0.13] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:pointer-events-none disabled:opacity-50"
+                aria-label="Clear search"
+              >
+                <X className="size-3.5" />
+              </button>
+            ) : null}
           </div>
 
           {errorMsg ? (
@@ -599,8 +789,8 @@ function NewReviewFormState({
             </Alert>
           ) : null}
 
-          {searchError ? (
-            <Alert className="mb-4 shrink-0 border-border/28 bg-card/22 pr-24">
+          {searchError && hasSearchInput && searchQuery === normalizedQuery ? (
+            <Alert className="mb-4 shrink-0 border-border/28 bg-card/22 pr-24 shadow-none">
               <AlertTitle>Music search is slow</AlertTitle>
               <AlertDescription>
                 {searchError.message || "Music search is taking longer than usual. Try again in a moment."}
@@ -611,7 +801,7 @@ function NewReviewFormState({
                   void retrySearch();
                 }}
                 disabled={isFetching}
-                className="absolute top-1/2 right-2 inline-flex h-7 -translate-y-1/2 items-center rounded-full border border-border/28 px-2.5 text-[11px] font-medium text-foreground/88 transition hover:bg-foreground/[0.055] disabled:pointer-events-none disabled:opacity-55"
+                className="absolute top-1/2 right-2 inline-flex h-7 -translate-y-1/2 items-center rounded-md bg-foreground/[0.065] px-2.5 text-[11px] font-medium text-foreground/88 transition-colors hover:bg-foreground/[0.11] disabled:pointer-events-none disabled:opacity-55"
               >
                 {isFetching ? "Retrying" : "Retry"}
               </button>
@@ -619,159 +809,127 @@ function NewReviewFormState({
           ) : null}
           <FieldError>{fieldErrors.selected}</FieldError>
 
-          <ScrollArea className="min-h-0 flex-1 rounded-[0.85rem] border border-border/24 bg-[var(--kocteau-surface-raised)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-            <div className="space-y-0">
-              {isFetching && results.length === 0 ? (
-                <div className="space-y-3 px-4 py-4">
+          <ScrollArea className="kocteau-compose-scroll min-h-0 flex-1">
+            <div className="grid gap-1 pr-2 sm:pr-0">
+              {showSearchLoading ? (
+                <div className="grid gap-1 py-1">
                   {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-lg" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-3.5 w-1/2" />
-                        <Skeleton className="h-3 w-1/3" />
-                      </div>
-                    </div>
+                    <TrackResultSkeleton key={index} />
                   ))}
                 </div>
               ) : null}
 
-              {isFetching && results.length > 0 ? (
-                <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
+              {showSearchUpdating ? (
+                <div className="flex items-center gap-2 rounded-[0.82rem] border border-border/18 bg-foreground/[0.025] px-3 py-3 text-xs text-muted-foreground">
                   <LoaderCircle className="size-3.5 animate-spin" />
                   Updating results…
                 </div>
               ) : null}
 
-              {!isFetching && !normalizedQuery ? (
-                <>
-                  <div className="border-b border-border/18 px-4 py-2.5">
-                    <p className="text-[11px] font-medium text-muted-foreground/72">
-                      Suggested
-                    </p>
-                  </div>
-                  <div className="divide-y divide-border/16">
-                    {suggestedSearches.map((suggestion) => (
+              {!normalizedQuery && results.length === 0 ? (
+                <div className="grid gap-1 pt-1">
+                  <p className="px-1 pb-2 text-[11px] font-medium text-muted-foreground/72">
+                    Suggested
+                  </p>
+                  {isFetchingSuggestions ? (
+                    <div className="grid gap-1">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <TrackResultSkeleton key={index} />
+                      ))}
+                    </div>
+                  ) : suggestedTracks.length > 0 ? (
+                    suggestedTracks.map((result) => (
+                      <TrackResultButton
+                        key={`${result.provider}:${result.provider_id}`}
+                        result={result}
+                        onClick={() => {
+                          if (isSearchIntent) {
+                            openTrack(result);
+                            return;
+                          }
+
+                          handleResultSelect(result);
+                        }}
+                      />
+                    ))
+                  ) : (
+                    fallbackSuggestedSearches.map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
                         onClick={() => setQuery(suggestion)}
-                        className="flex min-h-11 w-full items-center gap-3 px-4 py-2.5 text-left text-[13px] transition hover:bg-foreground/[0.045]"
+                        className="group flex min-h-12 w-full items-center gap-3 rounded-[0.82rem] border border-border/20 bg-foreground/[0.028] px-3 py-2.5 text-left text-[13px] transition-[background-color,border-color] duration-150 ease-[var(--kocteau-ease)] hover:border-border/32 hover:bg-foreground/[0.05]"
                       >
-                        <Search className="size-3.5 shrink-0 text-muted-foreground/68" />
+                        <Search className="size-3.5 shrink-0 text-muted-foreground/68 transition-colors group-hover:text-muted-foreground/88" />
                         <span className="min-w-0 flex-1 truncate">{suggestion}</span>
-                        <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/54" />
+                        <ComposeChevronRightIcon className="size-4 shrink-0 text-muted-foreground/48 transition-colors group-hover:text-muted-foreground/78" />
                       </button>
-                    ))}
-                  </div>
-                </>
+                    ))
+                  )}
+                </div>
               ) : null}
 
-              {!isFetching && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
-                <div className="px-4 py-6 text-center">
+              {!showSearchLoading && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
+                <div className="px-1 py-8 text-center">
                   <p className="text-sm text-muted-foreground">
                     Type at least 2 characters to start searching.
                   </p>
                 </div>
               ) : null}
 
-              {!isFetching && normalizedQuery.length >= 2 && results.length === 0 ? (
-                <div className="px-4 py-6 text-center">
+              {!showSearchLoading && normalizedQuery.length >= 2 && results.length === 0 ? (
+                <div className="px-1 py-8 text-center">
                   <p className="text-sm text-muted-foreground">No tracks found.</p>
                 </div>
               ) : null}
 
               {results.length > 0 ? (
-                <div className="divide-y divide-border/16">
-                  {results.map((result, index) => (
-                    <button
-                      key={result.provider_id}
-                      type="button"
-                      ref={(node) => {
-                        resultRefs.current[index] = node;
-                      }}
-                      onClick={() => {
-                        if (isSearchIntent) {
-                          openTrack(result);
-                          return;
-                        }
+                results.map((result, index) => (
+                  <TrackResultButton
+                    key={`${result.provider}:${result.provider_id}`}
+                    result={result}
+                    active={activeResultIndex === index}
+                    buttonRef={(node) => {
+                      resultRefs.current[index] = node;
+                    }}
+                    onClick={() => {
+                      if (isSearchIntent) {
+                        openTrack(result);
+                        return;
+                      }
 
-                        handleResultSelect(result);
-                      }}
-                      className="group flex min-h-[4.5rem] w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-foreground/[0.045] data-[active=true]:bg-foreground/[0.06]"
-                      data-active={activeResultIndex === index}
-                    >
-                      <EntityCoverImage
-                        src={result.cover_url}
-                        alt={result.title}
-                        sizes="40px"
-                        quality={56}
-                        className="h-10 w-10 shrink-0 rounded-[0.65rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
-                        iconClassName="size-4"
-                      />
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-medium text-foreground">{result.title}</p>
-                        <p className="truncate text-xs text-muted-foreground/82">
-                          {result.artist_name ?? "Unknown artist"}
-                        </p>
-                        <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground/64">
-                          <Disc3 className="size-3" />
-                          Track
-                        </span>
-                      </div>
-                      <ChevronRight className="size-4 shrink-0 text-muted-foreground/48 transition group-hover:text-muted-foreground/78" />
-                    </button>
-                  ))}
-                </div>
+                      handleResultSelect(result);
+                    }}
+                  />
+                ))
               ) : null}
             </div>
           </ScrollArea>
-        </div>
-      ) : (
-        <div className="flex min-h-0 flex-1 flex-col px-4 py-4 md:px-5">
-          <div className="mb-5 flex items-center gap-3 shrink-0">
-            {!isEditMode ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={goBackToSearch}
-                className="shrink-0 rounded-[0.7rem] text-muted-foreground hover:bg-foreground/[0.055] hover:text-foreground"
-              >
-                <ArrowLeft className="size-4" />
-                <span className="sr-only">Back to search</span>
-              </Button>
-            ) : null}
+        </section>
 
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.85rem] border border-border/24 bg-[var(--kocteau-surface-raised)] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+        <section className="t-page flex min-h-0 flex-col px-4 py-4 md:px-5" data-page-id="2">
+          <div className="mb-5 flex shrink-0 items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.95rem] border border-border/20 bg-foreground/[0.032] px-3 py-3">
               <EntityCoverImage
                 src={selected?.cover_url}
                 alt={selected?.title ?? "Selected track"}
-                sizes="48px"
-                quality={56}
-                className="h-12 w-12 shrink-0 rounded-[0.7rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
+                sizes="56px"
+                quality={58}
+                className="h-14 w-14 shrink-0 rounded-[0.68rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
                 iconClassName="size-5"
               />
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{selected?.title}</p>
-                <p className="truncate text-xs text-muted-foreground/82">
+                <p className="truncate text-[15px] font-semibold leading-5">{selected?.title}</p>
+                <p className="truncate text-[13px] text-muted-foreground/82">
                   {selected?.artist_name ?? "Unknown artist"}
                 </p>
-                <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground/64">
-                  <Disc3 className="size-3" />
+                <span className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/64">
+                  <TrackDiscIcon className="size-3" />
                   Track
                 </span>
               </div>
 
-              {selected?.deezer_url ? (
-                <Button asChild type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-lg">
-                  <a href={selected.deezer_url} target="_blank" rel="noreferrer" title="Open on Deezer">
-                    <FaDeezer className="size-4" />
-                    <span className="sr-only">Open on Deezer</span>
-                  </a>
-                </Button>
-              ) : null}
             </div>
           </div>
 
@@ -782,68 +940,66 @@ function NewReviewFormState({
             </Alert>
           ) : null}
 
-          <ScrollArea className="min-h-0 flex-1 rounded-[0.85rem] border border-border/24 bg-[var(--kocteau-surface-raised)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-            <div className="p-4 md:p-5">
-              <div className="space-y-5">
-                <section>
-                  <p className="mb-3 text-[12px] font-medium text-muted-foreground/82">Rating</p>
-                  <RatingStars
-                    value={rating}
-                    onChange={(nextRating) => {
-                      setRating(nextRating);
-                      setFieldErrors((current) => ({ ...current, rating: undefined }));
-                    }}
-                    disabled={saving}
-                  />
-                  <FieldError>{fieldErrors.rating}</FieldError>
-                </section>
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="grid gap-3">
+              <section className="border-t border-border/18 pt-4 first:border-t-0 first:pt-0">
+                <p className="mb-3 text-[12px] font-medium text-muted-foreground/82">Rating</p>
+                <RatingStars
+                  value={rating}
+                  onChange={(nextRating) => {
+                    setRating(nextRating);
+                    setFieldErrors((current) => ({ ...current, rating: undefined }));
+                  }}
+                  disabled={saving}
+                />
+                <FieldError>{fieldErrors.rating}</FieldError>
+              </section>
 
-                <section className="space-y-2">
-                  <label className="text-xs font-medium  tracking-wide text-muted-foreground" htmlFor="review-title">
-                    Title
-                  </label>
-                  <Input
-                    id="review-title"
-                    value={title}
-                    onChange={(event) => {
-                      setTitle(event.target.value);
-                      setFieldErrors((current) => ({ ...current, review_title: undefined }));
-                    }}
-                    placeholder="Give it a headline"
-                    disabled={saving}
-                    className="h-10 rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
-                    maxLength={120}
-                    aria-invalid={Boolean(fieldErrors.review_title)}
-                  />
-                  <FieldError>{fieldErrors.review_title}</FieldError>
-                </section>
+              <section className="border-t border-border/14 pt-3">
+                <label className="sr-only" htmlFor="review-title">
+                  Review title
+                </label>
+                <Input
+                  id="review-title"
+                  value={title}
+                  onChange={(event) => {
+                    setTitle(event.target.value);
+                    setFieldErrors((current) => ({ ...current, review_title: undefined }));
+                  }}
+                  placeholder="Title"
+                  disabled={saving}
+                  className="h-10 rounded-none border-0 bg-transparent px-0 text-[16px] font-semibold shadow-none placeholder:text-muted-foreground/68 focus-visible:ring-0"
+                  maxLength={120}
+                  aria-invalid={Boolean(fieldErrors.review_title)}
+                />
+                <FieldError>{fieldErrors.review_title}</FieldError>
+              </section>
 
-                <section className="space-y-2">
-                  <label className="text-xs font-medium  tracking-wide text-muted-foreground" htmlFor="review-body">
-                    Note
-                  </label>
-                  <Textarea
-                    id="review-body"
-                    value={body}
-                    onChange={(event) => {
-                      setBody(event.target.value);
-                      setFieldErrors((current) => ({ ...current, review_body: undefined }));
-                    }}
-                    placeholder="What did this track make you feel?"
-                    className="min-h-28 resize-none rounded-[0.7rem] border-border/24 bg-[var(--kocteau-surface-control)] text-[13px] leading-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-muted-foreground/72"
-                    disabled={saving}
-                    maxLength={2000}
-                    aria-invalid={Boolean(fieldErrors.review_body)}
-                  />
-                  <FieldError>{fieldErrors.review_body}</FieldError>
-                </section>
-              </div>
+              <section className="border-t border-border/10 pt-2">
+                <label className="sr-only" htmlFor="review-body">
+                  Review note
+                </label>
+                <Textarea
+                  id="review-body"
+                  value={body}
+                  onChange={(event) => {
+                    setBody(event.target.value);
+                    setFieldErrors((current) => ({ ...current, review_body: undefined }));
+                  }}
+                  placeholder="Add a note…"
+                  className="min-h-32 resize-none rounded-none border-0 bg-transparent px-0 text-[14px] leading-6 shadow-none placeholder:text-muted-foreground/62 focus-visible:ring-0"
+                  disabled={saving}
+                  maxLength={2000}
+                  aria-invalid={Boolean(fieldErrors.review_body)}
+                />
+                <FieldError>{fieldErrors.review_body}</FieldError>
+              </section>
             </div>
           </ScrollArea>
-        </div>
-      )}
+        </section>
+      </div>
 
-      {!isSearchIntent ? (
+      {!isSearchIntent && step === "compose" ? (
         <div className="shrink-0 border-t border-border/20 bg-[var(--kocteau-surface)] px-4 py-3 md:px-5">
           <div className={cn("flex items-center gap-3", showCancelAction ? "justify-between" : "justify-end")}>
             {showCancelAction ? (
@@ -852,7 +1008,7 @@ function NewReviewFormState({
                 variant="outline"
                 onClick={handleCancel}
                 disabled={saving}
-                className="min-w-22 rounded-[0.7rem] border-border/28 bg-transparent px-4 text-foreground hover:bg-foreground/[0.055]"
+                className="min-w-22 rounded-[0.72rem] border-border/28 bg-transparent px-4 text-foreground shadow-none hover:bg-foreground/[0.055]"
               >
                 Cancel
               </Button>
@@ -861,9 +1017,9 @@ function NewReviewFormState({
             <Button
               type="button"
               onClick={handleContinue}
-              disabled={!canContinue}
+              disabled={!canPublish}
               className={cn(
-                "min-w-24 rounded-[0.7rem] bg-foreground px-4 text-background hover:bg-foreground/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
+                "min-w-24 rounded-[0.72rem] bg-foreground px-4 text-background shadow-none hover:bg-foreground/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
                 primaryActionFullWidth && "w-full",
               )}
             >

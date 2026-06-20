@@ -22,9 +22,16 @@ export function useDeezerSearch({
   const trimmedQuery = query.trim();
   const deferredQuery = useDeferredValue(trimmedQuery);
   const debouncedQuery = useDebouncedValue(deferredQuery, 250);
+  const isDebouncingSearch = trimmedQuery.length >= 2 && debouncedQuery !== trimmedQuery;
 
-  return useQuery({
+  const searchQuery = useQuery({
     ...deezerTrackSearchQueryOptions(debouncedQuery, type),
     enabled: enabled && type === "track" && debouncedQuery.length >= 2,
   });
+
+  return {
+    ...searchQuery,
+    searchQuery: debouncedQuery,
+    isDebouncingSearch,
+  };
 }

@@ -5,10 +5,12 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
+import { FaDeezer } from "react-icons/fa";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Drawer,
@@ -24,7 +26,11 @@ import { Kbd } from "@/components/ui/kbd";
 import type { NewReviewFormProps, NewReviewFormStep } from "@/components/new-review-form";
 import { DialogDescription } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Search } from "@/components/ui/icons";
+import {
+  ComposeChevronLeftIcon,
+  ComposeDesktopChevronLeftIcon,
+  Search,
+} from "@/components/ui/icons";
 import { readPendingReviewDraft, type StoredPendingReviewDraft } from "@/lib/pending-review-draft";
 import { cn } from "@/lib/utils";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
@@ -52,6 +58,7 @@ type InitialSelection = {
   entity_id?: string | null;
 };
 
+type HeaderSelection = NonNullable<NewReviewFormProps["initialSelection"]>;
 type NewReviewDialogTriggerVariant = "default" | "search";
 type NewReviewDialogIntent = "review" | "search";
 
@@ -133,7 +140,9 @@ export default function NewReviewDialog({
   const [formStep, setFormStep] = useState<NewReviewFormStep>(
     isSearchIntent ? "search" : resolvedInitialSelection ? "compose" : "search",
   );
-  const dialogTitle = isSearchIntent ? "Search" : "New review";
+  const [headerSelection, setHeaderSelection] = useState<HeaderSelection | null>(resolvedInitialSelection);
+  const headerBackActionRef = useRef<(() => void) | null>(null);
+  const dialogTitle = isSearchIntent ? "Search" : formStep === "search" ? "Find a track" : "Write review";
   const resolvedTriggerShortcut =
     triggerShortcut === undefined && triggerVariant === "search" && !isSearchIntent
       ? "C"
@@ -169,6 +178,7 @@ export default function NewReviewDialog({
 
     if (nextOpen) {
       setFormStep(isSearchIntent ? "search" : resolvedInitialSelection ? "compose" : "search");
+      setHeaderSelection(resolvedInitialSelection);
     }
 
     onOpenChange?.(nextOpen);
@@ -177,6 +187,14 @@ export default function NewReviewDialog({
       clearComposeParams();
     }
   }
+
+  const handleSelectionChange = useCallback((selection: HeaderSelection | null) => {
+    setHeaderSelection(selection);
+  }, []);
+
+  const handleBackActionChange = useCallback((action: (() => void) | null) => {
+    headerBackActionRef.current = action;
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -245,21 +263,64 @@ export default function NewReviewDialog({
   );
 
   const resolvedTrigger = baseTrigger;
+  const closeButton = (
+    <button
+      type="button"
+      onClick={() => handleOpenChange(false)}
+      className="inline-flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.065] px-2 text-[10px] font-medium text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/[0.11] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+      aria-label="Close review composer"
+    >
+      Esc
+    </button>
+  );
+  const headerTrackAction =
+    !isSearchIntent && formStep === "compose" && headerSelection?.deezer_url ? (
+      <Button
+        asChild
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="hidden h-7 w-7 shrink-0 rounded-md bg-foreground/[0.052] text-muted-foreground shadow-none transition-colors hover:bg-foreground/[0.095] hover:text-foreground sm:inline-flex"
+      >
+        <a href={headerSelection.deezer_url} target="_blank" rel="noreferrer" title="Open on Deezer">
+          <FaDeezer className="size-3.5" />
+          <span className="sr-only">Open on Deezer</span>
+        </a>
+      </Button>
+    ) : null;
+  const showHeaderBackAction = !isSearchIntent && formStep === "compose" && !resolvedInitialSelection;
+  const headerBackButton = showHeaderBackAction ? (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      onClick={() => headerBackActionRef.current?.()}
+      className="h-7 w-7 shrink-0 rounded-md text-muted-foreground shadow-none hover:bg-foreground/[0.06] hover:text-foreground"
+      aria-label="Back to track search"
+    >
+      <ComposeChevronLeftIcon className="size-4 sm:hidden" />
+      <ComposeDesktopChevronLeftIcon className="hidden size-4 sm:block" />
+    </Button>
+  ) : null;
 
   if (isMobile) {
     return (
       <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
         {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
 
-        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border-border/24 bg-[var(--kocteau-surface)] p-2 before:rounded-t-[1rem] before:border-border/24 before:bg-[var(--kocteau-surface)] data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
+        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border border-b-0 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none before:hidden data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
           <div className="flex h-full min-h-0 flex-col">
             <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
-              <div className="flex items-center justify-between gap-3">
-                <DrawerTitle className="flex items-center gap-2 text-sm font-semibold">
-                  <ReviewGlyphIcon className="size-4" />
+              <div className="relative flex min-h-7 items-center">
+                <div className="z-10 flex min-w-9 items-center justify-start">
+                  {headerBackButton}
+                </div>
+                <DrawerTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
                   {dialogTitle}
                 </DrawerTitle>
-                {!isSearchIntent ? renderStepDots() : null}
+                <div className="z-10 ml-auto flex items-center gap-3">
+                  {!isSearchIntent ? renderStepDots() : null}
+                </div>
               </div>
               <DrawerDescription className="sr-only">
                 {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
@@ -270,6 +331,8 @@ export default function NewReviewDialog({
               <NewReviewForm
                 intent={intent}
                 isAuthenticated={isAuthenticated}
+                onBackActionChange={handleBackActionChange}
+                onSelectionChange={handleSelectionChange}
                 onStepChange={setFormStep}
                 showCancelAction={false}
                 primaryActionFullWidth
@@ -299,18 +362,22 @@ export default function NewReviewDialog({
 
       <DialogContent
         showCloseButton={false}
-        className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
+        className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
       >
         <div className="flex h-full min-h-0 flex-col">
           <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
-                <ReviewGlyphIcon className="size-4" />
+            <div className="relative flex min-h-7 items-center">
+              <div className="z-10 flex min-w-9 items-center justify-start">
+                {headerBackButton}
+              </div>
+              <DialogTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
                 {dialogTitle}
               </DialogTitle>
-              <Kbd className="rounded-md border border-border/30 bg-foreground/[0.055] px-2 text-[0.625rem] text-muted-foreground">
-                Esc
-              </Kbd>
+              <div className="z-10 ml-auto flex items-center gap-3">
+                {headerTrackAction}
+                {!isSearchIntent ? renderStepDots() : null}
+                {closeButton}
+              </div>
             </div>
             <DialogDescription className="sr-only">
               {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
@@ -321,6 +388,8 @@ export default function NewReviewDialog({
             <NewReviewForm
               intent={intent}
               isAuthenticated={isAuthenticated}
+              onBackActionChange={handleBackActionChange}
+              onSelectionChange={handleSelectionChange}
               onStepChange={setFormStep}
               showCancelAction={false}
               initialQuery={resolvedInitialQuery}

@@ -106,6 +106,17 @@
   }
 }
 
+@keyframes t-skel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: var(--pulse-min);
+  }
+}
+
 @utility scroll-mask-t {
   --scroll-mask-fade-from-t: 80%;
 }
@@ -296,6 +307,20 @@
   --kocteau-radius-card: 0.82rem;
   --kocteau-radius-control: 0.68rem;
   --kocteau-ease: cubic-bezier(0.2, 0, 0, 1);
+  --page-slide-dur: 220ms;
+  --page-fade-dur: 200ms;
+  --page-slide-distance: 8px;
+  --page-blur: 2px;
+  --page-stagger: 0ms;
+  --page-exit-enabled: 1;
+  --page-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --page-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --pulse-dur: 1000ms;
+  --pulse-count: 1;
+  --pulse-min: 0.5;
+  --reveal-dur: 400ms;
+  --reveal-blur: 2px;
+  --reveal-ease: ease-in-out;
 }
 
 .dark {
@@ -424,6 +449,189 @@
 
   .kocteau-control-surface:active {
     background: color-mix(in oklch, var(--foreground) 5%, var(--kocteau-surface-control));
+  }
+
+  .kocteau-compose-field {
+    border: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent);
+    background: color-mix(in oklch, var(--foreground) 3.8%, transparent);
+    box-shadow: none;
+    transition-duration: 140ms;
+    transition-property: border-color, background-color;
+    transition-timing-function: var(--kocteau-ease);
+  }
+
+  .kocteau-compose-field:hover {
+    border-color: color-mix(in oklch, var(--foreground) 16%, transparent);
+    background: color-mix(in oklch, var(--foreground) 4.8%, transparent);
+  }
+
+  .kocteau-compose-field:focus-within,
+  .kocteau-compose-field:focus-visible {
+    border-color: color-mix(in oklch, var(--foreground) 42%, transparent);
+    box-shadow: none;
+    outline: none;
+  }
+
+  .kocteau-compose-search-field {
+    border: 1px solid color-mix(in oklch, var(--foreground) 34%, transparent);
+    background-color: color-mix(in oklch, var(--foreground) 7.5%, var(--kocteau-surface)) !important;
+    box-shadow: none;
+    transition-duration: 150ms;
+    transition-property: border-color, background-color;
+    transition-timing-function: var(--kocteau-ease);
+  }
+
+  .kocteau-compose-search-field:hover {
+    border-color: color-mix(in oklch, var(--foreground) 42%, transparent);
+    background-color: color-mix(in oklch, var(--foreground) 9%, var(--kocteau-surface)) !important;
+  }
+
+  .kocteau-compose-search-field:focus-visible {
+    border-color: color-mix(in oklch, var(--foreground) 58%, transparent);
+    background-color: color-mix(in oklch, var(--foreground) 10.5%, var(--kocteau-surface)) !important;
+    box-shadow: none;
+    outline: none;
+  }
+
+  .kocteau-compose-scroll {
+    --scroll-mask-fade-from-t: calc(100% - 1.65rem);
+    --scroll-mask-fade-from-b: calc(100% - 2.35rem);
+  }
+
+  .kocteau-compose-scroll [data-slot="scroll-area-viewport"] {
+    scrollbar-width: none;
+  }
+
+  .kocteau-compose-scroll [data-slot="scroll-area-viewport"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  .kocteau-compose-scroll [data-slot="scroll-area-scrollbar"] {
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .kocteau-compose-scroll [data-slot="scroll-area-viewport"] {
+      --scroll-mask-t: linear-gradient(
+        to top,
+        black,
+        black var(--scroll-mask-t-from),
+        transparent
+      );
+      --scroll-mask-b: linear-gradient(
+        to bottom,
+        black,
+        black var(--scroll-mask-b-from),
+        transparent
+      );
+      mask-image: var(--scroll-mask-t), var(--scroll-mask-b);
+      mask-composite: intersect;
+      -webkit-mask-composite: source-in;
+      animation: scroll-mask-y-scroll linear;
+      animation-timeline: scroll(self block);
+    }
+  }
+
+  .t-skel {
+    position: relative;
+  }
+
+  .t-skel-skeleton,
+  .t-skel-content {
+    position: absolute;
+    inset: 0;
+  }
+
+  .t-skel-skeleton {
+    z-index: 1;
+    opacity: 1;
+    filter: blur(0);
+    transition:
+      opacity var(--reveal-dur) var(--reveal-ease),
+      filter var(--reveal-dur) var(--reveal-ease);
+  }
+
+  .t-skel-content {
+    z-index: 2;
+    opacity: 0;
+    filter: blur(var(--reveal-blur));
+    transition:
+      opacity var(--reveal-dur) var(--reveal-ease),
+      filter var(--reveal-dur) var(--reveal-ease);
+  }
+
+  .t-skel.is-revealed .t-skel-skeleton {
+    opacity: 0;
+    filter: blur(var(--reveal-blur));
+  }
+
+  .t-skel.is-revealed .t-skel-content {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  .t-skel.is-resetting .t-skel-skeleton,
+  .t-skel.is-resetting .t-skel-content {
+    transition: none !important;
+  }
+
+  .t-skel-skeleton.is-pulsing > * {
+    animation: t-skel-pulse var(--pulse-dur) ease-in-out var(--pulse-count);
+  }
+
+  .t-page-slide {
+    position: relative;
+  }
+
+  .t-page-slide .t-page[data-page-id="1"] {
+    --t-page-from-x: calc(var(--page-slide-distance) * -1);
+  }
+
+  .t-page-slide .t-page[data-page-id="2"] {
+    --t-page-from-x: var(--page-slide-distance);
+  }
+
+  .t-page-slide .t-page {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(calc(var(--t-page-from-x, 0px) * var(--page-exit-enabled)));
+    filter: blur(calc(var(--page-blur) * var(--page-exit-enabled)));
+    transition:
+      opacity var(--page-fade-dur) var(--page-fade-ease),
+      transform var(--page-slide-dur) var(--page-slide-ease),
+      filter var(--page-slide-dur) var(--page-slide-ease);
+    will-change: opacity, transform, filter;
+  }
+
+  .t-page-slide[data-page="1"] .t-page[data-page-id="1"],
+  .t-page-slide[data-page="2"] .t-page[data-page-id="2"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+    filter: blur(0);
+    transition-delay: var(--page-stagger);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .t-skel-skeleton,
+    .t-skel-content {
+      transition: none !important;
+    }
+
+    .t-skel-skeleton.is-pulsing > * {
+      animation: none !important;
+    }
+
+    .t-page-slide .t-page {
+      transition: none !important;
+    }
   }
 
   .kocteau-feed-tabs {
