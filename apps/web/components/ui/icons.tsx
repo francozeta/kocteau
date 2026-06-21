@@ -195,6 +195,28 @@ export const ComposeChevronRightIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVG
 );
 ComposeChevronRightIcon.displayName = "ComposeChevronRightIcon";
 
+export const StarterCurateIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ strokeWidth = 1.5, ...props }, ref) => (
+    <svg ref={ref} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M16.25 20.25V16.9612C16.25 16.3537 16.5262 15.7791 17.0006 15.3995L20.5759 12.5393C20.9936 12.2051 21.2036 11.675 21.1279 11.1454C20.9617 9.9818 19.5624 9.41069 18.5693 10.0394C16.7891 11.1665 14.215 12.5 12 12.5C9.78501 12.5 7.21086 11.1665 5.43068 10.0394C4.43759 9.41069 3.03831 9.9818 2.87209 11.1454C2.79643 11.675 3.00638 12.2051 3.42412 12.5393L6.99939 15.3995C7.47382 15.7791 7.75 16.3537 7.75 16.9612V20.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={strokeWidth}
+      />
+      <circle cx="12" cy="6.5" r="2.75" stroke="currentColor" strokeWidth={strokeWidth} />
+      <path
+        d="M19.5 9.5L20.75 2.5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth={1.25}
+      />
+    </svg>
+  ),
+);
+StarterCurateIcon.displayName = "StarterCurateIcon";
+
 export const Archive = createIcon(ArchiveIcon, "Archive");
 export const ArrowLeft = createIcon(ArrowLeft01Icon, "ArrowLeft");
 export const ArrowLeftIcon = ArrowLeft;

@@ -164,7 +164,6 @@ function StarterRailSkeleton() {
 export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProps) {
   const isDesktop = useDesktopRail();
   const pathname = usePathname();
-  const isStudioRoute = pathname?.startsWith("/studio") ?? false;
   const customRailContent = useSecondaryRailContent();
   const hasCustomRailContent = customRailContent !== null;
   const publicStarterRailQueryPath = useMemo(
@@ -180,7 +179,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
     : publicStarterRailQueryPath;
   const { data, isLoading } = useQuery({
     ...activeProfilesQueryOptions(3),
-    enabled: isDesktop && !isStudioRoute,
+    enabled: isDesktop,
   });
   const { data: starterRail, isLoading: isStarterRailLoading } = useQuery({
     queryKey: [
@@ -189,7 +188,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
       starterRailQueryPath,
     ],
     queryFn: () => fetchJson<StarterRailResponse>(starterRailQueryPath),
-    enabled: isDesktop && !isStudioRoute,
+    enabled: isDesktop,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -205,7 +204,6 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
   );
   const showStarterRail =
     !hasCustomRailContent &&
-    !isStudioRoute &&
     (isStarterRailLoading || visibleStarterTracks.length > 0);
 
   return (
@@ -218,7 +216,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             {customRailContent}
           </div>
-        ) : !isStudioRoute ? (
+        ) : (
           <section className="min-h-[13.6rem] space-y-3" aria-label="Writers to notice">
             <p className="px-1 text-[12px] font-medium leading-none text-muted-foreground/70">
               Writers to notice
@@ -290,8 +288,6 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
               </div>
             )}
           </section>
-        ) : (
-          <div className="min-h-0 flex-1" aria-hidden="true" />
         )}
 
         {showStarterRail ? (

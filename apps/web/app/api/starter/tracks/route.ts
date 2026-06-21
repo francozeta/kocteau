@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireStarterCurator } from "@/lib/curation/access";
 import {
+  starterTrackListQuerySchema,
   starterTrackArchiveSchema,
   starterTrackUpsertSchema,
 } from "@/lib/validation/schemas";
@@ -24,12 +25,23 @@ function starterMutationErrorResponse(error: {
   );
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const curator = await requireStarterCurator();
 
   if (!curator.ok) {
     return curator.response;
   }
+
+  const url = new URL(req.url);
+  const parsedQuery = starterTrackListQuerySchema.safeParse(
+    Object.fromEntries(url.searchParams),
+  );
+
+  if (!parsedQuery.success) {
+    return validationErrorResponse(parsedQuery.error, "Starter track query is invalid.");
+  }
+
+  const { limit, offset } = parsedQuery.data;
 
   const [tracksResult, tagsResult] = await Promise.all([
     curator.supabase
@@ -66,11 +78,13 @@ export async function GET() {
             )
           )
         `,
+        { count: "exact" },
       )
       .eq("is_active", true)
       .order("is_featured", { ascending: false })
       .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1),
     curator.supabase
       .from("preference_tags")
       .select("id, kind, slug, label, description, is_featured, sort_order, created_at")
@@ -86,9 +100,18 @@ export async function GET() {
     );
   }
 
+  const tracks = tracksResult.data ?? [];
+  const total = tracksResult.count ?? offset + tracks.length;
+  const nextOffset = offset + tracks.length < total ? offset + tracks.length : null;
+
   return NextResponse.json({
-    tracks: tracksResult.data ?? [],
+    tracks,
     tags: tagsResult.data ?? [],
+    total,
+    limit,
+    offset,
+    nextOffset,
+    hasMore: nextOffset !== null,
   });
 }
 

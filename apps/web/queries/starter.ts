@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions, type InfiniteData } from "@tanstack/react-query";
 import type {
   StarterCandidateSource,
   StarterCandidateTrack,
@@ -23,7 +23,14 @@ export type StarterTrackWithTags = StarterTrackRow & {
 export type StarterStudioData = {
   tracks: StarterTrackWithTags[];
   tags: StarterPreferenceTag[];
+  total: number;
+  limit: number;
+  offset: number;
+  nextOffset: number | null;
+  hasMore: boolean;
 };
+
+export type StarterStudioInfiniteData = InfiniteData<StarterStudioData, number>;
 
 export type StarterCandidateData = {
   mode: StarterCandidateSource;
@@ -39,16 +46,51 @@ export type EditorialCandidateQueueData = {
 export const starterKeys = {
   all: ["starter"] as const,
   curatorTracks: () => ["starter", "curator-tracks"] as const,
+  curatorTracksInfinite: (limit: number) =>
+    ["starter", "curator-tracks", "infinite", limit] as const,
   candidates: (mode: StarterCandidateSource, query: string, limit: number) =>
     ["starter", "candidates", mode, query, limit] as const,
   candidateQueue: (status: CandidateQueueStatus, limit: number) =>
     ["starter", "candidate-queue", status, limit] as const,
 };
 
-export function starterCuratorTracksQueryOptions() {
+export function starterCuratorTracksQueryOptions({
+  limit = 24,
+  offset = 0,
+}: {
+  limit?: number;
+  offset?: number;
+} = {}) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+
   return queryOptions({
-    queryKey: starterKeys.curatorTracks(),
-    queryFn: () => fetchJson<StarterStudioData>("/api/starter/tracks"),
+    queryKey: [...starterKeys.curatorTracks(), limit, offset] as const,
+    queryFn: () => fetchJson<StarterStudioData>(`/api/starter/tracks?${params.toString()}`),
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+  });
+}
+
+export function starterCuratorTracksInfiniteQueryOptions({
+  limit = 24,
+}: {
+  limit?: number;
+} = {}) {
+  return infiniteQueryOptions({
+    queryKey: starterKeys.curatorTracksInfinite(limit),
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({
+        limit: String(limit),
+        offset: String(pageParam),
+      });
+
+      return fetchJson<StarterStudioData>(`/api/starter/tracks?${params.toString()}`);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextOffset,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
