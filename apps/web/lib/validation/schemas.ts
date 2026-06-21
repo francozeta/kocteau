@@ -99,6 +99,11 @@ export const editorialCandidateListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(30).optional().default(12),
 });
 
+export const starterTrackListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(60).optional().default(24),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});
+
 const editorialCandidateMetadataSchema = z
   .record(
     z.string().max(48),
