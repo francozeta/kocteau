@@ -11,7 +11,6 @@ import {
 import {
   Archive,
   Check,
-  IconSelector,
   LoaderCircle,
   Pencil,
   Plus,
@@ -25,6 +24,18 @@ import { toast } from "sonner";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -49,11 +60,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -229,6 +235,193 @@ function getStarterCatalogColumnClassName(columnId: string) {
   }
 }
 
+type StarterSignalComboboxProps = {
+  label: string;
+  description: string;
+  selectedTags: StarterPreferenceTag[];
+  items: StarterPreferenceTag[];
+  filteredItems: StarterPreferenceTag[];
+  coverageByTagId: Map<string, number>;
+  inputValue: string;
+  open: boolean;
+  isActive: boolean;
+  isMissing: boolean;
+  onOpenChange: (open: boolean) => void;
+  onInputValueChange: (value: string) => void;
+  onValueChange: (tags: StarterPreferenceTag[]) => void;
+  onEditTag: (tag: StarterPreferenceTag) => void;
+};
+
+function StarterSignalCombobox({
+  label,
+  description,
+  selectedTags,
+  items,
+  filteredItems,
+  coverageByTagId,
+  inputValue,
+  open,
+  isActive,
+  isMissing,
+  onOpenChange,
+  onInputValueChange,
+  onValueChange,
+  onEditTag,
+}: StarterSignalComboboxProps) {
+  const anchorRef = useComboboxAnchor();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  return (
+    <div
+      className={cn(
+        "grid gap-2 rounded-lg border border-border/16 bg-background/18 p-2.5 sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:items-start",
+        isActive && "border-foreground/22 bg-foreground/[0.025]",
+        isMissing && "border-amber-500/18 bg-amber-500/[0.035]",
+      )}
+    >
+      <div className="min-w-0">
+        <p className="text-[0.62rem] font-medium uppercase leading-5 text-muted-foreground">
+          {label}
+        </p>
+        <p className="hidden truncate text-[0.62rem] text-muted-foreground/66 sm:block">
+          {description}
+        </p>
+      </div>
+
+      <Combobox<StarterPreferenceTag, true>
+        multiple
+        items={items}
+        filteredItems={filteredItems}
+        value={selectedTags}
+        inputValue={inputValue}
+        open={open}
+        autoHighlight="always"
+        itemToStringLabel={(tag) => tag.label}
+        itemToStringValue={(tag) => tag.id}
+        isItemEqualToValue={(itemValue, value) => itemValue.id === value.id}
+        onOpenChange={onOpenChange}
+        onInputValueChange={onInputValueChange}
+        onValueChange={(nextTags) => {
+          onValueChange(nextTags);
+
+          if (nextTags.length > selectedTags.length) {
+            onInputValueChange("");
+          }
+        }}
+      >
+        <ComboboxChips
+          ref={anchorRef}
+          onMouseDown={(event) => {
+            const target = event.target as HTMLElement;
+
+            if (target.closest("button,input")) {
+              return;
+            }
+
+            event.preventDefault();
+            inputRef.current?.focus();
+            onOpenChange(true);
+          }}
+          className={cn(
+            "min-h-9 w-full rounded-lg border border-border/20 bg-background/28 px-2 py-1.5 text-left shadow-none transition-colors hover:border-foreground/24 hover:bg-background/36 focus-within:border-foreground/26 focus-within:ring-2 focus-within:ring-ring/24",
+            selectedTags.length === 0 && "text-muted-foreground",
+          )}
+        >
+          {selectedTags.map((tag) => (
+            <ComboboxChip
+              key={tag.id}
+              className="group/signal-chip h-5 max-w-full rounded-full border border-foreground/24 bg-foreground/[0.055] pr-1 pl-2 text-[0.68rem] leading-none text-foreground has-data-[slot=combobox-chip-remove]:pr-0 [&_[data-slot=combobox-chip-remove]]:ml-1 [&_[data-slot=combobox-chip-remove]]:size-4 [&_[data-slot=combobox-chip-remove]]:rounded-full [&_[data-slot=combobox-chip-remove]]:text-muted-foreground [&_[data-slot=combobox-chip-remove]]:opacity-70 [&_[data-slot=combobox-chip-remove]]:transition-[opacity,color,background-color] hover:[&_[data-slot=combobox-chip-remove]]:bg-foreground/10 hover:[&_[data-slot=combobox-chip-remove]]:text-foreground sm:[&_[data-slot=combobox-chip-remove]]:opacity-0 sm:focus-within:[&_[data-slot=combobox-chip-remove]]:opacity-100 sm:hover:[&_[data-slot=combobox-chip-remove]]:opacity-100"
+            >
+              <span className="truncate">{tag.label}</span>
+            </ComboboxChip>
+          ))}
+          <ComboboxChipsInput
+            ref={inputRef}
+            aria-label={`Search ${label.toLowerCase()}`}
+            placeholder={selectedTags.length > 0 ? "" : `Add ${label.toLowerCase()}`}
+            className="h-6 min-w-28 flex-1 text-xs placeholder:text-muted-foreground/70"
+            onFocus={() => onOpenChange(true)}
+            onClick={() => onOpenChange(true)}
+          />
+          <ComboboxTrigger
+            type="button"
+            className="ml-auto grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            aria-label={`Open ${label.toLowerCase()} selector`}
+          />
+        </ComboboxChips>
+
+        <ComboboxContent
+          anchor={anchorRef}
+          align="start"
+          sideOffset={4}
+          className="gap-0 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
+        >
+          <ComboboxList className="max-h-56 p-1">
+            {filteredItems.map((tag, index) => {
+              const isSelected = selectedTags.some((selected) => selected.id === tag.id);
+              const coverageCount = coverageByTagId.get(tag.id) ?? 0;
+
+              return (
+                <div key={tag.id} className="relative">
+                  <ComboboxItem
+                    value={tag}
+                    index={index}
+                    className={cn(
+                      "min-h-8 pr-16 text-xs",
+                      isSelected && "bg-foreground text-background",
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium">
+                      {tag.label}
+                    </span>
+                    <span
+                      className={cn(
+                        "ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.56rem] tabular-nums leading-none",
+                        isSelected
+                          ? "bg-background/14 text-background"
+                          : coverageCount > 0
+                            ? "bg-foreground/[0.06] text-muted-foreground"
+                            : "bg-amber-500/10 text-amber-100/78",
+                      )}
+                    >
+                      {coverageCount}
+                    </span>
+                  </ComboboxItem>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onEditTag(tag);
+                    }}
+                    className={cn(
+                      "absolute top-1/2 right-7 grid size-6 -translate-y-1/2 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      isSelected
+                        ? "text-background/76 hover:bg-background/10 hover:text-background"
+                        : "text-muted-foreground hover:bg-foreground/[0.07] hover:text-foreground",
+                    )}
+                    aria-label={`Edit ${tag.label}`}
+                  >
+                    <Pencil className="size-3" />
+                  </button>
+                </div>
+              );
+            })}
+
+            <ComboboxEmpty className="py-5 text-muted-foreground">
+              No matching signals.
+            </ComboboxEmpty>
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+    </div>
+  );
+}
+
 export default function StarterStudioClient() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
@@ -315,6 +508,10 @@ export default function StarterStudioClient() {
   const availableTags = useMemo(
     () => starterTracksQuery.data?.pages[0]?.tags ?? [],
     [starterTracksQuery.data],
+  );
+  const tagById = useMemo(
+    () => new Map(availableTags.map((tag) => [tag.id, tag])),
+    [availableTags],
   );
   const existingProviderIds = useMemo(
     () => new Set(starterTracks.map((track) => track.provider_id)),
@@ -411,25 +608,6 @@ export default function StarterStudioClient() {
       }),
     [catalogFilter, normalizedQuery, starterTracks, studioSearchMode],
   );
-
-  function toggleTag(tagId: string) {
-    setSelectedTagIds((current) => {
-      const next = new Set(current);
-
-      if (next.has(tagId)) {
-        next.delete(tagId);
-        return next;
-      }
-
-      if (next.size >= starterTagLimit) {
-        toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
-        return current;
-      }
-
-      next.add(tagId);
-      return next;
-    });
-  }
 
   const resetDraft = useCallback(() => {
     setCurationOpen(false);
@@ -844,171 +1022,60 @@ export default function StarterStudioClient() {
                 const kindLabel = preferenceKindLabels[kind];
                 const kindDescription = preferenceKindDescriptions[kind];
                 const selectedKindTags = selectedTagsByKind.get(kind) ?? [];
+                const kindTags = tagsByKind.get(kind) ?? [];
                 const filteredKindTags = getFilteredSignalTags(kind);
                 const signalSearch = signalSearchByKind[kind] ?? "";
                 const isActive = activeSignalKind === kind;
                 const isMissing = inspectedMissingKinds.includes(kind);
 
                 return (
-                  <div
+                  <StarterSignalCombobox
                     key={kind}
-                    className={cn(
-                      "grid gap-2 rounded-lg border border-border/16 bg-background/18 p-2.5 sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:items-start",
-                      isActive && "border-foreground/22 bg-foreground/[0.025]",
-                      isMissing && "border-amber-500/18 bg-amber-500/[0.035]",
-                    )}
-                  >
-                    <div className="min-w-0">
-                      <p className="text-[0.62rem] font-medium uppercase leading-5 text-muted-foreground">
-                        {kindLabel}
-                      </p>
-                      <p className="hidden truncate text-[0.62rem] text-muted-foreground/66 sm:block">
-                        {kindDescription}
-                      </p>
-                    </div>
+                    label={kindLabel}
+                    description={kindDescription}
+                    selectedTags={selectedKindTags}
+                    items={kindTags}
+                    filteredItems={filteredKindTags}
+                    coverageByTagId={coverageByTagId}
+                    inputValue={signalSearch}
+                    open={openSignalKind === kind}
+                    isActive={isActive}
+                    isMissing={isMissing}
+                    onOpenChange={(open) => {
+                      setOpenSignalKind(open ? kind : null);
+                      if (open) {
+                        setActiveSignalKind(kind);
+                      }
+                    }}
+                    onInputValueChange={(value) =>
+                      setSignalSearchByKind((current) => ({
+                        ...current,
+                        [kind]: value,
+                      }))
+                    }
+                    onValueChange={(nextKindTags) => {
+                      setSelectedTagIds((current) => {
+                        const next = new Set<string>();
 
-                    <Popover
-                      open={openSignalKind === kind}
-                      onOpenChange={(open) => {
-                        setOpenSignalKind(open ? kind : null);
-                        if (open) {
-                          setActiveSignalKind(kind);
+                        current.forEach((tagId) => {
+                          const currentTag = tagById.get(tagId);
+                          if (!currentTag || currentTag.kind !== kind) {
+                            next.add(tagId);
+                          }
+                        });
+
+                        nextKindTags.forEach((tag) => next.add(tag.id));
+
+                        if (next.size > starterTagLimit) {
+                          toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
+                          return current;
                         }
-                      }}
-                    >
-                      <div
-                        className={cn(
-                          "flex min-h-9 w-full items-center gap-1.5 rounded-lg border border-border/20 bg-background/28 px-2 py-1.5 text-left transition-colors hover:border-foreground/24 hover:bg-background/36",
-                          selectedKindTags.length === 0 && "text-muted-foreground",
-                        )}
-                        onClick={() => {
-                          setActiveSignalKind(kind);
-                          setOpenSignalKind(kind);
-                        }}
-                      >
-                        <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                          {selectedKindTags.length > 0 ? (
-                            selectedKindTags.map((tag) => (
-                              <span
-                                key={tag.id}
-                                className="group/signal-chip inline-flex h-5 max-w-full items-center rounded-full border border-foreground/24 bg-foreground/[0.055] pr-1 pl-2 text-[0.68rem] font-medium leading-none text-foreground"
-                              >
-                                <span className="truncate">{tag.label}</span>
-                                <button
-                                  type="button"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    toggleTag(tag.id);
-                                  }}
-                                  className="ml-1 grid size-4 place-items-center rounded-full text-muted-foreground opacity-70 transition-[opacity,color,background-color] hover:bg-foreground/10 hover:text-foreground focus-visible:bg-foreground/10 focus-visible:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover/signal-chip:opacity-100"
-                                  aria-label={`Remove ${tag.label}`}
-                                >
-                                  <X className="size-2.5" />
-                                </button>
-                              </span>
-                            ))
-                          ) : (
-                            <span className="flex h-6 items-center text-xs">
-                              Add {kindLabel.toLowerCase()}
-                            </span>
-                          )}
-                        </div>
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                            aria-label={`Open ${kindLabel.toLowerCase()} selector`}
-                            aria-expanded={openSignalKind === kind}
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            <IconSelector className="size-3.5" />
-                          </button>
-                        </PopoverTrigger>
-                      </div>
-                      <PopoverContent
-                        align="start"
-                        className="w-[min(22rem,calc(100vw-2rem))] gap-2 border-border/24 bg-[var(--kocteau-surface)] p-2 shadow-none"
-                      >
-                        <div className="relative">
-                          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            autoFocus
-                            value={signalSearch}
-                            onChange={(event) =>
-                              setSignalSearchByKind((current) => ({
-                                ...current,
-                                [kind]: event.target.value,
-                              }))
-                            }
-                            placeholder={`Search ${kindLabel.toLowerCase()}...`}
-                            className="h-8 rounded-full bg-background/42 pr-3 pl-8 text-xs"
-                          />
-                        </div>
 
-                        <div className="max-h-56 space-y-1 overflow-y-auto pr-1">
-                          {filteredKindTags.map((tag) => {
-                            const isSelected = selectedTagIds.has(tag.id);
-                            const coverageCount = coverageByTagId.get(tag.id) ?? 0;
-
-                            return (
-                              <div
-                                key={tag.id}
-                                className={cn(
-                                  "flex min-h-8 items-center rounded-lg border border-transparent text-xs transition-colors",
-                                  isSelected
-                                    ? "bg-foreground text-background"
-                                    : "hover:border-border/24 hover:bg-foreground/[0.045]",
-                                )}
-                              >
-                                <button
-                                  type="button"
-                                  aria-pressed={isSelected}
-                                  onClick={() => toggleTag(tag.id)}
-                                  className="flex min-w-0 flex-1 items-center gap-2 px-2.5 py-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                                >
-                                  <span className="min-w-0 flex-1 truncate font-medium">
-                                    {tag.label}
-                                  </span>
-                                  <span
-                                    className={cn(
-                                      "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.56rem] tabular-nums leading-none",
-                                      isSelected
-                                        ? "bg-background/14 text-background"
-                                        : coverageCount > 0
-                                          ? "bg-foreground/[0.06] text-muted-foreground"
-                                          : "bg-amber-500/10 text-amber-100/78",
-                                    )}
-                                  >
-                                    {coverageCount}
-                                  </span>
-                                  {isSelected ? <Check className="size-3" /> : null}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => startEditingTag(tag)}
-                                  className={cn(
-                                    "grid h-8 w-8 place-items-center border-l transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                                    isSelected
-                                      ? "border-background/18 text-background/76 hover:text-background"
-                                      : "border-border/22 text-muted-foreground hover:text-foreground",
-                                  )}
-                                  aria-label={`Edit ${tag.label}`}
-                                >
-                                  <Pencil className="size-3" />
-                                </button>
-                              </div>
-                            );
-                          })}
-
-                          {filteredKindTags.length === 0 ? (
-                            <p className="rounded-lg border border-border/22 bg-background/22 px-3 py-5 text-center text-xs text-muted-foreground">
-                              No matching signals.
-                            </p>
-                          ) : null}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                        return next;
+                      });
+                    }}
+                    onEditTag={startEditingTag}
+                  />
                 );
               })}
             </div>
