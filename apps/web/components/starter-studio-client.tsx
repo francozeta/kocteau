@@ -16,6 +16,7 @@ import {
   Plus,
   Search,
   StarterCurateIcon,
+  StarterFilterIcon,
   Tags,
   X,
 } from "@/components/ui/icons";
@@ -24,12 +25,33 @@ import EntityCoverImage from "@/components/entity-cover-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Drawer,
   DrawerContent,
@@ -42,6 +64,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch } from "@/hooks/use-deezer-search";
+import { useKocteauSearch } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   preferenceKindDescriptions,
@@ -81,7 +104,6 @@ type StarterDraftTrack = Pick<
 >;
 
 const defaultPrompt = "What should people pay attention to here?";
-const starterSignalTarget = 6;
 const starterTagLimit = 12;
 const starterCatalogPageSize = 30;
 const starterTagKinds = preferenceKindOrder;
@@ -89,6 +111,7 @@ const starterTagKindSet = new Set<PreferenceKind>(starterTagKinds);
 const requiredEditorialKinds = ["era", "format"] as const satisfies readonly PreferenceKind[];
 
 type CatalogFilter = "all" | "needs-signals" | "missing-context" | "ready" | "featured";
+type StudioSearchMode = "search" | "scout";
 
 const catalogFilters = [
   { value: "all", label: "All" },
@@ -98,36 +121,15 @@ const catalogFilters = [
   { value: "featured", label: "Featured" },
 ] as const satisfies readonly { value: CatalogFilter; label: string }[];
 
+const studioSearchModes = [
+  { value: "search", label: "Search" },
+  { value: "scout", label: "Scout" },
+] as const satisfies readonly { value: StudioSearchMode; label: string }[];
+
 type TagCoverage = {
   tag: StarterPreferenceTag;
   trackCount: number;
 };
-
-type KindCoverage = {
-  kind: PreferenceKind;
-  label: string;
-  tagCount: number;
-  coveredTagCount: number;
-  uncoveredTagCount: number;
-};
-
-function TrackCover({
-  src,
-  title,
-}: {
-  src: string | null;
-  title: string;
-}) {
-  return (
-    <EntityCoverImage
-      src={src}
-      alt={`${title} cover`}
-      sizes="56px"
-      className="size-14 rounded-md border border-border/24 bg-muted/20"
-      iconClassName="size-5"
-    />
-  );
-}
 
 function getTagKindLabel(kind: string) {
   return preferenceKindLabels[kind as PreferenceKind] ?? kind;
@@ -182,6 +184,23 @@ function getMissingEditorialKinds(track: StarterTrackWithTags) {
   return getMissingEditorialKindsFromTags(getTrackPreferenceTags(track));
 }
 
+function getCatalogSearchText(track: StarterTrackWithTags) {
+  const tags = getTrackPreferenceTags(track);
+
+  return [
+    track.title,
+    track.artist_name,
+    track.prompt,
+    track.editorial_note,
+    getTrackStatus(track),
+    ...tags.map((tag) => tag.label),
+    ...tags.map((tag) => preferenceKindLabels[tag.kind]),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
 function getTrackStatus(track: StarterTrackWithTags) {
   const tags = getTrackPreferenceTags(track);
   const missingKinds = getMissingEditorialKindsFromTags(tags);
@@ -195,22 +214,6 @@ function getTrackStatus(track: StarterTrackWithTags) {
   }
 
   return "Ready";
-}
-
-function formatSignalCount(count: number) {
-  if (count >= starterSignalTarget) {
-    return `${count} signal${count === 1 ? "" : "s"}`;
-  }
-
-  return `${count}/${starterSignalTarget}`;
-}
-
-function formatSelectedSignalCount(count: number) {
-  if (count >= starterSignalTarget) {
-    return `${count} selected`;
-  }
-
-  return `${count}/${starterSignalTarget} selected`;
 }
 
 function getStarterCatalogColumnClassName(columnId: string) {
@@ -232,23 +235,216 @@ function getStarterCatalogColumnClassName(columnId: string) {
   }
 }
 
+type StarterSignalComboboxProps = {
+  label: string;
+  description: string;
+  selectedTags: StarterPreferenceTag[];
+  items: StarterPreferenceTag[];
+  filteredItems: StarterPreferenceTag[];
+  coverageByTagId: Map<string, number>;
+  inputValue: string;
+  open: boolean;
+  isActive: boolean;
+  isMissing: boolean;
+  onOpenChange: (open: boolean) => void;
+  onInputValueChange: (value: string) => void;
+  onValueChange: (tags: StarterPreferenceTag[]) => void;
+  onEditTag: (tag: StarterPreferenceTag) => void;
+};
+
+function StarterSignalCombobox({
+  label,
+  description,
+  selectedTags,
+  items,
+  filteredItems,
+  coverageByTagId,
+  inputValue,
+  open,
+  isActive,
+  isMissing,
+  onOpenChange,
+  onInputValueChange,
+  onValueChange,
+  onEditTag,
+}: StarterSignalComboboxProps) {
+  const anchorRef = useComboboxAnchor();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  return (
+    <div
+      className={cn(
+        "grid gap-2 rounded-lg border border-border/16 bg-background/18 p-2.5 sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:items-start",
+        isActive && "border-foreground/22 bg-foreground/[0.025]",
+        isMissing && "border-amber-500/18 bg-amber-500/[0.035]",
+      )}
+    >
+      <div className="min-w-0">
+        <p className="text-[0.62rem] font-medium uppercase leading-5 text-muted-foreground">
+          {label}
+        </p>
+        <p className="hidden truncate text-[0.62rem] text-muted-foreground/66 sm:block">
+          {description}
+        </p>
+      </div>
+
+      <Combobox<StarterPreferenceTag, true>
+        multiple
+        items={items}
+        filteredItems={filteredItems}
+        value={selectedTags}
+        inputValue={inputValue}
+        open={open}
+        autoHighlight="always"
+        itemToStringLabel={(tag) => tag.label}
+        itemToStringValue={(tag) => tag.id}
+        isItemEqualToValue={(itemValue, value) => itemValue.id === value.id}
+        onOpenChange={onOpenChange}
+        onInputValueChange={onInputValueChange}
+        onValueChange={(nextTags) => {
+          onValueChange(nextTags);
+
+          if (nextTags.length > selectedTags.length) {
+            onInputValueChange("");
+          }
+        }}
+      >
+        <ComboboxChips
+          ref={anchorRef}
+          onMouseDown={(event) => {
+            const target = event.target as HTMLElement;
+
+            if (target.closest("button,input")) {
+              return;
+            }
+
+            event.preventDefault();
+            inputRef.current?.focus();
+            onOpenChange(true);
+          }}
+          className={cn(
+            "min-h-9 w-full rounded-lg border border-border/20 bg-background/28 px-2 py-1.5 text-left shadow-none transition-colors hover:border-foreground/24 hover:bg-background/36 focus-within:border-foreground/26 focus-within:ring-2 focus-within:ring-ring/24",
+            selectedTags.length === 0 && "text-muted-foreground",
+          )}
+        >
+          {selectedTags.map((tag) => (
+            <ComboboxChip
+              key={tag.id}
+              className="group/signal-chip h-5 max-w-full rounded-full border border-foreground/24 bg-foreground/[0.055] pr-1 pl-2 text-[0.68rem] leading-none text-foreground has-data-[slot=combobox-chip-remove]:pr-0 [&_[data-slot=combobox-chip-remove]]:ml-1 [&_[data-slot=combobox-chip-remove]]:size-4 [&_[data-slot=combobox-chip-remove]]:rounded-full [&_[data-slot=combobox-chip-remove]]:text-muted-foreground [&_[data-slot=combobox-chip-remove]]:opacity-70 [&_[data-slot=combobox-chip-remove]]:transition-[opacity,color,background-color] hover:[&_[data-slot=combobox-chip-remove]]:bg-foreground/10 hover:[&_[data-slot=combobox-chip-remove]]:text-foreground sm:[&_[data-slot=combobox-chip-remove]]:opacity-0 sm:focus-within:[&_[data-slot=combobox-chip-remove]]:opacity-100 sm:hover:[&_[data-slot=combobox-chip-remove]]:opacity-100"
+            >
+              <span className="truncate">{tag.label}</span>
+            </ComboboxChip>
+          ))}
+          <ComboboxChipsInput
+            ref={inputRef}
+            aria-label={`Search ${label.toLowerCase()}`}
+            placeholder={selectedTags.length > 0 ? "" : `Add ${label.toLowerCase()}`}
+            className="h-6 min-w-28 flex-1 text-xs placeholder:text-muted-foreground/70"
+            onFocus={() => onOpenChange(true)}
+            onClick={() => onOpenChange(true)}
+          />
+          <ComboboxTrigger
+            type="button"
+            className="ml-auto grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+            aria-label={`Open ${label.toLowerCase()} selector`}
+          />
+        </ComboboxChips>
+
+        <ComboboxContent
+          anchor={anchorRef}
+          align="start"
+          sideOffset={4}
+          className="gap-0 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
+        >
+          <ComboboxList className="max-h-56 p-1">
+            {filteredItems.map((tag, index) => {
+              const isSelected = selectedTags.some((selected) => selected.id === tag.id);
+              const coverageCount = coverageByTagId.get(tag.id) ?? 0;
+
+              return (
+                <div key={tag.id} className="relative">
+                  <ComboboxItem
+                    value={tag}
+                    index={index}
+                    className={cn(
+                      "min-h-8 pr-16 text-xs",
+                      isSelected && "bg-foreground text-background",
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium">
+                      {tag.label}
+                    </span>
+                    <span
+                      className={cn(
+                        "ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.56rem] tabular-nums leading-none",
+                        isSelected
+                          ? "bg-background/14 text-background"
+                          : coverageCount > 0
+                            ? "bg-foreground/[0.06] text-muted-foreground"
+                            : "bg-amber-500/10 text-amber-100/78",
+                      )}
+                    >
+                      {coverageCount}
+                    </span>
+                  </ComboboxItem>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onEditTag(tag);
+                    }}
+                    className={cn(
+                      "absolute top-1/2 right-7 grid size-6 -translate-y-1/2 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      isSelected
+                        ? "text-background/76 hover:bg-background/10 hover:text-background"
+                        : "text-muted-foreground hover:bg-foreground/[0.07] hover:text-foreground",
+                    )}
+                    aria-label={`Edit ${tag.label}`}
+                  >
+                    <Pencil className="size-3" />
+                  </button>
+                </div>
+              );
+            })}
+
+            <ComboboxEmpty className="py-5 text-muted-foreground">
+              No matching signals.
+            </ComboboxEmpty>
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+    </div>
+  );
+}
+
 export default function StarterStudioClient() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [query, setQuery] = useState("");
+  const [studioSearchMode, setStudioSearchMode] = useState<StudioSearchMode>("search");
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [editorialNote, setEditorialNote] = useState("");
   const [featured, setFeatured] = useState(true);
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(() => new Set());
-  const [tagQuery, setTagQuery] = useState("");
+  const [signalSearchByKind, setSignalSearchByKind] =
+    useState<Partial<Record<PreferenceKind, string>>>({});
+  const [activeSignalKind, setActiveSignalKind] =
+    useState<PreferenceKind | null>(null);
+  const [openSignalKind, setOpenSignalKind] =
+    useState<PreferenceKind | null>(null);
   const [newTagLabel, setNewTagLabel] = useState("");
   const [newTagKind, setNewTagKind] = useState<PreferenceKind>("mood");
   const [newTagDescription, setNewTagDescription] = useState("");
   const [newTagFeatured, setNewTagFeatured] = useState(true);
-  const [tagKindFilter, setTagKindFilter] = useState<PreferenceKind | "all">("all");
   const [catalogFilter, setCatalogFilter] = useState<CatalogFilter>("all");
   const [curationOpen, setCurationOpen] = useState(false);
+  const [signalPanelOpen, setSignalPanelOpen] = useState(false);
   const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
   const [editingTag, setEditingTag] = useState<StarterPreferenceTag | null>(null);
   const [selectedDraftTrack, setSelectedDraftTrack] =
@@ -286,13 +482,24 @@ export default function StarterStudioClient() {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
   const {
-    data: searchResults,
-    isFetching: searchFetching,
-    error: searchError,
-    refetch: retrySearch,
+    data: coreSearchResults,
+    isFetching: coreSearchFetching,
+    error: coreSearchError,
+    refetch: retryCoreSearch,
+  } = useKocteauSearch({
+    query,
+    type: "track",
+    enabled: studioSearchMode === "search",
+  });
+  const {
+    data: scoutResults,
+    isFetching: scoutFetching,
+    error: scoutError,
+    refetch: retryScoutSearch,
   } = useDeezerSearch({
     query,
     type: "track",
+    enabled: studioSearchMode === "scout",
   });
   const starterTracks: StarterTrackWithTags[] = useMemo(
     () => starterTracksQuery.data?.pages.flatMap((page) => page.tracks) ?? [],
@@ -302,42 +509,48 @@ export default function StarterStudioClient() {
     () => starterTracksQuery.data?.pages[0]?.tags ?? [],
     [starterTracksQuery.data],
   );
-  const starterTrackTotal = starterTracksQuery.data?.pages[0]?.total ?? starterTracks.length;
+  const tagById = useMemo(
+    () => new Map(availableTags.map((tag) => [tag.id, tag])),
+    [availableTags],
+  );
   const existingProviderIds = useMemo(
     () => new Set(starterTracks.map((track) => track.provider_id)),
     [starterTracks],
   );
+  const activeSearchResults =
+    studioSearchMode === "search" ? coreSearchResults ?? [] : scoutResults ?? [];
+  const activeSearchFetching =
+    studioSearchMode === "search" ? coreSearchFetching : scoutFetching;
+  const activeSearchError =
+    studioSearchMode === "search" ? coreSearchError : scoutError;
+  const retryActiveSearch =
+    studioSearchMode === "search" ? retryCoreSearch : retryScoutSearch;
+  const activeCatalogFilter =
+    catalogFilters.find((filter) => filter.value === catalogFilter) ?? catalogFilters[0];
+  const activeSearchMode =
+    studioSearchModes.find((mode) => mode.value === studioSearchMode) ?? studioSearchModes[0];
   const selectedTags = useMemo(
     () => availableTags.filter((tag) => selectedTagIds.has(tag.id)),
     [availableTags, selectedTagIds],
   );
-  const filteredTags = useMemo(() => {
-    const normalizedTagQuery = tagQuery.trim().toLowerCase();
+  const tagsByKind = useMemo(() => {
+    const groups = new Map<PreferenceKind, StarterPreferenceTag[]>();
 
-    return availableTags
-      .filter((tag) => {
-        if (tagKindFilter !== "all" && tag.kind !== tagKindFilter) {
-          return false;
-        }
+    availableTags.forEach((tag) => {
+      groups.set(tag.kind, [...(groups.get(tag.kind) ?? []), tag]);
+    });
 
-        if (!normalizedTagQuery) {
-          return tag.is_featured;
-        }
+    return groups;
+  }, [availableTags]);
+  const selectedTagsByKind = useMemo(() => {
+    const groups = new Map<PreferenceKind, StarterPreferenceTag[]>();
 
-        return `${tag.label} ${tag.slug} ${tag.kind}`
-          .toLowerCase()
-          .includes(normalizedTagQuery);
-      })
-      .slice(0, 36);
-  }, [availableTags, tagKindFilter, tagQuery]);
-  const filteredTagGroups = useMemo(
-    () => groupTagsByKind(filteredTags),
-    [filteredTags],
-  );
-  const selectedTagGroups = useMemo(
-    () => groupTagsByKind(selectedTags),
-    [selectedTags],
-  );
+    selectedTags.forEach((tag) => {
+      groups.set(tag.kind, [...(groups.get(tag.kind) ?? []), tag]);
+    });
+
+    return groups;
+  }, [selectedTags]);
   const tagCoverageById = useMemo(() => {
     const coverage = new Map<string, number>();
 
@@ -365,31 +578,19 @@ export default function StarterStudioClient() {
     () => new Map(tagCoverage.map((item) => [item.tag.id, item.trackCount])),
     [tagCoverage],
   );
-  const kindCoverage = useMemo<KindCoverage[]>(
-    () =>
-      starterTagKinds.map((kind) => {
-        const kindTags = tagCoverage.filter((item) => item.tag.kind === kind);
-        const coveredTagCount = kindTags.filter((item) => item.trackCount > 0).length;
-
-        return {
-          kind,
-          label: preferenceKindLabels[kind],
-          tagCount: kindTags.length,
-          coveredTagCount,
-          uncoveredTagCount: Math.max(kindTags.length - coveredTagCount, 0),
-        };
-      }),
-    [tagCoverage],
-  );
-  const untaggedStarterCount = useMemo(
-    () => starterTracks.filter((track) => (track.starter_track_tags ?? []).length === 0).length,
-    [starterTracks],
-  );
   const filteredStarterTracks = useMemo(
     () =>
       starterTracks.filter((track) => {
         const tags = getTrackPreferenceTags(track);
         const missingKinds = getMissingEditorialKindsFromTags(tags);
+        const matchesSearch =
+          studioSearchMode !== "search" ||
+          normalizedQuery.length < 2 ||
+          getCatalogSearchText(track).includes(normalizedQuery.toLowerCase());
+
+        if (!matchesSearch) {
+          return false;
+        }
 
         switch (catalogFilter) {
           case "needs-signals":
@@ -405,27 +606,8 @@ export default function StarterStudioClient() {
             return true;
         }
       }),
-    [catalogFilter, starterTracks],
+    [catalogFilter, normalizedQuery, starterTracks, studioSearchMode],
   );
-
-  function toggleTag(tagId: string) {
-    setSelectedTagIds((current) => {
-      const next = new Set(current);
-
-      if (next.has(tagId)) {
-        next.delete(tagId);
-        return next;
-      }
-
-      if (next.size >= starterTagLimit) {
-        toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
-        return current;
-      }
-
-      next.add(tagId);
-      return next;
-    });
-  }
 
   const resetDraft = useCallback(() => {
     setCurationOpen(false);
@@ -435,7 +617,9 @@ export default function StarterStudioClient() {
     setEditorialNote("");
     setFeatured(true);
     setSelectedTagIds(new Set());
-    setTagQuery("");
+    setSignalSearchByKind({});
+    setActiveSignalKind(null);
+    setOpenSignalKind(null);
     setConfirmArchiveId(null);
   }, []);
 
@@ -456,7 +640,9 @@ export default function StarterStudioClient() {
     setSelectedTagIds(
       new Set((track.starter_track_tags ?? []).map((tag) => tag.tag_id)),
     );
-    setTagQuery("");
+    setSignalSearchByKind({});
+    setActiveSignalKind(null);
+    setOpenSignalKind(null);
     setConfirmArchiveId(null);
     setCurationOpen(true);
   }, []);
@@ -477,7 +663,9 @@ export default function StarterStudioClient() {
     setEditorialNote("");
     setFeatured(true);
     setSelectedTagIds(new Set());
-    setTagQuery("");
+    setSignalSearchByKind({});
+    setActiveSignalKind(null);
+    setOpenSignalKind(null);
     setConfirmArchiveId(null);
     setCurationOpen(true);
   }, [startEditing, starterTracks]);
@@ -488,6 +676,7 @@ export default function StarterStudioClient() {
     setNewTagKind(tag.kind);
     setNewTagDescription(tag.description ?? "");
     setNewTagFeatured(tag.is_featured);
+    setSignalPanelOpen(true);
   }
 
   const addMutation = useMutation({
@@ -574,13 +763,24 @@ export default function StarterStudioClient() {
           description: newTagDescription || null,
           is_featured: newTagFeatured,
         }),
-      }),
+    }),
     onSuccess: (payload) => {
       toast.success(`${payload.tag.label} created.`);
-      setSelectedTagIds((current) => new Set(current).add(payload.tag.id));
+      setSelectedTagIds((current) => {
+        if (!curationOpen || (!editingTrack && !selectedDraftTrack) || current.size >= starterTagLimit) {
+          return current;
+        }
+
+        return new Set(current).add(payload.tag.id);
+      });
       resetTagDraft();
-      setTagKindFilter(payload.tag.kind);
-      setTagQuery("");
+      setActiveSignalKind(payload.tag.kind);
+      setOpenSignalKind(payload.tag.kind);
+      setSignalSearchByKind((current) => ({
+        ...current,
+        [payload.tag.kind]: "",
+      }));
+      setSignalPanelOpen(false);
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
     },
     onError: (error) => {
@@ -605,8 +805,12 @@ export default function StarterStudioClient() {
     onSuccess: (payload) => {
       toast.success(`${payload.tag.label} updated.`);
       resetTagDraft();
-      setTagKindFilter(payload.tag.kind);
-      setTagQuery("");
+      setActiveSignalKind(payload.tag.kind);
+      setOpenSignalKind(payload.tag.kind);
+      setSignalSearchByKind((current) => ({
+        ...current,
+        [payload.tag.kind]: "",
+      }));
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
     },
     onError: (error) => {
@@ -621,14 +825,7 @@ export default function StarterStudioClient() {
     ? archiveMutation.variables ?? null
     : null;
   const inspectedTrack = editingTrack ?? selectedDraftTrack;
-  const inspectedTags = useMemo(
-    () => (editingTrack ? getTrackPreferenceTags(editingTrack) : selectedTags),
-    [editingTrack, selectedTags],
-  );
-  const inspectedTagGroups = useMemo(
-    () => groupTagsByKind(inspectedTags),
-    [inspectedTags],
-  );
+  const inspectedTags = selectedTags;
   const inspectedMissingKinds = useMemo(
     () => getMissingEditorialKindsFromTags(inspectedTags),
     [inspectedTags],
@@ -644,14 +841,32 @@ export default function StarterStudioClient() {
     Boolean(editingTrack) && confirmArchiveId === editingTrack?.id;
   const canCreateTag =
     newTagLabel.trim().length >= 2 &&
-    (Boolean(editingTag) || selectedTagIds.size < starterTagLimit) &&
     !createTagMutation.isPending &&
     !updateTagMutation.isPending;
+
+  function getFilteredSignalTags(kind: PreferenceKind) {
+    const normalizedSignalQuery = (signalSearchByKind[kind] ?? "")
+      .trim()
+      .toLowerCase();
+    const kindTags = tagsByKind.get(kind) ?? [];
+
+    return kindTags
+      .filter((tag) => {
+        if (!normalizedSignalQuery) {
+          return tag.is_featured || selectedTagIds.has(tag.id);
+        }
+
+        return `${tag.label} ${tag.slug} ${tag.description ?? ""}`
+          .toLowerCase()
+          .includes(normalizedSignalQuery);
+      })
+      .slice(0, 12);
+  }
 
   function handleSaveTag() {
     const normalizedNewTag = normalizeTagLabel(newTagLabel);
 
-    if (!normalizedNewTag || (!editingTag && selectedTagIds.size >= starterTagLimit)) {
+    if (!normalizedNewTag) {
       return;
     }
 
@@ -664,9 +879,20 @@ export default function StarterStudioClient() {
 
     if (existingTag) {
       if (!editingTag) {
-        setSelectedTagIds((current) => new Set(current).add(existingTag.id));
+        setSelectedTagIds((current) => {
+          if (!curationOpen || (!editingTrack && !selectedDraftTrack) || current.size >= starterTagLimit) {
+            return current;
+          }
+
+          return new Set(current).add(existingTag.id);
+        });
         resetTagDraft();
-        setTagQuery("");
+        setActiveSignalKind(existingTag.kind);
+        setOpenSignalKind(existingTag.kind);
+        setSignalSearchByKind((current) => ({
+          ...current,
+          [existingTag.kind]: "",
+        }));
       } else {
         toast.error("A tag with that name already exists.");
       }
@@ -684,8 +910,12 @@ export default function StarterStudioClient() {
   }
 
   const focusTagKind = useCallback((kind: PreferenceKind) => {
-    setTagKindFilter(kind);
-    setTagQuery("");
+    setActiveSignalKind(kind);
+    setOpenSignalKind(kind);
+    setSignalSearchByKind((current) => ({
+      ...current,
+      [kind]: "",
+    }));
   }, []);
 
   const handleArchive = useCallback((track: StarterTrackWithTags) => {
@@ -702,518 +932,345 @@ export default function StarterStudioClient() {
 
     if (!open) {
       setConfirmArchiveId(null);
+      setOpenSignalKind(null);
     }
   }, []);
 
   const curationPanelContent = (
-    <div className="space-y-5">
-        {inspectedTrack ? (
-          <>
-            <section className="space-y-3">
+    <div className="space-y-4">
+      {inspectedTrack ? (
+        <>
+          <section className="space-y-3">
+            <EntityCoverImage
+              src={inspectedTrack.cover_url}
+              alt={`${inspectedTrack.title} cover`}
+              sizes="256px"
+              className="aspect-square w-full rounded-[0.85rem] border border-border/20 bg-muted/20 sm:hidden"
+              iconClassName="size-8"
+            />
+            <div className="grid gap-3 sm:grid-cols-[5.25rem_minmax(0,1fr)]">
               <EntityCoverImage
                 src={inspectedTrack.cover_url}
                 alt={`${inspectedTrack.title} cover`}
-                sizes="256px"
-                className="aspect-square w-full rounded-[0.85rem] border border-border/20 bg-muted/20 sm:hidden"
-                iconClassName="size-8"
+                sizes="84px"
+                className="hidden aspect-square w-full rounded-[0.72rem] border border-border/20 bg-muted/20 sm:block"
+                iconClassName="size-6"
               />
-              <div className="grid gap-3 sm:grid-cols-[5.5rem_minmax(0,1fr)]">
-                <EntityCoverImage
-                  src={inspectedTrack.cover_url}
-                  alt={`${inspectedTrack.title} cover`}
-                  sizes="88px"
-                  className="hidden aspect-square w-full rounded-[0.72rem] border border-border/20 bg-muted/20 sm:block"
-                  iconClassName="size-6"
-                />
-                <div className="min-w-0 space-y-2">
-                  <p className="text-[0.68rem] font-medium uppercase text-muted-foreground">
-                    {editingTrack ? "Editing starter pick" : "Selected from Deezer"}
+              <div className="min-w-0 space-y-2">
+                <p className="text-[0.66rem] font-medium uppercase text-muted-foreground">
+                  {editingTrack ? "Editing starter pick" : "Selected from Deezer"}
+                </p>
+                <h2 className="text-pretty font-serif text-2xl font-semibold leading-7 text-foreground">
+                  {inspectedTrack.title}
+                </h2>
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <p className="truncate text-sm text-muted-foreground">
+                    {inspectedTrack.artist_name ?? "Unknown artist"}
                   </p>
-                  <h2 className="text-pretty font-serif text-2xl font-semibold leading-7 text-foreground">
-                    {inspectedTrack.title}
-                  </h2>
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <p className="truncate text-sm text-muted-foreground">
-                      {inspectedTrack.artist_name ?? "Unknown artist"}
-                    </p>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "h-5 shrink-0 border-border/34 px-1.5 text-[0.62rem]",
-                        inspectedStatus === "Ready"
-                          ? "text-foreground"
-                          : "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
-                      )}
-                    >
-                      {inspectedStatus}
-                    </Badge>
-                  </div>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "inline-flex h-5 shrink-0 items-center rounded-full border-border/34 px-2 text-[0.62rem] leading-none",
+                      inspectedStatus === "Ready"
+                        ? "text-foreground"
+                        : "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
+                    )}
+                  >
+                    {inspectedStatus}
+                  </Badge>
                 </div>
-              </div>
-            </section>
-
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
-                <p className="text-muted-foreground">Signals</p>
-                <p className="mt-1 tabular-nums text-foreground">
-                  {formatSignalCount(inspectedTags.length)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
-                <p className="text-muted-foreground">Missing</p>
-                <p className="mt-1 truncate text-foreground">
-                  {inspectedMissingKinds.length
-                    ? inspectedMissingKinds.map((kind) => getTagKindLabel(kind)).join(", ")
-                    : "Ready"}
-                </p>
               </div>
             </div>
+          </section>
 
-            <section className="space-y-2 rounded-lg border border-border/22 bg-background/24 p-2.5">
-              {inspectedTagGroups.length > 0 ? (
-                inspectedTagGroups.map((group) => (
-                  <div key={group.kind} className="space-y-1.5">
-                    <p className="text-[0.65rem] font-medium uppercase text-muted-foreground">
-                      {group.label}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {group.tags.map((tag) => (
-                        <Badge
-                          key={tag.id}
-                          variant="outline"
-                          className="h-5 border-border/42 px-1.5 text-[0.62rem] text-muted-foreground"
-                        >
-                          {tag.label}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs leading-5 text-muted-foreground">
-                  No signals yet. Choose tags from the library before saving.
-                </p>
-              )}
-
-              {inspectedMissingKinds.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 border-t border-border/18 pt-2">
-                  {inspectedMissingKinds.map((kind) => (
-                    <button
-                      key={kind}
-                      type="button"
-                      onClick={() => focusTagKind(kind)}
-                      className="inline-flex h-6 items-center rounded-md border border-amber-500/22 bg-amber-500/7 px-2 text-[0.62rem] font-medium text-amber-100/78 transition-colors hover:border-amber-300/30 hover:text-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                    >
-                      Find {getTagKindLabel(kind)}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </section>
-
-            <section className="space-y-3 rounded-xl border border-border/20 bg-card/14 p-3">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Tags className="size-4 text-muted-foreground" />
-                  Signals
-                </div>
-                <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
-                  <span>{formatSelectedSignalCount(selectedTagIds.size)}</span>
-                  <span className="size-1 rounded-full bg-muted-foreground/30" />
-                  <span>{starterTracks.length} picks</span>
-                </div>
+          <section className="space-y-3 rounded-xl border border-border/18 bg-card/12 p-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Tags className="size-4 text-muted-foreground" />
+                Signals
               </div>
-
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {kindCoverage.map((stat) => {
-                  const isActive = tagKindFilter === stat.kind;
-                  const coverageLabel =
-                    stat.tagCount === 0
-                      ? "No tags"
-                      : `${stat.coveredTagCount}/${stat.tagCount} covered`;
-
-                  return (
-                    <button
-                      key={stat.kind}
-                      type="button"
-                      onClick={() => setTagKindFilter(isActive ? "all" : stat.kind)}
-                      className={cn(
-                        "rounded-lg border px-3 py-2 text-left transition-[background-color,border-color,transform] duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                        isActive
-                          ? "border-foreground/32 bg-foreground/[0.075]"
-                          : "border-border/26 bg-background/22 hover:border-foreground/18 hover:bg-muted/18",
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-xs font-medium text-foreground">
-                          {stat.label}
-                        </p>
-                        <span className="text-[0.65rem] tabular-nums text-muted-foreground">
-                          {stat.uncoveredTagCount}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-[0.68rem] text-muted-foreground">
-                        {coverageLabel}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {untaggedStarterCount > 0 ? (
-                <p className="rounded-lg border border-amber-500/24 bg-amber-500/7 px-3 py-2 text-xs text-amber-100/78">
-                  {untaggedStarterCount} starter pick{untaggedStarterCount === 1 ? "" : "s"} need signals.
-                </p>
-              ) : null}
-
-              <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_18rem]">
-                <div className="min-w-0 space-y-3">
-                  <div className="rounded-lg border border-border/20 bg-background/24 p-2.5">
-                    {selectedTagGroups.length > 0 ? (
-                      <div className="space-y-2">
-                        {selectedTagGroups.map((group) => (
-                          <div
-                            key={group.kind}
-                            className="grid gap-1.5 sm:grid-cols-[4.75rem_minmax(0,1fr)] sm:items-start"
-                          >
-                            <p className="pt-1 text-[0.65rem] font-medium uppercase text-muted-foreground">
-                              {group.label}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {group.tags.map((tag) => (
-                                <Badge
-                                  key={tag.id}
-                                  asChild
-                                  variant="outline"
-                                  className="h-6 border-foreground/28 bg-foreground/[0.06] px-2 text-xs text-foreground"
-                                >
-                                  <button type="button" onClick={() => toggleTag(tag.id)}>
-                                    {tag.label}
-                                    <X className="size-2.5" />
-                                  </button>
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="px-1 py-1.5 text-xs text-muted-foreground">
-                        Start with the signals that describe why this track belongs.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Input
-                      value={tagQuery}
-                      onChange={(event) => setTagQuery(event.target.value)}
-                      placeholder="Filter signals..."
-                      className="h-9 rounded-lg bg-background/44 text-sm"
-                    />
-                    <div className="flex flex-wrap gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setTagKindFilter("all")}
-                        className={cn(
-                          "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                          tagKindFilter === "all"
-                            ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
-                            : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        All
-                      </button>
-                      {starterTagKinds.map((kind) => (
-                        <button
-                          key={kind}
-                          type="button"
-                          onClick={() => setTagKindFilter(kind)}
-                          className={cn(
-                            "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                            tagKindFilter === kind
-                              ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
-                              : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          {preferenceKindLabels[kind]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
-                    {filteredTagGroups.map((group) => (
-                      <div key={group.kind} className="space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[0.65rem] font-medium uppercase text-muted-foreground">
-                            {group.label}
-                          </p>
-                          <p className="truncate text-[0.65rem] text-muted-foreground/70">
-                            {preferenceKindDescriptions[group.kind as PreferenceKind]}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {group.tags.map((tag) => {
-                            const isSelected = selectedTagIds.has(tag.id);
-                            const coverageCount = coverageByTagId.get(tag.id) ?? 0;
-
-                            return (
-                              <span
-                                key={tag.id}
-                                className={cn(
-                                  "inline-flex h-8 max-w-full items-center rounded-md border text-xs font-medium transition-colors",
-                                  isSelected
-                                    ? "border-foreground/38 bg-foreground text-background"
-                                    : "border-border/42 bg-muted/14 text-foreground hover:border-foreground/22 hover:bg-muted/36",
-                                )}
-                              >
-                                <button
-                                  type="button"
-                                  aria-pressed={isSelected}
-                                  onClick={() => toggleTag(tag.id)}
-                                  className="flex h-full min-w-0 items-center gap-1.5 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                                >
-                                  <span className="truncate">{tag.label}</span>
-                                  <span
-                                    className={cn(
-                                      "rounded-full px-1.5 text-[0.62rem] tabular-nums",
-                                      isSelected
-                                        ? "bg-background/14 text-background"
-                                        : coverageCount > 0
-                                          ? "bg-foreground/[0.06] text-muted-foreground"
-                                          : "bg-amber-500/10 text-amber-100/78",
-                                    )}
-                                  >
-                                    {coverageCount}
-                                  </span>
-                                  {isSelected ? <Check className="size-3" /> : null}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => startEditingTag(tag)}
-                                  className={cn(
-                                    "grid h-full w-7 place-items-center border-l transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                                    isSelected
-                                      ? "border-background/20 text-background/76 hover:text-background"
-                                      : "border-border/34 text-muted-foreground hover:text-foreground",
-                                  )}
-                                  aria-label={`Edit ${tag.label}`}
-                                >
-                                  <Pencil className="size-3" />
-                                </button>
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-
-                    {filteredTagGroups.length === 0 ? (
-                      <p className="rounded-lg border border-border/24 bg-background/24 px-3 py-5 text-center text-xs text-muted-foreground">
-                        No matching signals.
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-
-                <aside className="space-y-3 rounded-lg border border-border/20 bg-background/24 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-medium text-foreground">
-                        {editingTag ? "Edit signal" : "Create signal"}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {editingTag ? editingTag.slug : "Build vocabulary as you curate."}
-                      </p>
-                    </div>
-                    {editingTag ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="xs"
-                        onClick={resetTagDraft}
-                      >
-                        <X className="size-2.5" />
-                        New
-                      </Button>
-                    ) : null}
-                  </div>
-
-                  <Input
-                    value={newTagLabel}
-                    onChange={(event) => setNewTagLabel(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        handleSaveTag();
-                      }
-                    }}
-                    placeholder="Signal name"
-                    className="h-9 rounded-lg bg-background/44 text-sm"
-                  />
-
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {starterTagKinds.map((kind) => (
-                      <button
-                        key={kind}
-                        type="button"
-                        aria-pressed={newTagKind === kind}
-                        onClick={() => setNewTagKind(kind)}
-                        className={cn(
-                          "h-8 rounded-md border px-2 text-left text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                          newTagKind === kind
-                            ? "border-foreground/32 bg-foreground/[0.075] text-foreground"
-                            : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        {preferenceKindLabels[kind]}
-                      </button>
-                    ))}
-                  </div>
-
-                  <Input
-                    value={newTagDescription}
-                    onChange={(event) => setNewTagDescription(event.target.value)}
-                    placeholder="Short note"
-                    className="h-9 rounded-lg bg-background/44 text-sm"
-                  />
-
-                  <div className="flex items-center gap-3 rounded-lg border border-border/20 bg-card/18 px-3 py-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-foreground">Featured</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        Show in default tag views
-                      </p>
-                    </div>
-                    <Switch
-                      checked={newTagFeatured}
-                      onCheckedChange={setNewTagFeatured}
-                      aria-label="Feature this signal"
-                    />
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={!canCreateTag}
-                    onClick={handleSaveTag}
-                    className="h-9 w-full"
-                  >
-                    {createTagMutation.isPending || updateTagMutation.isPending ? (
-                      <LoaderCircle className="size-3 animate-spin" />
-                    ) : editingTag ? (
-                      <Check className="size-3" />
-                    ) : (
-                      <Plus className="size-3" />
-                    )}
-                    {editingTag ? "Save signal" : "Create signal"}
-                  </Button>
-                </aside>
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <Input
-                value={prompt}
-                onChange={(event) => setPrompt(event.target.value)}
-                placeholder="Editorial prompt"
-                className="h-9 rounded-lg bg-background/44 text-sm"
-              />
-
-              <Textarea
-                value={editorialNote}
-                onChange={(event) => setEditorialNote(event.target.value)}
-                placeholder="Why this pick belongs here"
-                maxLength={240}
-                className="min-h-20 resize-none rounded-lg bg-background/44 text-sm"
-              />
-
-              <div className="flex items-center gap-3 rounded-lg border border-border/24 bg-background/24 px-3 py-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-foreground">Featured</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    Prioritize this pick
-                  </p>
-                </div>
-                <Switch
-                  checked={featured}
-                  onCheckedChange={setFeatured}
-                  aria-label="Prioritize this starter pick"
-                />
-              </div>
-
-              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={addMutation.isPending}
-                  onClick={() => addMutation.mutate(inspectedTrack)}
-                  className="h-9"
-                >
-                  {inspectedIsPending ? (
-                    <LoaderCircle className="size-3 animate-spin" />
-                  ) : editingTrack ? (
-                    <Check className="size-3" />
-                  ) : (
-                    <Plus className="size-3" />
-                  )}
-                  {editingTrack ? "Save changes" : "Add starter pick"}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={addMutation.isPending}
-                  onClick={resetDraft}
-                  className="h-9"
-                >
-                  <X className="size-3" />
-                  Clear
-                </Button>
-                {editingTrack ? (
+              <div className="flex flex-wrap gap-1.5">
+                {selectedTagIds.size > 0 ? (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    disabled={archiveMutation.isPending}
-                    onClick={() => handleArchive(editingTrack)}
-                    className={cn(
-                      "h-9",
-                      isConfirmingInspectedArchive &&
-                        "border border-amber-500/24 bg-amber-500/7 text-amber-100/86 hover:bg-amber-500/10",
-                    )}
+                    onClick={() => setSelectedTagIds(new Set())}
+                    className="h-7 rounded-full px-2.5 text-[0.68rem]"
                   >
-                    {pendingArchiveId === editingTrack.id ? (
-                      <LoaderCircle className="size-3 animate-spin" />
-                    ) : (
-                      <Archive className="size-3" />
-                    )}
-                    {isConfirmingInspectedArchive ? "Confirm archive" : "Archive"}
+                    Clear signals
                   </Button>
                 ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    resetTagDraft();
+                    setSignalPanelOpen(true);
+                  }}
+                  className="h-7 rounded-full border-border/24 px-2.5 text-[0.68rem]"
+                >
+                  <Plus className="size-3" />
+                  New signal
+                </Button>
               </div>
-            </section>
-          </>
-        ) : (
-          <div className="space-y-3 py-2">
-            <div className="aspect-square rounded-[0.85rem] border border-dashed border-border/28 bg-background/20" />
+            </div>
+
+            <div className="space-y-2">
+              {starterTagKinds.map((kind) => {
+                const kindLabel = preferenceKindLabels[kind];
+                const kindDescription = preferenceKindDescriptions[kind];
+                const selectedKindTags = selectedTagsByKind.get(kind) ?? [];
+                const kindTags = tagsByKind.get(kind) ?? [];
+                const filteredKindTags = getFilteredSignalTags(kind);
+                const signalSearch = signalSearchByKind[kind] ?? "";
+                const isActive = activeSignalKind === kind;
+                const isMissing = inspectedMissingKinds.includes(kind);
+
+                return (
+                  <StarterSignalCombobox
+                    key={kind}
+                    label={kindLabel}
+                    description={kindDescription}
+                    selectedTags={selectedKindTags}
+                    items={kindTags}
+                    filteredItems={filteredKindTags}
+                    coverageByTagId={coverageByTagId}
+                    inputValue={signalSearch}
+                    open={openSignalKind === kind}
+                    isActive={isActive}
+                    isMissing={isMissing}
+                    onOpenChange={(open) => {
+                      setOpenSignalKind(open ? kind : null);
+                      if (open) {
+                        setActiveSignalKind(kind);
+                      }
+                    }}
+                    onInputValueChange={(value) =>
+                      setSignalSearchByKind((current) => ({
+                        ...current,
+                        [kind]: value,
+                      }))
+                    }
+                    onValueChange={(nextKindTags) => {
+                      setSelectedTagIds((current) => {
+                        const next = new Set<string>();
+
+                        current.forEach((tagId) => {
+                          const currentTag = tagById.get(tagId);
+                          if (!currentTag || currentTag.kind !== kind) {
+                            next.add(tagId);
+                          }
+                        });
+
+                        nextKindTags.forEach((tag) => next.add(tag.id));
+
+                        if (next.size > starterTagLimit) {
+                          toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
+                          return current;
+                        }
+
+                        return next;
+                      });
+                    }}
+                    onEditTag={startEditingTag}
+                  />
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="space-y-3 rounded-xl border border-border/18 bg-card/12 p-3">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">No song selected</p>
+              <p className="text-sm font-medium text-foreground">Context</p>
               <p className="text-xs leading-5 text-muted-foreground">
-                Select a Deezer result or an existing starter pick to inspect cover, signals, and missing context.
+                Keep the cue short and useful for first listens.
               </p>
             </div>
+
+            <Input
+              value={prompt}
+              onChange={(event) => setPrompt(event.target.value)}
+              placeholder="Editorial prompt"
+              className="h-9 rounded-lg bg-background/42 text-sm"
+            />
+
+            <Textarea
+              value={editorialNote}
+              onChange={(event) => setEditorialNote(event.target.value)}
+              placeholder="Why this pick belongs here"
+              maxLength={240}
+              className="min-h-20 resize-none rounded-lg bg-background/42 text-sm"
+            />
+
+            <div className="flex items-center gap-3 rounded-lg border border-border/22 bg-background/22 px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-foreground">Featured</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Prioritize this pick
+                </p>
+              </div>
+              <Switch
+                checked={featured}
+                onCheckedChange={setFeatured}
+                aria-label="Prioritize this starter pick"
+              />
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+              <Button
+                type="button"
+                size="sm"
+                disabled={addMutation.isPending}
+                onClick={() => addMutation.mutate(inspectedTrack)}
+                className="h-9"
+              >
+                {inspectedIsPending ? (
+                  <LoaderCircle className="size-3 animate-spin" />
+                ) : editingTrack ? (
+                  <Check className="size-3" />
+                ) : (
+                  <Plus className="size-3" />
+                )}
+                {editingTrack ? "Update pick" : "Add pick"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={addMutation.isPending}
+                onClick={resetDraft}
+                className="h-9"
+              >
+                <X className="size-3" />
+                Clear
+              </Button>
+              {editingTrack ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={archiveMutation.isPending}
+                  onClick={() => handleArchive(editingTrack)}
+                  className={cn(
+                    "h-9",
+                    isConfirmingInspectedArchive &&
+                      "border border-amber-500/24 bg-amber-500/7 text-amber-100/86 hover:bg-amber-500/10",
+                  )}
+                >
+                  {pendingArchiveId === editingTrack.id ? (
+                    <LoaderCircle className="size-3 animate-spin" />
+                  ) : (
+                    <Archive className="size-3" />
+                  )}
+                  {isConfirmingInspectedArchive ? "Confirm archive" : "Archive"}
+                </Button>
+              ) : null}
+            </div>
+          </section>
+        </>
+      ) : (
+        <div className="space-y-3 py-2">
+          <div className="aspect-square rounded-[0.85rem] border border-dashed border-border/28 bg-background/20" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">No song selected</p>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Select a Deezer result or an existing starter pick to inspect cover, signals, and missing context.
+            </p>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
   const curationPanelTitle = editingTrack ? "Edit starter pick" : "Add starter pick";
   const curationPanelDescription =
     "Choose signals, add context, and decide whether this track belongs in starter picks.";
   const curationPanelOpen = curationOpen && Boolean(inspectedTrack);
+  const signalPanelContent = (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground">
+          {editingTag ? "Edit signal" : "Create signal"}
+        </p>
+        <p className="text-xs leading-5 text-muted-foreground">
+          Add moods, scenes, eras, styles, or formats for starter curation.
+        </p>
+      </div>
+
+      <Input
+        value={newTagLabel}
+        onChange={(event) => setNewTagLabel(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            handleSaveTag();
+          }
+        }}
+        placeholder="Signal name"
+        className="h-10 rounded-lg bg-background/44 text-sm"
+      />
+
+      <div className="grid grid-cols-2 gap-1.5">
+        {starterTagKinds.map((kind) => (
+          <button
+            key={kind}
+            type="button"
+            aria-pressed={newTagKind === kind}
+            onClick={() => setNewTagKind(kind)}
+            className={cn(
+              "h-9 rounded-md border px-2.5 text-left text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+              newTagKind === kind
+                ? "border-foreground/32 bg-foreground/[0.075] text-foreground"
+                : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {preferenceKindLabels[kind]}
+          </button>
+        ))}
+      </div>
+
+      <Input
+        value={newTagDescription}
+        onChange={(event) => setNewTagDescription(event.target.value)}
+        placeholder="Short note"
+        className="h-10 rounded-lg bg-background/44 text-sm"
+      />
+
+      <div className="flex items-center gap-3 rounded-lg border border-border/20 bg-card/18 px-3 py-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-foreground">Featured</p>
+          <p className="truncate text-xs text-muted-foreground">
+            Show in default signal views
+          </p>
+        </div>
+        <Switch
+          checked={newTagFeatured}
+          onCheckedChange={setNewTagFeatured}
+          aria-label="Feature this signal"
+        />
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={!canCreateTag}
+        onClick={handleSaveTag}
+        className="h-10 w-full"
+      >
+        {createTagMutation.isPending || updateTagMutation.isPending ? (
+          <LoaderCircle className="size-3 animate-spin" />
+        ) : editingTag ? (
+          <Check className="size-3" />
+        ) : (
+          <Plus className="size-3" />
+        )}
+        {editingTag ? "Save signal" : "Create signal"}
+      </Button>
+    </div>
+  );
   const starterCatalogColumns = useMemo<ColumnDef<StarterTrackWithTags>[]>(
     () => [
       {
@@ -1221,6 +1278,9 @@ export default function StarterStudioClient() {
         header: "Name",
         cell: ({ row }) => {
           const track = row.original;
+          const tags = getTrackPreferenceTags(track);
+          const status = getTrackStatus(track);
+          const primaryTag = tags[0]?.label ?? status;
 
           return (
             <button
@@ -1241,12 +1301,8 @@ export default function StarterStudioClient() {
                 </span>
                 <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[0.68rem] text-muted-foreground lg:hidden">
                   <span className="truncate">{track.artist_name ?? "Unknown artist"}</span>
-                  {track.is_featured ? (
-                    <>
-                      <span className="size-1 rounded-full bg-muted-foreground/30" />
-                      <span>Featured</span>
-                    </>
-                  ) : null}
+                  <span className="size-1 rounded-full bg-muted-foreground/30" />
+                  <span className="truncate">{primaryTag}</span>
                 </span>
               </span>
             </button>
@@ -1305,29 +1361,35 @@ export default function StarterStudioClient() {
         cell: ({ row }) => {
           const tags = getTrackPreferenceTags(row.original);
           const tagRows = groupTagsByKind(tags).slice(0, 3);
-          const shownTagCount = tagRows.reduce((sum, group) => sum + group.tags.length, 0);
+          const shownTagCount = tagRows.reduce(
+            (sum, group) => sum + Math.min(group.tags.length, 2),
+            0,
+          );
 
           if (tagRows.length === 0) {
             return <span className="text-xs text-muted-foreground/70">No signals yet</span>;
           }
 
           return (
-            <div className="flex flex-wrap gap-1.5">
-              {tagRows.map((group) => (
-                <span
-                  key={group.kind}
-                  className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border/18 bg-background/20 px-2 py-1 text-[0.68rem] text-muted-foreground"
-                >
-                  <span className="text-muted-foreground/68">{group.label}</span>
-                  <span className="truncate text-foreground/82">
-                    {group.tags.slice(0, 2).map((tag) => tag.label).join(", ")}
-                    {group.tags.length > 2 ? ` +${group.tags.length - 2}` : ""}
+            <div className="flex flex-wrap gap-1.5 overflow-hidden">
+              {tagRows.flatMap((group) =>
+                group.tags.slice(0, 2).map((tag, index) => (
+                  <span
+                    key={`${group.kind}-${tag.id}`}
+                    className="inline-flex h-5 max-w-full items-center gap-1 rounded-full border border-border/18 bg-background/22 px-2 text-[0.66rem] leading-none text-muted-foreground"
+                  >
+                    {index === 0 ? (
+                      <span className="inline-flex h-full items-center text-muted-foreground/66">
+                        {group.label}
+                      </span>
+                    ) : null}
+                    <span className="truncate text-foreground/82">{tag.label}</span>
                   </span>
-                </span>
-              ))}
+                )),
+              )}
               {tags.length > shownTagCount ? (
-                <span className="rounded-md border border-border/18 bg-background/20 px-2 py-1 text-[0.68rem] text-muted-foreground">
-                  {tags.length} total
+                <span className="inline-flex h-5 items-center rounded-full border border-border/18 bg-background/20 px-2 text-[0.66rem] leading-none text-muted-foreground">
+                  +{tags.length - shownTagCount}
                 </span>
               ) : null}
             </div>
@@ -1438,58 +1500,272 @@ export default function StarterStudioClient() {
         </Dialog>
       )}
 
-      <header className="space-y-1.5">
-        <p className="text-xs font-medium text-muted-foreground">Kocteau editorial</p>
-        <h1 className="font-serif text-3xl font-semibold tracking-normal text-foreground">
-          Starter Studio
-        </h1>
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          Curate the first records people see when For You is still warming up.
-        </p>
+      {isMobile ? (
+        <Drawer
+          open={signalPanelOpen}
+          onOpenChange={(open) => {
+            setSignalPanelOpen(open);
+            if (!open) {
+              resetTagDraft();
+            }
+          }}
+        >
+          <DrawerContent className="max-h-[88dvh] overflow-hidden rounded-t-[1.05rem] border border-b-0 border-border/24 bg-[var(--kocteau-surface)] p-0 text-foreground before:hidden">
+            <DrawerHeader className="sr-only">
+              <DrawerTitle>Create signal</DrawerTitle>
+              <DrawerDescription>Create curation vocabulary for starter picks.</DrawerDescription>
+            </DrawerHeader>
+            <div className="min-h-0 overflow-y-auto px-4 pt-4 pb-5">
+              {signalPanelContent}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog
+          open={signalPanelOpen}
+          onOpenChange={(open) => {
+            setSignalPanelOpen(open);
+            if (!open) {
+              resetTagDraft();
+            }
+          }}
+        >
+          <DialogContent
+            showCloseButton
+            className="flex w-[min(100vw-1.5rem,28rem)] flex-col overflow-hidden rounded-xl border-border/24 bg-[var(--kocteau-surface)] p-5 text-foreground shadow-none"
+          >
+            <DialogHeader className="sr-only">
+              <DialogTitle>Create signal</DialogTitle>
+              <DialogDescription>Create curation vocabulary for starter picks.</DialogDescription>
+            </DialogHeader>
+            {signalPanelContent}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      <header className="sr-only">
+        <h1>Starter Studio</h1>
       </header>
 
       <div className="min-h-0">
         <section className="min-w-0 space-y-5">
           <section className="space-y-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div className="space-y-1">
-                <h2 className="text-sm font-semibold text-foreground">Starter catalog</h2>
-                <p className="text-xs text-muted-foreground">
-                  Active picks, signal coverage, and editorial readiness.
-                </p>
-              </div>
-              <span className="text-xs tabular-nums text-muted-foreground">
-                {starterTracks.length}/{starterTrackTotal}
-              </span>
-            </div>
+            <div className="space-y-2">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+                <div className="relative min-w-0 flex-1">
+                  <Search className="pointer-events-none absolute top-1/2 left-3.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder={
+                      studioSearchMode === "search"
+                        ? "Search Kocteau tracks..."
+                        : "Scout for starter picks..."
+                    }
+                    className="h-10 rounded-full border-border/32 bg-foreground/[0.045] pr-10 pl-10 text-sm shadow-none transition-colors placeholder:text-muted-foreground/68 focus-visible:border-foreground/42 focus-visible:bg-foreground/[0.06]"
+                  />
+                  <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center">
+                    {activeSearchFetching ? (
+                      <Spinner className="size-4 text-muted-foreground" />
+                    ) : normalizedQuery.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setQuery("")}
+                        className="flex size-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                        aria-label="Clear search"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {catalogFilters.map((filter) => {
-                const isActive = catalogFilter === filter.value;
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="grid h-9 grid-cols-2 rounded-full border border-border/22 bg-background/26 p-1">
+                    {studioSearchModes.map((mode) => {
+                      const isActive = studioSearchMode === mode.value;
 
-                return (
-                  <button
-                    key={filter.value}
+                      return (
+                        <button
+                          key={mode.value}
+                          type="button"
+                          aria-pressed={isActive}
+                          onClick={() => setStudioSearchMode(mode.value)}
+                          className={cn(
+                            "rounded-full px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                            isActive
+                              ? "bg-foreground/[0.095] text-foreground"
+                              : "text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          {mode.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="relative size-9 rounded-full border border-border/22 bg-background/26 text-muted-foreground hover:text-foreground"
+                        aria-label={`Filter starter catalog. Current: ${activeCatalogFilter.label}`}
+                        title={`Filter: ${activeCatalogFilter.label}`}
+                      >
+                        <StarterFilterIcon className="size-4" />
+                        {catalogFilter !== "all" ? (
+                          <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-foreground/72" />
+                        ) : null}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-44 border-border/24 bg-[var(--kocteau-surface)] shadow-none"
+                    >
+                      <DropdownMenuLabel>View</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={catalogFilter}
+                        onValueChange={(value) => setCatalogFilter(value as CatalogFilter)}
+                      >
+                        {catalogFilters.map((filter) => (
+                          <DropdownMenuRadioItem key={filter.value} value={filter.value}>
+                            {filter.label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-[0.68rem]">
+                        {activeCatalogFilter.label}
+                      </DropdownMenuLabel>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <Button
                     type="button"
-                    onClick={() => setCatalogFilter(filter.value)}
-                    className={cn(
-                      "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                      isActive
-                        ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
-                        : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
-                    )}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      resetTagDraft();
+                      setSignalPanelOpen(true);
+                    }}
+                    className="h-9 rounded-full border-border/22 bg-background/26 px-3 text-muted-foreground hover:text-foreground"
                   >
-                    {filter.label}
-                  </button>
-                );
-              })}
+                    <Tags className="size-4" />
+                    <span className="hidden sm:inline">Signal</span>
+                  </Button>
+                </div>
+              </div>
+
+              {normalizedQuery.length >= 2 ? (
+                <div className="space-y-1.5 rounded-xl border border-border/18 bg-card/12 p-1.5">
+                  {activeSearchError ? (
+                    <div className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-sm text-muted-foreground">
+                      <span className="min-w-0">
+                        {activeSearchError.message ||
+                          "Search is taking longer than usual."}
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={activeSearchFetching}
+                        onClick={() => {
+                          void retryActiveSearch();
+                        }}
+                        className="h-7 shrink-0 rounded-full px-2.5 text-[11px]"
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  ) : null}
+
+                  {!activeSearchError && !activeSearchFetching && activeSearchResults.length === 0 ? (
+                    <p className="px-2.5 py-3 text-sm text-muted-foreground">
+                      No tracks found.
+                    </p>
+                  ) : null}
+
+                  {activeSearchResults.slice(0, 6).map((track) => {
+                    const alreadyAdded = existingProviderIds.has(track.provider_id);
+                    const isSelected =
+                      selectedDraftTrack?.provider_id === track.provider_id ||
+                      editingTrack?.provider_id === track.provider_id;
+                    const sourceLabel =
+                      "source_label" in track ? track.source_label : null;
+
+                    return (
+                      <article
+                        key={`${activeSearchMode.value}-${track.provider_id}`}
+                        className={cn(
+                          "grid min-h-[3.75rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-foreground/[0.035]",
+                          isSelected && "bg-foreground/[0.055]",
+                        )}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => selectSearchTrack(track)}
+                          className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-2.5 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                        >
+                          <EntityCoverImage
+                            src={track.cover_url}
+                            alt={`${track.title} cover`}
+                            sizes="44px"
+                            className="size-10 rounded-[0.42rem] border border-border/18 bg-muted/20"
+                            iconClassName="size-4"
+                          />
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium text-foreground">
+                              {track.title}
+                            </span>
+                            <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                              <span className="truncate">
+                                {track.artist_name ?? "Unknown artist"}
+                              </span>
+                              {sourceLabel ? (
+                                <>
+                                  <span className="size-1 rounded-full bg-muted-foreground/30" />
+                                  <span className="shrink-0">{sourceLabel}</span>
+                                </>
+                              ) : null}
+                            </span>
+                          </span>
+                        </button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={isSelected ? "secondary" : "ghost"}
+                          disabled={addMutation.isPending}
+                          onClick={() => selectSearchTrack(track)}
+                          className="size-9 rounded-full px-0 text-muted-foreground hover:text-foreground sm:h-8 sm:w-auto sm:rounded-md sm:px-2.5"
+                          aria-label={
+                            alreadyAdded ? `Edit ${track.title}` : `Select ${track.title}`
+                          }
+                        >
+                          {isSelected ? (
+                            <Check className="size-3" />
+                          ) : alreadyAdded ? (
+                            <StarterCurateIcon className="size-4" />
+                          ) : (
+                            <Plus className="size-3" />
+                          )}
+                          <span className="hidden sm:inline">
+                            {isSelected ? "Selected" : alreadyAdded ? "Edit" : "Select"}
+                          </span>
+                        </Button>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
 
             <div className="space-y-1">
               {starterCatalogTable.getHeaderGroups().map((headerGroup) => (
                 <div
                   key={headerGroup.id}
-                  className="hidden min-h-8 grid-cols-[minmax(16rem,1.35fr)_minmax(8rem,0.72fr)_7rem_minmax(13rem,1fr)_minmax(10rem,0.78fr)_6.25rem] items-center gap-3 px-3 text-[0.64rem] font-medium text-muted-foreground lg:grid"
+                  className="sticky top-0 z-20 hidden min-h-9 grid-cols-[minmax(16rem,1.35fr)_minmax(8rem,0.72fr)_7rem_minmax(13rem,1fr)_minmax(10rem,0.78fr)_6.25rem] items-center gap-3 border-y border-border/12 bg-[var(--kocteau-shell)]/96 px-3 text-[0.64rem] font-medium text-muted-foreground backdrop-blur lg:grid"
                 >
                   {headerGroup.headers.map((header) => (
                     <div
@@ -1552,122 +1828,8 @@ export default function StarterStudioClient() {
                 ref={loadMoreRef}
                 className="flex min-h-12 items-center justify-center text-muted-foreground"
               >
-                {hasNextPage || isFetchingNextPage ? (
-                  <Spinner className="size-5" />
-                ) : starterTracks.length > 0 ? (
-                  <span className="text-xs tabular-nums text-muted-foreground/70">
-                    {starterTracks.length}/{starterTrackTotal}
-                  </span>
-                ) : null}
+                {hasNextPage || isFetchingNextPage ? <Spinner className="size-5" /> : null}
               </div>
-            </div>
-          </section>
-
-          <section className="space-y-3 pt-2">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div className="space-y-1">
-                <h2 className="text-sm font-semibold text-foreground">Find a track</h2>
-                <p className="text-xs text-muted-foreground">
-                  Search Deezer when the catalog needs a new starter pick.
-                </p>
-              </div>
-              {searchFetching ? (
-                <Spinner className="size-4 text-muted-foreground" />
-              ) : null}
-            </div>
-
-            <div className="relative">
-              <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search Deezer tracks..."
-                className="h-11 rounded-lg bg-card/42 pl-10 text-sm"
-              />
-            </div>
-
-            <div className="space-y-2">
-              {searchError ? (
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-border/28 bg-card/18 px-3 py-2 text-sm text-muted-foreground">
-                  <span className="min-w-0">
-                    {searchError.message ||
-                      "Music search is taking longer than usual. Try again in a moment."}
-                  </span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={searchFetching}
-                    onClick={() => {
-                      void retrySearch();
-                    }}
-                    className="h-7 shrink-0 rounded-full px-2.5 text-[11px]"
-                  >
-                    {searchFetching ? "Retrying" : "Retry"}
-                  </Button>
-                </div>
-              ) : null}
-
-              {normalizedQuery.length < 2 ? (
-                <p className="rounded-lg border border-border/24 bg-card/14 px-3 py-6 text-center text-sm text-muted-foreground">
-                  Search by track, artist, or album.
-                </p>
-              ) : null}
-
-              {(searchResults ?? []).map((track) => {
-                const alreadyAdded = existingProviderIds.has(track.provider_id);
-                const isSelected =
-                  selectedDraftTrack?.provider_id === track.provider_id ||
-                  editingTrack?.provider_id === track.provider_id;
-
-                return (
-                  <article
-                    key={track.provider_id}
-                    className={cn(
-                      "grid min-h-[4.75rem] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border/24 bg-card/14 p-2.5 transition-colors",
-                      isSelected && "border-foreground/34 bg-foreground/[0.055]",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => selectSearchTrack(track)}
-                      className="grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                    >
-                      <TrackCover src={track.cover_url} title={track.title} />
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-foreground">
-                          {track.title}
-                        </span>
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {track.artist_name ?? "Unknown artist"}
-                        </span>
-                      </span>
-                    </button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={isSelected ? "secondary" : "outline"}
-                      disabled={addMutation.isPending}
-                      onClick={() => selectSearchTrack(track)}
-                      className="size-9 rounded-full px-0 sm:h-8 sm:w-auto sm:rounded-md sm:px-2.5"
-                      aria-label={
-                        alreadyAdded ? `Edit ${track.title}` : `Select ${track.title}`
-                      }
-                    >
-                      {isSelected ? (
-                        <Check className="size-3" />
-                      ) : alreadyAdded ? (
-                        <StarterCurateIcon className="size-4" />
-                      ) : (
-                        <Plus className="size-3" />
-                      )}
-                      <span className="hidden sm:inline">
-                        {isSelected ? "Selected" : alreadyAdded ? "Edit" : "Select"}
-                      </span>
-                    </Button>
-                  </article>
-                );
-              })}
             </div>
           </section>
         </section>
