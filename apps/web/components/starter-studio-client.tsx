@@ -108,7 +108,7 @@ const starterTagLimit = 12;
 const starterCatalogPageSize = 30;
 const starterTagKinds = preferenceKindOrder;
 const starterTagKindSet = new Set<PreferenceKind>(starterTagKinds);
-const requiredEditorialKinds = ["era", "format"] as const satisfies readonly PreferenceKind[];
+const requiredEditorialKinds: readonly PreferenceKind[] = ["era", "format"];
 
 type CatalogFilter = "all" | "needs-signals" | "missing-context" | "ready" | "featured";
 type StudioSearchMode = "search" | "scout";
@@ -295,7 +295,7 @@ function StarterSignalCombobox({
         value={selectedTags}
         inputValue={inputValue}
         open={open}
-        autoHighlight="always"
+        autoHighlight
         itemToStringLabel={(tag) => tag.label}
         itemToStringValue={(tag) => tag.id}
         isItemEqualToValue={(itemValue, value) => itemValue.id === value.id}
@@ -1693,7 +1693,9 @@ export default function StarterStudioClient() {
                       selectedDraftTrack?.provider_id === track.provider_id ||
                       editingTrack?.provider_id === track.provider_id;
                     const sourceLabel =
-                      "source_label" in track ? track.source_label : null;
+                      "source_label" in track && typeof track.source_label === "string"
+                        ? track.source_label
+                        : null;
 
                     return (
                       <article
