@@ -92,7 +92,6 @@ type StarterDraftTrack = Pick<
 >;
 
 const defaultPrompt = "What should people pay attention to here?";
-const starterSignalTarget = 6;
 const starterTagLimit = 12;
 const starterCatalogPageSize = 30;
 const starterTagKinds = preferenceKindOrder;
@@ -101,6 +100,7 @@ const requiredEditorialKinds = ["era", "format"] as const satisfies readonly Pre
 
 type CatalogFilter = "all" | "needs-signals" | "missing-context" | "ready" | "featured";
 type StudioSearchMode = "search" | "scout";
+type CurationPanelView = "signals" | "context";
 
 const catalogFilters = [
   { value: "all", label: "All" },
@@ -205,22 +205,6 @@ function getTrackStatus(track: StarterTrackWithTags) {
   return "Ready";
 }
 
-function formatSignalCount(count: number) {
-  if (count >= starterSignalTarget) {
-    return `${count} signal${count === 1 ? "" : "s"}`;
-  }
-
-  return `${count}/${starterSignalTarget}`;
-}
-
-function formatSelectedSignalCount(count: number) {
-  if (count >= starterSignalTarget) {
-    return `${count} selected`;
-  }
-
-  return `${count}/${starterSignalTarget} selected`;
-}
-
 function getStarterCatalogColumnClassName(columnId: string) {
   switch (columnId) {
     case "track":
@@ -257,6 +241,8 @@ export default function StarterStudioClient() {
   const [newTagFeatured, setNewTagFeatured] = useState(true);
   const [tagKindFilter, setTagKindFilter] = useState<PreferenceKind | "all">("all");
   const [catalogFilter, setCatalogFilter] = useState<CatalogFilter>("all");
+  const [curationPanelView, setCurationPanelView] =
+    useState<CurationPanelView>("signals");
   const [curationOpen, setCurationOpen] = useState(false);
   const [signalPanelOpen, setSignalPanelOpen] = useState(false);
   const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
@@ -457,6 +443,7 @@ export default function StarterStudioClient() {
     setSelectedTagIds(new Set());
     setTagQuery("");
     setConfirmArchiveId(null);
+    setCurationPanelView("signals");
   }, []);
 
   function resetTagDraft() {
@@ -478,6 +465,7 @@ export default function StarterStudioClient() {
     );
     setTagQuery("");
     setConfirmArchiveId(null);
+    setCurationPanelView("signals");
     setCurationOpen(true);
   }, []);
 
@@ -499,6 +487,7 @@ export default function StarterStudioClient() {
     setSelectedTagIds(new Set());
     setTagQuery("");
     setConfirmArchiveId(null);
+    setCurationPanelView("signals");
     setCurationOpen(true);
   }, [startEditing, starterTracks]);
 
@@ -649,14 +638,7 @@ export default function StarterStudioClient() {
     ? archiveMutation.variables ?? null
     : null;
   const inspectedTrack = editingTrack ?? selectedDraftTrack;
-  const inspectedTags = useMemo(
-    () => (editingTrack ? getTrackPreferenceTags(editingTrack) : selectedTags),
-    [editingTrack, selectedTags],
-  );
-  const inspectedTagGroups = useMemo(
-    () => groupTagsByKind(inspectedTags),
-    [inspectedTags],
-  );
+  const inspectedTags = selectedTags;
   const inspectedMissingKinds = useMemo(
     () => getMissingEditorialKindsFromTags(inspectedTags),
     [inspectedTags],
@@ -719,6 +701,7 @@ export default function StarterStudioClient() {
   const focusTagKind = useCallback((kind: PreferenceKind) => {
     setTagKindFilter(kind);
     setTagQuery("");
+    setCurationPanelView("signals");
   }, []);
 
   const handleArchive = useCallback((track: StarterTrackWithTags) => {
@@ -739,281 +722,285 @@ export default function StarterStudioClient() {
   }, []);
 
   const curationPanelContent = (
-    <div className="space-y-5">
-        {inspectedTrack ? (
-          <>
-            <section className="space-y-3">
+    <div className="space-y-4">
+      {inspectedTrack ? (
+        <>
+          <section className="space-y-3">
+            <EntityCoverImage
+              src={inspectedTrack.cover_url}
+              alt={`${inspectedTrack.title} cover`}
+              sizes="256px"
+              className="aspect-square w-full rounded-[0.85rem] border border-border/20 bg-muted/20 sm:hidden"
+              iconClassName="size-8"
+            />
+            <div className="grid gap-3 sm:grid-cols-[5.25rem_minmax(0,1fr)]">
               <EntityCoverImage
                 src={inspectedTrack.cover_url}
                 alt={`${inspectedTrack.title} cover`}
-                sizes="256px"
-                className="aspect-square w-full rounded-[0.85rem] border border-border/20 bg-muted/20 sm:hidden"
-                iconClassName="size-8"
+                sizes="84px"
+                className="hidden aspect-square w-full rounded-[0.72rem] border border-border/20 bg-muted/20 sm:block"
+                iconClassName="size-6"
               />
-              <div className="grid gap-3 sm:grid-cols-[5.5rem_minmax(0,1fr)]">
-                <EntityCoverImage
-                  src={inspectedTrack.cover_url}
-                  alt={`${inspectedTrack.title} cover`}
-                  sizes="88px"
-                  className="hidden aspect-square w-full rounded-[0.72rem] border border-border/20 bg-muted/20 sm:block"
-                  iconClassName="size-6"
-                />
-                <div className="min-w-0 space-y-2">
-                  <p className="text-[0.68rem] font-medium uppercase text-muted-foreground">
-                    {editingTrack ? "Editing starter pick" : "Selected from Deezer"}
+              <div className="min-w-0 space-y-2">
+                <p className="text-[0.66rem] font-medium uppercase text-muted-foreground">
+                  {editingTrack ? "Editing starter pick" : "Selected from Deezer"}
+                </p>
+                <h2 className="text-pretty font-serif text-2xl font-semibold leading-7 text-foreground">
+                  {inspectedTrack.title}
+                </h2>
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <p className="truncate text-sm text-muted-foreground">
+                    {inspectedTrack.artist_name ?? "Unknown artist"}
                   </p>
-                  <h2 className="text-pretty font-serif text-2xl font-semibold leading-7 text-foreground">
-                    {inspectedTrack.title}
-                  </h2>
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <p className="truncate text-sm text-muted-foreground">
-                      {inspectedTrack.artist_name ?? "Unknown artist"}
-                    </p>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "h-5 shrink-0 border-border/34 px-1.5 text-[0.62rem]",
-                        inspectedStatus === "Ready"
-                          ? "text-foreground"
-                          : "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
-                      )}
-                    >
-                      {inspectedStatus}
-                    </Badge>
-                  </div>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "inline-flex h-5 shrink-0 items-center rounded-full border-border/34 px-2 text-[0.62rem] leading-none",
+                      inspectedStatus === "Ready"
+                        ? "text-foreground"
+                        : "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
+                    )}
+                  >
+                    {inspectedStatus}
+                  </Badge>
                 </div>
-              </div>
-            </section>
-
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
-                <p className="text-muted-foreground">Signals</p>
-                <p className="mt-1 tabular-nums text-foreground">
-                  {formatSignalCount(inspectedTags.length)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border/22 bg-background/24 px-3 py-2">
-                <p className="text-muted-foreground">Missing</p>
-                <p className="mt-1 truncate text-foreground">
-                  {inspectedMissingKinds.length
-                    ? inspectedMissingKinds.map((kind) => getTagKindLabel(kind)).join(", ")
-                    : "Ready"}
-                </p>
               </div>
             </div>
+          </section>
 
-            <section className="space-y-2 rounded-lg border border-border/22 bg-background/24 p-2.5">
-              {inspectedTagGroups.length > 0 ? (
-                inspectedTagGroups.map((group) => (
-                  <div key={group.kind} className="space-y-1.5">
-                    <p className="text-[0.65rem] font-medium uppercase text-muted-foreground">
-                      {group.label}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {group.tags.map((tag) => (
-                        <Badge
-                          key={tag.id}
-                          variant="outline"
-                          className="h-5 border-border/42 px-1.5 text-[0.62rem] text-muted-foreground"
-                        >
-                          {tag.label}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs leading-5 text-muted-foreground">
-                  No signals yet. Choose tags from the library before saving.
-                </p>
-              )}
+          <div className="grid grid-cols-2 gap-1 rounded-full border border-border/18 bg-background/24 p-1">
+            {(["signals", "context"] as const).map((view) => {
+              const isActive = curationPanelView === view;
 
-              {inspectedMissingKinds.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 border-t border-border/18 pt-2">
-                  {inspectedMissingKinds.map((kind) => (
-                    <button
-                      key={kind}
-                      type="button"
-                      onClick={() => focusTagKind(kind)}
-                      className="inline-flex h-6 items-center rounded-md border border-amber-500/22 bg-amber-500/7 px-2 text-[0.62rem] font-medium text-amber-100/78 transition-colors hover:border-amber-300/30 hover:text-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                    >
-                      Find {getTagKindLabel(kind)}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </section>
+              return (
+                <button
+                  key={view}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => setCurationPanelView(view)}
+                  className={cn(
+                    "h-8 rounded-full text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                    isActive
+                      ? "bg-foreground/[0.095] text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {view === "signals" ? "Signals" : "Context"}
+                </button>
+              );
+            })}
+          </div>
 
-            <section className="space-y-3 rounded-xl border border-border/20 bg-card/14 p-3">
+          {curationPanelView === "signals" ? (
+            <section className="space-y-3 rounded-xl border border-border/18 bg-card/12 p-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Tags className="size-4 text-muted-foreground" />
                   Signals
                 </div>
-                <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
-                  <span>{formatSelectedSignalCount(selectedTagIds.size)}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedTagIds.size > 0 ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTagIds(new Set())}
+                      className="h-7 rounded-full px-2.5 text-[0.68rem]"
+                    >
+                      Clear signals
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      resetTagDraft();
+                      setSignalPanelOpen(true);
+                    }}
+                    className="h-7 rounded-full border-border/24 px-2.5 text-[0.68rem]"
+                  >
+                    <Plus className="size-3" />
+                    New signal
+                  </Button>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="min-w-0 space-y-3">
-                  <div className="rounded-lg border border-border/20 bg-background/24 p-2.5">
-                    {selectedTagGroups.length > 0 ? (
-                      <div className="space-y-2">
-                        {selectedTagGroups.map((group) => (
-                          <div
-                            key={group.kind}
-                            className="grid gap-1.5 sm:grid-cols-[4.75rem_minmax(0,1fr)] sm:items-start"
+              {selectedTagGroups.length > 0 ? (
+                <div className="space-y-2 rounded-lg border border-border/18 bg-background/22 p-2.5">
+                  {selectedTagGroups.map((group) => (
+                    <div
+                      key={group.kind}
+                      className="grid gap-1.5 sm:grid-cols-[4.6rem_minmax(0,1fr)] sm:items-start"
+                    >
+                      <p className="flex h-5 items-center text-[0.62rem] font-medium uppercase text-muted-foreground">
+                        {group.label}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {group.tags.map((tag) => (
+                          <Badge
+                            key={tag.id}
+                            asChild
+                            variant="outline"
+                            className="inline-flex h-5 items-center gap-1 rounded-full border-foreground/24 bg-foreground/[0.055] px-2 text-[0.68rem] leading-none text-foreground"
                           >
-                            <p className="pt-1 text-[0.65rem] font-medium uppercase text-muted-foreground">
-                              {group.label}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {group.tags.map((tag) => (
-                                <Badge
-                                  key={tag.id}
-                                  asChild
-                                  variant="outline"
-                                  className="h-6 border-foreground/28 bg-foreground/[0.06] px-2 text-xs text-foreground"
-                                >
-                                  <button type="button" onClick={() => toggleTag(tag.id)}>
-                                    {tag.label}
-                                    <X className="size-2.5" />
-                                  </button>
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
+                            <button type="button" onClick={() => toggleTag(tag.id)}>
+                              <span>{tag.label}</span>
+                              <X className="size-2.5" />
+                            </button>
+                          </Badge>
                         ))}
                       </div>
-                    ) : (
-                      <p className="px-1 py-1.5 text-xs text-muted-foreground">
-                        Start with the signals that describe why this track belongs.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Input
-                      value={tagQuery}
-                      onChange={(event) => setTagQuery(event.target.value)}
-                      placeholder="Filter signals..."
-                      className="h-9 rounded-lg bg-background/44 text-sm"
-                    />
-                    <div className="flex flex-wrap gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setTagKindFilter("all")}
-                        className={cn(
-                          "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                          tagKindFilter === "all"
-                            ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
-                            : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        All
-                      </button>
-                      {starterTagKinds.map((kind) => (
-                        <button
-                          key={kind}
-                          type="button"
-                          onClick={() => setTagKindFilter(kind)}
-                          className={cn(
-                            "h-7 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                            tagKindFilter === kind
-                              ? "border-foreground/30 bg-foreground/[0.075] text-foreground"
-                              : "border-border/32 bg-background/24 text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          {preferenceKindLabels[kind]}
-                        </button>
-                      ))}
                     </div>
-                  </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-border/18 bg-background/22 px-3 py-3 text-xs leading-5 text-muted-foreground">
+                  Choose the signals that explain why this track belongs.
+                </p>
+              )}
 
-                  <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
-                    {filteredTagGroups.map((group) => (
-                      <div key={group.kind} className="space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[0.65rem] font-medium uppercase text-muted-foreground">
-                            {group.label}
-                          </p>
-                          <p className="truncate text-[0.65rem] text-muted-foreground/70">
-                            {preferenceKindDescriptions[group.kind as PreferenceKind]}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {group.tags.map((tag) => {
-                            const isSelected = selectedTagIds.has(tag.id);
-                            const coverageCount = coverageByTagId.get(tag.id) ?? 0;
+              {inspectedMissingKinds.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {inspectedMissingKinds.map((kind) => (
+                    <button
+                      key={kind}
+                      type="button"
+                      onClick={() => focusTagKind(kind)}
+                      className="inline-flex h-6 items-center rounded-full border border-amber-500/22 bg-amber-500/7 px-2 text-[0.62rem] font-medium leading-none text-amber-100/78 transition-colors hover:border-amber-300/30 hover:text-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                    >
+                      Add {getTagKindLabel(kind)}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
 
-                            return (
-                              <span
-                                key={tag.id}
-                                className={cn(
-                                  "inline-flex h-8 max-w-full items-center rounded-md border text-xs font-medium transition-colors",
-                                  isSelected
-                                    ? "border-foreground/38 bg-foreground text-background"
-                                    : "border-border/42 bg-muted/14 text-foreground hover:border-foreground/22 hover:bg-muted/36",
-                                )}
-                              >
-                                <button
-                                  type="button"
-                                  aria-pressed={isSelected}
-                                  onClick={() => toggleTag(tag.id)}
-                                  className="flex h-full min-w-0 items-center gap-1.5 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                                >
-                                  <span className="truncate">{tag.label}</span>
-                                  <span
-                                    className={cn(
-                                      "rounded-full px-1.5 text-[0.62rem] tabular-nums",
-                                      isSelected
-                                        ? "bg-background/14 text-background"
-                                        : coverageCount > 0
-                                          ? "bg-foreground/[0.06] text-muted-foreground"
-                                          : "bg-amber-500/10 text-amber-100/78",
-                                    )}
-                                  >
-                                    {coverageCount}
-                                  </span>
-                                  {isSelected ? <Check className="size-3" /> : null}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => startEditingTag(tag)}
-                                  className={cn(
-                                    "grid h-full w-7 place-items-center border-l transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                                    isSelected
-                                      ? "border-background/20 text-background/76 hover:text-background"
-                                      : "border-border/34 text-muted-foreground hover:text-foreground",
-                                  )}
-                                  aria-label={`Edit ${tag.label}`}
-                                >
-                                  <Pencil className="size-3" />
-                                </button>
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-
-                    {filteredTagGroups.length === 0 ? (
-                      <p className="rounded-lg border border-border/24 bg-background/24 px-3 py-5 text-center text-xs text-muted-foreground">
-                        No matching signals.
-                      </p>
-                    ) : null}
-                  </div>
+              <div className="space-y-2">
+                <Input
+                  value={tagQuery}
+                  onChange={(event) => setTagQuery(event.target.value)}
+                  placeholder="Filter signals..."
+                  className="h-8 rounded-full bg-background/42 px-3 text-xs"
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setTagKindFilter("all")}
+                    className={cn(
+                      "h-6 rounded-full border px-2 text-[0.66rem] font-medium leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      tagKindFilter === "all"
+                        ? "border-foreground/28 bg-foreground/[0.08] text-foreground"
+                        : "border-border/28 bg-background/20 text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    All
+                  </button>
+                  {starterTagKinds.map((kind) => (
+                    <button
+                      key={kind}
+                      type="button"
+                      onClick={() => setTagKindFilter(kind)}
+                      className={cn(
+                        "h-6 rounded-full border px-2 text-[0.66rem] font-medium leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                        tagKindFilter === kind
+                          ? "border-foreground/28 bg-foreground/[0.08] text-foreground"
+                          : "border-border/28 bg-background/20 text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {preferenceKindLabels[kind]}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </section>
 
-            <section className="space-y-3">
+              <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
+                {filteredTagGroups.map((group) => (
+                  <div key={group.kind} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[0.62rem] font-medium uppercase text-muted-foreground">
+                        {group.label}
+                      </p>
+                      <p className="truncate text-[0.62rem] text-muted-foreground/70">
+                        {preferenceKindDescriptions[group.kind as PreferenceKind]}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.tags.map((tag) => {
+                        const isSelected = selectedTagIds.has(tag.id);
+                        const coverageCount = coverageByTagId.get(tag.id) ?? 0;
+
+                        return (
+                          <span
+                            key={tag.id}
+                            className={cn(
+                              "inline-flex h-7 max-w-full items-center rounded-full border text-[0.7rem] font-medium leading-none transition-colors",
+                              isSelected
+                                ? "border-foreground/38 bg-foreground text-background"
+                                : "border-border/36 bg-muted/12 text-foreground hover:border-foreground/22 hover:bg-muted/30",
+                            )}
+                          >
+                            <button
+                              type="button"
+                              aria-pressed={isSelected}
+                              onClick={() => toggleTag(tag.id)}
+                              className="flex h-full min-w-0 items-center gap-1.5 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                            >
+                              <span className="truncate">{tag.label}</span>
+                              <span
+                                className={cn(
+                                  "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.56rem] tabular-nums leading-none",
+                                  isSelected
+                                    ? "bg-background/14 text-background"
+                                    : coverageCount > 0
+                                      ? "bg-foreground/[0.06] text-muted-foreground"
+                                      : "bg-amber-500/10 text-amber-100/78",
+                                )}
+                              >
+                                {coverageCount}
+                              </span>
+                              {isSelected ? <Check className="size-3" /> : null}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => startEditingTag(tag)}
+                              className={cn(
+                                "grid h-full w-7 place-items-center border-l transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                                isSelected
+                                  ? "border-background/20 text-background/76 hover:text-background"
+                                  : "border-border/30 text-muted-foreground hover:text-foreground",
+                              )}
+                              aria-label={`Edit ${tag.label}`}
+                            >
+                              <Pencil className="size-3" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                {filteredTagGroups.length === 0 ? (
+                  <p className="rounded-lg border border-border/22 bg-background/22 px-3 py-5 text-center text-xs text-muted-foreground">
+                    No matching signals.
+                  </p>
+                ) : null}
+              </div>
+            </section>
+          ) : (
+            <section className="space-y-3 rounded-xl border border-border/18 bg-card/12 p-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">Pick context</p>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Keep the cue short and useful for first listens.
+                </p>
+              </div>
+
               <Input
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
                 placeholder="Editorial prompt"
-                className="h-9 rounded-lg bg-background/44 text-sm"
+                className="h-9 rounded-lg bg-background/42 text-sm"
               />
 
               <Textarea
@@ -1021,10 +1008,10 @@ export default function StarterStudioClient() {
                 onChange={(event) => setEditorialNote(event.target.value)}
                 placeholder="Why this pick belongs here"
                 maxLength={240}
-                className="min-h-20 resize-none rounded-lg bg-background/44 text-sm"
+                className="min-h-20 resize-none rounded-lg bg-background/42 text-sm"
               />
 
-              <div className="flex items-center gap-3 rounded-lg border border-border/24 bg-background/24 px-3 py-2">
+              <div className="flex items-center gap-3 rounded-lg border border-border/22 bg-background/22 px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium text-foreground">Featured</p>
                   <p className="truncate text-xs text-muted-foreground">
@@ -1053,7 +1040,7 @@ export default function StarterStudioClient() {
                   ) : (
                     <Plus className="size-3" />
                   )}
-                  {editingTrack ? "Save changes" : "Add starter pick"}
+                  {editingTrack ? "Update pick" : "Add pick"}
                 </Button>
 
                 <Button
@@ -1090,18 +1077,19 @@ export default function StarterStudioClient() {
                 ) : null}
               </div>
             </section>
-          </>
-        ) : (
-          <div className="space-y-3 py-2">
-            <div className="aspect-square rounded-[0.85rem] border border-dashed border-border/28 bg-background/20" />
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">No song selected</p>
-              <p className="text-xs leading-5 text-muted-foreground">
-                Select a Deezer result or an existing starter pick to inspect cover, signals, and missing context.
-              </p>
-            </div>
+          )}
+        </>
+      ) : (
+        <div className="space-y-3 py-2">
+          <div className="aspect-square rounded-[0.85rem] border border-dashed border-border/28 bg-background/20" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">No song selected</p>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Select a Deezer result or an existing starter pick to inspect cover, signals, and missing context.
+            </p>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
   const curationPanelTitle = editingTrack ? "Edit starter pick" : "Add starter pick";
@@ -1296,17 +1284,19 @@ export default function StarterStudioClient() {
                 group.tags.slice(0, 2).map((tag, index) => (
                   <span
                     key={`${group.kind}-${tag.id}`}
-                    className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/20 bg-background/24 px-2 py-1 text-[0.68rem] text-muted-foreground"
+                    className="inline-flex h-5 max-w-full items-center gap-1 rounded-full border border-border/18 bg-background/22 px-2 text-[0.66rem] leading-none text-muted-foreground"
                   >
                     {index === 0 ? (
-                      <span className="text-muted-foreground/66">{group.label}</span>
+                      <span className="inline-flex h-full items-center text-muted-foreground/66">
+                        {group.label}
+                      </span>
                     ) : null}
                     <span className="truncate text-foreground/82">{tag.label}</span>
                   </span>
                 )),
               )}
               {tags.length > shownTagCount ? (
-                <span className="rounded-full border border-border/18 bg-background/20 px-2 py-1 text-[0.68rem] text-muted-foreground">
+                <span className="inline-flex h-5 items-center rounded-full border border-border/18 bg-background/20 px-2 text-[0.66rem] leading-none text-muted-foreground">
                   +{tags.length - shownTagCount}
                 </span>
               ) : null}
@@ -1471,7 +1461,7 @@ export default function StarterStudioClient() {
             <div className="space-y-2">
               <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
                 <div className="relative min-w-0 flex-1">
-                  <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute top-1/2 left-3.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
@@ -1480,26 +1470,26 @@ export default function StarterStudioClient() {
                         ? "Search Kocteau tracks..."
                         : "Scout for starter picks..."
                     }
-                    className="h-12 rounded-full border-border/34 bg-foreground/[0.045] pr-11 pl-11 text-sm shadow-none transition-colors placeholder:text-muted-foreground/68 focus-visible:border-foreground/42 focus-visible:bg-foreground/[0.06]"
+                    className="h-10 rounded-full border-border/32 bg-foreground/[0.045] pr-10 pl-10 text-sm shadow-none transition-colors placeholder:text-muted-foreground/68 focus-visible:border-foreground/42 focus-visible:bg-foreground/[0.06]"
                   />
-                  <div className="absolute top-1/2 right-2.5 flex -translate-y-1/2 items-center">
+                  <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center">
                     {activeSearchFetching ? (
                       <Spinner className="size-4 text-muted-foreground" />
                     ) : normalizedQuery.length > 0 ? (
                       <button
                         type="button"
                         onClick={() => setQuery("")}
-                        className="flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                        className="flex size-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
                         aria-label="Clear search"
                       >
-                        <X className="size-3.5" />
+                        <X className="size-3" />
                       </button>
                     ) : null}
                   </div>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1.5">
-                  <div className="grid h-10 grid-cols-2 rounded-full border border-border/24 bg-background/28 p-1">
+                  <div className="grid h-9 grid-cols-2 rounded-full border border-border/22 bg-background/26 p-1">
                     {studioSearchModes.map((mode) => {
                       const isActive = studioSearchMode === mode.value;
 
@@ -1510,7 +1500,7 @@ export default function StarterStudioClient() {
                           aria-pressed={isActive}
                           onClick={() => setStudioSearchMode(mode.value)}
                           className={cn(
-                            "rounded-full px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                            "rounded-full px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                             isActive
                               ? "bg-foreground/[0.095] text-foreground"
                               : "text-muted-foreground hover:text-foreground",
@@ -1528,13 +1518,13 @@ export default function StarterStudioClient() {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="relative size-10 rounded-full border border-border/24 bg-background/28 text-muted-foreground hover:text-foreground"
+                        className="relative size-9 rounded-full border border-border/22 bg-background/26 text-muted-foreground hover:text-foreground"
                         aria-label={`Filter starter catalog. Current: ${activeCatalogFilter.label}`}
                         title={`Filter: ${activeCatalogFilter.label}`}
                       >
                         <StarterFilterIcon className="size-4" />
                         {catalogFilter !== "all" ? (
-                          <span className="absolute top-2 right-2 size-1.5 rounded-full bg-foreground/72" />
+                          <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-foreground/72" />
                         ) : null}
                       </Button>
                     </DropdownMenuTrigger>
@@ -1568,7 +1558,7 @@ export default function StarterStudioClient() {
                       resetTagDraft();
                       setSignalPanelOpen(true);
                     }}
-                    className="h-10 rounded-full border-border/24 bg-background/28 px-3 text-muted-foreground hover:text-foreground"
+                    className="h-9 rounded-full border-border/22 bg-background/26 px-3 text-muted-foreground hover:text-foreground"
                   >
                     <Tags className="size-4" />
                     <span className="hidden sm:inline">Signal</span>
