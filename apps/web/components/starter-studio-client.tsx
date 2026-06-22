@@ -11,6 +11,7 @@ import {
 import {
   Archive,
   Check,
+  IconSelector,
   LoaderCircle,
   Pencil,
   Plus,
@@ -242,6 +243,8 @@ export default function StarterStudioClient() {
     useState<Partial<Record<PreferenceKind, string>>>({});
   const [activeSignalKind, setActiveSignalKind] =
     useState<PreferenceKind | null>(null);
+  const [openSignalKind, setOpenSignalKind] =
+    useState<PreferenceKind | null>(null);
   const [newTagLabel, setNewTagLabel] = useState("");
   const [newTagKind, setNewTagKind] = useState<PreferenceKind>("mood");
   const [newTagDescription, setNewTagDescription] = useState("");
@@ -438,6 +441,7 @@ export default function StarterStudioClient() {
     setSelectedTagIds(new Set());
     setSignalSearchByKind({});
     setActiveSignalKind(null);
+    setOpenSignalKind(null);
     setConfirmArchiveId(null);
   }, []);
 
@@ -460,6 +464,7 @@ export default function StarterStudioClient() {
     );
     setSignalSearchByKind({});
     setActiveSignalKind(null);
+    setOpenSignalKind(null);
     setConfirmArchiveId(null);
     setCurationOpen(true);
   }, []);
@@ -482,6 +487,7 @@ export default function StarterStudioClient() {
     setSelectedTagIds(new Set());
     setSignalSearchByKind({});
     setActiveSignalKind(null);
+    setOpenSignalKind(null);
     setConfirmArchiveId(null);
     setCurationOpen(true);
   }, [startEditing, starterTracks]);
@@ -591,6 +597,7 @@ export default function StarterStudioClient() {
       });
       resetTagDraft();
       setActiveSignalKind(payload.tag.kind);
+      setOpenSignalKind(payload.tag.kind);
       setSignalSearchByKind((current) => ({
         ...current,
         [payload.tag.kind]: "",
@@ -621,6 +628,7 @@ export default function StarterStudioClient() {
       toast.success(`${payload.tag.label} updated.`);
       resetTagDraft();
       setActiveSignalKind(payload.tag.kind);
+      setOpenSignalKind(payload.tag.kind);
       setSignalSearchByKind((current) => ({
         ...current,
         [payload.tag.kind]: "",
@@ -702,6 +710,7 @@ export default function StarterStudioClient() {
         });
         resetTagDraft();
         setActiveSignalKind(existingTag.kind);
+        setOpenSignalKind(existingTag.kind);
         setSignalSearchByKind((current) => ({
           ...current,
           [existingTag.kind]: "",
@@ -724,6 +733,7 @@ export default function StarterStudioClient() {
 
   const focusTagKind = useCallback((kind: PreferenceKind) => {
     setActiveSignalKind(kind);
+    setOpenSignalKind(kind);
     setSignalSearchByKind((current) => ({
       ...current,
       [kind]: "",
@@ -744,6 +754,7 @@ export default function StarterStudioClient() {
 
     if (!open) {
       setConfirmArchiveId(null);
+      setOpenSignalKind(null);
     }
   }, []);
 
@@ -857,39 +868,63 @@ export default function StarterStudioClient() {
                     </div>
 
                     <Popover
+                      open={openSignalKind === kind}
                       onOpenChange={(open) => {
+                        setOpenSignalKind(open ? kind : null);
                         if (open) {
                           setActiveSignalKind(kind);
                         }
                       }}
                     >
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className={cn(
-                            "flex min-h-9 w-full items-center justify-between gap-2 rounded-lg border border-border/20 bg-background/28 px-2.5 py-1.5 text-left transition-colors hover:border-foreground/24 hover:bg-background/36 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                            selectedKindTags.length === 0 && "text-muted-foreground",
-                          )}
-                        >
-                          <span className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                            {selectedKindTags.length > 0 ? (
-                              selectedKindTags.map((tag) => (
-                                <span
-                                  key={tag.id}
-                                  className="inline-flex h-5 max-w-full items-center rounded-full border border-foreground/24 bg-foreground/[0.055] px-2 text-[0.68rem] font-medium leading-none text-foreground"
+                      <div
+                        className={cn(
+                          "flex min-h-9 w-full items-center gap-1.5 rounded-lg border border-border/20 bg-background/28 px-2 py-1.5 text-left transition-colors hover:border-foreground/24 hover:bg-background/36",
+                          selectedKindTags.length === 0 && "text-muted-foreground",
+                        )}
+                        onClick={() => {
+                          setActiveSignalKind(kind);
+                          setOpenSignalKind(kind);
+                        }}
+                      >
+                        <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+                          {selectedKindTags.length > 0 ? (
+                            selectedKindTags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="group/signal-chip inline-flex h-5 max-w-full items-center rounded-full border border-foreground/24 bg-foreground/[0.055] pr-1 pl-2 text-[0.68rem] font-medium leading-none text-foreground"
+                              >
+                                <span className="truncate">{tag.label}</span>
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    toggleTag(tag.id);
+                                  }}
+                                  className="ml-1 grid size-4 place-items-center rounded-full text-muted-foreground opacity-70 transition-[opacity,color,background-color] hover:bg-foreground/10 hover:text-foreground focus-visible:bg-foreground/10 focus-visible:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover/signal-chip:opacity-100"
+                                  aria-label={`Remove ${tag.label}`}
                                 >
-                                  <span className="truncate">{tag.label}</span>
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-xs">
-                                Add {kindLabel.toLowerCase()}
+                                  <X className="size-2.5" />
+                                </button>
                               </span>
-                            )}
-                          </span>
-                          <Search className="size-3.5 shrink-0 text-muted-foreground" />
-                        </button>
-                      </PopoverTrigger>
+                            ))
+                          ) : (
+                            <span className="flex h-6 items-center text-xs">
+                              Add {kindLabel.toLowerCase()}
+                            </span>
+                          )}
+                        </div>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className="grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                            aria-label={`Open ${kindLabel.toLowerCase()} selector`}
+                            aria-expanded={openSignalKind === kind}
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <IconSelector className="size-3.5" />
+                          </button>
+                        </PopoverTrigger>
+                      </div>
                       <PopoverContent
                         align="start"
                         className="w-[min(22rem,calc(100vw-2rem))] gap-2 border-border/24 bg-[var(--kocteau-surface)] p-2 shadow-none"
@@ -897,6 +932,7 @@ export default function StarterStudioClient() {
                         <div className="relative">
                           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3 -translate-y-1/2 text-muted-foreground" />
                           <Input
+                            autoFocus
                             value={signalSearch}
                             onChange={(event) =>
                               setSignalSearchByKind((current) => ({
