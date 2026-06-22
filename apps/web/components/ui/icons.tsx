@@ -217,6 +217,32 @@ export const StarterCurateIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElemen
 );
 StarterCurateIcon.displayName = "StarterCurateIcon";
 
+export const StarterFilterIcon = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>(
+  ({ strokeWidth = 1.5, ...props }, ref) => (
+    <svg ref={ref} viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M2.75 4.75H21.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth={strokeWidth}
+      />
+      <path
+        d="M8.75 19.25H15.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth={strokeWidth}
+      />
+      <path
+        d="M5.75 12H18.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth={strokeWidth}
+      />
+    </svg>
+  ),
+);
+StarterFilterIcon.displayName = "StarterFilterIcon";
+
 export const Archive = createIcon(ArchiveIcon, "Archive");
 export const ArrowLeft = createIcon(ArrowLeft01Icon, "ArrowLeft");
 export const ArrowLeftIcon = ArrowLeft;
