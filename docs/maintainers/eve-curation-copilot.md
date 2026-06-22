@@ -53,7 +53,21 @@ tmp/entity-curation/draft-prompt.md
 tmp/entity-curation/draft-output-template.json
 ```
 
-4. Give `draft-prompt.md` and the output template to Eve.
+4. Ask the versioned Eve copilot to fill the draft.
+
+For the interactive Eve app:
+
+```bash
+pnpm eve:curation:info
+cd apps/curation-agent
+pnpm dev
+```
+
+For the non-interactive local helper:
+
+```bash
+pnpm curate:entity:ai
+```
 
 Eve should return JSON only, using the template shape. The draft may include:
 
@@ -112,3 +126,26 @@ The long-term UI should feel like a curation desk, not an admin grid:
 5. Approved metadata becomes normal Kocteau taste data.
 
 The agent prepares the desk. The maintainer keeps taste authority.
+
+## Versioned Agent
+
+The tracked Eve app lives in:
+
+```text
+apps/curation-agent
+```
+
+It exposes local-only tools for reading the generated entity curation packet and writing
+`tmp/entity-curation/draft-output.json`. It does not write to Supabase and it is not part
+of the main web deployment path.
+
+Useful commands:
+
+```bash
+pnpm eve:curation:info
+pnpm eve:curation:typecheck
+pnpm curate:entity:ai
+```
+
+`pnpm curate:entity:ai` requires `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`. If neither is
+available, run `pnpm exec eve link` from `apps/curation-agent` or set the key locally.
