@@ -282,6 +282,25 @@ export const starterTrackArchiveSchema = z.object({
   id: z.string().uuid("Invalid starter track id."),
 });
 
+export const starterEveSuggestionSchema = z.object({
+  track: z.object({
+    provider: z.literal("deezer"),
+    provider_id: z.string().trim().min(1, "Missing provider track id."),
+    type: z.literal("track"),
+    title: z.string().trim().min(1, "Track title is required.").max(160, "Track title is too long."),
+    artist_name: optionalTrimmedString(160),
+    cover_url: z.string().trim().url("Cover URL must be valid.").nullable().optional().transform((value) => value ?? null),
+    deezer_url: z.string().trim().url("Deezer URL must be valid.").nullable().optional().transform((value) => value ?? null),
+    prompt: optionalTrimmedString(160),
+    editorial_note: optionalTrimmedString(240),
+  }),
+  selected_tag_ids: z
+    .array(z.string().uuid("Invalid starter tag."))
+    .max(12, "Choose 12 starter signals or fewer.")
+    .optional()
+    .default([]),
+});
+
 export const starterPreferenceTagSchema = z.object({
   label: z.string().trim().min(2, "Tag label is required.").max(32, "Tag label is too long."),
   kind: z.enum(["genre", "mood", "scene", "style", "era", "format"]),
@@ -374,6 +393,7 @@ export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 export type EntityLibraryMutationInput = z.infer<typeof entityLibraryMutationSchema>;
 export type StarterTrackUpsertInput = z.infer<typeof starterTrackUpsertSchema>;
 export type StarterTrackArchiveInput = z.infer<typeof starterTrackArchiveSchema>;
+export type StarterEveSuggestionInput = z.infer<typeof starterEveSuggestionSchema>;
 export type StarterPreferenceTagInput = z.infer<typeof starterPreferenceTagSchema>;
 export type StarterPreferenceTagUpdateInput = z.infer<typeof starterPreferenceTagUpdateSchema>;
 export type StarterCandidateQueryInput = z.infer<typeof starterCandidateQuerySchema>;
