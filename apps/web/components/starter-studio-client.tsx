@@ -15,6 +15,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Sparkles,
   StarterCurateIcon,
   StarterFilterIcon,
   Tags,
@@ -90,6 +91,29 @@ type StarterTrackResponse = {
 type StarterTagResponse = {
   ok: boolean;
   tag: StarterPreferenceTag;
+};
+
+type StarterEveSuggestion = {
+  suggestedSignals: {
+    tagId: string;
+    confidence: "low" | "medium" | "high";
+    reason: string | null;
+  }[];
+  suggestedTagIds: string[];
+  prompt: string | null;
+  editorialNote: string | null;
+  confidence: "low" | "medium" | "high";
+  rationale: string | null;
+  missingTagIdeas: {
+    kind: PreferenceKind;
+    label: string;
+    reason?: string | null;
+  }[];
+};
+
+type StarterEveSuggestionResponse = {
+  ok: boolean;
+  suggestion: StarterEveSuggestion;
 };
 
 type StarterDraftTrack = Pick<
@@ -451,6 +475,8 @@ export default function StarterStudioClient() {
     useState<StarterDraftTrack | null>(null);
   const [editingTrack, setEditingTrack] =
     useState<StarterTrackWithTags | null>(null);
+  const [eveSuggestion, setEveSuggestion] =
+    useState<StarterEveSuggestion | null>(null);
   const normalizedQuery = query.trim();
   const starterTracksQuery = useInfiniteQuery(
     starterCuratorTracksInfiniteQueryOptions({ limit: starterCatalogPageSize }),
@@ -621,6 +647,7 @@ export default function StarterStudioClient() {
     setActiveSignalKind(null);
     setOpenSignalKind(null);
     setConfirmArchiveId(null);
+    setEveSuggestion(null);
   }, []);
 
   function resetTagDraft() {
@@ -644,6 +671,7 @@ export default function StarterStudioClient() {
     setActiveSignalKind(null);
     setOpenSignalKind(null);
     setConfirmArchiveId(null);
+    setEveSuggestion(null);
     setCurationOpen(true);
   }, []);
 
@@ -667,6 +695,7 @@ export default function StarterStudioClient() {
     setActiveSignalKind(null);
     setOpenSignalKind(null);
     setConfirmArchiveId(null);
+    setEveSuggestion(null);
     setCurationOpen(true);
   }, [startEditing, starterTracks]);
 
@@ -812,6 +841,55 @@ export default function StarterStudioClient() {
         [payload.tag.kind]: "",
       }));
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const eveSuggestionMutation = useMutation({
+    mutationFn: (track: StarterDraftTrack | StarterTrackWithTags) =>
+      fetchJson<StarterEveSuggestionResponse>("/api/starter/eve-suggestions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          track: {
+            provider: track.provider,
+            provider_id: track.provider_id,
+            type: track.type,
+            title: track.title,
+            artist_name: track.artist_name,
+            cover_url: track.cover_url,
+            deezer_url: track.deezer_url,
+            prompt,
+            editorial_note: editorialNote || null,
+          },
+          selected_tag_ids: Array.from(selectedTagIds),
+        }),
+      }),
+    onSuccess: (payload) => {
+      const suggestion = payload.suggestion;
+      const suggestedSignalIds = suggestion.suggestedSignals.map((signal) => signal.tagId);
+      const suggestedTagIds = (
+        suggestedSignalIds.length > 0 ? suggestedSignalIds : suggestion.suggestedTagIds
+      ).filter((tagId) => tagById.has(tagId));
+
+      if (suggestedTagIds.length > 0) {
+        setSelectedTagIds(new Set(suggestedTagIds));
+      }
+
+      if (suggestion.prompt) {
+        setPrompt(suggestion.prompt);
+      }
+
+      if (suggestion.editorialNote) {
+        setEditorialNote(suggestion.editorialNote);
+      }
+
+      setEveSuggestion(suggestion);
+      toast.success("Eve drafted curation signals.");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -1005,6 +1083,21 @@ export default function StarterStudioClient() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  disabled={eveSuggestionMutation.isPending}
+                  onClick={() => eveSuggestionMutation.mutate(inspectedTrack)}
+                  className="h-7 rounded-full border-border/24 px-2.5 text-[0.68rem]"
+                >
+                  {eveSuggestionMutation.isPending ? (
+                    <LoaderCircle className="size-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="size-3" />
+                  )}
+                  Ask Eve
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     resetTagDraft();
                     setSignalPanelOpen(true);
@@ -1016,6 +1109,110 @@ export default function StarterStudioClient() {
                 </Button>
               </div>
             </div>
+
+            {eveSuggestion ? (
+              <div className="rounded-lg border border-border/18 bg-background/24 p-2.5">
+                <div className="flex min-w-0 items-center gap-2 px-0.5">
+                  <Sparkles className="size-3.5 shrink-0 text-muted-foreground" />
+                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                    Review Eve draft
+                  </p>
+                </div>
+
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(eveSuggestion.suggestedSignals.length > 0
+                    ? eveSuggestion.suggestedSignals
+                    : eveSuggestion.suggestedTagIds.map((tagId) => ({
+                        tagId,
+                        confidence: eveSuggestion.confidence,
+                        reason: null,
+                      }))
+                  ).flatMap((signal) => {
+                    const tag = tagById.get(signal.tagId);
+
+                    if (!tag) {
+                      return [];
+                    }
+
+                    const isSelected = selectedTagIds.has(tag.id);
+
+                    return [
+                      <span
+                        key={tag.id}
+                        className={cn(
+                          "inline-flex h-7 max-w-full items-center gap-1 rounded-full border px-1.5 pl-2 text-[0.66rem] leading-none transition-colors",
+                          isSelected
+                            ? "border-border/24 bg-foreground/[0.07] text-muted-foreground"
+                            : "border-border/14 bg-background/18 text-muted-foreground/62",
+                        )}
+                        title={signal.reason ?? undefined}
+                      >
+                        <span className="shrink-0 text-muted-foreground/72">
+                          {getTagKindLabel(tag.kind)}
+                        </span>
+                        <span className="max-w-32 truncate text-foreground/86">
+                          {tag.label}
+                        </span>
+                        <span className="rounded-full bg-background/42 px-1.5 py-0.5 text-[0.58rem] uppercase tracking-normal text-muted-foreground">
+                          {signal.confidence}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedTagIds((current) => {
+                              const next = new Set(current);
+
+                              if (next.has(tag.id)) {
+                                next.delete(tag.id);
+                              } else if (next.size < starterTagLimit) {
+                                next.add(tag.id);
+                              }
+
+                              return next;
+                            })
+                          }
+                          className="grid size-5 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                          aria-label={
+                            isSelected
+                              ? `Remove ${tag.label} from Eve draft`
+                              : `Approve ${tag.label} from Eve draft`
+                          }
+                        >
+                          {isSelected ? (
+                            <X className="size-3" />
+                          ) : (
+                            <Check className="size-3" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => focusTagKind(tag.kind)}
+                          className="grid size-5 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                          aria-label={`Edit ${getTagKindLabel(tag.kind).toLowerCase()} signals`}
+                        >
+                          <Pencil className="size-3" />
+                        </button>
+                      </span>,
+                    ];
+                  })}
+                </div>
+
+                {eveSuggestion.missingTagIdeas.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5 border-t border-border/12 pt-2">
+                    {eveSuggestion.missingTagIdeas.map((idea) => (
+                      <span
+                        key={`${idea.kind}-${idea.label}`}
+                        className="inline-flex h-5 max-w-full items-center gap-1 rounded-full border border-border/18 bg-background/28 px-2 text-[0.66rem] leading-none text-muted-foreground"
+                        title={idea.reason ?? undefined}
+                      >
+                        <span>{getTagKindLabel(idea.kind)}</span>
+                        <span className="truncate text-foreground/82">{idea.label}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="space-y-2">
               {starterTagKinds.map((kind) => {
