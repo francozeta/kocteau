@@ -15,7 +15,6 @@ import {
   Pencil,
   Plus,
   Search,
-  Sparkles,
   StarterCurateIcon,
   StarterFilterIcon,
   Tags,
@@ -26,18 +25,6 @@ import EntityCoverImage from "@/components/entity-cover-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Combobox,
-  ComboboxChip,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-  useComboboxAnchor,
-} from "@/components/ui/combobox";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -46,7 +33,9 @@ import {
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -68,7 +57,6 @@ import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import { useKocteauSearch } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
-  preferenceKindDescriptions,
   preferenceKindLabels,
   preferenceKindOrder,
   type PreferenceKind,
@@ -259,11 +247,10 @@ function getStarterCatalogColumnClassName(columnId: string) {
   }
 }
 
-type StarterSignalComboboxProps = {
+type StarterSignalMenuProps = {
+  kind: PreferenceKind;
   label: string;
-  description: string;
   selectedTags: StarterPreferenceTag[];
-  items: StarterPreferenceTag[];
   filteredItems: StarterPreferenceTag[];
   coverageByTagId: Map<string, number>;
   inputValue: string;
@@ -272,15 +259,34 @@ type StarterSignalComboboxProps = {
   isMissing: boolean;
   onOpenChange: (open: boolean) => void;
   onInputValueChange: (value: string) => void;
-  onValueChange: (tags: StarterPreferenceTag[]) => void;
+  onToggleTag: (tag: StarterPreferenceTag) => void;
   onEditTag: (tag: StarterPreferenceTag) => void;
 };
 
-function StarterSignalCombobox({
+function EveWordmarkIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-label="eve"
+      className={className}
+      fill="none"
+      height="24"
+      role="img"
+      viewBox="0 0 78 25"
+      width="74.88"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M77.7002 3.89551H54.0762L37.5781 24.3818H32.3486L36.5322 19.1729L51.958 0H77.7002V3.89551ZM21.0898 24.3721H0V20.4766H21.0898V24.3721ZM77.7012 20.4766V24.3721H56.6104V20.4766H77.7012ZM17.7744 14.0537H0V10.1582H17.7744V14.0537ZM77.7012 14.0537H59.9268V10.1582H77.7012V14.0537ZM34.7197 3.89551H0V0H34.7197V3.89551Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function StarterSignalMenu({
+  kind,
   label,
-  description,
   selectedTags,
-  items,
   filteredItems,
   coverageByTagId,
   inputValue,
@@ -289,110 +295,108 @@ function StarterSignalCombobox({
   isMissing,
   onOpenChange,
   onInputValueChange,
-  onValueChange,
+  onToggleTag,
   onEditTag,
-}: StarterSignalComboboxProps) {
-  const anchorRef = useComboboxAnchor();
-  const inputRef = useRef<HTMLInputElement | null>(null);
+}: StarterSignalMenuProps) {
+  const triggerSummary = selectedTags.length > 0
+    ? selectedTags.slice(0, 2).map((tag) => tag.label).join(", ")
+    : null;
 
   return (
-    <div
-      className={cn(
-        "grid gap-2 rounded-lg border border-border/16 bg-background/18 p-2.5 sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:items-start",
-        isActive && "border-foreground/22 bg-foreground/[0.025]",
-        isMissing && "border-amber-500/18 bg-amber-500/[0.035]",
-      )}
+    <DropdownMenu
+      open={open}
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen);
+        if (!nextOpen) {
+          onInputValueChange("");
+        }
+      }}
     >
-      <div className="min-w-0">
-        <p className="text-[0.62rem] font-medium uppercase leading-5 text-muted-foreground">
-          {label}
-        </p>
-        <p className="hidden truncate text-[0.62rem] text-muted-foreground/66 sm:block">
-          {description}
-        </p>
-      </div>
-
-      <Combobox<StarterPreferenceTag, true>
-        multiple
-        items={items}
-        filteredItems={filteredItems}
-        value={selectedTags}
-        inputValue={inputValue}
-        open={open}
-        autoHighlight
-        itemToStringLabel={(tag) => tag.label}
-        itemToStringValue={(tag) => tag.id}
-        isItemEqualToValue={(itemValue, value) => itemValue.id === value.id}
-        onOpenChange={onOpenChange}
-        onInputValueChange={onInputValueChange}
-        onValueChange={(nextTags) => {
-          onValueChange(nextTags);
-
-          if (nextTags.length > selectedTags.length) {
-            onInputValueChange("");
-          }
-        }}
-      >
-        <ComboboxChips
-          ref={anchorRef}
-          onMouseDown={(event) => {
-            const target = event.target as HTMLElement;
-
-            if (target.closest("button,input")) {
-              return;
-            }
-
-            event.preventDefault();
-            inputRef.current?.focus();
-            onOpenChange(true);
-          }}
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
           className={cn(
-            "min-h-9 w-full rounded-lg border border-border/20 bg-background/28 px-2 py-1.5 text-left shadow-none transition-colors hover:border-foreground/24 hover:bg-background/36 focus-within:border-foreground/26 focus-within:ring-2 focus-within:ring-ring/24",
-            selectedTags.length === 0 && "text-muted-foreground",
+            "group/signal-trigger inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-full border border-border/18 bg-foreground/[0.055] px-2.5 text-xs text-muted-foreground transition-colors hover:border-foreground/22 hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/28",
+            isActive && "border-foreground/28 bg-foreground/[0.08] text-foreground",
+            isMissing && selectedTags.length === 0 && "border-amber-500/22 bg-amber-500/[0.055] text-amber-100/82",
           )}
+          aria-label={`Edit ${label.toLowerCase()} signals`}
         >
-          {selectedTags.map((tag) => (
-            <ComboboxChip
-              key={tag.id}
-              className="group/signal-chip h-5 max-w-full rounded-full border border-foreground/24 bg-foreground/[0.055] pr-1 pl-2 text-[0.68rem] leading-none text-foreground has-data-[slot=combobox-chip-remove]:pr-0 [&_[data-slot=combobox-chip-remove]]:ml-1 [&_[data-slot=combobox-chip-remove]]:size-4 [&_[data-slot=combobox-chip-remove]]:rounded-full [&_[data-slot=combobox-chip-remove]]:text-muted-foreground [&_[data-slot=combobox-chip-remove]]:opacity-70 [&_[data-slot=combobox-chip-remove]]:transition-[opacity,color,background-color] hover:[&_[data-slot=combobox-chip-remove]]:bg-foreground/10 hover:[&_[data-slot=combobox-chip-remove]]:text-foreground sm:[&_[data-slot=combobox-chip-remove]]:opacity-0 sm:focus-within:[&_[data-slot=combobox-chip-remove]]:opacity-100 sm:hover:[&_[data-slot=combobox-chip-remove]]:opacity-100"
-            >
-              <span className="truncate">{tag.label}</span>
-            </ComboboxChip>
-          ))}
-          <ComboboxChipsInput
-            ref={inputRef}
-            aria-label={`Search ${label.toLowerCase()}`}
-            placeholder={selectedTags.length > 0 ? "" : `Add ${label.toLowerCase()}`}
-            className="h-6 min-w-28 flex-1 text-xs placeholder:text-muted-foreground/70"
-            onFocus={() => onOpenChange(true)}
-            onClick={() => onOpenChange(true)}
-          />
-          <ComboboxTrigger
-            type="button"
-            className="ml-auto grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-            aria-label={`Open ${label.toLowerCase()} selector`}
-          />
-        </ComboboxChips>
+          <span className="font-medium text-foreground/86">{label}</span>
+          {triggerSummary ? (
+            <span className="min-w-0 max-w-32 truncate text-muted-foreground">
+              {triggerSummary}
+            </span>
+          ) : (
+            <span className="text-muted-foreground/58">Add</span>
+          )}
+          {selectedTags.length > 2 ? (
+            <span className="rounded-full bg-background/44 px-1.5 text-[0.62rem] tabular-nums text-muted-foreground">
+              +{selectedTags.length - 2}
+            </span>
+          ) : null}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        sideOffset={8}
+        className="w-72 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
+      >
+        <div className="border-b border-border/14 p-2">
+          <div
+            className="flex h-8 items-center gap-2 rounded-lg border border-border/18 bg-background/36 px-2 transition-colors focus-within:border-foreground/26"
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            <Search className="size-3.5 shrink-0 text-muted-foreground" />
+            <input
+              value={inputValue}
+              onChange={(event) => onInputValueChange(event.target.value)}
+              placeholder={`Search ${label.toLowerCase()}...`}
+              className="h-full min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground/66"
+              aria-label={`Search ${label.toLowerCase()}`}
+            />
+          </div>
 
-        <ComboboxContent
-          anchor={anchorRef}
-          align="start"
-          sideOffset={4}
-          className="gap-0 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
-        >
-          <ComboboxList className="max-h-56 p-1">
-            {filteredItems.map((tag, index) => {
+          {selectedTags.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {selectedTags.map((tag) => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onToggleTag(tag);
+                  }}
+                  className="group/selected-signal inline-flex h-6 max-w-full items-center gap-1 rounded-full border border-foreground/18 bg-foreground/[0.07] pr-1.5 pl-2 text-[0.68rem] text-foreground transition-colors hover:border-foreground/26 hover:bg-foreground/[0.095]"
+                  title={`Remove ${tag.label}`}
+                >
+                  <span className="truncate">{tag.label}</span>
+                  <X className="size-3 text-muted-foreground opacity-70 transition-opacity group-hover/selected-signal:opacity-100" />
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="max-h-64 overflow-y-auto p-1">
+          {filteredItems.length > 0 ? (
+            filteredItems.map((tag) => {
               const isSelected = selectedTags.some((selected) => selected.id === tag.id);
               const coverageCount = coverageByTagId.get(tag.id) ?? 0;
 
               return (
-                <div key={tag.id} className="relative">
-                  <ComboboxItem
-                    value={tag}
-                    index={index}
+                <div key={tag.id} className="group/signal-row relative">
+                  <DropdownMenuCheckboxItem
+                    checked={isSelected}
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      onToggleTag(tag);
+                    }}
                     className={cn(
                       "min-h-8 pr-16 text-xs",
-                      isSelected && "bg-foreground text-background",
+                      isSelected &&
+                        "bg-foreground/[0.12] text-foreground focus:bg-foreground/[0.14] focus:text-foreground",
                     )}
                   >
                     <span className="min-w-0 flex-1 truncate font-medium">
@@ -402,7 +406,7 @@ function StarterSignalCombobox({
                       className={cn(
                         "ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.56rem] tabular-nums leading-none",
                         isSelected
-                          ? "bg-background/14 text-background"
+                          ? "bg-foreground/[0.12] text-muted-foreground"
                           : coverageCount > 0
                             ? "bg-foreground/[0.06] text-muted-foreground"
                             : "bg-amber-500/10 text-amber-100/78",
@@ -410,22 +414,18 @@ function StarterSignalCombobox({
                     >
                       {coverageCount}
                     </span>
-                  </ComboboxItem>
+                  </DropdownMenuCheckboxItem>
                   <button
                     type="button"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                    }}
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
                       onEditTag(tag);
                     }}
                     className={cn(
-                      "absolute top-1/2 right-7 grid size-6 -translate-y-1/2 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+                      "absolute top-1/2 right-8 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-full opacity-0 transition-[opacity,color,background-color] group-hover/signal-row:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                       isSelected
-                        ? "text-background/76 hover:bg-background/10 hover:text-background"
+                        ? "text-muted-foreground hover:bg-foreground/[0.08] hover:text-foreground"
                         : "text-muted-foreground hover:bg-foreground/[0.07] hover:text-foreground",
                     )}
                     aria-label={`Edit ${tag.label}`}
@@ -434,15 +434,29 @@ function StarterSignalCombobox({
                   </button>
                 </div>
               );
-            })}
-
-            <ComboboxEmpty className="py-5 text-muted-foreground">
+            })
+          ) : (
+            <p className="px-2 py-5 text-center text-xs text-muted-foreground">
               No matching signals.
-            </ComboboxEmpty>
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
-    </div>
+            </p>
+          )}
+        </div>
+
+        <DropdownMenuSeparator className="my-0" />
+        <DropdownMenuItem
+          onSelect={(event) => {
+            event.preventDefault();
+            onInputValueChange("");
+          }}
+          className="min-h-8 text-xs text-muted-foreground"
+        >
+          <span>{selectedTags.length} selected</span>
+          <span className="ml-auto text-[0.62rem] uppercase text-muted-foreground/70">
+            {kind}
+          </span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -1061,7 +1075,42 @@ export default function StarterStudioClient() {
             </div>
           </section>
 
-          <section className="space-y-3 rounded-xl border border-border/18 bg-card/12 p-3">
+          <section className="space-y-3">
+            <div className="space-y-1">
+              <label
+                htmlFor="starter-editorial-prompt"
+                className="sr-only"
+              >
+                Editorial Prompt
+              </label>
+              <Input
+                id="starter-editorial-prompt"
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+                placeholder="What should people pay attention to here?"
+                className="kocteau-compose-field h-10 rounded-xl px-3 text-sm shadow-none focus-visible:ring-0"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="starter-editorial-note"
+                className="sr-only"
+              >
+                Why this pick belongs here
+              </label>
+              <Textarea
+                id="starter-editorial-note"
+                value={editorialNote}
+                onChange={(event) => setEditorialNote(event.target.value)}
+                placeholder="Add a short listening cue for the first pass."
+                maxLength={240}
+                className="kocteau-compose-field min-h-24 resize-none rounded-xl px-3 py-3 text-sm shadow-none focus-visible:ring-0"
+              />
+            </div>
+          </section>
+
+          <section className="space-y-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Tags className="size-4 text-muted-foreground" />
@@ -1074,9 +1123,9 @@ export default function StarterStudioClient() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedTagIds(new Set())}
-                    className="h-7 rounded-full px-2.5 text-[0.68rem]"
+                    className="h-8 rounded-full px-2.5 text-[0.68rem]"
                   >
-                    Clear signals
+                    Clear
                   </Button>
                 ) : null}
                 <Button
@@ -1085,14 +1134,15 @@ export default function StarterStudioClient() {
                   size="sm"
                   disabled={eveSuggestionMutation.isPending}
                   onClick={() => eveSuggestionMutation.mutate(inspectedTrack)}
-                  className="h-7 rounded-full border-border/24 px-2.5 text-[0.68rem]"
+                  className="h-9 w-[5.35rem] rounded-full border-border/24 px-2 text-foreground"
+                  title="Ask Eve"
                 >
                   {eveSuggestionMutation.isPending ? (
                     <LoaderCircle className="size-3 animate-spin" />
                   ) : (
-                    <Sparkles className="size-3" />
+                    <EveWordmarkIcon className="h-[18px] w-[58px]" />
                   )}
-                  Ask Eve
+                  <span className="sr-only">Ask Eve</span>
                 </Button>
                 <Button
                   type="button"
@@ -1102,20 +1152,20 @@ export default function StarterStudioClient() {
                     resetTagDraft();
                     setSignalPanelOpen(true);
                   }}
-                  className="h-7 rounded-full border-border/24 px-2.5 text-[0.68rem]"
+                  className="h-8 rounded-full border-border/24 px-2.5 text-[0.68rem]"
                 >
                   <Plus className="size-3" />
-                  New signal
+                  New
                 </Button>
               </div>
             </div>
 
             {eveSuggestion ? (
-              <div className="rounded-lg border border-border/18 bg-background/24 p-2.5">
+              <div className="rounded-xl border border-border/16 bg-foreground/[0.035] p-2.5">
                 <div className="flex min-w-0 items-center gap-2 px-0.5">
-                  <Sparkles className="size-3.5 shrink-0 text-muted-foreground" />
+                  <EveWordmarkIcon className="h-3.5 w-10 shrink-0 text-foreground" />
                   <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                    Review Eve draft
+                    Draft signals ready to review
                   </p>
                 </div>
 
@@ -1164,10 +1214,15 @@ export default function StarterStudioClient() {
 
                               if (next.has(tag.id)) {
                                 next.delete(tag.id);
-                              } else if (next.size < starterTagLimit) {
-                                next.add(tag.id);
+                                return next;
                               }
 
+                              if (next.size >= starterTagLimit) {
+                                toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
+                                return current;
+                              }
+
+                              next.add(tag.id);
                               return next;
                             })
                           }
@@ -1214,24 +1269,21 @@ export default function StarterStudioClient() {
               </div>
             ) : null}
 
-            <div className="space-y-2">
+            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {starterTagKinds.map((kind) => {
                 const kindLabel = preferenceKindLabels[kind];
-                const kindDescription = preferenceKindDescriptions[kind];
                 const selectedKindTags = selectedTagsByKind.get(kind) ?? [];
-                const kindTags = tagsByKind.get(kind) ?? [];
                 const filteredKindTags = getFilteredSignalTags(kind);
                 const signalSearch = signalSearchByKind[kind] ?? "";
                 const isActive = activeSignalKind === kind;
                 const isMissing = inspectedMissingKinds.includes(kind);
 
                 return (
-                  <StarterSignalCombobox
+                  <StarterSignalMenu
                     key={kind}
+                    kind={kind}
                     label={kindLabel}
-                    description={kindDescription}
                     selectedTags={selectedKindTags}
-                    items={kindTags}
                     filteredItems={filteredKindTags}
                     coverageByTagId={coverageByTagId}
                     inputValue={signalSearch}
@@ -1250,27 +1302,24 @@ export default function StarterStudioClient() {
                         [kind]: value,
                       }))
                     }
-                    onValueChange={(nextKindTags) => {
+                    onToggleTag={(tag) =>
                       setSelectedTagIds((current) => {
-                        const next = new Set<string>();
+                        const next = new Set(current);
 
-                        current.forEach((tagId) => {
-                          const currentTag = tagById.get(tagId);
-                          if (!currentTag || currentTag.kind !== kind) {
-                            next.add(tagId);
-                          }
-                        });
+                        if (next.has(tag.id)) {
+                          next.delete(tag.id);
+                          return next;
+                        }
 
-                        nextKindTags.forEach((tag) => next.add(tag.id));
-
-                        if (next.size > starterTagLimit) {
+                        if (next.size >= starterTagLimit) {
                           toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
                           return current;
                         }
 
+                        next.add(tag.id);
                         return next;
-                      });
-                    }}
+                      })
+                    }
                     onEditTag={startEditingTag}
                   />
                 );
@@ -1278,30 +1327,8 @@ export default function StarterStudioClient() {
             </div>
           </section>
 
-          <section className="space-y-3 rounded-xl border border-border/18 bg-card/12 p-3">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Context</p>
-              <p className="text-xs leading-5 text-muted-foreground">
-                Keep the cue short and useful for first listens.
-              </p>
-            </div>
-
-            <Input
-              value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
-              placeholder="Editorial prompt"
-              className="h-9 rounded-lg bg-background/42 text-sm"
-            />
-
-            <Textarea
-              value={editorialNote}
-              onChange={(event) => setEditorialNote(event.target.value)}
-              placeholder="Why this pick belongs here"
-              maxLength={240}
-              className="min-h-20 resize-none rounded-lg bg-background/42 text-sm"
-            />
-
-            <div className="flex items-center gap-3 rounded-lg border border-border/22 bg-background/22 px-3 py-2">
+          <section className="space-y-3 border-t border-border/12 pt-3">
+            <div className="flex items-center gap-3 rounded-xl border border-border/18 bg-foreground/[0.035] px-3 py-2">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-foreground">Featured</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -1321,7 +1348,7 @@ export default function StarterStudioClient() {
                 size="sm"
                 disabled={addMutation.isPending}
                 onClick={() => addMutation.mutate(inspectedTrack)}
-                className="h-9"
+                className="h-9 rounded-full"
               >
                 {inspectedIsPending ? (
                   <LoaderCircle className="size-3 animate-spin" />
@@ -1339,7 +1366,7 @@ export default function StarterStudioClient() {
                 size="sm"
                 disabled={addMutation.isPending}
                 onClick={resetDraft}
-                className="h-9"
+                className="h-9 rounded-full"
               >
                 <X className="size-3" />
                 Clear
@@ -1352,7 +1379,7 @@ export default function StarterStudioClient() {
                   disabled={archiveMutation.isPending}
                   onClick={() => handleArchive(editingTrack)}
                   className={cn(
-                    "h-9",
+                    "h-9 rounded-full",
                     isConfirmingInspectedArchive &&
                       "border border-amber-500/24 bg-amber-500/7 text-amber-100/86 hover:bg-amber-500/10",
                   )}

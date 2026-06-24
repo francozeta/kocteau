@@ -109,26 +109,6 @@ function getAvatarLabel(displayName?: string | null, username?: string | null) {
   return "Kocteau user";
 }
 
-function isSvgAsset(value: string) {
-  try {
-    const pathname = value.startsWith("http")
-      ? new URL(value).pathname
-      : new URL(value, "https://kocteau.local").pathname;
-
-    return pathname.toLowerCase().endsWith(".svg");
-  } catch {
-    return value.toLowerCase().includes(".svg");
-  }
-}
-
-function shouldBypassOptimization(value: string) {
-  return (
-    value.startsWith("data:") ||
-    value.startsWith("blob:") ||
-    isSvgAsset(value)
-  );
-}
-
 export default function UserAvatar({
   avatarUrl,
   displayName,
@@ -191,7 +171,7 @@ export default function UserAvatar({
           sizes={resolvedSizes}
           loading={loading}
           fetchPriority={fetchPriority}
-          unoptimized={shouldBypassOptimization(resolvedAvatarUrl)}
+          unoptimized
           className={cn(
             "z-[1] object-cover",
             shapeClasses.image,
