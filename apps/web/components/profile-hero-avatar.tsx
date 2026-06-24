@@ -69,18 +69,6 @@ function getInitials(label: string) {
     .join("");
 }
 
-function isSvgAsset(value: string) {
-  try {
-    const pathname = value.startsWith("http")
-      ? new URL(value).pathname
-      : new URL(value, "https://kocteau.local").pathname;
-
-    return pathname.toLowerCase().endsWith(".svg");
-  } catch {
-    return value.toLowerCase().includes(".svg");
-  }
-}
-
 export default function ProfileHeroAvatar({
   avatarUrl,
   displayName,
@@ -123,7 +111,7 @@ export default function ProfileHeroAvatar({
           alt={label}
           fill
           priority={priority}
-          unoptimized={isSvgAsset(resolvedAvatarUrl)}
+          unoptimized
           sizes="(max-width: 640px) 96px, 112px"
           className={cn("z-[1] object-cover", imageClassName)}
         />
