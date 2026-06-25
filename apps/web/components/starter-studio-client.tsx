@@ -9,12 +9,17 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import {
-  Archive,
   Check,
   LoaderCircle,
   Pencil,
   Plus,
   Search,
+  SignalEraIcon,
+  SignalFormatIcon,
+  SignalGenreIcon,
+  SignalMoodIcon,
+  SignalSceneIcon,
+  SignalStyleIcon,
   StarterCurateIcon,
   StarterFilterIcon,
   Tags,
@@ -22,7 +27,6 @@ import {
 } from "@/components/ui/icons";
 import { toast } from "sonner";
 import EntityCoverImage from "@/components/entity-cover-image";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +39,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -120,7 +123,15 @@ const starterTagLimit = 12;
 const starterCatalogPageSize = 30;
 const starterTagKinds = preferenceKindOrder;
 const starterTagKindSet = new Set<PreferenceKind>(starterTagKinds);
-const requiredEditorialKinds: readonly PreferenceKind[] = ["era", "format"];
+const requiredEditorialKinds: readonly PreferenceKind[] = starterTagKinds;
+const starterSignalIcons = {
+  genre: SignalGenreIcon,
+  mood: SignalMoodIcon,
+  scene: SignalSceneIcon,
+  style: SignalStyleIcon,
+  era: SignalEraIcon,
+  format: SignalFormatIcon,
+} as const;
 
 type CatalogFilter = "all" | "needs-signals" | "missing-context" | "ready" | "featured";
 type StudioSearchMode = "search" | "scout";
@@ -301,6 +312,7 @@ function StarterSignalMenu({
   const triggerSummary = selectedTags.length > 0
     ? selectedTags.slice(0, 2).map((tag) => tag.label).join(", ")
     : null;
+  const SignalIcon = starterSignalIcons[kind];
 
   return (
     <DropdownMenu
@@ -316,15 +328,16 @@ function StarterSignalMenu({
         <button
           type="button"
           className={cn(
-            "group/signal-trigger inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-full border border-border/18 bg-foreground/[0.055] px-2.5 text-xs text-muted-foreground transition-colors hover:border-foreground/22 hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/28",
+            "group/signal-trigger inline-flex h-7 max-w-full shrink-0 items-center gap-1.5 rounded-full border border-border/18 bg-foreground/[0.05] px-2 text-[0.72rem] text-muted-foreground transition-colors hover:border-foreground/22 hover:bg-foreground/[0.075] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/28",
             isActive && "border-foreground/28 bg-foreground/[0.08] text-foreground",
             isMissing && selectedTags.length === 0 && "border-amber-500/22 bg-amber-500/[0.055] text-amber-100/82",
           )}
           aria-label={`Edit ${label.toLowerCase()} signals`}
         >
+          <SignalIcon className="size-3.5 shrink-0" />
           <span className="font-medium text-foreground/86">{label}</span>
           {triggerSummary ? (
-            <span className="min-w-0 max-w-32 truncate text-muted-foreground">
+            <span className="min-w-0 max-w-28 truncate text-muted-foreground">
               {triggerSummary}
             </span>
           ) : (
@@ -339,12 +352,12 @@ function StarterSignalMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        sideOffset={8}
-        className="w-72 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
+        sideOffset={6}
+        className="w-72 border-border/24 bg-[var(--kocteau-surface)] shadow-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <div className="border-b border-border/14 p-2">
+        <div className="sticky top-0 z-10 -mx-1 -mt-1 border-b border-border/14 bg-[var(--kocteau-surface)] p-1.5">
           <div
-            className="flex h-8 items-center gap-2 rounded-lg border border-border/18 bg-background/36 px-2 transition-colors focus-within:border-foreground/26"
+            className="flex h-7 items-center gap-2 rounded-md border border-border/14 bg-transparent px-2 transition-colors focus-within:border-foreground/24"
             onKeyDown={(event) => event.stopPropagation()}
           >
             <Search className="size-3.5 shrink-0 text-muted-foreground" />
@@ -379,7 +392,7 @@ function StarterSignalMenu({
           ) : null}
         </div>
 
-        <div className="max-h-64 overflow-y-auto p-1">
+        <div className="py-1">
           {filteredItems.length > 0 ? (
             filteredItems.map((tag) => {
               const isSelected = selectedTags.some((selected) => selected.id === tag.id);
@@ -394,7 +407,7 @@ function StarterSignalMenu({
                       onToggleTag(tag);
                     }}
                     className={cn(
-                      "min-h-8 pr-16 text-xs",
+                      "min-h-8 pr-14 text-xs",
                       isSelected &&
                         "bg-foreground/[0.12] text-foreground focus:bg-foreground/[0.14] focus:text-foreground",
                     )}
@@ -441,20 +454,6 @@ function StarterSignalMenu({
             </p>
           )}
         </div>
-
-        <DropdownMenuSeparator className="my-0" />
-        <DropdownMenuItem
-          onSelect={(event) => {
-            event.preventDefault();
-            onInputValueChange("");
-          }}
-          className="min-h-8 text-xs text-muted-foreground"
-        >
-          <span>{selectedTags.length} selected</span>
-          <span className="ml-auto text-[0.62rem] uppercase text-muted-foreground/70">
-            {kind}
-          </span>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -483,7 +482,6 @@ export default function StarterStudioClient() {
   const [catalogFilter, setCatalogFilter] = useState<CatalogFilter>("all");
   const [curationOpen, setCurationOpen] = useState(false);
   const [signalPanelOpen, setSignalPanelOpen] = useState(false);
-  const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
   const [editingTag, setEditingTag] = useState<StarterPreferenceTag | null>(null);
   const [selectedDraftTrack, setSelectedDraftTrack] =
     useState<StarterDraftTrack | null>(null);
@@ -660,7 +658,6 @@ export default function StarterStudioClient() {
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
-    setConfirmArchiveId(null);
     setEveSuggestion(null);
   }, []);
 
@@ -684,7 +681,6 @@ export default function StarterStudioClient() {
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
-    setConfirmArchiveId(null);
     setEveSuggestion(null);
     setCurationOpen(true);
   }, []);
@@ -708,7 +704,6 @@ export default function StarterStudioClient() {
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
-    setConfirmArchiveId(null);
     setEveSuggestion(null);
     setCurationOpen(true);
   }, [startEditing, starterTracks]);
@@ -762,28 +757,6 @@ export default function StarterStudioClient() {
         editingTrack?.provider_id === track.provider_id ||
         selectedDraftTrack?.provider_id === track.provider_id
       ) {
-        resetDraft();
-      }
-      void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const archiveMutation = useMutation({
-    mutationFn: (id: string) =>
-      fetchJson<StarterTrackResponse>("/api/starter/tracks", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id }),
-      }),
-    onSuccess: (_payload, id) => {
-      toast.success("Starter pick archived.");
-      setConfirmArchiveId(null);
-      if (editingTrack?.id === id) {
         resetDraft();
       }
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
@@ -913,24 +886,14 @@ export default function StarterStudioClient() {
   const pendingProviderId = addMutation.isPending
     ? addMutation.variables?.provider_id ?? null
     : null;
-  const pendingArchiveId = archiveMutation.isPending
-    ? archiveMutation.variables ?? null
-    : null;
   const inspectedTrack = editingTrack ?? selectedDraftTrack;
   const inspectedTags = selectedTags;
   const inspectedMissingKinds = useMemo(
     () => getMissingEditorialKindsFromTags(inspectedTags),
     [inspectedTags],
   );
-  const inspectedStatus = inspectedTags.length === 0
-    ? "No signals"
-    : inspectedMissingKinds.length > 0
-      ? "Needs context"
-      : "Ready";
   const inspectedIsPending =
     Boolean(inspectedTrack) && pendingProviderId === inspectedTrack?.provider_id;
-  const isConfirmingInspectedArchive =
-    Boolean(editingTrack) && confirmArchiveId === editingTrack?.id;
   const canCreateTag =
     newTagLabel.trim().length >= 2 &&
     !createTagMutation.isPending &&
@@ -1010,20 +973,10 @@ export default function StarterStudioClient() {
     }));
   }, []);
 
-  const handleArchive = useCallback((track: StarterTrackWithTags) => {
-    if (confirmArchiveId === track.id) {
-      archiveMutation.mutate(track.id);
-      return;
-    }
-
-    setConfirmArchiveId(track.id);
-  }, [archiveMutation, confirmArchiveId]);
-
   const handleCurationOpenChange = useCallback((open: boolean) => {
     setCurationOpen(open);
 
     if (!open) {
-      setConfirmArchiveId(null);
       setOpenSignalKind(null);
     }
   }, []);
@@ -1032,90 +985,29 @@ export default function StarterStudioClient() {
     <div className="space-y-4">
       {inspectedTrack ? (
         <>
-          <section className="space-y-3">
-            <EntityCoverImage
-              src={inspectedTrack.cover_url}
-              alt={`${inspectedTrack.title} cover`}
-              sizes="256px"
-              className="aspect-square w-full rounded-[0.85rem] border border-border/20 bg-muted/20 sm:hidden"
-              iconClassName="size-8"
-            />
-            <div className="grid gap-3 sm:grid-cols-[5.25rem_minmax(0,1fr)]">
+          <section>
+            <div className="grid items-center gap-3 sm:grid-cols-[5.25rem_minmax(0,1fr)]">
               <EntityCoverImage
                 src={inspectedTrack.cover_url}
                 alt={`${inspectedTrack.title} cover`}
                 sizes="84px"
-                className="hidden aspect-square w-full rounded-[0.72rem] border border-border/20 bg-muted/20 sm:block"
+                className="mx-auto aspect-square size-24 rounded-[0.85rem] border border-border/20 bg-muted/20 sm:size-auto sm:w-full sm:rounded-[0.72rem]"
                 iconClassName="size-6"
               />
-              <div className="min-w-0 space-y-2">
-                <p className="text-[0.66rem] font-medium uppercase text-muted-foreground">
-                  {editingTrack ? "Editing starter pick" : "Selected from Deezer"}
-                </p>
+              <div className="min-w-0 space-y-1 text-center sm:text-left">
                 <h2 className="text-pretty font-serif text-2xl font-semibold leading-7 text-foreground">
                   {inspectedTrack.title}
                 </h2>
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <p className="truncate text-sm text-muted-foreground">
-                    {inspectedTrack.artist_name ?? "Unknown artist"}
-                  </p>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "inline-flex h-5 shrink-0 items-center rounded-full border-border/34 px-2 text-[0.62rem] leading-none",
-                      inspectedStatus === "Ready"
-                        ? "text-foreground"
-                        : "border-amber-500/22 bg-amber-500/7 text-amber-100/78",
-                    )}
-                  >
-                    {inspectedStatus}
-                  </Badge>
-                </div>
+                <p className="truncate text-sm text-muted-foreground">
+                  {inspectedTrack.artist_name ?? "Unknown artist"}
+                </p>
               </div>
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <div className="space-y-1">
-              <label
-                htmlFor="starter-editorial-prompt"
-                className="sr-only"
-              >
-                Editorial Prompt
-              </label>
-              <Input
-                id="starter-editorial-prompt"
-                value={prompt}
-                onChange={(event) => setPrompt(event.target.value)}
-                placeholder="What should people pay attention to here?"
-                className="kocteau-compose-field h-10 rounded-xl px-3 text-sm shadow-none focus-visible:ring-0"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label
-                htmlFor="starter-editorial-note"
-                className="sr-only"
-              >
-                Why this pick belongs here
-              </label>
-              <Textarea
-                id="starter-editorial-note"
-                value={editorialNote}
-                onChange={(event) => setEditorialNote(event.target.value)}
-                placeholder="Add a short listening cue for the first pass."
-                maxLength={240}
-                className="kocteau-compose-field min-h-24 resize-none rounded-xl px-3 py-3 text-sm shadow-none focus-visible:ring-0"
-              />
             </div>
           </section>
 
           <section className="space-y-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Tags className="size-4 text-muted-foreground" />
-                Signals
-              </div>
+              <div className="text-sm font-medium text-foreground">Signals</div>
               <div className="flex flex-wrap gap-1.5">
                 {selectedTagIds.size > 0 ? (
                   <Button
@@ -1123,38 +1015,35 @@ export default function StarterStudioClient() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedTagIds(new Set())}
-                    className="h-8 rounded-full px-2.5 text-[0.68rem]"
+                    className="h-7 rounded-md px-1.5 text-[0.68rem] text-muted-foreground hover:bg-transparent hover:text-foreground"
                   >
                     Clear
                   </Button>
                 ) : null}
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
                   disabled={eveSuggestionMutation.isPending}
                   onClick={() => eveSuggestionMutation.mutate(inspectedTrack)}
-                  className="h-9 w-[5.35rem] rounded-full border-border/24 px-2 text-foreground"
+                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-md px-1 text-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50"
                   title="Ask Eve"
                 >
                   {eveSuggestionMutation.isPending ? (
                     <LoaderCircle className="size-3 animate-spin" />
                   ) : (
-                    <EveWordmarkIcon className="h-[18px] w-[58px]" />
+                    <EveWordmarkIcon className="h-4.5 w-7 shrink-0" />
                   )}
                   <span className="sr-only">Ask Eve</span>
-                </Button>
+                </button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => {
                     resetTagDraft();
                     setSignalPanelOpen(true);
                   }}
-                  className="h-8 rounded-full border-border/24 px-2.5 text-[0.68rem]"
+                  className="h-7 rounded-md px-1.5 text-[0.68rem] text-muted-foreground hover:bg-transparent hover:text-foreground"
                 >
-                  <Plus className="size-3" />
                   New
                 </Button>
               </div>
@@ -1269,7 +1158,7 @@ export default function StarterStudioClient() {
               </div>
             ) : null}
 
-            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="-mx-1 scroll-mask-x scroll-mask-x-from-[calc(100%_-_1.5rem)] flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {starterTagKinds.map((kind) => {
                 const kindLabel = preferenceKindLabels[kind];
                 const selectedKindTags = selectedTagsByKind.get(kind) ?? [];
@@ -1327,28 +1216,51 @@ export default function StarterStudioClient() {
             </div>
           </section>
 
-          <section className="space-y-3 border-t border-border/12 pt-3">
-            <div className="flex items-center gap-3 rounded-xl border border-border/18 bg-foreground/[0.035] px-3 py-2">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-foreground">Featured</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  Prioritize this pick
-                </p>
-              </div>
-              <Switch
-                checked={featured}
-                onCheckedChange={setFeatured}
-                aria-label="Prioritize this starter pick"
+          <section className="space-y-2 border-t border-border/12 pt-3">
+            <div className="border-b border-border/12 pb-3">
+              <label htmlFor="starter-editorial-prompt" className="sr-only">
+                Editorial Prompt
+              </label>
+              <Input
+                id="starter-editorial-prompt"
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+                placeholder="What should people pay attention to here?"
+                className="h-9 rounded-none border-0 bg-transparent px-0 text-[15px] font-medium shadow-none outline-none placeholder:text-muted-foreground/62 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <div className="pt-1">
+              <label htmlFor="starter-editorial-note" className="sr-only">
+                Why this pick belongs here
+              </label>
+              <Textarea
+                id="starter-editorial-note"
+                value={editorialNote}
+                onChange={(event) => setEditorialNote(event.target.value)}
+                placeholder="Add a short listening cue for the first pass."
+                maxLength={240}
+                className="min-h-20 resize-none rounded-none border-0 bg-transparent px-0 py-0 text-sm leading-6 shadow-none outline-none placeholder:text-muted-foreground/58 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </section>
+
+          <section className="border-t border-border/12 pt-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              <label className="inline-flex h-9 w-full items-center justify-center gap-2 px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:w-auto">
+                <Switch
+                  checked={featured}
+                  onCheckedChange={setFeatured}
+                  aria-label="Prioritize this starter pick"
+                />
+                <span>Featured</span>
+              </label>
               <Button
                 type="button"
                 size="sm"
                 disabled={addMutation.isPending}
                 onClick={() => addMutation.mutate(inspectedTrack)}
-                className="h-9 rounded-full"
+                className="h-9 w-full rounded-full bg-foreground text-background hover:bg-foreground/90 sm:w-auto sm:min-w-36"
               >
                 {inspectedIsPending ? (
                   <LoaderCircle className="size-3 animate-spin" />
@@ -1359,39 +1271,6 @@ export default function StarterStudioClient() {
                 )}
                 {editingTrack ? "Update pick" : "Add pick"}
               </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={addMutation.isPending}
-                onClick={resetDraft}
-                className="h-9 rounded-full"
-              >
-                <X className="size-3" />
-                Clear
-              </Button>
-              {editingTrack ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={archiveMutation.isPending}
-                  onClick={() => handleArchive(editingTrack)}
-                  className={cn(
-                    "h-9 rounded-full",
-                    isConfirmingInspectedArchive &&
-                      "border border-amber-500/24 bg-amber-500/7 text-amber-100/86 hover:bg-amber-500/10",
-                  )}
-                >
-                  {pendingArchiveId === editingTrack.id ? (
-                    <LoaderCircle className="size-3 animate-spin" />
-                  ) : (
-                    <Archive className="size-3" />
-                  )}
-                  {isConfirmingInspectedArchive ? "Confirm archive" : "Archive"}
-                </Button>
-              ) : null}
             </div>
           </section>
         </>
@@ -1408,10 +1287,20 @@ export default function StarterStudioClient() {
       )}
     </div>
   );
-  const curationPanelTitle = editingTrack ? "Edit starter pick" : "Add starter pick";
+  const curationPanelTitle = "Curate starter pick";
   const curationPanelDescription =
     "Choose signals, add context, and decide whether this track belongs in starter picks.";
   const curationPanelOpen = curationOpen && Boolean(inspectedTrack);
+  const curationCloseButton = (
+    <button
+      type="button"
+      onClick={() => handleCurationOpenChange(false)}
+      className="inline-flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.065] px-2 text-[10px] font-medium text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/[0.11] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+      aria-label="Close starter curation"
+    >
+      Esc
+    </button>
+  );
   const signalPanelContent = (
     <div className="space-y-4">
       <div className="space-y-1">
@@ -1697,28 +1586,50 @@ export default function StarterStudioClient() {
     <div className="flex w-full max-w-none flex-1 flex-col gap-6">
       {isMobile ? (
         <Drawer open={curationPanelOpen} onOpenChange={handleCurationOpenChange}>
-          <DrawerContent className="max-h-[94dvh] overflow-hidden rounded-t-[1.05rem] border border-b-0 border-border/24 bg-[var(--kocteau-surface)] p-0 text-foreground before:hidden">
-            <DrawerHeader className="sr-only">
-              <DrawerTitle>{curationPanelTitle}</DrawerTitle>
-              <DrawerDescription>{curationPanelDescription}</DrawerDescription>
-            </DrawerHeader>
-            <div className="min-h-0 overflow-y-auto px-4 pt-4 pb-5">
-              {curationPanelContent}
+          <DrawerContent className="flex max-h-[94dvh] overflow-hidden rounded-t-[1.05rem] border border-b-0 border-border/24 bg-[var(--kocteau-surface)] p-0 text-foreground before:hidden">
+            <div className="flex min-h-0 flex-1 flex-col">
+              <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
+                <div className="relative flex min-h-7 items-center">
+                  <div className="z-10 min-w-9" />
+                  <DrawerTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
+                    {curationPanelTitle}
+                  </DrawerTitle>
+                  <div className="z-10 ml-auto min-w-9" />
+                </div>
+                <DrawerDescription className="sr-only">
+                  {curationPanelDescription}
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-3">
+                {curationPanelContent}
+              </div>
             </div>
           </DrawerContent>
         </Drawer>
       ) : (
         <Dialog open={curationPanelOpen} onOpenChange={handleCurationOpenChange}>
           <DialogContent
-            showCloseButton
-            className="flex h-[min(90vh,48rem)] w-[min(100vw-1.5rem,54rem)] flex-col overflow-hidden rounded-xl border-border/24 bg-[var(--kocteau-surface)] p-0 text-foreground shadow-none"
+            showCloseButton={false}
+            className="flex max-h-[min(90vh,48rem)] w-[min(100vw-1.5rem,54rem)] flex-col overflow-hidden rounded-xl border-border/24 bg-[var(--kocteau-surface)] p-0 text-foreground shadow-none"
           >
-            <DialogHeader className="sr-only">
-              <DialogTitle>{curationPanelTitle}</DialogTitle>
-              <DialogDescription>{curationPanelDescription}</DialogDescription>
-            </DialogHeader>
-            <div className="min-h-0 overflow-y-auto px-5 py-5">
-              {curationPanelContent}
+            <div className="flex min-h-0 flex-col">
+              <DialogHeader className="shrink-0 border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
+                <div className="relative flex min-h-7 items-center">
+                  <div className="z-10 min-w-9" />
+                  <DialogTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
+                    {curationPanelTitle}
+                  </DialogTitle>
+                  <div className="z-10 ml-auto flex min-w-9 items-center justify-end">
+                    {curationCloseButton}
+                  </div>
+                </div>
+                <DialogDescription className="sr-only">
+                  {curationPanelDescription}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="min-h-0 overflow-y-auto px-5 pt-5 pb-3">
+                {curationPanelContent}
+              </div>
             </div>
           </DialogContent>
         </Dialog>
