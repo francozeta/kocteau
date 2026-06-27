@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.3.9](https://github.com/francozeta/kocteau/compare/v0.3.8...v0.3.9) (2026-06-27)
+
+
+### Features
+
+* **eve:** add curation copilot agent ([5a1f3bc](https://github.com/francozeta/kocteau/commit/5a1f3bc86cd01fb40b63488914e45176a2f9f24c))
+* **eve:** add curation copilot agent ([a7df4bd](https://github.com/francozeta/kocteau/commit/a7df4bd14cdaf0a0c2d8e5a25e3c6a257ba3d4f8))
+* **starter:** add Eve curation suggestions ([837b574](https://github.com/francozeta/kocteau/commit/837b5742f83783ce8256489c3d55e81acaee0bb9))
+* **starter:** add Eve curation suggestions ([abb5f2e](https://github.com/francozeta/kocteau/commit/abb5f2e360ad98c908cbb6ed8965a41e5337c18f))
+* **web:** add public atlas tag pages ([79ff9f5](https://github.com/francozeta/kocteau/commit/79ff9f52da19d8bf47e23d1f01ce13b8c8f5337c))
+* **web:** add public atlas tag pages ([0e6bf2b](https://github.com/francozeta/kocteau/commit/0e6bf2b80c5b2c47bc605c8182d1d2a6cee5a858))
+* **web:** polish starter curation drawer ([8f9200f](https://github.com/francozeta/kocteau/commit/8f9200f96c66c45a284460f5a797813fc33a8d4c))
+* **web:** polish starter curation drawer ([f0612b6](https://github.com/francozeta/kocteau/commit/f0612b6c703eb0cf74e8a9c17189567fceff589f))
+* **web:** polish starter studio command bar ([08d5935](https://github.com/francozeta/kocteau/commit/08d593574c74b3fe086ec8d5d30b7e704958a1a2))
+* **web:** polish starter studio curation UI ([b9567af](https://github.com/francozeta/kocteau/commit/b9567af4a13dcc49aa69dd1689d767adfd3b2dc4))
+* **web:** redesign starter studio workspace ([c8f535e](https://github.com/francozeta/kocteau/commit/c8f535ed7e0b0df0cd75aed7d18fb5f24ae8d020))
+* **web:** redesign starter studio workspace ([a110998](https://github.com/francozeta/kocteau/commit/a110998a83f73392b61790a727c8f621f0faf749))
+
+
+### Bug Fixes
+
+* **web:** anchor starter signal comboboxes ([345166b](https://github.com/francozeta/kocteau/commit/345166b136147b1798fa1923a400bf158dfd3467))
+* **web:** refine starter studio curation ui ([3a10104](https://github.com/francozeta/kocteau/commit/3a10104e3f817841462e9ff619d76482f8a19d66))
+* **web:** restore starter studio build ([2d71c89](https://github.com/francozeta/kocteau/commit/2d71c89bdcc5958781af97457c172977bd4bab83))
+* **web:** restore starter studio build ([f289d27](https://github.com/francozeta/kocteau/commit/f289d27b2f163591d7127fa0c1aac21192374008))
+* **web:** restore starter studio build ([2b69897](https://github.com/francozeta/kocteau/commit/2b69897a0e2e4349061c33b5d89a1211f4f1e75a))
+* **web:** simplify starter curation drawer ([ebc3e5f](https://github.com/francozeta/kocteau/commit/ebc3e5f9b6a22ec101145ebda703e59e868bdba6))
+* **web:** speed up starter signal selection ([cc3dfb7](https://github.com/francozeta/kocteau/commit/cc3dfb731daed7565f9ace0d3c0abcae6cdf47b3))
+
+
+### Documentation
+
+* define knowledge layer and atlas direction ([a8b035c](https://github.com/francozeta/kocteau/commit/a8b035c2dda8ba3ba42eb83f0dca64b4fcc4a689))
+* define knowledge layer and atlas direction ([4ecbd40](https://github.com/francozeta/kocteau/commit/4ecbd401b1d3662f411ca68f617dc546aeea6dd5))
+* **web:** draft public changelog for v0.3.8 ([a0dd4e8](https://github.com/francozeta/kocteau/commit/a0dd4e859d8030c3da4eca58efde408468b0c349))
+* **web:** draft public changelog for v0.3.8 ([99223b7](https://github.com/francozeta/kocteau/commit/99223b7b2ea342d41ab64985b182ed1a3bcfdfe6))
+
+
+### Refactors
+
+* **avatar:** remove unused functions and optimize unoptimized pr… ([059f536](https://github.com/francozeta/kocteau/commit/059f5364567f1fad4d5c8478c3097e46868de35b))
+* **avatar:** remove unused functions and optimize unoptimized prop usage ([9d0cfd1](https://github.com/francozeta/kocteau/commit/9d0cfd16fb521a5fdada2d5ab608dd93a3187725))
+
 ## [0.3.8](https://github.com/francozeta/kocteau/compare/v0.3.7...v0.3.8) (2026-06-20)
 
 
