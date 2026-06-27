@@ -53,6 +53,7 @@ These are the next useful moves after enabling public contribution.
 | P0 | Confirm the `v0.2.0` tag and GitHub Release are created after the release PR merges. | ready | `chore`, `area:ci` |
 | P0 | Pin the public repository description, topics, website URL, and social preview image in GitHub settings. | ready | `docs`, `area:docs` |
 | P0 | Make recommendations visible on track pages so new visitors can see "what to hear next." | done | `feature`, `area:web`, `area:recommendations` |
+| P0 | Land the Knowledge Layer source policy and clean the current taste taxonomy so genres, moods, scenes, styles, eras, and formats have clear boundaries. | in progress ([#124](https://github.com/francozeta/kocteau/issues/124), [#125](https://github.com/francozeta/kocteau/issues/125)) | `docs`, `area:supabase`, `area:recommendations`, `needs maintainer decision` |
 | P0 | Fix desktop scroll dead zones so the page still scrolls when the pointer is over the secondary rail or empty desktop space. | done | `fix`, `area:web`, `area:ui` |
 | P0 | Make review cards open their review detail route without breaking like, save, or comment actions. | done | `feature`, `area:web`, `area:ui` |
 | P0 | Fix mobile toast placement so feedback is centered and clears the bottom navigation. | ready | `fix`, `area:web`, `area:ui` |
@@ -61,6 +62,8 @@ These are the next useful moves after enabling public contribution.
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
 | P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | done | `docs`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Add a private track library signal on track pages. | in progress | `feature`, `area:web`, `area:supabase`, `area:recommendations` |
+| P1 | Design public Atlas tag pages that help listeners explore genres, moods, scenes, and styles without turning the product into a generic wiki. | needs design ([#126](https://github.com/francozeta/kocteau/issues/126)) | `feature`, `design`, `area:web`, `area:recommendations` |
+| P1 | Design Eve route lanes around discovery intent: Continue, Go deeper, Take a stranger path, Travel back, and Travel forward. | needs design ([#127](https://github.com/francozeta/kocteau/issues/127)) | `feature`, `design`, `area:web`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
 | P1 | Add a mobile social discovery carousel near review detail pages. | needs design ([#90](https://github.com/francozeta/kocteau/issues/90)) | `feature`, `area:web`, `area:ui` |
 | P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design ([#89](https://github.com/francozeta/kocteau/issues/89)) | `feature`, `area:web`, `area:recommendations` |
@@ -818,21 +821,50 @@ Do this after the public flow has real usage.
 
 These ideas are not ready for implementation issues yet. They are useful prompts for contributors who want to help with product research, design notes, or RFC drafts.
 
+### Knowledge Layer Source Policy
+
+GitHub issue: [#124](https://github.com/francozeta/kocteau/issues/124)
+
+Suggested issue: `docs: define Kocteau Knowledge Layer source policy`
+
+- Separate canonical facts from editorial knowledge.
+- Use MusicBrainz, Deezer, Discogs, Wikidata, and Kocteau signals by strength rather than choosing one source of truth.
+- Keep `preference_tags` as the current product-facing vocabulary while the richer entity/relationship layer is designed.
+- Do not let Eve invent genres as facts. Eve can draft editorial knowledge when the evidence is visible.
+
+Suggested labels: `docs`, `area:recommendations`, `area:supabase`, `needs maintainer decision`
+
+### Preference Tag Taxonomy Cleanup
+
+GitHub issue: [#125](https://github.com/francozeta/kocteau/issues/125)
+
+Suggested issue: `chore(supabase): clean preference tag taxonomy for Knowledge Layer`
+
+- Move obvious misclassified tags into the right `preference_kind`.
+- Merge duplicate aliases into canonical tags without losing starter, entity, or user relationships.
+- Keep the current `preference_tags` table as the product-facing vocabulary until the richer Knowledge Layer schema is designed.
+- Do not change auth, RLS, recommendation scoring, or analytics behavior in the cleanup.
+
+Suggested labels: `chore`, `area:supabase`, `area:recommendations`, `needs maintainer decision`
+
 ### Taste Graph
 
-Suggested RFC: `rfc: define a manual taste graph for entity relationships`
+Suggested RFC: `rfc: define Kocteau Knowledge Layer relationships`
 
-- Explore a small `entity_relationships` model before embeddings.
-- Relationship examples: similar texture, influence, same scene, contrast pick, gateway recommendation.
-- Focus on explainability for track pages, Explore, and future For You tuning.
+- Explore a small entity/relationship model before embeddings.
+- Relationship examples: `belongs_to`, `influenced_by`, `sounds_like`, `gateway_to`, `opposite_of`, `emerged_from`, and `evolved_into`.
+- Focus on explainability for track pages, Atlas, Explore, and future For You tuning.
 
-Suggested labels: `rfc`, `area:recommendations`, `area:product`, `needs maintainer decision`
+Suggested labels: `docs`, `area:recommendations`, `area:supabase`, `needs maintainer decision`
 
 ### Taste Atlas
 
-Suggested RFC: `rfc: design Kocteau Taste Atlas`
+GitHub issue: [#126](https://github.com/francozeta/kocteau/issues/126)
 
-- Explore an interactive discovery surface where listeners can start from a track, artist, tag, or mood and move through nearby recommendations.
+Suggested issue: `feat(web): design public Atlas discovery pages`
+
+- Atlas is not a wiki. A wiki answers "what is this?" Atlas should ask "how do you want to explore?"
+- Explore an interactive discovery surface where listeners can start from a track, artist, tag, or mood and move through nearby discovery paths.
 - Treat the first version as an editorial and explainable graph, not as a black-box algorithm.
 - Use Kocteau signals first: starter tags, entity tags, reviews, saves, follows, curator relationships, and underexposed tracks.
 - Let the surface ask for simple taste feedback such as closer, stranger, softer, darker, deeper cut, or skip.
@@ -840,7 +872,20 @@ Suggested RFC: `rfc: design Kocteau Taste Atlas`
 - Keep the first implementation web-first with TypeScript, Supabase, and existing recommendation data. Do not add a separate runtime, Rust worker, vector system, or heavy graph engine until usage proves the need.
 - Avoid fake activity, fake affinity, or pretending Kocteau has learned more than the current data supports.
 
-Suggested labels: `rfc`, `area:recommendations`, `area:product`, `area:web`, `needs maintainer decision`
+Suggested labels: `feature`, `design`, `area:web`, `area:recommendations`, `needs design review`, `needs maintainer decision`
+
+### Eve Routes
+
+GitHub issue: [#127](https://github.com/francozeta/kocteau/issues/127)
+
+Suggested issue: `feat(eve): design explainable public discovery routes`
+
+- Eve should act as a discovery director, not as a generic music chatbot.
+- Start from listener intent: Continue, Go deeper, Take a stranger path, Travel back, Travel forward, and Why it matters.
+- Route explanations must cite visible evidence such as shared tags, starter curation, reviews, library signals, external metadata, or curator-approved relationships.
+- Keep generated language compact and editorial. The value should be in the path, not a long AI verdict.
+
+Suggested labels: `feature`, `design`, `area:web`, `area:recommendations`, `needs design review`, `needs maintainer decision`
 
 ### Cover Color Signals
 

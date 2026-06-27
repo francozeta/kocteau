@@ -1,3 +1,121 @@
+-- Kocteau Knowledge Layer tag cleanup.
+--
+-- This migration keeps `preference_tags` as the current product-facing taste
+-- vocabulary while cleaning obvious taxonomy drift:
+-- - canonical facts stay as genres, eras, and formats
+-- - editorial descriptors stay as moods, scenes, and styles
+-- - duplicate era/format aliases are merged without losing existing relations
+
+BEGIN;
+
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '90s';
+
+CREATE OR REPLACE FUNCTION pg_temp.merge_preference_tag(
+  p_from_slug text,
+  p_to_slug text
+)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_from_id uuid;
+  v_to_id uuid;
+BEGIN
+  SELECT id INTO v_from_id
+  FROM public.preference_tags
+  WHERE slug = p_from_slug
+  FOR UPDATE;
+
+  SELECT id INTO v_to_id
+  FROM public.preference_tags
+  WHERE slug = p_to_slug
+  FOR UPDATE;
+
+  IF v_from_id IS NULL OR v_to_id IS NULL OR v_from_id = v_to_id THEN
+    RETURN;
+  END IF;
+
+  INSERT INTO public.starter_track_tags (
+    starter_track_id,
+    tag_id,
+    weight,
+    created_at
+  )
+  SELECT
+    starter_track_id,
+    v_to_id,
+    weight,
+    created_at
+  FROM public.starter_track_tags
+  WHERE tag_id = v_from_id
+  ON CONFLICT (starter_track_id, tag_id)
+  DO UPDATE SET
+    weight = greatest(public.starter_track_tags.weight, EXCLUDED.weight);
+
+  DELETE FROM public.starter_track_tags
+  WHERE tag_id = v_from_id;
+
+  INSERT INTO public.entity_preference_tags (
+    entity_id,
+    tag_id,
+    source,
+    weight,
+    created_at,
+    updated_at
+  )
+  SELECT
+    entity_id,
+    v_to_id,
+    source,
+    weight,
+    created_at,
+    updated_at
+  FROM public.entity_preference_tags
+  WHERE tag_id = v_from_id
+  ON CONFLICT (entity_id, tag_id)
+  DO UPDATE SET
+    source = CASE
+      WHEN public.entity_preference_tags.source = 'manual'
+        THEN public.entity_preference_tags.source
+      ELSE EXCLUDED.source
+    END,
+    weight = greatest(public.entity_preference_tags.weight, EXCLUDED.weight),
+    updated_at = greatest(public.entity_preference_tags.updated_at, EXCLUDED.updated_at);
+
+  DELETE FROM public.entity_preference_tags
+  WHERE tag_id = v_from_id;
+
+  INSERT INTO public.user_preference_tags (
+    user_id,
+    tag_id,
+    source,
+    weight,
+    created_at,
+    updated_at
+  )
+  SELECT
+    user_id,
+    v_to_id,
+    source,
+    weight,
+    created_at,
+    updated_at
+  FROM public.user_preference_tags
+  WHERE tag_id = v_from_id
+  ON CONFLICT (user_id, tag_id, source)
+  DO UPDATE SET
+    weight = greatest(public.user_preference_tags.weight, EXCLUDED.weight),
+    updated_at = greatest(public.user_preference_tags.updated_at, EXCLUDED.updated_at);
+
+  DELETE FROM public.user_preference_tags
+  WHERE tag_id = v_from_id;
+
+  DELETE FROM public.preference_tags
+  WHERE id = v_from_id;
+END;
+$$;
+
 INSERT INTO public.preference_tags (
   kind,
   slug,
@@ -7,6 +125,8 @@ INSERT INTO public.preference_tags (
   sort_order
 )
 VALUES
+  -- Canonical genre facts. Genres should map to broad external or consensus
+  -- music categories; more subjective texture belongs in mood/style/scene.
   ('genre', 'indie-rock', 'Indie rock', 'Guitar-led independent rock traditions, from college radio to modern indie rooms.', true, 20),
   ('genre', 'shoegaze', 'Shoegaze', 'Dense guitar wash, blurred vocals, and immersive distortion.', true, 30),
   ('genre', 'dream-pop', 'Dream pop', 'Weightless guitars, blurred edges, and melodic drift.', true, 40),
@@ -40,6 +160,8 @@ VALUES
   ('genre', 'house', 'House', 'Four-on-the-floor club music rooted in Chicago, disco, and dance culture.', false, 360),
   ('genre', 'techno', 'Techno', 'Electronic dance music built around machine rhythm, repetition, and futurist pressure.', false, 370),
   ('genre', 'classical', 'Classical', 'Western art music traditions, composition, and long-form interpretation.', false, 380),
+
+  -- Editorial knowledge. These do not need external genre authority.
   ('mood', 'intimate', 'Intimate', 'Close-mic detail, private-room writing, and vulnerable delivery.', true, 10),
   ('mood', 'melancholic', 'Melancholic', 'For songs that sit with longing instead of rushing past it.', true, 20),
   ('mood', 'nostalgic', 'Nostalgic', 'Music that looks backward without becoming only retro.', true, 30),
@@ -60,6 +182,7 @@ VALUES
   ('mood', 'noisy', 'Noisy', 'Distortion, abrasion, or overloaded texture used as expression.', true, 210),
   ('mood', 'chaotic', 'Chaotic', 'Unstable, overloaded, or deliberately disorienting energy.', true, 220),
   ('mood', 'trippy', 'Trippy', 'Psychedelic perception, warped space, or altered-state movement.', true, 440),
+
   ('scene', 'club', 'Club', 'Dancefloor context, DJ culture, and room-centered energy.', true, 20),
   ('scene', 'sad-dancefloor', 'Sad dancefloor', 'Dance music with melancholy or emotional afterglow.', true, 70),
   ('scene', 'grunge-era', 'Grunge era', 'Early-90s alternative guitar culture and its surrounding mood.', true, 84),
@@ -72,6 +195,7 @@ VALUES
   ('scene', 'crate-digging', 'Crate digging', 'Records that reward catalog digging, sampling memory, or collector routes.', true, 410),
   ('scene', 'underground', 'Underground', 'Music circulating through smaller rooms, scenes, or non-mainstream channels.', true, 420),
   ('scene', 'rainy-room', 'Rainy room', 'Small-room, gray-window atmosphere for slower listening.', true, 430),
+
   ('style', 'lo-fi', 'Lo-fi', 'Rougher fidelity, tape grain, or imperfect recording texture.', false, 10),
   ('style', 'hi-fi', 'Hi-fi', 'Clean, detailed, and polished sonic presentation.', false, 20),
   ('style', 'sample-based', 'Sample-based', 'Built from sampled fragments, loops, or collage logic.', false, 50),
@@ -85,6 +209,7 @@ VALUES
   ('style', 'bass-heavy', 'Bass heavy', 'Low-end pressure, bass movement, or bassline identity.', true, 170),
   ('style', 'vocal-forward', 'Vocal forward', 'Voice as the clear emotional or structural center.', true, 180),
   ('style', 'tropical', 'Tropical', 'Warm rhythmic color, island-adjacent texture, or humid brightness.', true, 350),
+
   ('era', 'pre-1970s', 'Pre-1970s', 'Older catalog, standards, early scenes, and records that feel outside the modern cycle.', true, 380),
   ('era', '1970s', '1970s', 'Analog rooms, disco, punk, soul, dub, and early electronic edges.', true, 390),
   ('era', '1980s', '1980s', 'Drum machines, synth gloss, post-punk shadows, and pop becoming cinematic.', true, 400),
@@ -93,6 +218,7 @@ VALUES
   ('era', '2010s', '2010s', 'Streaming-era scenes, bedroom production, and genre borders getting softer.', true, 430),
   ('era', '2020s', '2020s', 'Recent records shaping the current Kocteau listening shelf.', true, 440),
   ('era', 'current', 'Current', 'New and near-current releases that should stay close to the feed.', true, 450),
+
   ('format', 'singles', 'Singles', 'One-track statements, hooks, and quick entry points.', true, 500),
   ('format', 'eps', 'EPs', 'Short-form releases with enough shape to show an artist direction.', true, 510),
   ('format', 'album-focused', 'Album-focused', 'Records that make more sense when heard as a full body of work.', true, 520),
@@ -108,3 +234,12 @@ DO UPDATE SET
   description = EXCLUDED.description,
   is_featured = EXCLUDED.is_featured,
   sort_order = EXCLUDED.sort_order;
+
+SELECT pg_temp.merge_preference_tag('seventies', '1970s');
+SELECT pg_temp.merge_preference_tag('eighties', '1980s');
+SELECT pg_temp.merge_preference_tag('nineties', '1990s');
+SELECT pg_temp.merge_preference_tag('two-thousands', '2000s');
+SELECT pg_temp.merge_preference_tag('twenty-tens', '2010s');
+SELECT pg_temp.merge_preference_tag('live-sessions', 'live-recordings');
+
+COMMIT;

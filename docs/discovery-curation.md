@@ -10,6 +10,12 @@ The guiding principle is:
 Amplify taste, not engagement.
 ```
 
+The next discovery principle is:
+
+```text
+Kocteau does not recommend music. Kocteau teaches people how to discover it.
+```
+
 This document gives maintainers and contributors a shared map for recommendation, analytics, editorial curation, and future discovery work. It is intentionally phased so the product can improve without turning into a heavy algorithm project too early.
 
 ## Current Baseline
@@ -69,16 +75,23 @@ Content can enter discovery from:
 - underexposed tracks
 - future editorial candidate queues
 
-### 2. Canonical Taste Layer
+### 2. Knowledge Layer
 
-Kocteau should treat its taste vocabulary as the source of meaning:
+Kocteau should treat its taste vocabulary as the first product-facing slice of a broader Knowledge Layer:
 
 - `preference_tags`
 - `user_preference_tags`
 - `entity_preference_tags`
 - `starter_track_tags`
 
-Deezer is a metadata source. Kocteau defines taste meaning.
+External catalogs identify and enrich. Kocteau explains and routes.
+
+Separate canonical facts from editorial knowledge:
+
+- canonical facts: genre, release date, country, label, aliases, provider IDs
+- editorial knowledge: mood, scene framing, style, gateway paths, deep cuts, stranger paths, and why a pick belongs
+
+For the full source policy and Atlas direction, see [Knowledge Layer and Atlas](./knowledge-layer.md).
 
 ### 3. Ranking And Routing
 
@@ -327,6 +340,17 @@ Track pages should start with a lightweight `More to hear` module:
 - show a short reason for every recommendation
 - avoid pretending sparse data is personalized
 
+The user-facing language should evolve away from generic recommendation labels and toward discovery intent:
+
+- `Continue`
+- `Go deeper`
+- `Take a stranger path`
+- `Travel back`
+- `Travel forward`
+- `Why it matters`
+
+The question is not only "what is similar?" The product question is "how do you want to explore?"
+
 This phase should also introduce a listener-facing candidate finder. The model mirrors Starter Studio, but the user job is different: a listener is not curating the starter catalog; they are asking Kocteau for a better next path from something they already like, read, saved, or searched.
 
 The listener candidate finder should support seeds such as:
@@ -433,6 +457,8 @@ Do not index the whole Deezer catalog for color. Kocteau should only analyze mus
 
 Design a native Kocteau discovery surface that lets listeners move through taste relationships instead of only scrolling a feed or searching directly.
 
+Atlas is not a wiki. A wiki primarily answers "what is this?" Atlas should ask "how do you want to explore?"
+
 The first version should be a small, explainable atlas:
 
 - starts from a track, artist, tag, mood, or curated starter pick
@@ -451,6 +477,29 @@ Engineering constraints:
 - keep the graph explainable enough for maintainers to inspect why two entities are connected
 
 This phase should wait until feed tuning has a baseline and the existing health checks can show whether discovery changes improve review creation, saves, and useful exploration.
+
+### Phase 9B: Eve Routes
+
+Eve should become the voice that turns Knowledge Layer evidence into public discovery paths.
+
+The first listener-facing Eve route should start from a track, artist, or tag and return a compact set of intent lanes:
+
+- `Continue`: the closest next listen
+- `Go deeper`: a less obvious but connected route
+- `Take a stranger path`: a surprising route with one shared thread
+- `Travel back`: an older influence, era, or scene route
+- `Travel forward`: a newer descendant or modern echo
+
+Each route needs evidence, not mystique:
+
+- shared tags
+- starter curation
+- reviews
+- saved/library signals
+- external metadata
+- curator-approved relationships
+
+Do not expose Eve as a generic music chatbot. Eve's product job is to direct exploration with visible criteria.
 
 ### Future Research
 
