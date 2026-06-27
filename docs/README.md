@@ -7,6 +7,7 @@
 - [MVP baseline](./mvp.md): current product loop, scope, and out-of-scope guardrails.
 - [Web roadmap](./web-roadmap.md): phased web product direction and execution order.
 - [Discovery and curation](./discovery-curation.md): hybrid recommendation philosophy, signal contract, starter curation, and future RFC lanes.
+- [Knowledge Layer and Atlas](./knowledge-layer.md): source policy, taste taxonomy, Atlas direction, and Eve's public discovery role.
 - [Public backlog](./backlog.md): issue-ready work, maintainer-led work, and future RFC backlog.
 
 ## Setup And Operations
