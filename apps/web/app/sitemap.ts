@@ -29,11 +29,16 @@ type SitemapReview = {
   entities: SitemapEntity | SitemapEntity[] | null;
 };
 
+type SitemapPreferenceTag = {
+  slug: string;
+  created_at: string;
+};
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const metadataBase = getMetadataBase();
   const supabase = supabasePublic();
   const now = new Date();
-  const [profilesResult, reviewsResult] = await Promise.all([
+  const [profilesResult, reviewsResult, atlasTagsResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("username, created_at, updated_at")
@@ -60,10 +65,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       `)
       .order("updated_at", { ascending: false })
       .limit(5000),
+    supabase
+      .from("preference_tags")
+      .select("slug, created_at")
+      .order("sort_order", { ascending: true }),
   ]);
 
   const profiles = (profilesResult.data ?? []) as SitemapProfile[];
   const reviews = (reviewsResult.data ?? []) as SitemapReview[];
+  const atlasTags = (atlasTagsResult.data ?? []) as SitemapPreferenceTag[];
   const reviewedTracks = new Map<
     string,
     {
@@ -119,6 +129,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.65,
     },
+    {
+      url: new URL("/atlas", metadataBase).toString(),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.62,
+    },
     ...helpRoutes.map((route) => ({
       url: new URL(route.href, metadataBase).toString(),
       lastModified: now,
@@ -158,5 +174,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...reviewRoutes, ...trackRoutes, ...profileRoutes];
+  const atlasRoutes: MetadataRoute.Sitemap = atlasTags.map((tag) => ({
+    url: new URL(`/atlas/${tag.slug}`, metadataBase).toString(),
+    lastModified: new Date(tag.created_at),
+    changeFrequency: "weekly",
+    priority: 0.54,
+  }));
+
+  return [
+    ...staticRoutes,
+    ...reviewRoutes,
+    ...trackRoutes,
+    ...profileRoutes,
+    ...atlasRoutes,
+  ];
 }

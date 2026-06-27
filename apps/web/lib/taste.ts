@@ -34,8 +34,8 @@ export const preferenceKindDescriptions = {
   format: "How you tend to listen.",
 } satisfies Record<PreferenceKind, string>;
 
-export function groupPreferenceTags(tags: PreferenceTag[]) {
-  const grouped = new Map<PreferenceKind, PreferenceTag[]>();
+export function groupPreferenceTags<T extends PreferenceTag>(tags: T[]) {
+  const grouped = new Map<PreferenceKind, T[]>();
 
   for (const kind of preferenceKindOrder) {
     grouped.set(kind, []);

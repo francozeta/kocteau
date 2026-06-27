@@ -151,6 +151,13 @@ Each Atlas page should eventually show:
 
 Do not build a large generic encyclopedia first. Start with the pages that help a listener find what to hear next.
 
+Current phase 1 implementation:
+
+- `/atlas` lists the current `preference_tags` vocabulary by kind.
+- `/atlas/[slug]` explains one signal, links nearby signals, and shows active starter picks attached through `starter_track_tags`.
+- The surface is intentionally read-only and powered by existing public tables.
+- Eve route language appears as directional lanes, but there is no AI generation or graph engine in this phase.
+
 ## Eve Contract
 
 Eve is a discovery director, not a generic chat assistant.
