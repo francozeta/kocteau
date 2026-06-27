@@ -177,6 +177,12 @@ export default function AppSidebar({
       isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
     },
     {
+      title: "Atlas",
+      url: "/atlas",
+      icon: KocteauStarterIcon,
+      isActive: pathname.startsWith("/atlas"),
+    },
+    {
       title: "Feedback",
       url: FEEDBACK_URL,
       icon: ChatCircleTextIcon,

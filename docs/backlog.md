@@ -62,7 +62,7 @@ These are the next useful moves after enabling public contribution.
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
 | P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | done | `docs`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Add a private track library signal on track pages. | in progress | `feature`, `area:web`, `area:supabase`, `area:recommendations` |
-| P1 | Design public Atlas tag pages that help listeners explore genres, moods, scenes, and styles without turning the product into a generic wiki. | needs design ([#126](https://github.com/francozeta/kocteau/issues/126)) | `feature`, `design`, `area:web`, `area:recommendations` |
+| P1 | Design public Atlas tag pages that help listeners explore genres, moods, scenes, and styles without turning the product into a generic wiki. | in progress ([#126](https://github.com/francozeta/kocteau/issues/126)) | `feature`, `design`, `area:web`, `area:recommendations` |
 | P1 | Design Eve route lanes around discovery intent: Continue, Go deeper, Take a stranger path, Travel back, and Travel forward. | needs design ([#127](https://github.com/francozeta/kocteau/issues/127)) | `feature`, `design`, `area:web`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
 | P1 | Add a mobile social discovery carousel near review detail pages. | needs design ([#90](https://github.com/francozeta/kocteau/issues/90)) | `feature`, `area:web`, `area:ui` |
