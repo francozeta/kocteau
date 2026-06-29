@@ -26,7 +26,7 @@
     "@tanstack/react-query": "^5.100.14",
     "@expo/vector-icons": "^15.0.3",
     "@react-navigation/bottom-tabs": "^7.4.0",
-    "@react-navigation/elements": "^2.9.19",
+    "@react-navigation/elements": "^2.9.26",
     "@react-navigation/native": "^7.2.5",
     "expo": "~54.0.35",
     "expo-constants": "~18.0.13",
