@@ -2,6 +2,7 @@ import Link from "next/link";
 import EntityCoverImage from "@/components/entity-cover-image";
 import FeedReviewList from "@/components/feed-review-list";
 import { FeedReviewCard } from "@/components/review-route-cards";
+import { SpotlightLogo } from "@/components/spotlight-logo";
 import { ArrowRight, Search, Star } from "@/components/ui/icons";
 import type { StarterTrack } from "@/lib/starter";
 import type {
@@ -52,28 +53,10 @@ function StarterCoverStack({ tracks }: { tracks: StarterTrack[] }) {
 
 function GuestHomeHero() {
   return (
-    <header className="border-b border-foreground/[0.1] px-0.5 pb-8 pt-5 sm:pb-10 sm:pt-8">
-      <h1 className="max-w-[39rem] text-balance font-serif text-[2.4rem] font-semibold leading-[0.98] tracking-[-0.035em] text-foreground sm:text-[3.35rem]">
-        Keep a record of what the music left behind.
-      </h1>
-      <p className="mt-5 max-w-[32rem] text-pretty text-[14.5px] leading-6 text-muted-foreground/82 sm:text-[15px]">
-        Write about the tracks that stay with you. Find people who hear something you missed.
-      </p>
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Link
-          href="/signup"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-[0.62rem] bg-foreground px-4 text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
-        >
-          Join Kocteau
-          <ArrowRight className="size-3.5" />
-        </Link>
-        <Link
-          href="#recent-reviews"
-          className="inline-flex h-10 items-center justify-center rounded-[0.62rem] px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-        >
-          Read recent reviews
-        </Link>
+    <header className="flex min-h-[calc(100svh-10.5rem)] items-center justify-center border-b border-foreground/[0.1] sm:min-h-[calc(100svh-11rem)] lg:min-h-[calc(100dvh-5.25rem)]">
+      <h1 className="sr-only">Kocteau</h1>
+      <div className="w-[min(82%,28rem)]">
+        <SpotlightLogo />
       </div>
     </header>
   );
