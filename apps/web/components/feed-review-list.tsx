@@ -32,6 +32,9 @@ type FeedReviewListProps = {
   isAuthenticated: boolean;
   viewer: FeedReviewListViewer;
   starterTracks?: StarterTrack[];
+  showReviewCta?: boolean;
+  showStarterShelf?: boolean;
+  enablePagination?: boolean;
 };
 
 const recommendationReasonLabels = {
@@ -142,6 +145,9 @@ export default function FeedReviewList({
   isAuthenticated,
   viewer,
   starterTracks = [],
+  showReviewCta = true,
+  showStarterShelf = true,
+  enablePagination = true,
 }: FeedReviewListProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const trackedPageKeysRef = useRef(new Set<string>());
@@ -402,7 +408,7 @@ export default function FeedReviewList({
   useEffect(() => {
     const node = sentinelRef.current;
 
-    if (!node || !hasNextPage) {
+    if (!enablePagination || !node || !hasNextPage) {
       return;
     }
 
@@ -424,21 +430,23 @@ export default function FeedReviewList({
     return () => {
       observer.disconnect();
     };
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [enablePagination, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const showStarterLayer =
     view === "for-you" &&
     isAuthenticated &&
     visibleStarterTracks.length > 0 &&
     reviews.length < 4;
-  const showStarterShelf =
+  const shouldShowStarterShelf =
+    showStarterShelf &&
     visibleStarterTracks.length > 0 &&
     reviews.length > 0 &&
     (
       (isAuthenticated && view === "for-you") ||
       (!isAuthenticated && view === "latest")
     );
-  const showReviewCta = view === "for-you" || view === "latest";
+  const shouldShowReviewCta =
+    showReviewCta && (view === "for-you" || view === "latest");
 
   if (reviews.length === 0) {
     if (showStarterLayer) {
@@ -455,11 +463,11 @@ export default function FeedReviewList({
 
   return (
     <div className="space-y-3.5">
-      {showReviewCta ? (
+      {shouldShowReviewCta ? (
         <FeedReviewCta isAuthenticated={isAuthenticated} />
       ) : null}
 
-      {showStarterShelf ? (
+      {shouldShowStarterShelf ? (
         <FeedStarterShelf
           tracks={visibleStarterTracks}
           isAuthenticated={isAuthenticated}
@@ -490,7 +498,7 @@ export default function FeedReviewList({
       })}
 
       {showStarterLayer ? (
-        <div className={showStarterShelf ? "hidden lg:block" : undefined}>
+        <div className={shouldShowStarterShelf ? "hidden lg:block" : undefined}>
           <FeedStarterLayer
             tracks={visibleStarterTracks}
             isAuthenticated={isAuthenticated}
@@ -498,7 +506,7 @@ export default function FeedReviewList({
         </div>
       ) : null}
 
-      {hasNextPage ? (
+      {!enablePagination ? null : hasNextPage ? (
         <div ref={sentinelRef} className="flex min-h-12 items-center justify-center py-2">
           {isFetchingNextPage ? (
             <Spinner className="size-4 text-muted-foreground/70" />

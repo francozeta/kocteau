@@ -2,6 +2,7 @@ import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import FeedViewTabs from "@/components/feed-view-tabs";
 import FeedReviewList from "@/components/feed-review-list";
 import JsonLd from "@/components/json-ld";
+import GuestHome from "@/components/guest-home";
 import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
@@ -84,9 +85,19 @@ export default async function HomePage({
     requiresAuth: (activeView === "following" || activeView === "for-you") && !user,
   };
 
-  queryClient.setQueryData(feedKeys.bundle(activeView), feedData);
+  const featuredGuestReview = !user ? feedData.feed[0] ?? null : null;
+  const guestRecentPage = !user
+    ? {
+        ...feedData,
+        feed: feedData.feed.slice(1, 4),
+        nextCursor: null,
+      }
+    : feedData;
+  const hydratedFeedData = user ? feedData : guestRecentPage;
+
+  queryClient.setQueryData(feedKeys.bundle(activeView), hydratedFeedData);
   queryClient.setQueryData<FeedInfiniteQueryData>(feedKeys.infinite(activeView), {
-    pages: [feedData],
+    pages: [hydratedFeedData],
     pageParams: [null],
   });
 
@@ -129,8 +140,8 @@ export default async function HomePage({
       <JsonLd data={feedStructuredData} id="home-structured-data" />
       {params.welcome === "kocteau" ? <OnboardingWelcomeFromUrl /> : null}
       <div className="flex h-full min-h-0 flex-col">
-        <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:mx-0 lg:max-w-none lg:space-y-4">
-          {user ? (
+        {user ? (
+          <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:mx-0 lg:max-w-none lg:space-y-4">
             <>
               <div className="lg:hidden">
                 <FeedViewTabs activeView={tabActiveView} fullWidth />
@@ -139,18 +150,24 @@ export default async function HomePage({
                 <FeedViewTabs activeView={tabActiveView} />
               </div>
             </>
-          ) : null}
-
-          <div className="space-y-4">
-            <FeedReviewList
-              view={activeView}
-              initialPage={feedData}
-              isAuthenticated={Boolean(user)}
-              viewer={viewerProfile}
-              starterTracks={starterTracks}
-            />
-          </div>
-        </section>
+            <div className="space-y-4">
+              <FeedReviewList
+                view={activeView}
+                initialPage={feedData}
+                isAuthenticated
+                viewer={viewerProfile}
+                starterTracks={starterTracks}
+                showReviewCta={false}
+              />
+            </div>
+          </section>
+        ) : (
+          <GuestHome
+            featuredReview={featuredGuestReview}
+            recentPage={guestRecentPage}
+            starterTracks={starterTracks}
+          />
+        )}
       </div>
     </HydrationBoundary>
   );
