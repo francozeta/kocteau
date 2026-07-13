@@ -969,6 +969,7 @@
       border-color: var(--kocteau-line);
       box-shadow: inset 0 1px 0 var(--kocteau-topline);
     }
+
   }
 
   @media (max-width: 767px) {

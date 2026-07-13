@@ -162,6 +162,40 @@ export function buildSiteGraphJsonLd() {
   };
 }
 
+export function buildHomePageJsonLd() {
+  const siteUrl = absoluteUrl("/");
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${siteUrl}#webpage`,
+        url: siteUrl,
+        name: "Music reviews from real listeners",
+        description:
+          "Keep a record of what music leaves behind. Read track reviews, save listening notes, and discover music through people whose taste you trust.",
+        isPartOf: {
+          "@id": `${siteUrl}#website`,
+        },
+        mainEntity: {
+          "@id": `${siteUrl}#web-application`,
+        },
+      },
+      {
+        "@type": "WebApplication",
+        "@id": `${siteUrl}#web-application`,
+        name: "Kocteau",
+        url: siteUrl,
+        applicationCategory: "MultimediaApplication",
+        operatingSystem: "Web",
+        description:
+          "A music review and taste discovery app for ratings, listening notes, saved reviews, and public taste profiles.",
+      },
+    ],
+  };
+}
+
 export function buildFeedPageJsonLd(entries: FeedStructuredDataEntry[]) {
   const siteUrl = absoluteUrl("/");
 

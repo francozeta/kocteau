@@ -40,7 +40,7 @@ const extrusionOffsets = Array.from(
  * Swap the SVG paths below for your own artwork. The interaction is driven by:
  * - a `radialGradient` whose center springs toward the pointer (the spotlight),
  *   reused as a second stroke layered over the base outline.
- * - `whileTap="pressed"` morphing the path `d` values between two states.
+ * - `whileTap="pressed"` compressing the top face into its extrusion.
  *
  * The demo mark was designed by ncdai on Figma with the
  * [Fast Isometric Plugin](https://www.figma.com/community/plugin/1249759048471403961).
@@ -107,7 +107,7 @@ export function SpotlightLogo() {
   return (
     <motion.svg
       ref={ref}
-      className="h-auto w-full touch-manipulation [--outline:color-mix(in_oklab,var(--foreground)_34%,var(--background))] [--pattern:color-mix(in_oklab,var(--foreground)_24%,var(--background))] [--side:color-mix(in_oklab,var(--foreground)_13%,var(--background))]"
+      className="h-auto w-full touch-manipulation [--outline:color-mix(in_oklab,var(--foreground)_42%,var(--background))] [--pattern:color-mix(in_oklab,var(--foreground)_27%,var(--background))] [--side:color-mix(in_oklab,var(--foreground)_20%,var(--background))]"
       viewBox="0 0 760 480"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -125,9 +125,11 @@ export function SpotlightLogo() {
 
         <g
           id={ids.topFace}
-          transform="matrix(0.4 0.2 -0.4 0.2 382 24)"
+          transform="matrix(0.4 -0.2 -0.4 -0.2 382 430)"
         >
-          <use href={`#${ids.logoShape}`} />
+          <g transform="translate(0 953.67) scale(1 -1)">
+            <use href={`#${ids.logoShape}`} />
+          </g>
         </g>
 
         <pattern
@@ -153,9 +155,9 @@ export function SpotlightLogo() {
           y2="410"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="color-mix(in oklab, var(--foreground) 30%, var(--background))" />
-          <stop offset="0.55" stopColor="color-mix(in oklab, var(--foreground) 20%, var(--background))" />
-          <stop offset="1" stopColor="color-mix(in oklab, var(--foreground) 14%, var(--background))" />
+          <stop stopColor="color-mix(in oklab, var(--foreground) 36%, var(--background))" />
+          <stop offset="0.55" stopColor="color-mix(in oklab, var(--foreground) 25%, var(--background))" />
+          <stop offset="1" stopColor="color-mix(in oklab, var(--foreground) 18%, var(--background))" />
         </linearGradient>
 
         <linearGradient
@@ -166,8 +168,8 @@ export function SpotlightLogo() {
           y2="365"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="white" stopOpacity="0.22" />
-          <stop offset="0.42" stopColor="white" stopOpacity="0.06" />
+          <stop stopColor="white" stopOpacity="0.28" />
+          <stop offset="0.42" stopColor="white" stopOpacity="0.08" />
           <stop offset="1" stopColor="white" stopOpacity="0" />
         </linearGradient>
 
@@ -179,8 +181,8 @@ export function SpotlightLogo() {
           y2="450"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="color-mix(in oklab, var(--foreground) 16%, var(--background))" />
-          <stop offset="1" stopColor="color-mix(in oklab, var(--foreground) 7%, var(--background))" />
+          <stop stopColor="color-mix(in oklab, var(--foreground) 22%, var(--background))" />
+          <stop offset="1" stopColor="color-mix(in oklab, var(--foreground) 10%, var(--background))" />
         </linearGradient>
 
         <filter
@@ -193,10 +195,10 @@ export function SpotlightLogo() {
         >
           <feDropShadow
             dx="0"
-            dy="16"
-            stdDeviation="18"
+            dy="12"
+            stdDeviation="16"
             floodColor="#000"
-            floodOpacity="0.48"
+            floodOpacity="0.36"
           />
         </filter>
 
@@ -248,18 +250,30 @@ export function SpotlightLogo() {
 
       <g filter={`url(#${ids.shadow})`} aria-hidden>
         {extrusionOffsets.map((offset) => (
-          <use
+          <motion.g
             key={offset}
-            href={`#${ids.topFace}`}
-            transform={`translate(0 ${offset})`}
-            fill={`url(#${ids.sideGradient})`}
-          />
+            variants={{
+              normal: {
+                transform: `translate(0px, ${offset}px)`,
+              },
+              pressed: {
+                transform: `translate(0px, ${Math.max(offset, 18)}px)`,
+              },
+            }}
+            transition={transition}
+          >
+            <use
+              href={`#${ids.topFace}`}
+              fill={`url(#${ids.sideGradient})`}
+            />
+          </motion.g>
         ))}
         <use
           href={`#${ids.topFace}`}
           transform="translate(0 32)"
           fill="none"
-          stroke="var(--side)"
+          stroke="var(--outline)"
+          opacity="0.46"
           strokeWidth="2"
         />
       </g>

@@ -1,17 +1,13 @@
 import Link from "next/link";
 import EntityCoverImage from "@/components/entity-cover-image";
 import FeedReviewList from "@/components/feed-review-list";
-import { FeedReviewCard } from "@/components/review-route-cards";
+import GuestProductPreview from "@/components/guest-product-preview";
 import { SpotlightLogo } from "@/components/spotlight-logo";
 import { ArrowRight, Search, Star } from "@/components/ui/icons";
 import type { StarterTrack } from "@/lib/starter";
-import type {
-  FeedBundleQueryData,
-  FeedBundleReview,
-} from "@/queries/feed";
+import type { FeedBundleQueryData } from "@/queries/feed";
 
 type GuestHomeProps = {
-  featuredReview: FeedBundleReview | null;
   recentPage: FeedBundleQueryData;
   starterTracks: StarterTrack[];
 };
@@ -53,10 +49,29 @@ function StarterCoverStack({ tracks }: { tracks: StarterTrack[] }) {
 
 function GuestHomeHero() {
   return (
-    <header className="flex min-h-[calc(100svh-10.5rem)] items-center justify-center border-b border-foreground/[0.1] sm:min-h-[calc(100svh-11rem)] lg:min-h-[calc(100dvh-5.25rem)]">
-      <h1 className="sr-only">Kocteau</h1>
-      <div className="w-[min(82%,28rem)]">
-        <SpotlightLogo />
+    <header className="flex min-h-[58svh] items-center py-14 sm:min-h-[62svh] sm:py-16 lg:min-h-[64svh] lg:py-20">
+      <div className="relative z-10 max-w-[52rem]">
+        <h1 className="max-w-[43rem] text-balance font-serif text-[clamp(2.7rem,5.8vw,4.65rem)] font-semibold leading-[0.95] tracking-[-0.04em] text-foreground">
+          Keep what the music left behind.
+        </h1>
+        <p className="mt-6 text-[14px] leading-6 text-muted-foreground/72 sm:text-[15px]">
+          Music reviews from real listeners.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center gap-2.5">
+          <Link
+            href="/signup"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96]"
+          >
+            Join Kocteau
+            <ArrowRight className="size-3.5" />
+          </Link>
+          <Link
+            href="/reviews"
+            className="inline-flex h-11 items-center justify-center rounded-full px-4 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+          >
+            Read recent reviews
+          </Link>
+        </div>
       </div>
     </header>
   );
@@ -64,7 +79,7 @@ function GuestHomeHero() {
 
 function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }) {
   return (
-    <section aria-label="What you can do on Kocteau">
+    <section className="mx-auto w-full max-w-[64rem]" aria-label="What you can do on Kocteau">
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
           href="/search"
@@ -136,55 +151,63 @@ function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }
 
 function GuestClosingCta() {
   return (
-    <section className="border-t border-foreground/[0.1] px-4 pb-10 pt-12 text-center sm:px-8 sm:pb-14 sm:pt-16">
-      <h2 className="text-balance font-serif text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground sm:text-[2.55rem]">
-        Your taste is already a story.
-      </h2>
-      <Link
-        href="/signup"
-        className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-[0.62rem] bg-foreground px-4 text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
-      >
-        Create your profile
-        <ArrowRight className="size-3.5" />
-      </Link>
+    <section
+      aria-labelledby="closing-cta-title"
+      className="mx-auto grid min-h-[82svh] w-full max-w-[80rem] items-center gap-10 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,0.9fr)_minmax(22rem,1.1fr)] lg:gap-14 lg:px-10 lg:py-28"
+    >
+      <div className="order-2 max-w-[31rem] lg:order-1">
+        <h2
+          id="closing-cta-title"
+          className="text-balance font-serif text-[clamp(2.25rem,4.5vw,3.85rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-foreground"
+        >
+          Your taste is already a story.
+        </h2>
+        <p className="mt-5 max-w-[27rem] text-pretty text-[13px] leading-6 text-muted-foreground/72 sm:text-[14px]">
+          Keep the records, ratings, and listening notes that made it yours.
+        </p>
+        <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:items-center">
+          <Link
+            href="/signup"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+          >
+            Join Kocteau
+            <ArrowRight className="size-3.5" />
+          </Link>
+          <Link
+            href="/reviews"
+            className="inline-flex h-11 items-center justify-center rounded-full border border-foreground/[0.14] px-5 text-[13px] font-medium text-foreground/82 transition-[border-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-[0.97]"
+          >
+            Read music reviews
+          </Link>
+        </div>
+      </div>
+
+      <div className="order-1 mx-auto w-full max-w-[21rem] sm:max-w-[26rem] lg:order-2 lg:max-w-[29rem] lg:justify-self-end">
+        <SpotlightLogo />
+      </div>
     </section>
   );
 }
 
 export default function GuestHome({
-  featuredReview,
   recentPage,
   starterTracks,
 }: GuestHomeProps) {
   return (
-    <div className="space-y-10 sm:space-y-12 lg:space-y-10">
-      <GuestHomeHero />
+    <div className="space-y-16 sm:space-y-20 lg:space-y-24">
+      <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
+        <GuestHomeHero />
+        <div className="-mt-7 sm:-mt-10 lg:-mt-14">
+          <GuestProductPreview starterTracks={starterTracks} />
+        </div>
+      </div>
 
-      {featuredReview ? (
-        <section aria-labelledby="featured-review" className="space-y-3">
-          <div className="flex items-center justify-between gap-4 px-0.5">
-            <h2 id="featured-review" className="text-[12px] font-medium text-muted-foreground/68">
-              A review from the community
-            </h2>
-            <Link href="/reviews" className="text-[11.5px] font-medium text-muted-foreground/58 transition-colors hover:text-foreground">
-              All reviews
-            </Link>
-          </div>
-          <FeedReviewCard
-            review={featuredReview}
-            entity={featuredReview.entities}
-            author={featuredReview.author}
-            isAuthenticated={false}
-            showInteractionBar={false}
-            imagePriority
-          />
-        </section>
-      ) : null}
-
-      <ProductFeatureGrid starterTracks={starterTracks} />
+      <div className="px-4 sm:px-6 lg:px-10">
+        <ProductFeatureGrid starterTracks={starterTracks} />
+      </div>
 
       {recentPage.feed.length > 0 ? (
-        <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="scroll-mt-6 space-y-3">
+        <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="mx-auto w-full max-w-[69rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10">
           <div className="flex items-end justify-between gap-4 px-0.5">
             <h2 id="recent-reviews-title" className="font-serif text-[1.35rem] font-semibold text-foreground">
               Recently reviewed.
