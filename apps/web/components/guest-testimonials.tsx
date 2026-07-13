@@ -24,7 +24,7 @@ const testimonials = [
     href: "https://x.com/orcdev/status/2062535164652113952",
   },
   {
-    quote: "This is awesome😭, I am gonna use this for discovering music",
+    quote: "This is awesome, I am gonna use this for discovering music",
     author: "Aditya",
     handle: "@adityaseeks",
     avatarUrl: "/testimonials/adityaseeks.jpg",
@@ -54,7 +54,7 @@ const testimonials = [
   },
   {
     quote:
-      "A modern social platform for music discovery feels super fresh. Let’s follow each other🤝",
+      "A modern social platform for music discovery feels super fresh. Let’s follow each other",
     author: "Sourov Das",
     handle: "@Sourov099",
     avatarUrl: "/testimonials/sourov099.jpg",
