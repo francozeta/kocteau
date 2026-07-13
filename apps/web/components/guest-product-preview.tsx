@@ -326,7 +326,7 @@ export default function GuestProductPreview({
   return (
     <section
       aria-label="Kocteau authenticated feed preview"
-      className="w-[calc(100%+5.5rem)] max-w-none pl-2 sm:w-[calc(100%+4rem)] sm:pl-4 lg:w-[calc(100%+2rem)] lg:pl-6 xl:w-[calc(100%+3rem)]"
+      className="w-[calc(100%+5.5rem)] max-w-none sm:w-[calc(100%+4rem)] lg:w-[calc(100%+2rem)] xl:w-[calc(100%+3rem)]"
     >
       <div className="relative h-[28rem] overflow-hidden rounded-[0.95rem] bg-[var(--kocteau-canvas)] shadow-[0_22px_70px_rgba(0,0,0,0.2)] ring-1 ring-foreground/[0.075] sm:h-[32rem] lg:h-[36rem]">
         <div className="grid h-full min-w-[52rem] grid-cols-[10.5rem_minmax(0,1fr)] lg:min-w-0 lg:grid-cols-[11.75rem_minmax(0,1fr)]">

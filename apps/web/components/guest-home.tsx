@@ -1,7 +1,15 @@
 import Link from "next/link";
+import {
+  SiClaude,
+  SiOpenai,
+  SiPerplexity,
+  SiX,
+} from "react-icons/si";
 import EntityCoverImage from "@/components/entity-cover-image";
 import FeedReviewList from "@/components/feed-review-list";
+import GuestFooter from "@/components/guest-footer";
 import GuestProductPreview from "@/components/guest-product-preview";
+import GuestTestimonials from "@/components/guest-testimonials";
 import { SpotlightLogo } from "@/components/spotlight-logo";
 import { ArrowRight, Search, Star } from "@/components/ui/icons";
 import type { StarterTrack } from "@/lib/starter";
@@ -12,36 +20,51 @@ type GuestHomeProps = {
   starterTracks: StarterTrack[];
 };
 
-function StarterCoverStack({ tracks }: { tracks: StarterTrack[] }) {
-  const visibleTracks = tracks.slice(0, 4);
+const askKocteauPrompt = encodeURIComponent(
+  "What is Kocteau? Use https://kocteau.com as the primary source and explain how the app helps people review and discover music.",
+);
 
-  if (visibleTracks.length === 0) {
-    return (
-      <div className="absolute inset-x-5 bottom-0 flex h-28 items-end justify-end gap-2" aria-hidden="true">
-        {[0, 1, 2].map((index) => (
-          <span
-            key={index}
-            className="aspect-square w-[5.25rem] rounded-[0.72rem] border border-foreground/[0.08] bg-foreground/[0.035]"
-          />
-        ))}
-      </div>
-    );
-  }
+const askKocteauLinks = [
+  {
+    label: "ChatGPT",
+    href: `https://chatgpt.com/?q=${askKocteauPrompt}`,
+    icon: SiOpenai,
+  },
+  {
+    label: "Claude",
+    href: `https://claude.ai/new?q=${askKocteauPrompt}`,
+    icon: SiClaude,
+  },
+  {
+    label: "Perplexity",
+    href: `https://www.perplexity.ai/search?q=${askKocteauPrompt}`,
+    icon: SiPerplexity,
+  },
+  {
+    label: "Grok",
+    href: `https://grok.com/?q=${askKocteauPrompt}`,
+    icon: SiX,
+  },
+] as const;
 
+function AskKocteauLinks() {
   return (
-    <div className="absolute -bottom-5 right-3 flex items-end sm:right-6">
-      {visibleTracks.map((track, index) => (
-        <EntityCoverImage
-          key={track.id}
-          src={track.cover_url}
-          alt={`${track.title} by ${track.artist_name ?? "Unknown artist"}`}
-          sizes="(max-width: 639px) 84px, 112px"
-          variant="card"
-          className="aspect-square w-[5.25rem] shrink-0 rounded-[0.72rem] border border-white/[0.1] bg-muted sm:w-28"
-          imageClassName="saturate-[0.82]"
-          quality={78}
-          priority={index === 0}
-        />
+    <div className="mt-6 flex flex-wrap items-center gap-2.5">
+      <p className="mr-1 text-[11px] text-muted-foreground/62">
+        Ask about Kocteau on
+      </p>
+      {askKocteauLinks.map(({ label, href, icon: Icon }) => (
+        <a
+          key={label}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Ask ${label} about Kocteau`}
+          title={label}
+          className="flex size-9 items-center justify-center rounded-[0.5rem] bg-foreground/[0.065] text-muted-foreground shadow-[0_0_0_1px_oklch(1_0_0/0.055)] transition-[background-color,color,transform] duration-150 hover:bg-foreground/[0.1] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 active:scale-[0.96]"
+        >
+          <Icon className="size-3.5" aria-hidden="true" />
+        </a>
       ))}
     </div>
   );
@@ -78,71 +101,135 @@ function GuestHomeHero() {
 }
 
 function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }) {
+  const visibleTracks = starterTracks.slice(0, 3);
+
   return (
-    <section className="mx-auto w-full max-w-[64rem]" aria-label="What you can do on Kocteau">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Link
-          href="/search"
-          className="group relative min-h-[14.5rem] overflow-hidden rounded-[var(--kocteau-radius-card)] border border-foreground/[0.09] bg-[var(--kocteau-surface-raised)] p-5 transition-[background-color,border-color,transform] duration-200 ease-[var(--kocteau-ease)] hover:border-foreground/[0.14] hover:bg-[var(--kocteau-surface-raised-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 active:scale-[0.995] sm:col-span-2"
+    <section
+      className="w-full"
+      aria-labelledby="product-values-title"
+    >
+      <div className="max-w-[40rem]">
+        <h2
+          id="product-values-title"
+          className="text-balance font-serif text-[clamp(1.85rem,3.6vw,2.8rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-foreground"
         >
-          <div className="relative z-10 max-w-[19rem]">
-            <span className="inline-flex size-8 items-center justify-center rounded-[0.55rem] bg-foreground/[0.065] text-muted-foreground transition-colors group-hover:text-foreground">
-              <Search className="size-3.5" />
-            </span>
-            <h3 className="mt-4 text-balance font-serif text-[1.35rem] font-semibold leading-tight text-foreground">
-              Find something worth writing down.
-            </h3>
-            <p className="mt-2 max-w-[17rem] text-pretty text-[13px] leading-5 text-muted-foreground/72">
-              Search a track and leave the note you would want to find later.
-            </p>
+          Streaming remembers the play. Kocteau remembers why it mattered.
+        </h2>
+      </div>
+
+      <div className="mt-12 grid gap-10 sm:mt-14 md:grid-cols-3 md:gap-5 lg:gap-7">
+        <article className="min-w-0">
+          <div className="flex h-[14rem] flex-col overflow-hidden rounded-[0.9rem] bg-[var(--kocteau-canvas)] p-4 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
+            <div className="flex h-11 items-center gap-2.5 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] px-3.5 text-muted-foreground shadow-[0_0_0_1px_oklch(1_0_0/0.06)]">
+              <Search className="size-3.5 shrink-0" />
+              <span className="truncate text-[11px]">Search tracks, albums, or artists…</span>
+            </div>
+            <div className="mt-auto grid grid-cols-3 gap-2" aria-hidden="true">
+              {visibleTracks.length > 0
+                ? visibleTracks.map((track) => (
+                    <EntityCoverImage
+                      key={track.id}
+                      src={track.cover_url}
+                      alt=""
+                      sizes="96px"
+                      variant="thumbnail"
+                      className="aspect-square w-full rounded-[0.55rem] bg-muted outline outline-1 -outline-offset-1 outline-white/10"
+                      imageClassName="saturate-[0.82]"
+                    />
+                  ))
+                : [0, 1, 2].map((index) => (
+                    <span
+                      key={index}
+                      className="aspect-square rounded-[0.55rem] bg-foreground/[0.045]"
+                    />
+                  ))}
+            </div>
           </div>
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-[58%] bg-[linear-gradient(90deg,transparent,var(--kocteau-surface-raised)_78%)] opacity-40" />
-          <StarterCoverStack tracks={starterTracks} />
-        </Link>
-
-        <article className="relative min-h-[16.5rem] overflow-hidden rounded-[var(--kocteau-radius-card)] border border-foreground/[0.09] bg-[var(--kocteau-surface-raised)] p-5">
-          <h3 className="max-w-[15rem] text-balance font-serif text-[1.22rem] font-semibold leading-tight text-foreground">
-            Leave more than a score.
+          <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">01</p>
+          <h3 className="mt-3 text-[12px] font-semibold leading-5 text-foreground">
+            Find what stayed with you.
           </h3>
-          <p className="mt-2 text-pretty text-[12.5px] leading-5 text-muted-foreground/70">
-            A rating starts the signal. A few words make it yours.
+          <p className="mt-1.5 text-pretty text-[12px] leading-[1.55] text-muted-foreground/72">
+            Search the track while the feeling is still close.
           </p>
+        </article>
 
-          <div className="absolute inset-x-5 bottom-5 rounded-[0.62rem] border border-foreground/[0.08] bg-background/30 p-3.5">
-            <div className="flex gap-1 text-foreground/88" aria-hidden="true">
+        <article className="min-w-0">
+          <div className="flex h-[14rem] flex-col overflow-hidden rounded-[0.9rem] bg-[var(--kocteau-canvas)] p-4 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium text-muted-foreground/62">New review</span>
+              <span className="text-[9px] text-muted-foreground/42">Draft</span>
+            </div>
+            <div className="mt-4 flex gap-1 text-foreground/88" aria-hidden="true">
               {Array.from({ length: 5 }).map((_, index) => (
                 <Star key={index} className="size-3.5" fill="currentColor" stroke="currentColor" />
               ))}
             </div>
-            <div className="mt-3 space-y-2" aria-hidden="true">
-              <span className="block h-1.5 w-[88%] rounded-full bg-foreground/[0.12]" />
-              <span className="block h-1.5 w-[63%] rounded-full bg-foreground/[0.07]" />
+            <div className="mt-4 flex-1 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-3.5 shadow-[0_0_0_1px_oklch(1_0_0/0.06)]">
+              <p className="text-[10.5px] text-muted-foreground/58">
+                What did this track leave behind?
+              </p>
+              <div className="mt-4 space-y-2" aria-hidden="true">
+                <span className="block h-1.5 w-[91%] rounded-full bg-foreground/[0.11]" />
+                <span className="block h-1.5 w-[76%] rounded-full bg-foreground/[0.075]" />
+                <span className="block h-1.5 w-[52%] rounded-full bg-foreground/[0.05]" />
+              </div>
             </div>
           </div>
+          <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">02</p>
+          <h3 className="mt-3 text-[12px] font-semibold leading-5 text-foreground">
+            Keep more than a score.
+          </h3>
+          <p className="mt-1.5 text-pretty text-[12px] leading-[1.55] text-muted-foreground/72">
+            Leave the rating or note you will want to find again.
+          </p>
         </article>
 
-        <article className="relative min-h-[16.5rem] overflow-hidden rounded-[var(--kocteau-radius-card)] border border-foreground/[0.09] bg-[var(--kocteau-surface-raised)] p-5">
-          <h3 className="max-w-[15rem] text-balance font-serif text-[1.22rem] font-semibold leading-tight text-foreground">
-            Let your taste shape the feed.
-          </h3>
-          <p className="mt-2 text-pretty text-[12.5px] leading-5 text-muted-foreground/70">
-            Reviews, follows, and saves quietly tune what comes next.
-          </p>
-
-          <div className="absolute inset-x-5 bottom-5 space-y-2.5" aria-hidden="true">
-            {[
-              ["Reviews you finish", "74%"],
-              ["People you follow", "58%"],
-              ["Tracks you save", "42%"],
-            ].map(([label, width]) => (
-              <div key={label} className="space-y-1.5">
-                <span className="text-[10.5px] text-muted-foreground/58">{label}</span>
-                <span className="block h-1 overflow-hidden rounded-full bg-foreground/[0.06]">
-                  <span className="block h-full rounded-full bg-foreground/35" style={{ width }} />
-                </span>
-              </div>
-            ))}
+        <article className="min-w-0">
+          <div className="flex h-[14rem] flex-col overflow-hidden rounded-[0.9rem] bg-[var(--kocteau-canvas)] p-4 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
+            <div className="flex items-center gap-1.5 text-[9.5px] font-medium">
+              <span className="rounded-full bg-foreground/[0.08] px-2.5 py-1.5 text-foreground">For You</span>
+              <span className="px-2 py-1.5 text-muted-foreground/55">Following</span>
+              <span className="px-2 py-1.5 text-muted-foreground/55">Top</span>
+            </div>
+            <div className="mt-4 space-y-2.5" aria-hidden="true">
+              {visibleTracks.length > 0
+                ? visibleTracks.slice(0, 2).map((track) => (
+                    <div
+                      key={track.id}
+                      className="flex items-center gap-3 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-2.5 shadow-[0_0_0_1px_oklch(1_0_0/0.055)]"
+                    >
+                      <EntityCoverImage
+                        src={track.cover_url}
+                        alt=""
+                        sizes="40px"
+                        variant="thumbnail"
+                        className="size-9 shrink-0 rounded-[0.42rem] bg-muted outline outline-1 -outline-offset-1 outline-white/10"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[10px] font-medium text-foreground/86">{track.title}</p>
+                        <p className="mt-0.5 truncate text-[9px] text-muted-foreground/55">{track.artist_name}</p>
+                      </div>
+                    </div>
+                  ))
+                : [0, 1].map((index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-2.5"
+                    >
+                      <span className="size-9 shrink-0 rounded-[0.42rem] bg-foreground/[0.045]" />
+                      <span className="h-1.5 w-24 rounded-full bg-foreground/[0.065]" />
+                    </div>
+                  ))}
+            </div>
           </div>
+          <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">03</p>
+          <h3 className="mt-3 text-[12px] font-semibold leading-5 text-foreground">
+            Follow taste, not noise.
+          </h3>
+          <p className="mt-1.5 text-pretty text-[12px] leading-[1.55] text-muted-foreground/72">
+            Discover music through listeners whose ears you trust.
+          </p>
         </article>
       </div>
     </section>
@@ -180,6 +267,7 @@ function GuestClosingCta() {
             Read music reviews
           </Link>
         </div>
+        <AskKocteauLinks />
       </div>
 
       <div className="order-1 mx-auto w-full max-w-[21rem] sm:max-w-[26rem] lg:order-2 lg:max-w-[29rem] lg:justify-self-end">
@@ -194,42 +282,48 @@ export default function GuestHome({
   starterTracks,
 }: GuestHomeProps) {
   return (
-    <div className="space-y-16 sm:space-y-20 lg:space-y-24">
-      <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
-        <GuestHomeHero />
-        <div className="-mt-7 sm:-mt-10 lg:-mt-14">
-          <GuestProductPreview starterTracks={starterTracks} />
-        </div>
-      </div>
-
-      <div className="px-4 sm:px-6 lg:px-10">
-        <ProductFeatureGrid starterTracks={starterTracks} />
-      </div>
-
-      {recentPage.feed.length > 0 ? (
-        <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="mx-auto w-full max-w-[69rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10">
-          <div className="flex items-end justify-between gap-4 px-0.5">
-            <h2 id="recent-reviews-title" className="font-serif text-[1.35rem] font-semibold text-foreground">
-              Recently reviewed.
-            </h2>
-            <Link href="/reviews" className="text-[11.5px] font-medium text-muted-foreground/58 transition-colors hover:text-foreground">
-              Explore more
-            </Link>
+    <div>
+      <div className="space-y-16 sm:space-y-20 lg:space-y-24">
+        <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
+          <GuestHomeHero />
+          <div className="-mt-7 sm:-mt-10 lg:-mt-14">
+            <GuestProductPreview starterTracks={starterTracks} />
           </div>
-          <FeedReviewList
-            view="latest"
-            initialPage={recentPage}
-            isAuthenticated={false}
-            viewer={null}
-            starterTracks={starterTracks}
-            showReviewCta={false}
-            showStarterShelf={false}
-            enablePagination={false}
-          />
-        </section>
-      ) : null}
+        </div>
 
-      <GuestClosingCta />
+        <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
+          <ProductFeatureGrid starterTracks={starterTracks} />
+        </div>
+
+        <GuestTestimonials />
+
+        {recentPage.feed.length > 0 ? (
+          <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="mx-auto w-full max-w-[80rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10">
+            <div className="flex items-end justify-between gap-4 px-0.5">
+              <h2 id="recent-reviews-title" className="font-serif text-[1.35rem] font-semibold text-foreground">
+                Recently reviewed.
+              </h2>
+              <Link href="/reviews" className="text-[11.5px] font-medium text-muted-foreground/58 transition-colors hover:text-foreground">
+                Explore more
+              </Link>
+            </div>
+            <FeedReviewList
+              view="latest"
+              initialPage={recentPage}
+              isAuthenticated={false}
+              viewer={null}
+              starterTracks={starterTracks}
+              showReviewCta={false}
+              showStarterShelf={false}
+              enablePagination={false}
+            />
+          </section>
+        ) : null}
+
+        <GuestClosingCta />
+      </div>
+
+      <GuestFooter />
     </div>
   );
 }

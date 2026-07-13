@@ -233,6 +233,11 @@
 :root {
   color-scheme: light;
   --radius: 0.5rem;
+  --stagger-dur: 500ms;
+  --stagger-distance: 12px;
+  --stagger-stagger: 40ms;
+  --stagger-blur: 3px;
+  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --kocteau-gray-1: oklch(0.145 0 0);
   --kocteau-gray-2: oklch(0.205 0 0);
   --kocteau-gray-3: oklch(0.278 0 0);
@@ -1213,7 +1218,44 @@
     radial-gradient(circle at 50% 50%, transparent 0 18rem, rgba(0, 0, 0, 0.36) 42rem);
 }
 
+.t-stagger-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--stagger-distance));
+  filter: blur(var(--stagger-blur));
+  transition:
+    opacity var(--stagger-dur) var(--stagger-ease),
+    transform var(--stagger-dur) var(--stagger-ease),
+    filter var(--stagger-dur) var(--stagger-ease);
+  will-change: transform, opacity, filter;
+}
+
+.t-stagger-line--2 {
+  transition-delay: var(--stagger-stagger);
+}
+
+.t-stagger.is-shown .t-stagger-line {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.t-stagger.is-hiding .t-stagger-line {
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(0);
+  transition:
+    opacity 200ms ease,
+    transform 0s linear,
+    filter 0s linear;
+  transition-delay: 0s;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .t-stagger-line {
+    transition: none !important;
+  }
+
   .kocteau-sidebar-label,
   .kocteau-sidebar-shortcut,
   .kocteau-sidebar-trailing,
