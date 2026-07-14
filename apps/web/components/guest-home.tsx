@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { RiOpenaiFill } from "react-icons/ri";
 import {
   SiClaude,
-  SiOpenai,
   SiPerplexity,
   SiX,
 } from "react-icons/si";
@@ -28,7 +28,7 @@ const askKocteauLinks = [
   {
     label: "ChatGPT",
     href: `https://chatgpt.com/?q=${askKocteauPrompt}`,
-    icon: SiOpenai,
+    icon: RiOpenaiFill,
   },
   {
     label: "Claude",
