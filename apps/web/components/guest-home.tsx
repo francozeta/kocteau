@@ -7,6 +7,7 @@ import {
 } from "react-icons/si";
 import EntityCoverImage from "@/components/entity-cover-image";
 import FeedReviewList from "@/components/feed-review-list";
+import GuestDitheredMark from "@/components/guest-dithered-mark";
 import GuestFooter from "@/components/guest-footer";
 import GuestProductPreview from "@/components/guest-product-preview";
 import GuestTestimonials from "@/components/guest-testimonials";
@@ -113,122 +114,128 @@ function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }
           id="product-values-title"
           className="text-balance font-serif text-[clamp(1.85rem,3.6vw,2.8rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-foreground"
         >
-          Streaming remembers the play. Kocteau remembers why it mattered.
+          Where listening becomes memory.
         </h2>
       </div>
 
       <div className="mt-12 grid gap-10 sm:mt-14 md:grid-cols-3 md:gap-5 lg:gap-7">
         <article className="min-w-0">
-          <div className="flex h-[14rem] flex-col overflow-hidden rounded-[0.9rem] bg-[var(--kocteau-canvas)] p-4 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
-            <div className="flex h-11 items-center gap-2.5 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] px-3.5 text-muted-foreground shadow-[0_0_0_1px_oklch(1_0_0/0.06)]">
-              <Search className="size-3.5 shrink-0" />
-              <span className="truncate text-[11px]">Search tracks, albums, or artists…</span>
-            </div>
-            <div className="mt-auto grid grid-cols-3 gap-2" aria-hidden="true">
-              {visibleTracks.length > 0
-                ? visibleTracks.map((track) => (
-                    <EntityCoverImage
-                      key={track.id}
-                      src={track.cover_url}
-                      alt=""
-                      sizes="96px"
-                      variant="thumbnail"
-                      className="aspect-square w-full rounded-[0.55rem] bg-muted outline outline-1 -outline-offset-1 outline-white/10"
-                      imageClassName="saturate-[0.82]"
-                    />
-                  ))
-                : [0, 1, 2].map((index) => (
-                    <span
-                      key={index}
-                      className="aspect-square rounded-[0.55rem] bg-foreground/[0.045]"
-                    />
-                  ))}
+          <div className="h-[14rem] rounded-[0.9rem] bg-[var(--kocteau-surface)] p-1 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
+            <div className="flex h-full flex-col overflow-hidden rounded-[calc(0.9rem-4px)] bg-[var(--kocteau-canvas)] p-4">
+              <div className="flex h-11 items-center gap-2.5 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] px-3.5 text-muted-foreground shadow-[0_0_0_1px_oklch(1_0_0/0.06)]">
+                <Search className="size-3.5 shrink-0" />
+                <span className="truncate text-[11px]">Search tracks, albums, or artists…</span>
+              </div>
+              <div className="mt-auto grid grid-cols-3 gap-2" aria-hidden="true">
+                {visibleTracks.length > 0
+                  ? visibleTracks.map((track) => (
+                      <EntityCoverImage
+                        key={track.id}
+                        src={track.cover_url}
+                        alt=""
+                        sizes="96px"
+                        variant="thumbnail"
+                        className="aspect-square w-full rounded-[0.55rem] bg-muted outline outline-1 -outline-offset-1 outline-white/10"
+                        imageClassName="saturate-[0.82]"
+                      />
+                    ))
+                  : [0, 1, 2].map((index) => (
+                      <span
+                        key={index}
+                        className="aspect-square rounded-[0.55rem] bg-foreground/[0.045]"
+                      />
+                    ))}
+              </div>
             </div>
           </div>
           <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">01</p>
-          <h3 className="mt-3 text-[12px] font-semibold leading-5 text-foreground">
+          <h3 className="mt-3 text-sm font-semibold leading-[1.35] text-foreground">
             Find what stayed with you.
           </h3>
-          <p className="mt-1.5 text-pretty text-[12px] leading-[1.55] text-muted-foreground/72">
-            Search the track while the feeling is still close.
+          <p className="mt-2 max-w-[31ch] text-pretty text-[13px] leading-[1.6] text-muted-foreground/76">
+            Search any track, album, or artist—and keep the feeling before it fades.
           </p>
         </article>
 
         <article className="min-w-0">
-          <div className="flex h-[14rem] flex-col overflow-hidden rounded-[0.9rem] bg-[var(--kocteau-canvas)] p-4 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-muted-foreground/62">New review</span>
-              <span className="text-[9px] text-muted-foreground/42">Draft</span>
-            </div>
-            <div className="mt-4 flex gap-1 text-foreground/88" aria-hidden="true">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <Star key={index} className="size-3.5" fill="currentColor" stroke="currentColor" />
-              ))}
-            </div>
-            <div className="mt-4 flex-1 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-3.5 shadow-[0_0_0_1px_oklch(1_0_0/0.06)]">
-              <p className="text-[10.5px] text-muted-foreground/58">
-                What did this track leave behind?
-              </p>
-              <div className="mt-4 space-y-2" aria-hidden="true">
-                <span className="block h-1.5 w-[91%] rounded-full bg-foreground/[0.11]" />
-                <span className="block h-1.5 w-[76%] rounded-full bg-foreground/[0.075]" />
-                <span className="block h-1.5 w-[52%] rounded-full bg-foreground/[0.05]" />
+          <div className="h-[14rem] rounded-[0.9rem] bg-[var(--kocteau-surface)] p-1 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
+            <div className="flex h-full flex-col overflow-hidden rounded-[calc(0.9rem-4px)] bg-[var(--kocteau-canvas)] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground/62">New review</span>
+                <span className="text-[9px] text-muted-foreground/42">Draft</span>
+              </div>
+              <div className="mt-4 flex gap-1 text-foreground/88" aria-hidden="true">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star key={index} className="size-3.5" fill="currentColor" stroke="currentColor" />
+                ))}
+              </div>
+              <div className="mt-4 flex-1 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-3.5 shadow-[0_0_0_1px_oklch(1_0_0/0.06)]">
+                <p className="text-[10.5px] text-muted-foreground/58">
+                  What did this track leave behind?
+                </p>
+                <div className="mt-4 space-y-2" aria-hidden="true">
+                  <span className="block h-1.5 w-[91%] rounded-full bg-foreground/[0.11]" />
+                  <span className="block h-1.5 w-[76%] rounded-full bg-foreground/[0.075]" />
+                  <span className="block h-1.5 w-[52%] rounded-full bg-foreground/[0.05]" />
+                </div>
               </div>
             </div>
           </div>
           <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">02</p>
-          <h3 className="mt-3 text-[12px] font-semibold leading-5 text-foreground">
+          <h3 className="mt-3 text-sm font-semibold leading-[1.35] text-foreground">
             Keep more than a score.
           </h3>
-          <p className="mt-1.5 text-pretty text-[12px] leading-[1.55] text-muted-foreground/72">
-            Leave the rating or note you will want to find again.
+          <p className="mt-2 max-w-[31ch] text-pretty text-[13px] leading-[1.6] text-muted-foreground/76">
+            Save the thought, context, and words you will want to return to.
           </p>
         </article>
 
         <article className="min-w-0">
-          <div className="flex h-[14rem] flex-col overflow-hidden rounded-[0.9rem] bg-[var(--kocteau-canvas)] p-4 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
-            <div className="flex items-center gap-1.5 text-[9.5px] font-medium">
-              <span className="rounded-full bg-foreground/[0.08] px-2.5 py-1.5 text-foreground">For You</span>
-              <span className="px-2 py-1.5 text-muted-foreground/55">Following</span>
-              <span className="px-2 py-1.5 text-muted-foreground/55">Top</span>
-            </div>
-            <div className="mt-4 space-y-2.5" aria-hidden="true">
-              {visibleTracks.length > 0
-                ? visibleTracks.slice(0, 2).map((track) => (
-                    <div
-                      key={track.id}
-                      className="flex items-center gap-3 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-2.5 shadow-[0_0_0_1px_oklch(1_0_0/0.055)]"
-                    >
-                      <EntityCoverImage
-                        src={track.cover_url}
-                        alt=""
-                        sizes="40px"
-                        variant="thumbnail"
-                        className="size-9 shrink-0 rounded-[0.42rem] bg-muted outline outline-1 -outline-offset-1 outline-white/10"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[10px] font-medium text-foreground/86">{track.title}</p>
-                        <p className="mt-0.5 truncate text-[9px] text-muted-foreground/55">{track.artist_name}</p>
+          <div className="h-[14rem] rounded-[0.9rem] bg-[var(--kocteau-surface)] p-1 shadow-[0_0_0_1px_oklch(1_0_0/0.08)]">
+            <div className="flex h-full flex-col overflow-hidden rounded-[calc(0.9rem-4px)] bg-[var(--kocteau-canvas)] p-4">
+              <div className="flex items-center gap-1.5 text-[9.5px] font-medium">
+                <span className="rounded-full bg-foreground/[0.08] px-2.5 py-1.5 text-foreground">For You</span>
+                <span className="px-2 py-1.5 text-muted-foreground/55">Following</span>
+                <span className="px-2 py-1.5 text-muted-foreground/55">Top</span>
+              </div>
+              <div className="mt-4 space-y-2.5" aria-hidden="true">
+                {visibleTracks.length > 0
+                  ? visibleTracks.slice(0, 2).map((track) => (
+                      <div
+                        key={track.id}
+                        className="flex items-center gap-3 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-2.5 shadow-[0_0_0_1px_oklch(1_0_0/0.055)]"
+                      >
+                        <EntityCoverImage
+                          src={track.cover_url}
+                          alt=""
+                          sizes="40px"
+                          variant="thumbnail"
+                          className="size-9 shrink-0 rounded-[0.42rem] bg-muted outline outline-1 -outline-offset-1 outline-white/10"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[10px] font-medium text-foreground/86">{track.title}</p>
+                          <p className="mt-0.5 truncate text-[9px] text-muted-foreground/55">{track.artist_name}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                : [0, 1].map((index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-2.5"
-                    >
-                      <span className="size-9 shrink-0 rounded-[0.42rem] bg-foreground/[0.045]" />
-                      <span className="h-1.5 w-24 rounded-full bg-foreground/[0.065]" />
-                    </div>
-                  ))}
+                    ))
+                  : [0, 1].map((index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 rounded-[0.65rem] bg-[var(--kocteau-surface-control)] p-2.5"
+                      >
+                        <span className="size-9 shrink-0 rounded-[0.42rem] bg-foreground/[0.045]" />
+                        <span className="h-1.5 w-24 rounded-full bg-foreground/[0.065]" />
+                      </div>
+                    ))}
+              </div>
             </div>
           </div>
           <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">03</p>
-          <h3 className="mt-3 text-[12px] font-semibold leading-5 text-foreground">
+          <h3 className="mt-3 text-sm font-semibold leading-[1.35] text-foreground">
             Follow taste, not noise.
           </h3>
-          <p className="mt-1.5 text-pretty text-[12px] leading-[1.55] text-muted-foreground/72">
-            Discover music through listeners whose ears you trust.
+          <p className="mt-2 max-w-[31ch] text-pretty text-[13px] leading-[1.6] text-muted-foreground/76">
+            Shape a feed through thoughtful reviews and listeners whose ears you trust.
           </p>
         </article>
       </div>
@@ -291,8 +298,12 @@ export default function GuestHome({
           </div>
         </div>
 
-        <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
-          <ProductFeatureGrid starterTracks={starterTracks} />
+        <div className="relative isolate overflow-x-clip">
+          <GuestDitheredMark className="absolute -right-44 -top-24 h-[24rem] w-[32rem] opacity-30 sm:-right-60 sm:-top-28 sm:h-[30rem] sm:w-[40rem] sm:opacity-40 lg:-right-72 lg:-top-32 lg:h-[34rem] lg:w-[45rem]" />
+
+          <div className="relative z-10 mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
+            <ProductFeatureGrid starterTracks={starterTracks} />
+          </div>
         </div>
 
         <GuestTestimonials />
