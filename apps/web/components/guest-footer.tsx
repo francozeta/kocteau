@@ -39,7 +39,7 @@ const footerGroups = [
 
 function FooterLink({ href, label }: { href: string; label: string }) {
   const className =
-    "w-fit text-[12px] leading-5 text-muted-foreground/62 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
+    "w-fit font-circular text-[12px] font-medium leading-5 text-muted-foreground/62 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
 
   if (href.startsWith("http")) {
     return (
@@ -67,11 +67,11 @@ export default function GuestFooter() {
             className="flex items-center gap-2.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
           >
             <BrandLogo iconClassName="size-5" />
-            <span className="font-serif text-[16px] font-semibold text-foreground">
+            <span className="font-editorial text-[16px] font-normal text-foreground">
               Kocteau
             </span>
           </Link>
-          <p className="text-[10px] text-muted-foreground/42">kocteau.com</p>
+          <p className="font-circular text-[10px] font-medium text-muted-foreground/42">kocteau.com</p>
         </div>
 
         <div className="mt-12 grid grid-cols-2 gap-x-8 gap-y-11 sm:mt-14 sm:grid-cols-4 sm:gap-6">
@@ -79,7 +79,7 @@ export default function GuestFooter() {
             <section key={group.title} aria-labelledby={`footer-${group.title.toLowerCase()}`}>
               <h2
                 id={`footer-${group.title.toLowerCase()}`}
-                className="text-[12px] font-semibold text-foreground"
+                className="font-circular text-[12px] font-medium text-foreground"
               >
                 {group.title}
               </h2>
@@ -93,7 +93,7 @@ export default function GuestFooter() {
         </div>
 
         <div className="mt-14 border-t border-foreground/[0.06] pt-5 sm:mt-16">
-          <p className="text-[10px] text-muted-foreground/42">
+          <p className="font-circular text-[10px] font-medium text-muted-foreground/42">
             © 2026 Kocteau
           </p>
         </div>

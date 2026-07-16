@@ -51,7 +51,7 @@ const askKocteauLinks = [
 function AskKocteauLinks() {
   return (
     <div className="mt-6 flex flex-wrap items-center gap-2.5">
-      <p className="mr-1 text-[11px] text-muted-foreground/62">
+      <p className="mr-1 font-circular text-[11px] font-medium text-muted-foreground/62">
         Ask about Kocteau on
       </p>
       {askKocteauLinks.map(({ label, href, icon: Icon }) => (
@@ -75,23 +75,23 @@ function GuestHomeHero() {
   return (
     <header className="flex min-h-[58svh] items-center py-14 sm:min-h-[62svh] sm:py-16 lg:min-h-[64svh] lg:py-20">
       <div className="relative z-10 max-w-[52rem]">
-        <h1 className="max-w-[43rem] text-balance font-serif text-[clamp(2.7rem,5.8vw,4.65rem)] font-semibold leading-[0.95] tracking-[-0.04em] text-foreground">
+        <h1 className="max-w-[43rem] text-balance font-editorial text-[clamp(2.7rem,5.8vw,4.65rem)] font-normal leading-[0.95] tracking-[-0.035em] text-foreground">
           Keep what the music left behind.
         </h1>
-        <p className="mt-6 text-[14px] leading-6 text-muted-foreground/72 sm:text-[15px]">
+        <p className="mt-6 font-circular text-[14px] font-medium leading-6 text-muted-foreground/72 sm:text-[15px]">
           Music reviews from real listeners.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-2.5">
           <Link
             href="/signup"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96]"
           >
             Join Kocteau
             <ArrowRight className="size-3.5" />
           </Link>
           <Link
             href="/reviews"
-            className="inline-flex h-11 items-center justify-center rounded-full px-4 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            className="inline-flex h-11 items-center justify-center rounded-full px-4 font-circular text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
           >
             Read recent reviews
           </Link>
@@ -112,7 +112,7 @@ function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }
       <div className="max-w-[40rem]">
         <h2
           id="product-values-title"
-          className="text-balance font-serif text-[clamp(1.85rem,3.6vw,2.8rem)] font-semibold leading-[1.02] tracking-[-0.03em] text-foreground"
+          className="text-balance font-editorial text-[clamp(1.85rem,3.6vw,2.8rem)] font-normal leading-[1.02] tracking-[-0.025em] text-foreground"
         >
           Where listening becomes memory.
         </h2>
@@ -149,10 +149,10 @@ function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }
             </div>
           </div>
           <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">01</p>
-          <h3 className="mt-3 text-sm font-semibold leading-[1.35] text-foreground">
+          <h3 className="mt-3 font-circular text-sm font-medium leading-[1.35] text-foreground">
             Find what stayed with you.
           </h3>
-          <p className="mt-2 max-w-[31ch] text-pretty text-[13px] leading-[1.6] text-muted-foreground/76">
+          <p className="mt-2 max-w-[31ch] text-pretty font-circular text-[13px] font-medium leading-[1.6] text-muted-foreground/76">
             Search any track, album, or artist—and keep the feeling before it fades.
           </p>
         </article>
@@ -182,10 +182,10 @@ function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }
             </div>
           </div>
           <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">02</p>
-          <h3 className="mt-3 text-sm font-semibold leading-[1.35] text-foreground">
+          <h3 className="mt-3 font-circular text-sm font-medium leading-[1.35] text-foreground">
             Keep more than a score.
           </h3>
-          <p className="mt-2 max-w-[31ch] text-pretty text-[13px] leading-[1.6] text-muted-foreground/76">
+          <p className="mt-2 max-w-[31ch] text-pretty font-circular text-[13px] font-medium leading-[1.6] text-muted-foreground/76">
             Save the thought, context, and words you will want to return to.
           </p>
         </article>
@@ -231,10 +231,10 @@ function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }
             </div>
           </div>
           <p className="mt-5 font-mono text-[10px] tabular-nums text-muted-foreground/58">03</p>
-          <h3 className="mt-3 text-sm font-semibold leading-[1.35] text-foreground">
+          <h3 className="mt-3 font-circular text-sm font-medium leading-[1.35] text-foreground">
             Follow taste, not noise.
           </h3>
-          <p className="mt-2 max-w-[31ch] text-pretty text-[13px] leading-[1.6] text-muted-foreground/76">
+          <p className="mt-2 max-w-[31ch] text-pretty font-circular text-[13px] font-medium leading-[1.6] text-muted-foreground/76">
             Shape a feed through thoughtful reviews and listeners whose ears you trust.
           </p>
         </article>
@@ -252,24 +252,24 @@ function GuestClosingCta() {
       <div className="order-2 max-w-[31rem] lg:order-1">
         <h2
           id="closing-cta-title"
-          className="text-balance font-serif text-[clamp(2.25rem,4.5vw,3.85rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-foreground"
+          className="text-balance font-editorial text-[clamp(2.25rem,4.5vw,3.85rem)] font-normal leading-[0.98] tracking-[-0.03em] text-foreground"
         >
           Your taste is already a story.
         </h2>
-        <p className="mt-5 max-w-[27rem] text-pretty text-[13px] leading-6 text-muted-foreground/72 sm:text-[14px]">
+        <p className="mt-5 max-w-[27rem] text-pretty font-circular text-[13px] font-medium leading-6 text-muted-foreground/72 sm:text-[14px]">
           Keep the records, ratings, and listening notes that made it yours.
         </p>
         <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <Link
             href="/signup"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
           >
             Join Kocteau
             <ArrowRight className="size-3.5" />
           </Link>
           <Link
             href="/reviews"
-            className="inline-flex h-11 items-center justify-center rounded-full border border-foreground/[0.14] px-5 text-[13px] font-medium text-foreground/82 transition-[border-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-[0.97]"
+            className="inline-flex h-11 items-center justify-center rounded-full border border-foreground/[0.14] px-5 font-circular text-[13px] font-medium text-foreground/82 transition-[border-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-[0.97]"
           >
             Read music reviews
           </Link>
@@ -289,7 +289,7 @@ export default function GuestHome({
   starterTracks,
 }: GuestHomeProps) {
   return (
-    <div>
+    <div className="kocteau-guest-typography">
       <div className="space-y-16 sm:space-y-20 lg:space-y-24">
         <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
           <GuestHomeHero />

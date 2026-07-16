@@ -1,6 +1,7 @@
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 
 import ReactQueryProvider from "@/app/providers/react-query-provider";
+import { circular, redaction } from "@/app/landing-fonts";
 import AppShell from "@/components/app-shell";
 import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
 import FeedReviewList from "@/components/feed-review-list";
@@ -167,7 +168,7 @@ export default async function HomePage({
 
   return (
     <ReactQueryProvider>
-      <div className="min-h-svh overflow-x-clip bg-[var(--kocteau-shell)] text-foreground">
+      <div className={`${circular.variable} ${redaction.variable} kocteau-guest-typography min-h-svh overflow-x-clip bg-[var(--kocteau-shell)] text-foreground`}>
         <GuestHeader />
         <main className="pt-15 sm:pt-16">
           <HydrationBoundary state={dehydrate(queryClient)}>

@@ -195,10 +195,10 @@ export default function GuestTestimonials() {
                   </AvatarFallback>
                 </Avatar>
                 <span>
-                  <span className="block text-[12px] font-semibold text-white/92">
+                  <span className="block font-circular text-[12px] font-medium text-white/92">
                     {testimonial.author}
                   </span>
-                  <span className="mt-0.5 block text-[11px] text-white/52">
+                  <span className="mt-0.5 block font-circular text-[11px] font-medium text-white/52">
                     {testimonial.handle} · X
                   </span>
                 </span>
