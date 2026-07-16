@@ -22,6 +22,8 @@ export interface UseSoundOptions {
   interrupt?: boolean;
   /** If false, play() does nothing. Useful for user preferences. Default: true */
   soundEnabled?: boolean;
+  /** If true, active playback stops when the component unmounts. Default: true */
+  stopOnUnmount?: boolean;
   /** Called when playback starts */
   onPlay?: () => void;
   /** Called when playback ends naturally */
