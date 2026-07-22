@@ -1,22 +1,15 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
 import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { measureServerTask } from "@/lib/perf";
-import { supabaseServer } from "@/lib/supabase/server";
 
 async function getFeedResponse(req: Request) {
   const url = new URL(req.url);
   const viewParam = url.searchParams.get("view") ?? undefined;
   const cursor = url.searchParams.get("cursor");
-  const userPromise = (async () => {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    return user;
-  })();
-  const user = await userPromise;
+  const user = await getCurrentUser();
   const activeView = isFeedView(viewParam) ? viewParam : user ? "for-you" : "latest";
   const bundle = await getFeedPage({
     view: activeView,

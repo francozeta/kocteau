@@ -20,6 +20,12 @@ export type CurrentOnboardingState = {
   tasteOnboarded: boolean;
 };
 
+type CurrentViewerContext = Omit<CurrentViewerProfile, "username"> & {
+  username: string | null;
+  onboarded: boolean | null;
+  taste_onboarded: boolean | null;
+};
+
 export const getCurrentUser = cache(async () => {
   const cookieStore = await cookies();
   const hasSupabaseCookie = cookieStore
@@ -38,28 +44,7 @@ export const getCurrentUser = cache(async () => {
   return user;
 });
 
-export const getCurrentViewerProfile = cache(async (): Promise<CurrentViewerProfile | null> => {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return null;
-  }
-
-  const supabase = await supabaseServer();
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded")
-    .eq("id", user.id)
-    .maybeSingle<CurrentViewerProfile & { onboarded: boolean | null }>();
-
-  if (!data?.username || !data.onboarded) {
-    return null;
-  }
-
-  return data;
-});
-
-export const getCurrentOnboardingState = cache(async (): Promise<CurrentOnboardingState | null> => {
+const getCurrentViewerContext = cache(async (): Promise<CurrentViewerContext | null> => {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -69,36 +54,53 @@ export const getCurrentOnboardingState = cache(async (): Promise<CurrentOnboardi
   const supabase = await supabaseServer();
   const profileQuery = await supabase
     .from("profiles")
-    .select("username, onboarded, taste_onboarded")
+    .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded, taste_onboarded")
     .eq("id", user.id)
-    .maybeSingle<{
-      username: string | null;
-      onboarded: boolean | null;
-      taste_onboarded: boolean | null;
-    }>();
+    .maybeSingle<CurrentViewerContext>();
 
   if (!profileQuery.error) {
-    const profile = profileQuery.data;
-
-    return {
-      profileOnboarded: Boolean(profile?.username && profile.onboarded),
-      tasteOnboarded: profile?.taste_onboarded ?? false,
-    };
+    return profileQuery.data;
   }
 
   const fallbackQuery = await supabase
     .from("profiles")
-    .select("username, onboarded")
+    .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded")
     .eq("id", user.id)
-    .maybeSingle<{
-      username: string | null;
-      onboarded: boolean | null;
-    }>();
+    .maybeSingle<Omit<CurrentViewerContext, "taste_onboarded">>();
 
-  const fallbackProfile = fallbackQuery.data;
+  return fallbackQuery.data
+    ? { ...fallbackQuery.data, taste_onboarded: true }
+    : null;
+});
+
+export const getCurrentViewerProfile = cache(async (): Promise<CurrentViewerProfile | null> => {
+  const profile = await getCurrentViewerContext();
+
+  if (!profile?.username || !profile.onboarded) {
+    return null;
+  }
 
   return {
-    profileOnboarded: Boolean(fallbackProfile?.username && fallbackProfile.onboarded),
-    tasteOnboarded: true,
+    id: profile.id,
+    username: profile.username,
+    avatar_url: profile.avatar_url,
+    display_name: profile.display_name,
+    bio: profile.bio,
+    spotify_url: profile.spotify_url,
+    apple_music_url: profile.apple_music_url,
+    deezer_url: profile.deezer_url,
+  };
+});
+
+export const getCurrentOnboardingState = cache(async (): Promise<CurrentOnboardingState | null> => {
+  const profile = await getCurrentViewerContext();
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    profileOnboarded: Boolean(profile.username && profile.onboarded),
+    tasteOnboarded: profile.taste_onboarded ?? false,
   };
 });

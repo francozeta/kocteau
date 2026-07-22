@@ -45,7 +45,7 @@ export default async function TrackIndexPage() {
               Explore
             </Link>
             <PrefetchLink
-              href="/"
+              href="/feed"
               queryWarmup={{ kind: "feed" }}
               className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "rounded-full")}
             >

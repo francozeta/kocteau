@@ -166,9 +166,9 @@ export default function AppSidebar({
   const mainItems = [
     {
       title: "Feed",
-      url: "/",
+      url: profile ? "/feed" : "/",
       icon: KocteauHomeIcon,
-      isActive: pathname === "/",
+      isActive: profile ? pathname === "/feed" : pathname === "/",
     },
     {
       title: "Explore",
@@ -235,7 +235,7 @@ export default function AppSidebar({
         <SidebarHeader className="gap-2 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
           <div className="flex min-h-10 items-center justify-between gap-2 px-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0">
             <PrefetchLink
-              href="/"
+              href={profile ? "/feed" : "/"}
               onClick={closeMobileSidebar}
               queryWarmup={{ kind: "feed" }}
               aria-label="Kocteau home"

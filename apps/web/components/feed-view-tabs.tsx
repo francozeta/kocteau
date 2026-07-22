@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import type { FeedView } from "@/lib/feed-view";
 import { cn } from "@/lib/utils";
@@ -24,10 +22,10 @@ const feedViews: Array<{
 
 function getFeedViewHref(view: FeedView) {
   if (view === "for-you") {
-    return "/";
+    return "/feed";
   }
 
-  return `/?view=${view}`;
+  return `/feed?view=${view}`;
 }
 
 type FeedViewTabsProps = {
@@ -56,6 +54,7 @@ export default function FeedViewTabs({
           <Link
             key={view.value}
             href={getFeedViewHref(view.value)}
+            prefetch={false}
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "relative z-10 inline-flex h-8 items-center justify-center rounded-full px-2.5 text-[13px] font-medium text-muted-foreground/78 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-0",
