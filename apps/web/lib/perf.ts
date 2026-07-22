@@ -1,12 +1,61 @@
 import "server-only";
 
-const SLOW_QUERY_THRESHOLD_MS = Number(process.env.KOCTEAU_PERF_SLOW_MS ?? 300);
-const PERF_ENABLED =
-  process.env.KOCTEAU_PERF_LOGS === "1" || process.env.NODE_ENV !== "production";
+const DEFAULT_SLOW_TASK_THRESHOLD_MS = 750;
+const DEFAULT_PRODUCTION_SAMPLE_RATE = 0.01;
+const SENSITIVE_CONTEXT_KEY = /(cursor|email|id|path|query|token|url|username)/i;
+
+function readFiniteNumber(value: string | undefined, fallback: number) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+const SLOW_TASK_THRESHOLD_MS = Math.max(
+  0,
+  readFiniteNumber(
+    process.env.KOCTEAU_PERF_SLOW_MS,
+    DEFAULT_SLOW_TASK_THRESHOLD_MS,
+  ),
+);
+const PERF_SAMPLE_RATE = Math.min(
+  1,
+  Math.max(
+    0,
+    readFiniteNumber(
+      process.env.KOCTEAU_PERF_SAMPLE_RATE,
+      process.env.NODE_ENV === "production" ? DEFAULT_PRODUCTION_SAMPLE_RATE : 0,
+    ),
+  ),
+);
+const PERF_ENABLED = process.env.KOCTEAU_PERF_LOGS !== "0";
 const PERF_VERBOSE = process.env.KOCTEAU_PERF_VERBOSE === "1";
 
-function formatDuration(durationMs: number) {
-  return `${durationMs.toFixed(1)}ms`;
+function roundDuration(durationMs: number) {
+  return Number(durationMs.toFixed(1));
+}
+
+function sanitizeContext(context?: Record<string, unknown>) {
+  if (!context) {
+    return undefined;
+  }
+
+  const safeEntries = Object.entries(context).filter(
+    ([key, value]) =>
+      !SENSITIVE_CONTEXT_KEY.test(key) &&
+      (typeof value === "boolean" ||
+        typeof value === "number" ||
+        typeof value === "string" ||
+        value === null),
+  );
+
+  return safeEntries.length > 0 ? Object.fromEntries(safeEntries) : undefined;
+}
+
+function shouldLogCompletedTask(durationMs: number) {
+  return (
+    PERF_VERBOSE ||
+    durationMs >= SLOW_TASK_THRESHOLD_MS ||
+    Math.random() < PERF_SAMPLE_RATE
+  );
 }
 
 export async function measureServerTask<T>(
@@ -24,15 +73,23 @@ export async function measureServerTask<T>(
     const result = await run();
     const durationMs = performance.now() - startedAt;
 
-    if (PERF_VERBOSE || durationMs >= SLOW_QUERY_THRESHOLD_MS) {
-      console.info(`[perf] ${name} completed in ${formatDuration(durationMs)}`, context ?? {});
+    if (shouldLogCompletedTask(durationMs)) {
+      console.info({
+        event: durationMs >= SLOW_TASK_THRESHOLD_MS ? "server_task_slow" : "server_task_sample",
+        task: name,
+        duration_ms: roundDuration(durationMs),
+        context: sanitizeContext(context),
+      });
     }
 
     return result;
   } catch (error) {
     const durationMs = performance.now() - startedAt;
-    console.error(`[perf] ${name} failed after ${formatDuration(durationMs)}`, {
-      ...(context ?? {}),
+    console.error({
+      event: "server_task_failed",
+      task: name,
+      duration_ms: roundDuration(durationMs),
+      context: sanitizeContext(context),
       error:
         error instanceof Error
           ? {

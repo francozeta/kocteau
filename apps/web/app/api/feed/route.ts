@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { isFeedView } from "@/lib/feed-view";
 import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
+import { measureServerTask } from "@/lib/perf";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export async function GET(req: Request) {
+async function getFeedResponse(req: Request) {
   const url = new URL(req.url);
   const viewParam = url.searchParams.get("view") ?? undefined;
   const cursor = url.searchParams.get("cursor");
@@ -55,5 +56,11 @@ export async function GET(req: Request) {
     nextCursor: bundle.nextCursor,
     view: bundle.view,
     requiresAuth: (activeView === "following" || activeView === "for-you") && !user,
+  });
+}
+
+export async function GET(req: Request) {
+  return measureServerTask("GET /api/feed", () => getFeedResponse(req), {
+    route: "/api/feed",
   });
 }

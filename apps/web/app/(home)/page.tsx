@@ -12,6 +12,7 @@ import JsonLd from "@/components/json-ld";
 import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
+import { measureServerTask } from "@/lib/perf";
 import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
 import {
   getPublicStarterTracks,
@@ -39,7 +40,9 @@ export default async function HomePage({
   const params = await searchParams;
   const requestedView =
     isFeedView(params.view) && params.view !== "latest" ? params.view : null;
-  const user = await getCurrentUser();
+  const user = await measureServerTask("getHomeViewer", getCurrentUser, {
+    route: "/",
+  });
   const activeView = user ? requestedView ?? "for-you" : "latest";
   const tabActiveView = activeView === "latest" ? "for-you" : activeView;
 
@@ -52,15 +55,24 @@ export default async function HomePage({
       })
     : getPublicStarterTracks({ limit: 6, contextKey: "home" });
 
-  const [publicBundle, starterTracks, viewerProfile] = await Promise.all([
-    getFeedPage({
+  const [publicBundle, starterTracks, viewerProfile] = await measureServerTask(
+    "getHomePrimaryData",
+    () =>
+      Promise.all([
+        getFeedPage({
+          view: activeView,
+          viewerId: user?.id,
+          includeActiveUsers: false,
+        }),
+        starterTracksPromise,
+        user ? getCurrentViewerProfile() : Promise.resolve(null),
+      ]),
+    {
+      route: "/",
       view: activeView,
-      viewerId: user?.id,
-      includeActiveUsers: false,
-    }),
-    starterTracksPromise,
-    user ? getCurrentViewerProfile() : Promise.resolve(null),
-  ]);
+      authenticated: Boolean(user),
+    },
+  );
 
   const viewerState =
     user?.id && publicBundle.feed.length > 0
