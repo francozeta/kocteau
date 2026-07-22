@@ -7,8 +7,13 @@ type TrackAnalyticsEventOptions = AnalyticsEventInput;
 const analyticsBatchSize = 20;
 const analyticsFlushDelayMs = 300;
 const pendingEvents: TrackAnalyticsEventOptions[] = [];
+const pendingEventKeys = new Set<string>();
 let flushTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let lifecycleListenersReady = false;
+
+function getAnalyticsEventKey(event: TrackAnalyticsEventOptions) {
+  return JSON.stringify(event);
+}
 
 function sendAnalyticsEvents(events: TrackAnalyticsEventOptions[]) {
   if (events.length === 0) {
@@ -47,7 +52,9 @@ function flushAnalyticsEvents() {
   }
 
   while (pendingEvents.length > 0) {
-    sendAnalyticsEvents(pendingEvents.splice(0, analyticsBatchSize));
+    const events = pendingEvents.splice(0, analyticsBatchSize);
+    events.forEach((event) => pendingEventKeys.delete(getAnalyticsEventKey(event)));
+    sendAnalyticsEvents(events);
   }
 }
 
@@ -66,6 +73,13 @@ function ensureLifecycleFlush() {
 }
 
 export function trackAnalyticsEvent(event: TrackAnalyticsEventOptions) {
+  const eventKey = getAnalyticsEventKey(event);
+
+  if (pendingEventKeys.has(eventKey)) {
+    return;
+  }
+
+  pendingEventKeys.add(eventKey);
   pendingEvents.push(event);
   ensureLifecycleFlush();
 
