@@ -6,6 +6,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import FeedReviewCta from "@/components/feed-review-cta";
 import FeedStarterLayer from "@/components/feed-starter-layer";
 import FeedStarterShelf from "@/components/feed-starter-shelf";
+import { FeedReviewStackSkeleton } from "@/components/feed-loading-skeletons";
 import { Music2, Sparkles, UsersRound } from "@/components/ui/icons";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
@@ -28,7 +29,7 @@ type FeedReviewListViewer = {
 
 type FeedReviewListProps = {
   view: FeedView;
-  initialPage: FeedBundleQueryData;
+  initialPage?: FeedBundleQueryData;
   isAuthenticated: boolean;
   viewer: FeedReviewListViewer;
   starterTracks?: StarterTrack[];
@@ -156,16 +157,21 @@ export default function FeedReviewList({
   const reviewVisibleSinceRef = useRef(new Map<string, number>());
   const feedQuery = useInfiniteQuery({
     ...feedInfiniteQueryOptions(view),
-    initialData: {
-      pages: [initialPage],
-      pageParams: [null],
-    },
+    ...(initialPage
+      ? {
+          initialData: {
+            pages: [initialPage],
+            pageParams: [null],
+          },
+        }
+      : {}),
   });
   const {
     data,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isPending,
   } = feedQuery;
   const reviews = useMemo(() => {
     const seen = new Set<string>();
@@ -244,7 +250,7 @@ export default function FeedReviewList({
         return;
       }
 
-      const pageKey = `${pageIndex}:${reviewIds.join(",")}`;
+      const pageKey = `${view}:${pageIndex}:${reviewIds.join(",")}`;
 
       if (trackedPageKeysRef.current.has(pageKey)) {
         return;
@@ -447,6 +453,14 @@ export default function FeedReviewList({
     );
   const shouldShowReviewCta =
     showReviewCta && (view === "for-you" || view === "latest");
+
+  if (isPending) {
+    return (
+      <div aria-busy="true" aria-label="Loading feed">
+        <FeedReviewStackSkeleton />
+      </div>
+    );
+  }
 
   if (reviews.length === 0) {
     if (showStarterLayer) {

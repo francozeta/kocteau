@@ -4,7 +4,7 @@ import JsonLd from "@/components/json-ld";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
 import ReviewPageHeaderBridge from "@/components/review-page-header-bridge";
 import { ReviewPageCard } from "@/components/review-route-cards-server";
-import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
+import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata, createReviewDescription } from "@/lib/metadata";
 import {
   getPublicReviewByRouteId,
@@ -109,8 +109,8 @@ export default async function ReviewPage({
     notFound();
   }
 
-  const [user, routeReview] = await Promise.all([
-    getCurrentUser(),
+  const [userId, routeReview] = await Promise.all([
+    getCurrentUserId(),
     getPublicReviewByRouteId(reviewId),
   ]);
 
@@ -119,8 +119,8 @@ export default async function ReviewPage({
   }
 
   const [viewerProfile, viewerState] = await Promise.all([
-    user ? getCurrentViewerProfile() : null,
-    getReviewViewerState(user?.id, routeReview.id),
+    userId ? getCurrentViewerProfile() : null,
+    getReviewViewerState(userId, routeReview.id),
   ]);
 
   const canonicalPath = buildReviewCanonicalPath(routeReview);
@@ -136,7 +136,7 @@ export default async function ReviewPage({
   };
   const entity = review.entities;
   const author = review.author;
-  const canManage = Boolean(user?.id && author?.id === user.id);
+  const canManage = Boolean(userId && author?.id === userId);
   const headerTitle = getTrackLabel(review);
 
   return (
@@ -145,7 +145,7 @@ export default async function ReviewPage({
       <ReviewPageHeaderBridge
         reviewId={review.id}
         entityId={entity?.id}
-        isAuthenticated={Boolean(user)}
+        isAuthenticated={Boolean(userId)}
         title={headerTitle}
         entityTitle={entity?.title}
         artistName={entity?.artist_name}
@@ -156,14 +156,14 @@ export default async function ReviewPage({
         review={review}
         entity={entity}
         author={author}
-        isAuthenticated={Boolean(user)}
+        isAuthenticated={Boolean(userId)}
         canManage={canManage}
       />
 
       <ReviewCommentsPanel
         reviewId={review.id}
         initialCount={review.comments_count}
-        isAuthenticated={Boolean(user)}
+        isAuthenticated={Boolean(userId)}
         viewer={
           viewerProfile
             ? {

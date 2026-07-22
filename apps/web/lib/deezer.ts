@@ -102,6 +102,11 @@ type DeezerTrackMapOptions = {
 const deezerRequestTimeoutMs = 8_000;
 const deezerSearchRetryDelaysMs = [250, 700] as const;
 const deezerResourceRetryDelaysMs = [300] as const;
+const deezerResourceRevalidateSeconds = 24 * 60 * 60;
+
+export function isDeezerProviderId(value: string) {
+  return /^[1-9]\d{0,19}$/.test(value);
+}
 
 type DeezerFetchOptions = {
   errorMessage: string;
@@ -410,12 +415,16 @@ export async function getDeezerAlbumTracks(
 }
 
 export async function getDeezerTrack(providerId: string): Promise<DeezerTrackResult | null> {
+  if (!isDeezerProviderId(providerId)) {
+    return null;
+  }
+
   const url = `https://api.deezer.com/track/${encodeURIComponent(providerId)}`;
   const json = await fetchOptionalDeezerJson<DeezerTrackApiItem & { error?: unknown }>(
     url,
     {
       errorMessage: "Deezer track request failed",
-      revalidate: 300,
+      revalidate: deezerResourceRevalidateSeconds,
       scope: "track",
     },
   );

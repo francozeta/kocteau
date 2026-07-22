@@ -1,5 +1,9 @@
+"use client";
+
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import type { FeedView } from "@/lib/feed-view";
+import { getFeedViewHref } from "@/lib/feed-view";
 import { cn } from "@/lib/utils";
 
 const feedViews: Array<{
@@ -20,25 +24,38 @@ const feedViews: Array<{
   },
 ];
 
-function getFeedViewHref(view: FeedView) {
-  if (view === "for-you") {
-    return "/feed";
-  }
-
-  return `/feed?view=${view}`;
-}
-
 type FeedViewTabsProps = {
   activeView: FeedView;
   fullWidth?: boolean;
   className?: string;
+  onViewChange?: (view: FeedView) => void;
 };
 
 export default function FeedViewTabs({
   activeView,
   fullWidth = false,
   className,
+  onViewChange,
 }: FeedViewTabsProps) {
+  function handleViewClick(
+    event: MouseEvent<HTMLAnchorElement>,
+    view: FeedView,
+  ) {
+    if (
+      !onViewChange ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    onViewChange(view);
+  }
+
   return (
     <div
       className={cn(
@@ -55,6 +72,7 @@ export default function FeedViewTabs({
             key={view.value}
             href={getFeedViewHref(view.value)}
             prefetch={false}
+            onClick={(event) => handleViewClick(event, view.value)}
             aria-current={isActive ? "page" : undefined}
             className={cn(
               "relative z-10 inline-flex h-8 items-center justify-center rounded-full px-2.5 text-[13px] font-medium text-muted-foreground/78 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-0",

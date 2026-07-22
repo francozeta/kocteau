@@ -6,7 +6,7 @@ import ProfileRecentReviewsSection from "@/components/profile-recent-reviews-sec
 import type { ReviewCardAuthor } from "@/components/review-card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ProfileReviewCard } from "@/components/review-route-cards-server";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUserId } from "@/lib/auth/server";
 import { getV0ReferralUrl } from "@/lib/creator-perks";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";
 import { getPublicCreatorPerk } from "@/lib/queries/creator-perks";
@@ -69,24 +69,24 @@ export default async function UserProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const userPromise = getCurrentUser();
+  const userIdPromise = getCurrentUserId();
   const publicBundlePromise = getProfilePublicBundle(username);
-  const [user, publicBundle] = await Promise.all([userPromise, publicBundlePromise]);
+  const [userId, publicBundle] = await Promise.all([userIdPromise, publicBundlePromise]);
 
   if (!publicBundle) {
     notFound();
   }
 
   const { profile, pinnedReview, reviews } = publicBundle;
-  const isOwnProfile = user?.id === profile.id;
+  const isOwnProfile = userId === profile.id;
   const reviewIds = [
     ...(pinnedReview ? [pinnedReview.id] : []),
     ...reviews.map((review) => review.id),
   ];
-  const viewerStatePromise = getProfileViewerState(user?.id, reviewIds);
+  const viewerStatePromise = getProfileViewerState(userId, reviewIds);
   const followingPromise =
-    user?.id && !isOwnProfile
-      ? getViewerFollowsProfile(user.id, profile.id)
+    userId && !isOwnProfile
+      ? getViewerFollowsProfile(userId, profile.id)
       : Promise.resolve(false);
   const creatorPerkPromise = getPublicCreatorPerk(profile.id);
   const [{ likedReviewIds, bookmarkedReviewIds }, isFollowing, creatorPerk] = await Promise.all([
@@ -139,7 +139,7 @@ export default async function UserProfilePage({
         memberSince={memberSince}
         isOwnProfile={isOwnProfile}
         isFollowing={isFollowing}
-        isAuthenticated={Boolean(user)}
+        isAuthenticated={Boolean(userId)}
         creatorPerk={
           creatorPerk
             ? {
@@ -165,7 +165,7 @@ export default async function UserProfilePage({
               entity={hydratedPinnedReview.entities}
               author={profileAuthor}
               featured
-              isAuthenticated={Boolean(user)}
+              isAuthenticated={Boolean(userId)}
               canManage={isOwnProfile}
             />
           </section>
@@ -190,7 +190,7 @@ export default async function UserProfilePage({
                     }}
                     entity={review.entities}
                     author={profileAuthor}
-                    isAuthenticated={Boolean(user)}
+                    isAuthenticated={Boolean(userId)}
                     canManage={isOwnProfile}
                   />
                 ))}

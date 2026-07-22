@@ -52,7 +52,7 @@
     "check": "pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
-    "supabase": "^2.102.0",
+    "supabase": "^2.109.1",
     "tsx": "^4.22.4",
     "turbo": "2.9.16"
   },

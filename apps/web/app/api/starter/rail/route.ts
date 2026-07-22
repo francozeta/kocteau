@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUserId } from "@/lib/auth/server";
 import {
   getPublicStarterTracks,
   getStarterTracksForSurface,
@@ -40,12 +40,12 @@ function getRailContextKey(req: Request, surface: StarterSurface) {
 }
 
 export async function GET(req: Request) {
-  const user = await getCurrentUser();
+  const userId = await getCurrentUserId();
   const surface = getRailSurface(req);
   const limit = getRailLimit(req);
   const contextKey = getRailContextKey(req, surface);
 
-  if (!user) {
+  if (!userId) {
     const tracks = await getPublicStarterTracks({
       limit,
       contextKey,
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
   }
 
   const tracks = await getStarterTracksForSurface({
-    viewerId: user.id,
+    viewerId: userId,
     limit,
     surface,
     contextKey,

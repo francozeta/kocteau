@@ -1,6 +1,6 @@
 import { FeedReviewCard } from "@/components/review-route-cards-server";
 import JsonLd from "@/components/json-ld";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
 import { buildReviewsPageJsonLd } from "@/lib/structured-data";
@@ -13,17 +13,17 @@ export const metadata = createPageMetadata({
 });
 
 export default async function ReviewsPage() {
-  const user = await getCurrentUser();
+  const userId = await getCurrentUserId();
   const publicBundle = await getFeedPage({
     view: "latest",
-    viewerId: user?.id,
+    viewerId: userId,
     includeActiveUsers: false,
     limit: 14,
   });
   const viewerState =
-    user?.id && publicBundle.feed.length > 0
+    userId && publicBundle.feed.length > 0
       ? await getFeedViewerState(
-          user.id,
+          userId,
           publicBundle.feed.map((review) => review.id),
         )
       : {
@@ -90,8 +90,8 @@ export default async function ReviewsPage() {
               review={review}
               entity={entity}
               author={author}
-              isAuthenticated={Boolean(user)}
-              canManage={Boolean(user?.id && author?.id === user.id)}
+              isAuthenticated={Boolean(userId)}
+              canManage={Boolean(userId && author?.id === userId)}
               featured={index === 0}
               showInteractionBar
             />
