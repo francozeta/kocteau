@@ -79,7 +79,7 @@ export default function Header({
       return detailHeader?.shareLabel ?? "Review";
     }
 
-    if (pathname === "/") {
+    if (pathname === "/feed") {
       return "Feed";
     }
 
@@ -118,7 +118,7 @@ export default function Header({
   function renderMobileLogoMark(label: string) {
     return (
       <PrefetchLink
-        href="/"
+        href={profile ? "/feed" : "/"}
         queryWarmup={{ kind: "feed" }}
         className="mobile-liquid-logo pointer-events-auto inline-flex size-11 items-center justify-center rounded-full"
         aria-label={`Go to feed. Current route: ${label}`}
@@ -135,8 +135,16 @@ export default function Header({
       return;
     }
 
-    router.push(isProfileDetailRoute ? "/" : isMobileReviewRoute ? "/reviews" : "/search");
-  }, [isMobileReviewRoute, isProfileDetailRoute, router]);
+    router.push(
+      isProfileDetailRoute
+        ? profile
+          ? "/feed"
+          : "/"
+        : isMobileReviewRoute
+          ? "/reviews"
+          : "/search",
+    );
+  }, [isMobileReviewRoute, isProfileDetailRoute, profile, router]);
 
   const handleShareDetail = useCallback(async () => {
     if (typeof window === "undefined") {

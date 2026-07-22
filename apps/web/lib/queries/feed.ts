@@ -62,6 +62,7 @@ type FeedPageOptions = {
   cursor?: string | null;
   limit?: number;
   includeActiveUsers?: boolean;
+  revalidateSeconds?: number;
 };
 
 const feedPageLoaders = new Map<string, () => Promise<FeedPageData>>();
@@ -414,6 +415,7 @@ export async function getFeedPage({
   cursor = null,
   limit = FEED_PAGE_SIZE,
   includeActiveUsers = false,
+  revalidateSeconds = 60,
 }: FeedPageOptions = {}) {
   if (view === "for-you") {
     return measureServerTask(
@@ -453,9 +455,18 @@ export async function getFeedPage({
     );
   }
 
+  const cacheTtlSeconds = Math.max(60, Math.min(revalidateSeconds, 60 * 60));
+
   return getOrCreateLoader(
     feedPageLoaders,
-    ["feed-page", view, cursor ?? "first", limit, includeActiveUsers],
+    [
+      "feed-page",
+      view,
+      cursor ?? "first",
+      limit,
+      includeActiveUsers,
+      cacheTtlSeconds,
+    ],
     () =>
       unstable_cache(
         async () =>
@@ -470,9 +481,16 @@ export async function getFeedPage({
               }),
             { view, cursor: Boolean(cursor), limit, includeActiveUsers },
           ),
-        ["feed-page", view, cursor ?? "first", String(limit), String(includeActiveUsers)],
+        [
+          "feed-page",
+          view,
+          cursor ?? "first",
+          String(limit),
+          String(includeActiveUsers),
+          String(cacheTtlSeconds),
+        ],
         {
-          revalidate: 60,
+          revalidate: cacheTtlSeconds,
           tags: ["feed", `feed:${view}`, "reviews", "entities", "profiles"],
         },
       ),

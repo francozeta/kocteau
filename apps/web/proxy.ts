@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isFeedView } from "@/lib/feed-view";
 import { getShortRouteId, isFullUuid } from "@/lib/seo-routes";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
 
@@ -37,6 +38,28 @@ function getShortIdRedirectPath(pathname: string) {
   return null;
 }
 
+function copyResponseCookies(source: NextResponse, target: NextResponse) {
+  source.cookies.getAll().forEach((cookie) => {
+    target.cookies.set(cookie);
+  });
+}
+
+function getFeedLoginRedirect(request: NextRequest, response?: NextResponse) {
+  const loginUrl = request.nextUrl.clone();
+  const nextPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+
+  loginUrl.pathname = "/login";
+  loginUrl.search = "";
+  loginUrl.searchParams.set("next", nextPath);
+  const redirectResponse = NextResponse.redirect(loginUrl);
+
+  if (response) {
+    copyResponseCookies(response, redirectResponse);
+  }
+
+  return redirectResponse;
+}
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
@@ -59,7 +82,9 @@ export async function proxy(request: NextRequest) {
   }
 
   const hasSbCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
-  if (!hasSbCookie) return response;
+  if (!hasSbCookie) {
+    return pathname === "/feed" ? getFeedLoginRedirect(request) : response;
+  }
 
   const supabase = createServerClient(
     getSupabaseUrl(),
@@ -76,7 +101,36 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+
+  if (pathname === "/feed" && (claimsError || !claimsData?.claims?.sub)) {
+    return getFeedLoginRedirect(request, response);
+  }
+
+  if (pathname === "/" && !claimsError && claimsData?.claims?.sub) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/feed";
+    redirectUrl.search = "";
+    const requestedView = request.nextUrl.searchParams.get("view") ?? undefined;
+
+    if (
+      isFeedView(requestedView) &&
+      requestedView !== "for-you" &&
+      requestedView !== "latest"
+    ) {
+      redirectUrl.searchParams.set("view", requestedView);
+    }
+
+    if (request.nextUrl.searchParams.get("welcome") === "kocteau") {
+      redirectUrl.searchParams.set("welcome", "kocteau");
+    }
+
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    copyResponseCookies(response, redirectResponse);
+
+    return redirectResponse;
+  }
+
   return response;
 }
 
@@ -84,7 +138,7 @@ export const config = {
   matcher: [
     {
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*opengraph-image|.*twitter-image).*)",
+        "/((?!api|monitoring|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|woff|woff2|ttf|otf)$|.*opengraph-image|.*twitter-image).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

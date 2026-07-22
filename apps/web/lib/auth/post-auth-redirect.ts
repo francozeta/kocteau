@@ -50,5 +50,5 @@ export async function getPostAuthRedirect(
     return appendInternalNext("/onboarding/taste", nextPath);
   }
 
-  return nextPath ?? "/";
+  return nextPath ?? "/feed";
 }

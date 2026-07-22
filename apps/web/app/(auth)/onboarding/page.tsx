@@ -64,7 +64,7 @@ export default async function OnboardingPage({
       redirect(appendInternalNext("/onboarding/taste", nextPath));
     }
 
-    redirect(nextPath ?? "/");
+    redirect(nextPath ?? "/feed");
   }
 
   return <ProfileOnboardingFlow initialProfile={profile ?? undefined} nextPath={nextPath} />;

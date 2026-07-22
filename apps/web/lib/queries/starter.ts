@@ -1,13 +1,18 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { measureServerTask } from "@/lib/perf";
+import { getOrCreateLoader } from "@/lib/queries/cache-loader";
 import type { StarterSurface } from "@/lib/starter/surface";
 import {
   createStarterRotationSeed,
   rotateStarterTracks,
 } from "@/lib/starter/rotation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { supabasePublic } from "@/lib/supabase/public";
 import type { StarterTrack } from "@/lib/starter";
+
+const publicStarterLoaders = new Map<string, () => Promise<StarterTrack[]>>();
 
 type PublicStarterTrackRow = Pick<
   StarterTrack,
@@ -82,55 +87,73 @@ export async function getPublicStarterTracks({
   seed?: string;
   contextKey?: string | null;
 } = {}): Promise<StarterTrack[]> {
-  return measureServerTask(
-    "getPublicStarterTracks",
-    async () => {
-      const supabase = await supabaseServer();
-      const requestedLimit = Math.max(1, Math.min(limit, 12));
-      const lookupLimit = Math.max(24, Math.min(requestedLimit * 12, 120));
-      const { data, error } = await supabase
-        .from("starter_tracks")
-        .select(`
-          id,
-          provider,
-          provider_id,
-          type,
-          title,
-          artist_name,
-          cover_url,
-          deezer_url,
-          prompt,
-          editorial_note,
-          is_featured,
-          sort_order,
-          created_at
-        `)
-        .eq("is_active", true)
-        .order("is_featured", { ascending: false })
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false })
-        .limit(lookupLimit)
-        .returns<PublicStarterTrackRow[]>();
+  const requestedLimit = Math.max(1, Math.min(limit, 12));
+  const rotationSeed = `${seed ?? createStarterRotationSeed()}:${contextKey ?? "public"}`;
 
-      if (error) {
-        console.error("[starter.getPublicStarterTracks] failed", {
-          code: error.code ?? null,
-          message: error.message ?? null,
-        });
+  return getOrCreateLoader(
+    publicStarterLoaders,
+    ["public-starter-tracks", requestedLimit, rotationSeed],
+    () =>
+      unstable_cache(
+        async () =>
+          measureServerTask(
+            "getPublicStarterTracks",
+            async () => {
+              const supabase = supabasePublic();
+              const lookupLimit = Math.max(
+                24,
+                Math.min(requestedLimit * 12, 120),
+              );
+              const { data, error } = await supabase
+                .from("starter_tracks")
+                .select(`
+                  id,
+                  provider,
+                  provider_id,
+                  type,
+                  title,
+                  artist_name,
+                  cover_url,
+                  deezer_url,
+                  prompt,
+                  editorial_note,
+                  is_featured,
+                  sort_order,
+                  created_at
+                `)
+                .eq("is_active", true)
+                .order("is_featured", { ascending: false })
+                .order("sort_order", { ascending: true })
+                .order("created_at", { ascending: false })
+                .limit(lookupLimit)
+                .returns<PublicStarterTrackRow[]>();
 
-        return [];
-      }
+              if (error) {
+                console.error("[starter.getPublicStarterTracks] failed", {
+                  code: error.code ?? null,
+                  message: error.message ?? null,
+                });
 
-      const rotationSeed = `${seed ?? createStarterRotationSeed()}:${contextKey ?? "public"}`;
+                return [];
+              }
 
-      return rotateStarterTracks((data ?? []).map(mapPublicStarterTrack), rotationSeed)
-        .slice(0, requestedLimit);
-    },
-    {
-      limit,
-      contextKey,
-    },
-  );
+              return rotateStarterTracks(
+                (data ?? []).map(mapPublicStarterTrack),
+                rotationSeed,
+              ).slice(0, requestedLimit);
+            },
+            {
+              limit: requestedLimit,
+              contextKey,
+            },
+          ),
+        ["public-starter-tracks", String(requestedLimit), rotationSeed],
+        {
+          revalidate: 15 * 60,
+          tags: ["starter-tracks"],
+        },
+      ),
+  )();
 }
 
 export async function getStarterTracks({

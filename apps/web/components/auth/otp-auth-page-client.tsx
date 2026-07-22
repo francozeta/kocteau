@@ -202,7 +202,7 @@ export default function OtpAuthPageClient({ mode }: OtpAuthPageClientProps) {
       return appendInternalNext("/onboarding/taste", nextPath);
     }
 
-    return nextPath ?? "/";
+    return nextPath ?? "/feed";
   }, [supabase]);
 
   const redirectAfterAuth = useCallback(async (options?: { retry?: boolean }) => {

@@ -77,7 +77,7 @@ export function TasteOnboardingForm({
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [redirectTo, setRedirectTo] = useState(
-    nextPath ?? (isEditMode ? "/search" : "/?welcome=kocteau"),
+    nextPath ?? (isEditMode ? "/search" : "/feed?welcome=kocteau"),
   );
   const currentStep = isEditMode ? tasteEditStep : tasteSteps[currentStepIndex];
   const totalSteps = isEditMode ? 1 : tasteSteps.length;
@@ -143,7 +143,9 @@ export function TasteOnboardingForm({
       }
 
       const nextRedirect =
-        nextPath ?? data.redirectTo ?? (isEditMode ? "/search" : "/?welcome=kocteau");
+        nextPath ??
+        data.redirectTo ??
+        (isEditMode ? "/search" : "/feed?welcome=kocteau");
 
       if (isEditMode) {
         startTransition(() => {

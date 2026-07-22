@@ -72,10 +72,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   const primaryItems: NavItem[] = [
     {
-      href: "/",
+      href: profile ? "/feed" : "/",
       label: "Feed",
       icon: KocteauHomeIcon,
-      active: (current) => current === "/",
+      active: (current) => current === (profile ? "/feed" : "/"),
     },
     {
       href: "/search",
