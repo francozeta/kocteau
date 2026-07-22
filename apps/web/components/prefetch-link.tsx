@@ -30,6 +30,10 @@ function canWarmHref(href: LinkProps["href"]): href is string {
   return typeof href === "string" && href.startsWith("/");
 }
 
+function isDeferredResolverHref(href: LinkProps["href"]) {
+  return typeof href === "string" && href.startsWith("/track/deezer/");
+}
+
 const PrefetchLink = forwardRef<HTMLAnchorElement, PrefetchLinkProps>(
   (
     {
@@ -47,11 +51,12 @@ const PrefetchLink = forwardRef<HTMLAnchorElement, PrefetchLinkProps>(
     ref,
   ) => {
     const router = useRouter();
+    const canPrefetchRoute = !isDeferredResolverHref(href);
     // Route prefetch already carries the server-rendered query state for these pages.
     void _queryWarmup;
 
     function warmRoute() {
-      if (!canWarmHref(href)) {
+      if (!canPrefetchRoute || !canWarmHref(href)) {
         return;
       }
 
@@ -64,7 +69,7 @@ const PrefetchLink = forwardRef<HTMLAnchorElement, PrefetchLinkProps>(
       <Link
         ref={ref}
         href={href}
-        prefetch={prefetch}
+        prefetch={canPrefetchRoute ? prefetch : false}
         onMouseEnter={(event) => {
           onMouseEnter?.(event);
           if (warmOnHover) {

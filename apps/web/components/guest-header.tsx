@@ -5,22 +5,31 @@ import { cn } from "@/lib/utils";
 
 export default function GuestHeader() {
   return (
-    <header className="fixed inset-x-0 top-0 z-30 border-b border-border/25 bg-background/72 backdrop-blur-xl">
-      <div className="mx-auto flex h-15 max-w-5xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-10">
+    <header className="kocteau-guest-typography fixed inset-x-0 top-0 z-30 border-b border-white/[0.055] bg-[var(--kocteau-shell)]">
+      <div className="mx-auto flex h-15 w-full max-w-[80rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-10">
         <Link
           href="/"
-          className="inline-flex items-center rounded-full px-2 py-1"
-          aria-label="Go to feed"
+          className="-m-2 inline-flex items-center rounded-full p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+          aria-label="Kocteau home"
         >
           <BrandLogo priority iconClassName="h-[1.35rem] w-[1.35rem]" />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <nav aria-label="Guest navigation" className="flex items-center gap-1 sm:gap-2">
+          <Link
+            href="/reviews"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "hidden h-10 rounded-full px-3.5 font-circular font-medium text-muted-foreground hover:bg-white/[0.055] hover:text-foreground sm:inline-flex",
+            )}
+          >
+            Reviews
+          </Link>
           <Link
             href="/search"
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
-              "h-10 rounded-full border border-border/30 bg-background/55 px-3.5 text-muted-foreground hover:bg-muted/26 hover:text-foreground",
+              "h-10 rounded-full px-3.5 font-circular font-medium text-muted-foreground hover:bg-white/[0.055] hover:text-foreground",
             )}
           >
             Explore
@@ -28,13 +37,13 @@ export default function GuestHeader() {
           <Link
             href="/login"
             className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "h-10 rounded-full border-foreground bg-foreground px-4 text-background shadow-[0_10px_28px_rgba(0,0,0,0.28)] hover:border-foreground/90 hover:bg-foreground/90 hover:text-background",
+              buttonVariants({ variant: "default", size: "sm" }),
+              "h-10 rounded-full border-0 bg-foreground px-4 font-circular font-medium text-background shadow-none hover:bg-foreground/90 hover:text-background",
             )}
           >
             Log in
           </Link>
-        </div>
+        </nav>
       </div>
     </header>
   );

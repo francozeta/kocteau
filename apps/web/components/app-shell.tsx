@@ -16,6 +16,7 @@ import {
   getCurrentViewerProfile,
 } from "@/lib/auth/server";
 import { getStarterCuratorAccess } from "@/lib/queries/curation";
+import { cn } from "@/lib/utils";
 
 type AppShellVariant = "feed" | "studio";
 
@@ -66,14 +67,24 @@ export default async function AppShell({
               </main>
             </div>
           ) : (
-            <div className="mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:h-full lg:grid-cols-[minmax(0,44rem)_16rem] lg:items-stretch lg:justify-center lg:px-7 xl:gap-6 xl:px-8">
+            <div
+              className={cn(
+                "mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:h-full lg:items-stretch lg:justify-center lg:px-7 xl:gap-6 xl:px-8",
+                safeProfile
+                  ? "lg:grid-cols-[minmax(0,44rem)_16rem]"
+                  : "lg:max-w-none lg:grid-cols-[minmax(0,1fr)] lg:px-0 xl:px-0",
+              )}
+            >
               <main
                 data-kocteau-scroll-main
-                className="no-scrollbar min-w-0 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1"
+                className={cn(
+                  "no-scrollbar min-w-0 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto",
+                  safeProfile && "lg:pr-1",
+                )}
               >
                 {children}
               </main>
-              <WhoToFollowRail isAuthenticated={Boolean(safeProfile)} />
+              {safeProfile ? <WhoToFollowRail isAuthenticated /> : null}
             </div>
           )}
         </div>
@@ -99,7 +110,14 @@ export default async function AppShell({
           unreadCount={initialUnreadCount}
           canAccessStudio={canAccessStudio}
         />
-        <SidebarInset className="min-h-svh bg-[var(--kocteau-canvas)] lg:h-dvh lg:overflow-hidden lg:p-2.5">
+        <SidebarInset
+          className={cn(
+            "min-h-svh overflow-x-clip lg:h-dvh lg:overflow-hidden lg:p-2.5",
+            safeProfile
+              ? "bg-[var(--kocteau-canvas)]"
+              : "bg-[var(--kocteau-shell)] lg:bg-[var(--kocteau-canvas)]",
+          )}
+        >
           <RouteHeaderProvider>
             {isStudio ? content : <SecondaryRailProvider>{content}</SecondaryRailProvider>}
           </RouteHeaderProvider>

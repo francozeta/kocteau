@@ -1,12 +1,16 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createMDX from "@next/mdx";
 import { withEve } from "eve/next";
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const withMDX = createMDX({});
 
 const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  turbopack: {
+    root: path.resolve(__dirname, "../.."),
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     imageSizes: [24, 32, 40, 44, 48, 56, 64, 80, 96, 112, 128, 160, 192, 256],
