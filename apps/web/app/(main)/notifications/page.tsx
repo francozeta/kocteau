@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import NotificationsInbox from "@/components/notifications-inbox";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import {
   getNotificationsForUser,
@@ -16,21 +16,21 @@ export const metadata = createPageMetadata({
 });
 
 export default async function NotificationsPage() {
-  const user = await getCurrentUser();
+  const userId = await getCurrentUserId();
 
-  if (!user) {
+  if (!userId) {
     redirect("/login");
   }
 
   const supabase = await supabaseServer();
   const [initialNotifications, initialUnreadCount] = await Promise.all([
-    getNotificationsForUser(supabase, user.id),
-    getUnreadNotificationsCount(supabase, user.id),
+    getNotificationsForUser(supabase, userId),
+    getUnreadNotificationsCount(supabase, userId),
   ]);
 
   return (
     <NotificationsInbox
-      userId={user.id}
+      userId={userId}
       initialNotifications={initialNotifications}
       initialUnreadCount={initialUnreadCount}
     />

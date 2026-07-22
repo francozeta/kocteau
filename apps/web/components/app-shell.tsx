@@ -12,7 +12,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import WhoToFollowRail from "@/components/who-to-follow-rail";
 import {
   getCurrentOnboardingState,
-  getCurrentUser,
+  getCurrentUserId,
   getCurrentViewerProfile,
 } from "@/lib/auth/server";
 import { getStarterCuratorAccess } from "@/lib/queries/curation";
@@ -29,22 +29,22 @@ export default async function AppShell({
   children,
   variant = "feed",
 }: AppShellProps) {
-  const [user, safeProfile, onboardingState] = await Promise.all([
-    getCurrentUser(),
+  const [userId, safeProfile, onboardingState] = await Promise.all([
+    getCurrentUserId(),
     getCurrentViewerProfile(),
     getCurrentOnboardingState(),
   ]);
   const initialUnreadCount = 0;
 
-  if (user && onboardingState && !onboardingState.profileOnboarded) {
+  if (userId && onboardingState && !onboardingState.profileOnboarded) {
     redirect("/onboarding");
   }
 
-  if (user && onboardingState && !onboardingState.tasteOnboarded) {
+  if (userId && onboardingState && !onboardingState.tasteOnboarded) {
     redirect("/onboarding/taste");
   }
 
-  const canAccessStudio = user ? await getStarterCuratorAccess() : false;
+  const canAccessStudio = userId ? await getStarterCuratorAccess() : false;
   const isStudio = variant === "studio";
 
   const content = (

@@ -44,10 +44,27 @@ export const getCurrentUser = cache(async () => {
   return user;
 });
 
-const getCurrentViewerContext = cache(async (): Promise<CurrentViewerContext | null> => {
-  const user = await getCurrentUser();
+export const getCurrentUserId = cache(async (): Promise<string | null> => {
+  const cookieStore = await cookies();
+  const hasSupabaseCookie = cookieStore
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-"));
 
-  if (!user) {
+  if (!hasSupabaseCookie) {
+    return null;
+  }
+
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.auth.getClaims();
+  const subject = data?.claims?.sub;
+
+  return !error && typeof subject === "string" ? subject : null;
+});
+
+const getCurrentViewerContext = cache(async (): Promise<CurrentViewerContext | null> => {
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
     return null;
   }
 
@@ -55,7 +72,7 @@ const getCurrentViewerContext = cache(async (): Promise<CurrentViewerContext | n
   const profileQuery = await supabase
     .from("profiles")
     .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded, taste_onboarded")
-    .eq("id", user.id)
+    .eq("id", userId)
     .maybeSingle<CurrentViewerContext>();
 
   if (!profileQuery.error) {
@@ -65,7 +82,7 @@ const getCurrentViewerContext = cache(async (): Promise<CurrentViewerContext | n
   const fallbackQuery = await supabase
     .from("profiles")
     .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded")
-    .eq("id", user.id)
+    .eq("id", userId)
     .maybeSingle<Omit<CurrentViewerContext, "taste_onboarded">>();
 
   return fallbackQuery.data

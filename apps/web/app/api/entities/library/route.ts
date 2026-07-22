@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
@@ -91,6 +91,11 @@ export async function POST(req: Request) {
 
     const result = Array.isArray(data) ? data[0] : data;
 
+    revalidateTag(`entity:${entityId}`, "max");
+    revalidateTag(
+      `entity-provider:${parsed.data.entity.provider}:${parsed.data.entity.type}:${parsed.data.entity.provider_id}`,
+      "max",
+    );
     revalidatePath("/library");
 
     if (parsed.data.entity.id) {

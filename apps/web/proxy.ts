@@ -14,6 +14,28 @@ function isMetadataRequest(pathname: string) {
   );
 }
 
+function isDeezerResolverPath(pathname: string) {
+  return pathname.startsWith("/track/deezer/");
+}
+
+function isKnownCrawler(request: NextRequest) {
+  const userAgent = request.headers.get("user-agent") ?? "";
+
+  return /(?:bot|crawler|spider|slurp|ahrefs|semrush|bytespider|gptbot|claudebot|ccbot|petalbot|dotbot|mj12bot)/i.test(
+    userAgent,
+  );
+}
+
+function getResolverRejectionResponse() {
+  return new NextResponse(null, {
+    status: 404,
+    headers: {
+      "Cache-Control": "public, max-age=3600, s-maxage=86400",
+      "X-Robots-Tag": "noindex, nofollow, noarchive",
+    },
+  });
+}
+
 function canReceiveAuthCallback(pathname: string) {
   return (
     pathname === "/" ||
@@ -66,6 +88,14 @@ export async function proxy(request: NextRequest) {
 
   if (isMetadataRequest(pathname)) {
     return response;
+  }
+
+  if (isDeezerResolverPath(pathname)) {
+    const providerId = pathname.split("/").filter(Boolean).at(-1) ?? "";
+
+    if (!/^[1-9]\d{0,19}$/.test(providerId) || isKnownCrawler(request)) {
+      return getResolverRejectionResponse();
+    }
   }
 
   const shortIdRedirectPath = getShortIdRedirectPath(pathname);

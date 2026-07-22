@@ -9,7 +9,7 @@ import TrackTile from "@/components/track-tile";
 import { buttonVariants } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
+import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import {
   getViewerEntityLibraryItems,
@@ -26,15 +26,15 @@ export const metadata = createPageMetadata({
 });
 
 export default async function LibraryPage() {
-  const user = await getCurrentUser();
+  const userId = await getCurrentUserId();
 
-  if (!user) {
+  if (!userId) {
     redirect("/login");
   }
 
   const [{ reviews: savedReviews }, libraryItems] = await Promise.all([
-    getViewerSavedReviewsBundle(user.id),
-    getViewerEntityLibraryItems(user.id),
+    getViewerSavedReviewsBundle(userId),
+    getViewerEntityLibraryItems(userId),
   ]);
   const libraryCount = savedReviews.length + libraryItems.tracks.length;
 
@@ -55,7 +55,7 @@ export default async function LibraryPage() {
 
         <div className="flex flex-wrap gap-2.5">
           <Suspense fallback={null}>
-            <LibraryProfileAction userId={user.id} />
+            <LibraryProfileAction userId={userId} />
           </Suspense>
           <Link
             href="/search"
@@ -95,7 +95,7 @@ export default async function LibraryPage() {
 
         <SavedReviewsList
           initialReviews={savedReviews}
-          userId={user.id}
+          userId={userId}
           isAuthenticated
           emptyState={
             <Empty className="rounded-[1.35rem] border-border/22 bg-card/14 px-6 py-8">

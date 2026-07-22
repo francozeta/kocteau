@@ -68,6 +68,7 @@ const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
 const entityTasteTagLoaders = new Map<string, () => Promise<EntityTasteTag[]>>();
 
 const entityPageSelect = "id, provider, provider_id, title, artist_name, cover_url, deezer_url, type";
+const entityLookupRevalidateSeconds = 15 * 60;
 
 function logEntitiesQueryError(
   scope:
@@ -123,7 +124,7 @@ export async function getEntityPageById(entityId: string) {
           ),
         ["entity-page", entityId],
         {
-          revalidate: 120,
+          revalidate: entityLookupRevalidateSeconds,
           tags: ["entities", `entity:${entityId}`],
         },
       ),
@@ -178,7 +179,7 @@ export async function getEntityPageByRouteId(routeId: string) {
           ),
         ["entity-page-route-id", normalizedRouteId],
         {
-          revalidate: 120,
+          revalidate: entityLookupRevalidateSeconds,
           tags: ["entities", `entity-route:${normalizedRouteId}`],
         },
       ),
@@ -224,7 +225,7 @@ export async function getEntityPageByProvider(
           ),
         ["entity-page-by-provider", provider, type, providerId],
         {
-          revalidate: 120,
+          revalidate: entityLookupRevalidateSeconds,
           tags: ["entities", `entity-provider:${provider}:${type}:${providerId}`],
         },
       ),
@@ -270,7 +271,7 @@ export async function findEntityByProvider(
           ),
         ["entity-by-provider", provider, type, providerId],
         {
-          revalidate: 120,
+          revalidate: entityLookupRevalidateSeconds,
           tags: ["entities", `entity-provider:${provider}:${type}:${providerId}`],
         },
       ),

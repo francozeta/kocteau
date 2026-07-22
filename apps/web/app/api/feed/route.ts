@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUserId } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
 import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
@@ -9,19 +9,19 @@ async function getFeedResponse(req: Request) {
   const url = new URL(req.url);
   const viewParam = url.searchParams.get("view") ?? undefined;
   const cursor = url.searchParams.get("cursor");
-  const user = await getCurrentUser();
-  const activeView = isFeedView(viewParam) ? viewParam : user ? "for-you" : "latest";
+  const userId = await getCurrentUserId();
+  const activeView = isFeedView(viewParam) ? viewParam : userId ? "for-you" : "latest";
   const bundle = await getFeedPage({
     view: activeView,
-    viewerId: user?.id,
+    viewerId: userId,
     cursor,
     includeActiveUsers: false,
   });
-  const activeUsers = bundle.activeUsers.filter((profile) => profile.id !== user?.id);
+  const activeUsers = bundle.activeUsers.filter((profile) => profile.id !== userId);
   const viewerState =
-    user?.id && bundle.feed.length > 0
+    userId && bundle.feed.length > 0
       ? await getFeedViewerState(
-          user.id,
+          userId,
           bundle.feed.map((review) => review.id),
         )
       : {
@@ -29,9 +29,9 @@ async function getFeedResponse(req: Request) {
           bookmarkedReviewIds: new Set<string>(),
         };
   const followedProfileIds =
-    user?.id && activeUsers.length > 0
+    userId && activeUsers.length > 0
       ? await getViewerFollowingProfileIds(
-          user.id,
+          userId,
           activeUsers.map((profile) => profile.id),
         )
       : new Set<string>();
@@ -48,7 +48,11 @@ async function getFeedResponse(req: Request) {
     })),
     nextCursor: bundle.nextCursor,
     view: bundle.view,
-    requiresAuth: (activeView === "following" || activeView === "for-you") && !user,
+    requiresAuth: (activeView === "following" || activeView === "for-you") && !userId,
+  }, {
+    headers: {
+      "Cache-Control": "private, no-store",
+    },
   });
 }
 

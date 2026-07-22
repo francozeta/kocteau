@@ -8,7 +8,7 @@ import TrackPageHero from "@/components/track-page-hero";
 import TrackMoreToHear from "@/components/track-more-to-hear";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { TrackReviewCard } from "@/components/review-route-cards-server";
-import { getCurrentUser } from "@/lib/auth/server";
+import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {
   getEntityPageByRouteId,
@@ -98,9 +98,9 @@ export default async function TrackPage({
     permanentRedirect(canonicalPath);
   }
 
-  const userPromise = getCurrentUser();
+  const userIdPromise = getCurrentUserId();
   const publicBundlePromise = getTrackPublicBundle(entityPage.id);
-  const [user, bundle] = await Promise.all([userPromise, publicBundlePromise]);
+  const [userId, bundle] = await Promise.all([userIdPromise, publicBundlePromise]);
 
   if (!bundle) notFound();
 
@@ -110,11 +110,11 @@ export default async function TrackPage({
     viewerReviewId: null as string | null,
   };
   const [viewerState, libraryStates] = await Promise.all([
-    user?.id && bundle.reviews.length > 0
-      ? getTrackViewerState(user.id, entityPage.id, bundle.reviews)
+    userId && bundle.reviews.length > 0
+      ? getTrackViewerState(userId, entityPage.id, bundle.reviews)
       : Promise.resolve(emptyViewerState),
-    user?.id
-      ? getViewerEntityLibraryState(user.id, [entityPage.id])
+    userId
+      ? getViewerEntityLibraryState(userId, [entityPage.id])
       : Promise.resolve(new Map()),
   ]);
   const initialLibraryState = getEntityLibraryStateOrEmpty(
@@ -189,7 +189,7 @@ export default async function TrackPage({
           provider={entity.provider}
           providerId={entity.provider_id}
           type={entity.type}
-          isAuthenticated={Boolean(user)}
+          isAuthenticated={Boolean(userId)}
           title={entity.title}
           artistName={entity.artist_name}
           deezerUrl={entity.deezer_url}
@@ -198,7 +198,7 @@ export default async function TrackPage({
 
         <TrackPageHero
           entity={entity}
-          isAuthenticated={Boolean(user)}
+          isAuthenticated={Boolean(userId)}
           initialLibraryState={initialLibraryState}
           viewerReview={
             viewerReview
@@ -229,8 +229,8 @@ export default async function TrackPage({
                     review={review}
                     entity={entity}
                     author={author}
-                    isAuthenticated={Boolean(user)}
-                    canManage={Boolean(user?.id && author?.id === user.id)}
+                    isAuthenticated={Boolean(userId)}
+                    canManage={Boolean(userId && author?.id === userId)}
                   />
                 );
               })}

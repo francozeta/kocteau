@@ -2,10 +2,9 @@ import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 
 import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
-import FeedReviewList from "@/components/feed-review-list";
-import FeedViewTabs from "@/components/feed-view-tabs";
-import { getCurrentUser, getCurrentViewerProfile } from "@/lib/auth/server";
-import { isFeedView, type FeedView } from "@/lib/feed-view";
+import AuthenticatedFeedSurface from "@/components/authenticated-feed-surface";
+import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
+import { getAuthenticatedFeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
 import { measureServerTask } from "@/lib/perf";
 import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
@@ -22,21 +21,17 @@ export const metadata = createPageMetadata({
   noIndex: true,
 });
 
-function getAuthenticatedFeedView(value: string | undefined): FeedView {
-  return isFeedView(value) && value !== "latest" ? value : "for-you";
-}
-
 export default async function FeedPage({
   searchParams,
 }: {
   searchParams: Promise<{ view?: string; welcome?: string }>;
 }) {
-  const [params, user] = await Promise.all([
+  const [params, userId] = await Promise.all([
     searchParams,
-    measureServerTask("getFeedViewer", getCurrentUser, { route: "/feed" }),
+    measureServerTask("getFeedViewer", getCurrentUserId, { route: "/feed" }),
   ]);
 
-  if (!user) {
+  if (!userId) {
     redirect("/login?next=/feed");
   }
 
@@ -47,11 +42,11 @@ export default async function FeedPage({
       Promise.all([
         getFeedPage({
           view: activeView,
-          viewerId: user.id,
+          viewerId: userId,
           includeActiveUsers: false,
         }),
         getStarterTracksForSurface({
-          viewerId: user.id,
+          viewerId: userId,
           limit: 6,
           surface: "home",
           contextKey: "home",
@@ -63,7 +58,7 @@ export default async function FeedPage({
   const viewerState =
     feedPage.feed.length > 0
       ? await getFeedViewerState(
-          user.id,
+          userId,
           feedPage.feed.map((review) => review.id),
         )
       : {
@@ -91,24 +86,12 @@ export default async function FeedPage({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       {params.welcome === "kocteau" ? <OnboardingWelcomeFromUrl /> : null}
-      <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:mx-0 lg:max-w-none lg:space-y-4">
-        <div className="lg:hidden">
-          <FeedViewTabs activeView={activeView} fullWidth />
-        </div>
-        <div className="hidden justify-start lg:flex">
-          <FeedViewTabs activeView={activeView} />
-        </div>
-        <div className="space-y-4">
-          <FeedReviewList
-            view={activeView}
-            initialPage={feedData}
-            isAuthenticated
-            viewer={viewerProfile}
-            starterTracks={starterTracks}
-            showReviewCta={false}
-          />
-        </div>
-      </section>
+      <AuthenticatedFeedSurface
+        initialView={activeView}
+        initialPage={feedData}
+        viewer={viewerProfile}
+        starterTracks={starterTracks}
+      />
     </HydrationBoundary>
   );
 }

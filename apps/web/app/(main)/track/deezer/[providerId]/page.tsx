@@ -4,8 +4,8 @@ import { notFound, permanentRedirect } from "next/navigation";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
 import TrackPageHero from "@/components/track-page-hero";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { getCurrentUser } from "@/lib/auth/server";
-import { getDeezerTrack } from "@/lib/deezer";
+import { getCurrentUserId } from "@/lib/auth/server";
+import { getDeezerTrack, isDeezerProviderId } from "@/lib/deezer";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import { measureServerTask } from "@/lib/perf";
 import { getEntityPageByProvider } from "@/lib/queries/entities";
@@ -17,6 +17,35 @@ export async function generateMetadata({
   params: Promise<{ providerId: string }>;
 }): Promise<Metadata> {
   const { providerId } = await params;
+  if (!isDeezerProviderId(providerId)) {
+    return createPageMetadata({
+      title: "Track",
+      description: "Track reviews and notes on Kocteau.",
+      path: `/track/deezer/${providerId}`,
+      noIndex: true,
+    });
+  }
+
+  const existingEntity = await getEntityPageByProvider(
+    "deezer",
+    "track",
+    providerId,
+  );
+
+  if (existingEntity) {
+    return createPageMetadata({
+      title: existingEntity.artist_name
+        ? `${existingEntity.title} — ${existingEntity.artist_name}`
+        : existingEntity.title,
+      description: createTrackDescription(
+        existingEntity.title,
+        existingEntity.artist_name,
+      ),
+      path: buildEntityCanonicalPath(existingEntity),
+      image: existingEntity.cover_url,
+    });
+  }
+
   const track = await getDeezerTrack(providerId);
 
   if (!track) {
@@ -24,6 +53,7 @@ export async function generateMetadata({
       title: "Track",
       description: "Track reviews and notes on Kocteau.",
       path: `/track/deezer/${providerId}`,
+      noIndex: true,
     });
   }
 
@@ -44,11 +74,15 @@ export default async function DeezerTrackResolverPage({
   params: Promise<{ providerId: string }>;
 }) {
   const { providerId } = await params;
-  const [user, existingEntity] = await measureServerTask(
+  if (!isDeezerProviderId(providerId)) {
+    notFound();
+  }
+
+  const [userId, existingEntity] = await measureServerTask(
     "getDeezerResolverData",
     () =>
       Promise.all([
-        getCurrentUser(),
+        getCurrentUserId(),
         getEntityPageByProvider("deezer", "track", providerId),
       ]),
     { route: "/track/deezer/[providerId]" },
@@ -87,7 +121,7 @@ export default async function DeezerTrackResolverPage({
           deezer_url: track.deezer_url,
         }}
         sharePath={`/track/deezer/${providerId}`}
-        isAuthenticated={Boolean(user)}
+        isAuthenticated={Boolean(userId)}
         viewerReview={null}
       />
 

@@ -5,6 +5,7 @@ import {
   DeezerRequestError,
   getDeezerErrorDetails,
   getDeezerTrack,
+  isDeezerProviderId,
   searchDeezerTracks,
 } from "./deezer.ts";
 
@@ -69,6 +70,20 @@ test("Deezer track lookup degrades to null when the upstream request fails", asy
   const result = await getDeezerTrack("123");
 
   assert.equal(result, null);
+});
+
+test("Deezer track lookup rejects malformed provider ids before fetching", async () => {
+  let fetchCount = 0;
+
+  globalThis.fetch = (async () => {
+    fetchCount += 1;
+    return jsonResponse({ id: 123, title: "Alison" });
+  }) as typeof fetch;
+
+  assert.equal(isDeezerProviderId("123"), true);
+  assert.equal(isDeezerProviderId("../../123"), false);
+  assert.equal(await getDeezerTrack("../../123"), null);
+  assert.equal(fetchCount, 0);
 });
 
 test("Deezer error log details keep only safe operational context", () => {

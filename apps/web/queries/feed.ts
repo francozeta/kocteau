@@ -7,7 +7,7 @@ import type {
 } from "@/components/review-card";
 import type { FeedView, RecommendationReason } from "@/lib/feed-view";
 import type { ActiveProfile } from "@/lib/queries/profiles";
-import { fetchJson } from "@/queries/http";
+import { fetchJson, isRetryableFetchJsonError } from "@/queries/http";
 
 export type { FeedView } from "@/lib/feed-view";
 
@@ -52,12 +52,26 @@ export const feedKeys = {
   infinite: (view: FeedView = "latest") => ["feed", "infinite", view] as const,
 };
 
+const feedCacheTimeMs = 30 * 60_000;
+
+function getFeedStaleTime(view: FeedView) {
+  return view === "latest" || view === "top-rated"
+    ? 5 * 60_000
+    : 2 * 60_000;
+}
+
+function shouldRetryFeedRequest(failureCount: number, error: unknown) {
+  return failureCount < 1 && isRetryableFetchJsonError(error);
+}
+
 export function feedBundleQueryOptions(view: FeedView = "latest") {
   return queryOptions({
     queryKey: feedKeys.bundle(view),
     queryFn: () => fetchJson<FeedBundleQueryData>(getFeedUrl(view)),
-    staleTime: 60_000,
-    gcTime: 10 * 60_000,
+    staleTime: getFeedStaleTime(view),
+    gcTime: feedCacheTimeMs,
+    retry: shouldRetryFeedRequest,
+    refetchOnReconnect: false,
   });
 }
 
@@ -68,8 +82,10 @@ export function feedInfiniteQueryOptions(view: FeedView = "latest") {
       fetchJson<FeedBundleQueryData>(getFeedUrl(view, pageParam)),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    staleTime: 60_000,
-    gcTime: 10 * 60_000,
+    staleTime: getFeedStaleTime(view),
+    gcTime: feedCacheTimeMs,
+    retry: shouldRetryFeedRequest,
+    refetchOnReconnect: false,
   });
 }
 
