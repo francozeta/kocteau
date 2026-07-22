@@ -7,6 +7,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { getCurrentUser } from "@/lib/auth/server";
 import { getDeezerTrack } from "@/lib/deezer";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
+import { measureServerTask } from "@/lib/perf";
 import { getEntityPageByProvider } from "@/lib/queries/entities";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 
@@ -43,16 +44,25 @@ export default async function DeezerTrackResolverPage({
   params: Promise<{ providerId: string }>;
 }) {
   const { providerId } = await params;
-  const [user, existingEntity] = await Promise.all([
-    getCurrentUser(),
-    getEntityPageByProvider("deezer", "track", providerId),
-  ]);
+  const [user, existingEntity] = await measureServerTask(
+    "getDeezerResolverData",
+    () =>
+      Promise.all([
+        getCurrentUser(),
+        getEntityPageByProvider("deezer", "track", providerId),
+      ]),
+    { route: "/track/deezer/[providerId]" },
+  );
 
   if (existingEntity) {
     permanentRedirect(buildEntityCanonicalPath(existingEntity));
   }
 
-  const track = await getDeezerTrack(providerId);
+  const track = await measureServerTask(
+    "getDeezerResolverTrack",
+    () => getDeezerTrack(providerId),
+    { route: "/track/deezer/[providerId]" },
+  );
 
   if (!track) {
     notFound();
