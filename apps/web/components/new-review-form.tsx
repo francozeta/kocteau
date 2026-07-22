@@ -452,7 +452,6 @@ function NewReviewFormState({
   function openTrack(result: DeezerResult) {
     const href = getResultHref(result);
 
-    router.prefetch(href);
     onSearchResultOpen?.();
 
     startTransition(() => {

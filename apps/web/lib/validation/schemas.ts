@@ -383,6 +383,10 @@ export const analyticsEventSchema = z.object({
     .default({}),
 });
 
+export const analyticsEventBatchSchema = z.object({
+  events: z.array(analyticsEventSchema).min(1).max(20),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type AuthEmailInput = z.infer<typeof authEmailSchema>;
@@ -404,3 +408,4 @@ export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type ReviewCollectionStateInput = z.infer<typeof reviewCollectionStateSchema>;
 export type AnalyticsEventInput = z.infer<typeof analyticsEventSchema>;
+export type AnalyticsEventBatchInput = z.infer<typeof analyticsEventBatchSchema>;

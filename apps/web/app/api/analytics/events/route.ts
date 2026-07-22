@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { trackServerAnalyticsEvent } from "@/lib/analytics/server";
+import { trackServerAnalyticsEvents } from "@/lib/analytics/server";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
-import { analyticsEventSchema } from "@/lib/validation/schemas";
+import { analyticsEventBatchSchema, analyticsEventSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
 
 export async function POST(req: Request) {
@@ -23,15 +23,24 @@ export async function POST(req: Request) {
   }
 
   const payload = (await req.json().catch(() => null)) as unknown;
-  const parsed = analyticsEventSchema.safeParse(payload);
+  const parsedBatch = analyticsEventBatchSchema.safeParse(payload);
+  const parsedEvent = parsedBatch.success
+    ? null
+    : analyticsEventSchema.safeParse(payload);
 
-  if (!parsed.success) {
-    return validationErrorResponse(parsed.error, "Invalid analytics event.");
+  if (!parsedBatch.success && !parsedEvent?.success) {
+    return validationErrorResponse(parsedBatch.error, "Invalid analytics event.");
   }
 
-  await trackServerAnalyticsEvent(supabase, {
+  const events = parsedBatch.success
+    ? parsedBatch.data.events
+    : parsedEvent?.success
+      ? [parsedEvent.data]
+      : [];
+
+  await trackServerAnalyticsEvents(supabase, {
     userId: auth.user.id,
-    ...parsed.data,
+    events,
   });
 
   return NextResponse.json({ ok: true });
