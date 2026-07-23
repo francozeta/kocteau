@@ -2,6 +2,8 @@
 
 [Docs index](./README.md) | [Local development](./setup/local-development.md) | [Supabase maintainer workflow](./maintainers/supabase-workflow.md) | [Environment and secrets](./security/environment.md) | [Discovery and curation](./discovery-curation.md) | [Release automation](./maintainers/release.md)
 
+Load testing and launch thresholds are documented in [Load readiness](./load-readiness.md).
+
 This file captures the production setup that lives outside the codebase.
 
 ## Supabase Auth

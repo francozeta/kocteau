@@ -15,6 +15,7 @@
 - [Local development](./setup/local-development.md): local-first setup with Supabase CLI.
 - [Environment and secrets](./security/environment.md): safe handling for local, staging, and production configuration.
 - [Operations](./operations.md): production setup notes, post-deploy checks, Supabase scripts, and recommendation health checks.
+- [Load readiness](./load-readiness.md): k6 profiles, latency thresholds, database snapshots, and rollback criteria.
 - [Supabase maintainer workflow](./maintainers/supabase-workflow.md): cloud migrations, staging, production, and contributor boundaries.
 
 ## Maintainer Workflows
