@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
 import ReactQueryProvider from "@/app/providers/react-query-provider";
 import AppSidebar from "@/components/app-sidebar";
+import DeferredToaster from "@/components/deferred-toaster";
 import DesktopScrollBridge from "@/components/desktop-scroll-bridge";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import Header from "@/components/header";
@@ -90,6 +91,7 @@ export default async function AppShell({
         </div>
       </div>
       <MobileBottomBar profile={safeProfile} />
+      <DeferredToaster />
     </>
   );
 

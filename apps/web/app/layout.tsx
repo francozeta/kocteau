@@ -5,7 +5,6 @@ import { Geist, Merriweather } from "next/font/google";
 import "./globals.css";
 import JsonLd from "@/components/json-ld";
 import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/sonner";
 import { getMetadataBase } from "@/lib/metadata";
 import { buildSiteGraphJsonLd } from "@/lib/structured-data";
 
@@ -69,7 +68,6 @@ export default function RootLayout({
         {children}
         <Analytics />
         <SpeedInsights />
-        <Toaster />
       </body>
     </html>
   );
