@@ -1,7 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import {
   Avatar,
@@ -9,10 +15,10 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 
-const GrainGradient = dynamic(
-  () =>
-    import("@paper-design/shaders-react").then((mod) => mod.GrainGradient),
-  { ssr: false },
+const GrainGradient = lazy(() =>
+  import("@paper-design/shaders-react").then((mod) => ({
+    default: mod.GrainGradient,
+  })),
 );
 
 const testimonials = [
@@ -65,10 +71,12 @@ const testimonials = [
 type TransitionPhase = "shown" | "hiding" | "preparing";
 
 export default function GuestTestimonials() {
+  const sectionRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [phase, setPhase] = useState<TransitionPhase>("shown");
   const [isPaused, setIsPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isShaderReady, setIsShaderReady] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTransitioning = phase !== "shown";
   const testimonial = testimonials[activeIndex];
@@ -81,6 +89,26 @@ export default function GuestTestimonials() {
     query.addEventListener("change", sync);
 
     return () => query.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setIsShaderReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "420px 0px" },
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -136,6 +164,7 @@ export default function GuestTestimonials() {
 
   return (
     <section
+      ref={sectionRef}
       aria-label="What listeners are saying about Kocteau"
       className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10"
     >
@@ -150,26 +179,30 @@ export default function GuestTestimonials() {
         onFocusCapture={() => setIsPaused(true)}
         onBlurCapture={() => setIsPaused(false)}
       >
-        <div className="pointer-events-none absolute inset-0 opacity-72">
-          <GrainGradient
-            aria-hidden="true"
-            colorBack="#070910"
-            colors={["#9c4d78", "#48689a", "#b06b8c"]}
-            fit="cover"
-            frame={11_000}
-            height="100%"
-            intensity={0.22}
-            maxPixelCount={850_000}
-            minPixelRatio={1}
-            noise={0.22}
-            offsetY={0.18}
-            scale={1.12}
-            shape="wave"
-            softness={0.78}
-            speed={prefersReducedMotion ? 0 : 0.16}
-            style={{ height: "100%", width: "100%" }}
-            width="100%"
-          />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_105%,rgba(156,77,120,0.58),transparent_55%),radial-gradient(circle_at_76%_92%,rgba(72,104,154,0.52),transparent_58%),#070910] opacity-72">
+          {isShaderReady ? (
+            <Suspense fallback={null}>
+              <GrainGradient
+                aria-hidden="true"
+                colorBack="#070910"
+                colors={["#9c4d78", "#48689a", "#b06b8c"]}
+                fit="cover"
+                frame={11_000}
+                height="100%"
+                intensity={0.22}
+                maxPixelCount={850_000}
+                minPixelRatio={1}
+                noise={0.22}
+                offsetY={0.18}
+                scale={1.12}
+                shape="wave"
+                softness={0.78}
+                speed={prefersReducedMotion ? 0 : 0.16}
+                style={{ height: "100%", width: "100%" }}
+                width="100%"
+              />
+            </Suspense>
+          ) : null}
         </div>
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,9,0.38),rgba(8,9,14,0.08)_48%,rgba(5,6,9,0.46))]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0,rgba(4,5,9,0.12)_62%,rgba(4,5,9,0.45)_100%)]" />

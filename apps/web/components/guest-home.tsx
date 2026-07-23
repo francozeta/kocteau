@@ -6,10 +6,10 @@ import {
   SiX,
 } from "react-icons/si";
 import EntityCoverImage from "@/components/entity-cover-image";
-import FeedReviewList from "@/components/feed-review-list";
 import GuestDitheredMark from "@/components/guest-dithered-mark";
 import GuestFooter from "@/components/guest-footer";
 import GuestProductPreview from "@/components/guest-product-preview";
+import GuestReviewList from "@/components/guest-review-list";
 import GuestTestimonials from "@/components/guest-testimonials";
 import { SpotlightLogo } from "@/components/spotlight-logo";
 import { ArrowRight, Search, Star } from "@/components/ui/icons";
@@ -318,16 +318,7 @@ export default function GuestHome({
                 Explore more
               </Link>
             </div>
-            <FeedReviewList
-              view="latest"
-              initialPage={recentPage}
-              isAuthenticated={false}
-              viewer={null}
-              starterTracks={starterTracks}
-              showReviewCta={false}
-              showStarterShelf={false}
-              enablePagination={false}
-            />
+            <GuestReviewList reviews={recentPage.feed} />
           </section>
         ) : null}
 
