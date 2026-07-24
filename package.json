@@ -47,6 +47,8 @@
     "eve:curation:build": "pnpm --filter @kocteau/curation-agent eve:build",
     "import:apple-playlist": "tsx apps/web/scripts/export-apple-music-playlist.ts",
     "sync:apple-starter-source": "tsx apps/web/scripts/sync-apple-starter-source.ts",
+    "perf:load:smoke": "k6 run -e K6_PROFILE=smoke apps/web/tests/load/kocteau.js",
+    "perf:load:baseline": "k6 run -e K6_PROFILE=baseline apps/web/tests/load/kocteau.js",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "check": "pnpm lint && pnpm --filter web build"
