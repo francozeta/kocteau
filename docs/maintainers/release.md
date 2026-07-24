@@ -16,7 +16,7 @@ The current release ritual is web-first. `apps/web` is the production contributi
 2. Maintainers squash merge with a conventional title.
 3. Release Please watches `main`.
 4. Release Please opens or updates a release PR.
-5. The release PR updates `package.json`, `.release-please-manifest.json`, and `CHANGELOG.md`.
+5. The release PR updates the root and web `package.json` versions, `.release-please-manifest.json`, and `CHANGELOG.md`.
 6. When the maintainer merges the release PR, Release Please creates the tag and GitHub Release.
 
 Release Please requires GitHub Actions to be allowed to create pull requests. See `docs/maintainers/github-rules.md` for the repository setting.
@@ -40,7 +40,7 @@ Before merging a Release Please PR:
 
 - Read the generated `CHANGELOG.md` section.
 - Confirm the version bump matches the merged changes.
-- Confirm `package.json` and `.release-please-manifest.json` match.
+- Confirm the root `package.json`, `apps/web/package.json`, and `.release-please-manifest.json` match.
 - Confirm CI passes.
 
 Prefer fixing noisy PR titles before merge. Avoid hand-editing generated release PR files unless the generated output is clearly wrong.
