@@ -103,7 +103,7 @@ export default async function DeezerTrackResolverPage({
   }
 
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
+    <section className="w-full max-w-6xl space-y-4 sm:space-y-5">
       <TrackPageHeaderBridge
         title={track.title}
         artistName={track.artist_name}

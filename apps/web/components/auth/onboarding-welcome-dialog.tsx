@@ -47,7 +47,7 @@ export function OnboardingWelcomeDialog({
 
         <div className="flex flex-col gap-4 border-t border-border/25 bg-[var(--kocteau-surface)] p-4">
           <DialogHeader className="gap-2 text-left">
-            <DialogTitle className="font-heading text-base font-semibold leading-6">
+            <DialogTitle className="font-sans text-base font-medium leading-6">
               Welcome to Kocteau
             </DialogTitle>
             <DialogDescription className="text-pretty text-sm leading-5">

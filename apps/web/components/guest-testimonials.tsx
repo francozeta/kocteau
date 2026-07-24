@@ -15,11 +15,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 
-const GrainGradient = lazy(() =>
-  import("@paper-design/shaders-react").then((mod) => ({
-    default: mod.GrainGradient,
-  })),
-);
+const Grainient = lazy(() => import("@/components/Grainient"));
 
 const testimonials = [
   {
@@ -166,48 +162,54 @@ export default function GuestTestimonials() {
     <section
       ref={sectionRef}
       aria-label="What listeners are saying about Kocteau"
-      className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10"
+      className="w-full"
     >
       <a
         href={testimonial.href}
         target="_blank"
         rel="noreferrer"
         aria-label={`Read ${testimonial.author}'s post about Kocteau on X`}
-        className="relative isolate mx-auto block min-h-[24rem] w-full max-w-[58rem] cursor-pointer overflow-hidden rounded-[1rem] bg-[#08090b] shadow-[0_0_0_1px_oklch(1_0_0/0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55 sm:min-h-[25rem]"
+        className="relative isolate block min-h-[28rem] w-full cursor-pointer overflow-hidden bg-[var(--kocteau-landing-canvas)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/55 sm:min-h-[30rem]"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onFocusCapture={() => setIsPaused(true)}
         onBlurCapture={() => setIsPaused(false)}
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_34%_105%,rgba(156,77,120,0.58),transparent_55%),radial-gradient(circle_at_76%_92%,rgba(72,104,154,0.52),transparent_58%),#070910] opacity-72">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_112%,rgba(184,184,190,0.34),transparent_62%),var(--kocteau-landing-canvas)] opacity-80 [mask-image:linear-gradient(to_bottom,transparent_0%,black_24%,black_76%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_24%,black_76%,transparent_100%)]">
           {isShaderReady ? (
             <Suspense fallback={null}>
-              <GrainGradient
-                aria-hidden="true"
-                colorBack="#070910"
-                colors={["#9c4d78", "#48689a", "#b06b8c"]}
-                fit="cover"
-                frame={11_000}
-                height="100%"
-                intensity={0.22}
-                maxPixelCount={850_000}
-                minPixelRatio={1}
-                noise={0.22}
-                offsetY={0.18}
-                scale={1.12}
-                shape="wave"
-                softness={0.78}
-                speed={prefersReducedMotion ? 0 : 0.16}
-                style={{ height: "100%", width: "100%" }}
-                width="100%"
+              <Grainient
+                timeSpeed={prefersReducedMotion ? 0 : 0.08}
+                colorBalance={-0.08}
+                warpStrength={0.62}
+                warpFrequency={3.4}
+                warpSpeed={0.42}
+                warpAmplitude={82}
+                blendAngle={-10}
+                blendSoftness={0.38}
+                rotationAmount={135}
+                noiseScale={2.4}
+                grainAmount={0.19}
+                grainScale={2.1}
+                grainAnimated={!prefersReducedMotion}
+                contrast={1.18}
+                gamma={1.05}
+                saturation={0}
+                centerY={0.14}
+                zoom={0.86}
+                color1="#d6d6d9"
+                color2="#48484c"
+                color3="#070708"
+                paused={prefersReducedMotion}
               />
             </Suspense>
           ) : null}
         </div>
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,9,0.38),rgba(8,9,14,0.08)_48%,rgba(5,6,9,0.46))]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0,rgba(4,5,9,0.12)_62%,rgba(4,5,9,0.45)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,var(--kocteau-landing-canvas)_0%,rgba(7,7,8,0.82)_16%,rgba(7,7,8,0.28)_34%,transparent_52%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,var(--kocteau-landing-canvas)_0%,rgba(7,7,8,0.82)_15%,rgba(7,7,8,0.25)_32%,transparent_50%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0,rgba(4,4,5,0.1)_64%,rgba(4,4,5,0.38)_100%)]" />
 
-        <div className="pointer-events-none relative z-10 flex min-h-[24rem] flex-col items-center justify-center px-6 py-16 text-center sm:min-h-[25rem] sm:px-12">
+        <div className="pointer-events-none relative z-10 mx-auto flex min-h-[28rem] w-full max-w-[80rem] flex-col items-center justify-center px-6 py-20 text-center sm:min-h-[30rem] sm:px-12 lg:px-10">
           <div
             className={`t-stagger max-w-[40rem] ${phase === "shown" ? "is-shown" : ""} ${phase === "hiding" ? "is-hiding" : ""}`}
           >

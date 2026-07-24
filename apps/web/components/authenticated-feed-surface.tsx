@@ -58,7 +58,7 @@ export default function AuthenticatedFeedSurface({
   );
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 lg:mx-0 lg:max-w-none lg:space-y-4">
+    <section className="w-full max-w-5xl space-y-5 sm:space-y-6 lg:max-w-none lg:space-y-4">
       <div className="lg:hidden">
         <FeedViewTabs
           activeView={activeView}

@@ -55,7 +55,7 @@ function MetricTile({
   return (
     <div className="min-h-[6.5rem] rounded-[var(--kocteau-radius-card)] border border-border/22 bg-card/28 px-4 py-3.5">
       <p className="text-[12px] font-medium text-muted-foreground/70">{label}</p>
-      <p className="mt-2 font-serif text-2xl font-semibold tabular-nums text-foreground">
+      <p className="mt-2 font-sans text-2xl font-medium tabular-nums text-foreground">
         {value}
       </p>
       <p className="mt-1 text-[12px] leading-5 text-muted-foreground/68">{note}</p>
@@ -106,11 +106,11 @@ export default function RecommendationHealthSummary({
   const topEntities = snapshot.entities.slice(0, 8);
 
   return (
-    <section className="mx-auto w-full max-w-4xl space-y-6 pb-8">
+    <section className="w-full max-w-4xl space-y-6 pb-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 space-y-1">
           <p className="text-[12px] font-medium text-muted-foreground/72">Studio</p>
-          <h1 className="font-serif text-2xl font-semibold text-foreground">
+          <h1 className="font-heading text-2xl font-medium text-foreground">
             Recommendation health
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">

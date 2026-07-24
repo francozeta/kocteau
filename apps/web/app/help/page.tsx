@@ -20,7 +20,7 @@ export default function HelpPage() {
 
       <section className="min-w-0">
         <p className="text-[13px] font-medium text-muted-foreground/62">Help center</p>
-        <h1 className="mt-5 max-w-2xl text-balance font-heading text-[clamp(2.1rem,8vw,3.35rem)] font-bold leading-[1.06] text-foreground">
+        <h1 className="mt-5 max-w-2xl text-balance font-heading text-[clamp(2.1rem,8vw,3.35rem)] font-medium leading-[1.06] text-foreground">
           Notes for using Kocteau.
         </h1>
         <p className="mt-5 max-w-[62ch] text-pretty text-[0.98rem] leading-7 text-muted-foreground/82">

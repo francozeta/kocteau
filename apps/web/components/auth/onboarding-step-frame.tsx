@@ -102,7 +102,7 @@ export default function OnboardingStepFrame({
               >
                 <h1
                   className={cn(
-                    "text-balance font-heading text-[1.55rem] font-bold leading-tight tracking-tight text-foreground sm:text-[1.65rem]",
+                    "text-balance font-heading text-[1.55rem] font-medium leading-tight tracking-tight text-foreground sm:text-[1.65rem]",
                   )}
                 >
                   {title}

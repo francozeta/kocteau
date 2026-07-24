@@ -234,7 +234,7 @@ function DrawerBaseTitle({
       data-slot="drawer-base-title"
       className={(state) =>
         cn(
-          "font-heading text-sm font-medium text-foreground",
+          "font-sans text-sm font-medium text-foreground",
           (swipeDirection === "down" || swipeDirection === "up") && "text-center",
           resolveClassName(className, state),
         )}

@@ -91,7 +91,7 @@ export default async function HomePage() {
   return (
     <ReactQueryProvider>
       <div
-        className={`${circular.variable} ${redaction.variable} kocteau-guest-typography min-h-svh overflow-x-clip bg-[var(--kocteau-shell)] text-foreground`}
+        className={`${circular.variable} ${redaction.variable} kocteau-guest-typography kocteau-guest-grain min-h-svh overflow-x-clip bg-[var(--kocteau-landing-canvas)] text-foreground`}
       >
         <GuestHeader />
         <main className="pt-15 sm:pt-16">

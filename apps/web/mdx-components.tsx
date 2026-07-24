@@ -33,7 +33,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h2: ({ className, ...props }) => (
       <h2
         className={cn(
-          "mt-12 scroll-m-24 text-balance font-heading text-[1.22rem] font-bold leading-tight text-foreground first:mt-0",
+          "mt-12 scroll-m-24 text-balance font-heading text-[1.22rem] font-medium leading-tight text-foreground first:mt-0",
           className,
         )}
         {...props}

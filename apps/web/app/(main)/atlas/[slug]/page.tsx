@@ -149,7 +149,7 @@ export default async function AtlasTagPage({ params }: AtlasTagRouteProps) {
   const intentLanes = buildIntentLanes(tag, relatedTags);
 
   return (
-    <section className="mx-auto flex w-full max-w-5xl flex-col gap-8 pb-16 lg:mx-0 lg:max-w-none">
+    <section className="flex w-full max-w-5xl flex-col gap-8 pb-16 lg:max-w-none">
       <header className="space-y-6 border-b border-border/22 pb-6">
         <PrefetchLink
           href="/atlas"
@@ -164,7 +164,7 @@ export default async function AtlasTagPage({ params }: AtlasTagRouteProps) {
             <p className="text-xs font-medium text-muted-foreground">
               {preferenceKindLabels[tag.kind]}
             </p>
-            <h1 className="text-balance font-serif text-4xl font-semibold tracking-normal text-foreground sm:text-5xl">
+            <h1 className="text-balance font-heading text-4xl font-medium tracking-normal text-foreground sm:text-5xl">
               {tag.label}
             </h1>
             <p className="max-w-2xl text-pretty text-sm leading-6 text-muted-foreground sm:text-[0.95rem]">

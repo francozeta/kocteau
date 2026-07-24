@@ -57,9 +57,9 @@ export default async function AppShell({
       >
         <Header profile={safeProfile} />
         <DesktopScrollBridge />
-        <div className="mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-0 lg:py-0">
+        <div className="mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-7 lg:py-6 xl:px-8">
           {isStudio ? (
-            <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 lg:h-full lg:px-7 xl:px-8">
+            <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 lg:h-full">
               <main
                 data-kocteau-scroll-main
                 className="no-scrollbar w-full min-w-0 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto"
@@ -70,10 +70,10 @@ export default async function AppShell({
           ) : (
             <div
               className={cn(
-                "mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:h-full lg:items-stretch lg:justify-center lg:px-7 xl:gap-6 xl:px-8",
+                "mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:h-full lg:items-stretch lg:justify-center xl:gap-6",
                 safeProfile
                   ? "lg:grid-cols-[minmax(0,44rem)_16rem]"
-                  : "lg:max-w-none lg:grid-cols-[minmax(0,1fr)] lg:px-0 xl:px-0",
+                  : "lg:max-w-none lg:grid-cols-[minmax(0,1fr)]",
               )}
             >
               <main

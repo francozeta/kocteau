@@ -269,7 +269,7 @@ export default function CreatorPerksCard({
             <DialogArtwork />
             <div className="border-t border-border/20 bg-[var(--kocteau-surface)]">
               <DrawerHeader className="gap-2 px-4 pt-4 pb-2 text-left">
-                <DrawerTitle className="font-heading text-base font-semibold leading-6">
+                <DrawerTitle className="font-sans text-base font-medium leading-6">
                   {title}
                 </DrawerTitle>
                 <DrawerDescription className="text-pretty text-sm leading-5">
@@ -302,7 +302,7 @@ export default function CreatorPerksCard({
 
             <div className="flex flex-col gap-4 border-t border-border/20 bg-[var(--kocteau-surface)] p-4">
               <DialogHeader className="gap-2 text-left">
-                <DialogTitle className="font-heading text-base font-semibold leading-6">
+                <DialogTitle className="font-sans text-base font-medium leading-6">
                   {title}
                 </DialogTitle>
                 <DialogDescription className="text-pretty text-sm leading-5">

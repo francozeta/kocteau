@@ -52,11 +52,11 @@ export default async function AtlasPage() {
     .slice(0, 12);
 
   return (
-    <section className="mx-auto flex w-full max-w-5xl flex-col gap-8 pb-16 lg:mx-0 lg:max-w-none">
+    <section className="flex w-full max-w-5xl flex-col gap-8 pb-16 lg:max-w-none">
       <header className="border-b border-border/22 pb-6 sm:pb-7">
         <div className="max-w-3xl space-y-3">
           <p className="text-xs font-medium text-muted-foreground">Atlas</p>
-          <h1 className="text-balance font-serif text-4xl font-semibold tracking-normal text-foreground sm:text-5xl">
+          <h1 className="text-balance font-heading text-4xl font-medium tracking-normal text-foreground sm:text-5xl">
             Start with a sound, a room, or a feeling.
           </h1>
           <p className="max-w-2xl text-pretty text-sm leading-6 text-muted-foreground sm:text-[0.95rem]">

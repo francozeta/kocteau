@@ -30,6 +30,13 @@ Use the semantic Kocteau tokens in `apps/web/app/globals.css` before adding new 
 - `--kocteau-shadow-card`
 - `--kocteau-shadow-control`
 
+Keep marketing and product-demo surfaces isolated:
+
+- `--kocteau-landing-canvas` is the pure-black guest landing background.
+- `--kocteau-preview-canvas` and `--kocteau-preview-shell` reproduce the authenticated product inside landing previews.
+- Scope reused core components under `.kocteau-product-preview` so their canonical surface aliases resolve to preview tokens.
+- Never override `--kocteau-canvas` or `--kocteau-shell` at the landing root; those remain canonical core-app tokens.
+
 ## Depth
 
 Use surface color shifts plus soft layered shadows. Avoid heavy borders.
@@ -47,11 +54,19 @@ Use surface color shifts plus soft layered shadows. Avoid heavy borders.
 - Tab active state: inner radius should stay visually concentric with the outer control.
 - Keep padding compact and symmetric; the shell can feel spacious, but feed internals should stay tight and reading-led.
 
+## Button Density
+
+- Button chrome is compact by default: use `2rem` to `2.5rem` visible heights and roughly `0.625rem` to `1rem` horizontal padding.
+- Landing CTAs may reach `2.5rem`, but should not become oversized capsules. Large pills are an exception, not the default.
+- Use tighter gaps when a button includes an icon; the icon should not create extra empty width.
+- Preserve a comfortable touch target through placement, spacing, or an invisible hit area instead of inflating the visible button.
+- Keep primary and secondary actions optically related: density should communicate hierarchy through contrast, not size alone.
+
 ## Typography
 
-- Use serif type to give reviews and track identity editorial weight.
-- Use Geist for small metadata and editorial labels; keep them compact enough that track identity stays dominant.
-- Use sans type for navigation, controls, and metadata.
+- Use Redaction for the guest landing's major editorial statements.
+- Use Geist Pixel at medium weight for product page titles, review titles, and track identity.
+- Use Geist Sans for body copy, navigation, controls, labels, and metadata.
 - Apply `text-pretty` to review copy and `text-balance` where headings can wrap awkwardly.
 - Use `tabular-nums` for ratings and counters.
 
@@ -74,3 +89,9 @@ Use only small, interruptible micro-interactions:
 - Press scale should be subtle, around `0.96`.
 - Interaction feedback should stay under `200ms`.
 - No decorative animation.
+
+## Texture
+
+- The guest landing may use a visible monochrome grain layer to connect its black surfaces.
+- Keep the global grain static and pointer-transparent; animated WebGL texture stays section-local and pauses offscreen.
+- Grain should add material character without softening text, obscuring cover art, or entering the authenticated product shell.

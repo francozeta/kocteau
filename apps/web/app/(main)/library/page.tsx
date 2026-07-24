@@ -39,10 +39,10 @@ export default async function LibraryPage() {
   const libraryCount = savedReviews.length + libraryItems.tracks.length;
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-7 sm:space-y-8">
+    <section className="w-full max-w-5xl space-y-7 sm:space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1.5">
-          <h1 className="font-serif text-[2rem] font-semibold tracking-tight text-foreground sm:text-[2.35rem]">
+          <h1 className="font-heading text-[2rem] font-medium tracking-tight text-foreground sm:text-[2.35rem]">
             Library
           </h1>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground">

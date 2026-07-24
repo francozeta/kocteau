@@ -141,7 +141,7 @@ export default function TrackPageHero({
           <p className="text-[0.72rem] font-medium text-muted-foreground">
             track
           </p>
-          <h1 className="mt-2.5 font-serif text-[1.95rem] font-semibold leading-none text-balance sm:text-[2.25rem] lg:text-[2.7rem]">
+          <h1 className="mt-2.5 font-heading text-[1.95rem] font-medium leading-none text-balance sm:text-[2.25rem] lg:text-[2.7rem]">
             {entity.title}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground text-pretty sm:text-[0.95rem]">

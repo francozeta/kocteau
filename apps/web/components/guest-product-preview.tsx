@@ -149,7 +149,7 @@ function PreviewNavigationGroup({
 
 function PreviewSidebar() {
   return (
-    <aside className="flex min-h-0 flex-col bg-[var(--kocteau-canvas)] px-2 py-2.5">
+    <aside className="flex min-h-0 flex-col bg-[var(--kocteau-preview-canvas)] px-2 py-2.5">
       <div className="flex min-h-9 items-center justify-between gap-2 px-1">
         <BrandLogo iconClassName="size-[1.15rem]" />
         <div className="flex items-center gap-1">
@@ -169,7 +169,7 @@ function PreviewSidebar() {
       </div>
 
       <div className="mt-auto hidden min-w-0 items-center gap-2 rounded-xl px-1.5 py-2 lg:flex">
-        <Avatar className="size-6 bg-[var(--kocteau-canvas)] ring-1 ring-white/[0.07]">
+        <Avatar className="size-6 bg-[var(--kocteau-preview-canvas)] ring-1 ring-white/[0.07]">
           <AvatarImage
             src="https://ytxilnlmvioccfaomizi.supabase.co/storage/v1/object/public/avatars/4a051dcb-4955-4767-82e0-5a1fa38c28f9/avatar-thumb.webp?v=1780243301170"
             alt="Kocteau"
@@ -326,20 +326,20 @@ export default function GuestProductPreview({
   return (
     <section
       aria-label="Kocteau authenticated feed preview"
-      className="w-[calc(100%+5.5rem)] max-w-none sm:w-[calc(100%+4rem)] lg:w-[calc(100%+2rem)] xl:w-[calc(100%+3rem)]"
+      className="kocteau-product-preview w-[calc(100%+5.5rem)] max-w-none sm:w-[calc(100%+4rem)] lg:w-[calc(100%+2rem)] xl:w-[calc(100%+3rem)]"
     >
-      <div className="relative h-[28rem] overflow-hidden rounded-[0.95rem] bg-[var(--kocteau-canvas)] shadow-[0_22px_70px_rgba(0,0,0,0.2)] ring-1 ring-foreground/[0.075] sm:h-[32rem] lg:h-[36rem]">
+      <div className="relative h-[28rem] overflow-hidden rounded-[0.95rem] bg-[var(--kocteau-preview-canvas)] shadow-[0_22px_70px_rgba(0,0,0,0.2)] ring-1 ring-foreground/[0.075] sm:h-[32rem] lg:h-[36rem]">
         <div className="grid h-full min-w-[52rem] grid-cols-[10.5rem_minmax(0,1fr)] lg:min-w-0 lg:grid-cols-[11.75rem_minmax(0,1fr)]">
           <PreviewSidebar />
 
-          <div className="kocteau-app-frame m-1.5 ml-0 flex min-h-0 flex-col overflow-hidden rounded-[0.8rem] border border-[var(--kocteau-line)] bg-[var(--kocteau-shell)] shadow-[inset_0_1px_0_var(--kocteau-topline)] sm:m-2.5 sm:ml-0">
+          <div className="kocteau-app-frame m-1.5 ml-0 flex min-h-0 flex-col overflow-hidden rounded-[0.8rem] border border-[var(--kocteau-line)] bg-[var(--kocteau-preview-shell)] shadow-[inset_0_1px_0_var(--kocteau-topline)] sm:m-2.5 sm:ml-0">
             <header className="relative flex h-14 shrink-0 items-center justify-center shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)] sm:h-16">
               <p className="text-[12px] font-medium text-foreground sm:text-sm">
                 Feed
               </p>
             </header>
 
-            <div className="grid min-h-0 flex-1 grid-cols-[minmax(28rem,1fr)_13.5rem] gap-4 bg-[var(--kocteau-shell)] px-5 lg:gap-5 lg:px-6">
+            <div className="grid min-h-0 flex-1 grid-cols-[minmax(28rem,1fr)_13.5rem] gap-4 bg-[var(--kocteau-preview-shell)] px-5 lg:gap-5 lg:px-6">
               <main className="no-scrollbar min-w-0 overflow-hidden pb-8 pt-3">
                 <PreviewFeedTabs />
                 <div className="mt-3.5">
@@ -357,7 +357,7 @@ export default function GuestProductPreview({
           className="pointer-events-none absolute inset-y-0 right-0 z-20 w-[38%] sm:w-[28%] lg:hidden"
           style={{
             background:
-              "linear-gradient(to left, var(--kocteau-shell) 6%, color-mix(in oklch, var(--kocteau-shell) 76%, transparent) 48%, transparent 100%)",
+              "linear-gradient(to left, var(--kocteau-preview-shell) 6%, color-mix(in oklch, var(--kocteau-preview-shell) 76%, transparent) 48%, transparent 100%)",
           }}
         />
       </div>

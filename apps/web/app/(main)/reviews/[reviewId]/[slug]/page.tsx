@@ -140,7 +140,7 @@ export default async function ReviewPage({
   const headerTitle = getTrackLabel(review);
 
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-3 pb-4 sm:space-y-4">
+    <section className="w-full max-w-3xl space-y-3 pb-4 sm:space-y-4">
       <JsonLd data={buildReviewPageJsonLd(review)} id="review-structured-data" />
       <ReviewPageHeaderBridge
         reviewId={review.id}

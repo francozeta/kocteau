@@ -45,7 +45,7 @@ export default function NotificationsInbox({
   }
 
   return (
-    <section className="mx-auto max-w-3xl space-y-5 sm:space-y-6">
+    <section className="w-full max-w-3xl space-y-5 sm:space-y-6">
       <div className="border-b border-border/34 pb-4 md:border-border/30">
         <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
           <span className="font-medium text-foreground">{notifications.length}</span>

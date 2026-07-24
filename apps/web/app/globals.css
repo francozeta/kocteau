@@ -188,8 +188,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-circular: var(--font-circular-family), "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-circular: var(--font-circular-family), var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -227,8 +227,8 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --font-heading: "Merriweather", "Merriweather Fallback", ui-serif, Georgia, serif;
-  --font-editorial: var(--font-redaction-family), "Merriweather", Georgia, ui-serif, serif;
+  --font-heading: var(--font-geist-pixel-square), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-editorial: var(--font-redaction-family), Georgia, ui-serif, serif;
 }
 
 :root {
@@ -292,6 +292,9 @@
   --selection-foreground: oklch(0.16 0 0);
   --kocteau-canvas: #f5f4f1;
   --kocteau-shell: #efede9;
+  --kocteau-landing-canvas: #000000;
+  --kocteau-preview-canvas: oklch(0.108 0 0);
+  --kocteau-preview-shell: color-mix(in oklch, var(--kocteau-gray-2) 48%, var(--kocteau-gray-1));
   --kocteau-surface: #f1efeb;
   --kocteau-surface-raised: #f7f6f4;
   --kocteau-surface-raised-hover: #ffffff;
@@ -410,6 +413,7 @@
   }
   html {
     @apply font-sans;
+    font-synthesis: none;
   }
 
   ::selection {
@@ -428,6 +432,29 @@
 @layer components {
   .kocteau-guest-typography {
     font-synthesis: none;
+  }
+
+  .kocteau-guest-grain {
+    isolation: isolate;
+    position: relative;
+  }
+
+  .kocteau-guest-grain::after {
+    position: fixed;
+    z-index: 60;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.78'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px 180px;
+    content: "";
+    mix-blend-mode: soft-light;
+    opacity: 0.105;
+    pointer-events: none;
+  }
+
+  .kocteau-product-preview {
+    --kocteau-canvas: var(--kocteau-preview-canvas);
+    --kocteau-shell: var(--kocteau-preview-shell);
   }
 
   .no-scrollbar {
@@ -817,7 +844,7 @@
   .kocteau-review-card-editorial + .kocteau-review-card-editorial,
   .kocteau-review-card-frame + .kocteau-review-card-frame,
   .kocteau-review-card-list-item + .kocteau-review-card-list-item {
-    margin-top: 0.55rem !important;
+    margin-top: 1.25rem !important;
   }
 
   .kocteau-review-card-frame,
@@ -828,7 +855,7 @@
   .kocteau-review-card-editorial + .kocteau-review-card-editorial,
   .kocteau-review-card-frame + .kocteau-review-card-frame .kocteau-review-card-editorial,
   .kocteau-review-card-list-item + .kocteau-review-card-list-item .kocteau-review-card-editorial {
-    padding-top: 1.1rem;
+    padding-top: 2rem;
   }
 
   .kocteau-review-card-editorial + .kocteau-review-card-editorial::before,
@@ -836,11 +863,19 @@
   .kocteau-review-card-list-item + .kocteau-review-card-list-item .kocteau-review-card-editorial::before {
     content: "";
     position: absolute;
-    inset-inline: 0;
+    left: calc(50% - 3.625rem);
     top: 0;
-    height: 1px;
-    border-radius: 0;
-    background: color-mix(in oklch, var(--foreground) 14%, transparent);
+    width: 1rem;
+    height: 2px;
+    border-radius: 999px;
+    color: color-mix(in oklch, var(--foreground) 18%, transparent);
+    background: currentColor;
+    box-shadow:
+      1.25rem 0 0 currentColor,
+      2.5rem 0 0 currentColor,
+      3.75rem 0 0 currentColor,
+      5rem 0 0 currentColor,
+      6.25rem 0 0 currentColor;
     pointer-events: none;
   }
 

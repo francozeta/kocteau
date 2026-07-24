@@ -475,7 +475,7 @@ export default function SearchPageClient({
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl lg:mx-0 lg:max-w-none">
+    <div className="w-full max-w-5xl lg:max-w-none">
       <div className="min-w-0 space-y-5 sm:space-y-6">
           <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.5rem] gap-2.5">

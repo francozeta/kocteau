@@ -87,7 +87,7 @@ export default async function HelpArticlePage({ params }: HelpArticlePageProps) 
           </span>
         </div>
         <div>
-          <h1 className="max-w-2xl text-balance font-heading text-[clamp(2rem,7vw,3.25rem)] font-bold leading-[1.06] text-foreground">
+          <h1 className="max-w-2xl text-balance font-heading text-[clamp(2rem,7vw,3.25rem)] font-medium leading-[1.06] text-foreground">
             {document.title}
           </h1>
         </div>

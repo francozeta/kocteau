@@ -68,7 +68,7 @@ export default function FeedReviewCta({
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground/76">
             Review
           </p>
-          <h2 className="text-balance font-serif text-[1.42rem] font-semibold leading-[1.08] text-foreground sm:text-[1.7rem]">
+          <h2 className="text-balance font-heading text-[1.42rem] font-medium leading-[1.08] text-foreground sm:text-[1.7rem]">
             Find something to review.
           </h2>
           <p className="max-w-[22rem] text-pretty text-[13px] leading-5 text-muted-foreground/82 sm:text-[13.5px]">

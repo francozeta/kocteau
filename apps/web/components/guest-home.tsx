@@ -84,14 +84,14 @@ function GuestHomeHero() {
         <div className="mt-8 flex flex-wrap items-center gap-2.5">
           <Link
             href="/signup"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96]"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-foreground px-4 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96]"
           >
             Join Kocteau
             <ArrowRight className="size-3.5" />
           </Link>
           <Link
             href="/reviews"
-            className="inline-flex h-11 items-center justify-center rounded-full px-4 font-circular text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            className="inline-flex h-10 items-center justify-center rounded-full px-3 font-circular text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
           >
             Read recent reviews
           </Link>
@@ -262,14 +262,14 @@ function GuestClosingCta() {
         <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <Link
             href="/signup"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-foreground px-4 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
           >
             Join Kocteau
             <ArrowRight className="size-3.5" />
           </Link>
           <Link
             href="/reviews"
-            className="inline-flex h-11 items-center justify-center rounded-full border border-foreground/[0.14] px-5 font-circular text-[13px] font-medium text-foreground/82 transition-[border-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-[0.97]"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-foreground/[0.14] px-4 font-circular text-[13px] font-medium text-foreground/82 transition-[border-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-[0.97]"
           >
             Read music reviews
           </Link>
@@ -289,7 +289,7 @@ export default function GuestHome({
   starterTracks,
 }: GuestHomeProps) {
   return (
-    <div className="kocteau-guest-typography">
+    <div className="kocteau-guest-typography bg-[var(--kocteau-landing-canvas)]">
       <div className="space-y-16 sm:space-y-20 lg:space-y-24">
         <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
           <GuestHomeHero />
@@ -298,7 +298,7 @@ export default function GuestHome({
           </div>
         </div>
 
-        <div className="relative isolate overflow-x-clip">
+        <div className="relative isolate overflow-x-clip bg-[var(--kocteau-landing-canvas)]">
           <GuestDitheredMark className="absolute -right-44 -top-24 h-[24rem] w-[32rem] opacity-30 sm:-right-60 sm:-top-28 sm:h-[30rem] sm:w-[40rem] sm:opacity-40 lg:-right-72 lg:-top-32 lg:h-[34rem] lg:w-[45rem]" />
 
           <div className="relative z-10 mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
@@ -306,23 +306,28 @@ export default function GuestHome({
           </div>
         </div>
 
+      </div>
+
+      <div className="mt-16 bg-[var(--kocteau-landing-canvas)] sm:mt-20 lg:mt-24">
         <GuestTestimonials />
 
-        {recentPage.feed.length > 0 ? (
-          <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="mx-auto w-full max-w-[80rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10">
-            <div className="flex items-end justify-between gap-4 px-0.5">
-              <h2 id="recent-reviews-title" className="font-serif text-[1.35rem] font-semibold text-foreground">
-                Recently reviewed.
-              </h2>
-              <Link href="/reviews" className="text-[11.5px] font-medium text-muted-foreground/58 transition-colors hover:text-foreground">
-                Explore more
-              </Link>
-            </div>
-            <GuestReviewList reviews={recentPage.feed} />
-          </section>
-        ) : null}
+        <div className="space-y-16 pt-16 sm:space-y-20 sm:pt-20 lg:space-y-24 lg:pt-24">
+          {recentPage.feed.length > 0 ? (
+            <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="mx-auto w-full max-w-[80rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10">
+              <div className="flex items-end justify-between gap-4 px-0.5">
+                <h2 id="recent-reviews-title" className="font-serif text-[1.35rem] font-semibold text-foreground">
+                  Recently reviewed.
+                </h2>
+                <Link href="/reviews" className="text-[11.5px] font-medium text-muted-foreground/58 transition-colors hover:text-foreground">
+                  Explore more
+                </Link>
+              </div>
+              <GuestReviewList reviews={recentPage.feed} />
+            </section>
+          ) : null}
 
-        <GuestClosingCta />
+          <GuestClosingCta />
+        </div>
       </div>
 
       <GuestFooter />

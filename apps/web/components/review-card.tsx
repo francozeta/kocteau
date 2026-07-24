@@ -130,7 +130,7 @@ export function ReviewCardEntitySummary({
       >
         <EntityTitle
           className={cn(
-            "line-clamp-2 font-serif font-semibold tracking-normal text-foreground",
+            "line-clamp-2 font-heading font-medium tracking-normal text-foreground",
             tone === "balanced"
               ? "text-[1.12rem] leading-[1.1] sm:text-[1.28rem]"
               : "text-[1.2rem] leading-[1.08] sm:text-[1.38rem]",
@@ -168,7 +168,7 @@ export function ReviewCardEntitySummary({
         className="h-6 w-6 shrink-0 rounded-full bg-muted"
           iconClassName="size-3"
         />
-        <span className="truncate font-serif text-[15px] font-medium text-foreground">{entity.title}</span>
+        <span className="truncate font-heading text-[15px] font-medium text-foreground">{entity.title}</span>
         <span className="truncate text-muted-foreground/70">{entity.artist_name ?? "Unknown artist"}</span>
       </div>
     );
@@ -192,7 +192,7 @@ export function ReviewCardEntitySummary({
       />
 
       <div className="min-w-0 space-y-0.5">
-        <p className="line-clamp-1 font-serif text-[1rem] font-medium text-foreground">{entity.title}</p>
+        <p className="line-clamp-1 font-heading text-[1rem] font-medium text-foreground">{entity.title}</p>
         <p className="line-clamp-1 text-[13px] text-muted-foreground">
           {entity.artist_name ?? "Unknown artist"}
         </p>
@@ -407,7 +407,7 @@ export default function ReviewCard({
               {hasTitle ? (
                 <h3
                   className={cn(
-                    "font-serif text-pretty font-semibold leading-tight text-foreground",
+                    "font-heading text-pretty font-medium leading-tight text-foreground",
                     usesBalancedCopy ? "text-[1.02rem] sm:text-[1.12rem]" : "text-[1.12rem] sm:text-[1.24rem]",
                   )}
                 >
@@ -436,7 +436,7 @@ export default function ReviewCard({
             {showEntity ? slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode={entityMode} /> : null}
 
             {hasTitle ? (
-              <h3 className="font-serif text-[1.08rem] font-semibold text-pretty text-foreground sm:text-[1.18rem]">
+              <h3 className="font-heading text-[1.08rem] font-medium text-pretty text-foreground sm:text-[1.18rem]">
                 {review.title}
               </h3>
             ) : null}

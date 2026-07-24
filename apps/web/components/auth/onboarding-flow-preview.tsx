@@ -258,7 +258,7 @@ export function OnboardingFlowPreview() {
               className="flex h-full min-h-0 w-full max-w-[32rem] flex-col justify-center gap-3"
             >
               <div className="mx-auto max-w-[24rem] space-y-1.5 text-center">
-                <h1 className="text-balance font-heading text-[1.55rem] font-bold leading-tight tracking-tight text-foreground sm:text-[1.65rem]">
+                <h1 className="text-balance font-heading text-[1.55rem] font-medium leading-tight tracking-tight text-foreground sm:text-[1.65rem]">
                   {currentStep.question}
                 </h1>
                 {currentStepHelper ? (

@@ -995,7 +995,7 @@ export default function StarterStudioClient() {
                 iconClassName="size-6"
               />
               <div className="min-w-0 space-y-1 text-center sm:text-left">
-                <h2 className="text-pretty font-serif text-2xl font-semibold leading-7 text-foreground">
+                <h2 className="text-pretty font-heading text-2xl font-medium leading-7 text-foreground">
                   {inspectedTrack.title}
                 </h2>
                 <p className="truncate text-sm text-muted-foreground">

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export default function GuestHeader() {
   return (
-    <header className="kocteau-guest-typography fixed inset-x-0 top-0 z-30 border-b border-white/[0.055] bg-[var(--kocteau-shell)]">
+    <header className="kocteau-guest-typography fixed inset-x-0 top-0 z-30 border-b border-white/[0.055] bg-[var(--kocteau-landing-canvas)]">
       <div className="mx-auto flex h-15 w-full max-w-[80rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-10">
         <Link
           href="/"
@@ -20,7 +20,7 @@ export default function GuestHeader() {
             href="/reviews"
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
-              "hidden h-10 rounded-full px-3.5 font-circular font-medium text-muted-foreground hover:bg-white/[0.055] hover:text-foreground sm:inline-flex",
+              "hidden h-8 rounded-full px-2.5 font-circular font-medium text-muted-foreground hover:bg-white/[0.055] hover:text-foreground sm:inline-flex",
             )}
           >
             Reviews
@@ -29,7 +29,7 @@ export default function GuestHeader() {
             href="/search"
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
-              "h-10 rounded-full px-3.5 font-circular font-medium text-muted-foreground hover:bg-white/[0.055] hover:text-foreground",
+              "h-8 rounded-full px-2.5 font-circular font-medium text-muted-foreground hover:bg-white/[0.055] hover:text-foreground",
             )}
           >
             Explore
@@ -38,7 +38,7 @@ export default function GuestHeader() {
             href="/login"
             className={cn(
               buttonVariants({ variant: "default", size: "sm" }),
-              "h-10 rounded-full border-0 bg-foreground px-4 font-circular font-medium text-background shadow-none hover:bg-foreground/90 hover:text-background",
+              "h-9 rounded-full border-0 bg-foreground px-3 font-circular font-medium text-background shadow-none hover:bg-foreground/90 hover:text-background",
             )}
           >
             Log in

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Geist, Merriweather } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistPixelSquare } from "geist/font/pixel";
 import "./globals.css";
 import JsonLd from "@/components/json-ld";
 import { cn } from "@/lib/utils";
@@ -10,15 +11,6 @@ import { buildSiteGraphJsonLd } from "@/lib/structured-data";
 
 const supabaseAssetOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-const merriweather = Merriweather({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  weight: ["400", "700"],
-});
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   applicationName: "Kocteau",
@@ -50,7 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn(geist.variable, merriweather.variable, "font-sans")}>
+    <html
+      lang="en"
+      className={cn(GeistSans.variable, GeistPixelSquare.variable, "font-sans")}
+    >
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
         <link rel="dns-prefetch" href="https://cdn-images.dzcdn.net" />
@@ -61,9 +56,7 @@ export default function RootLayout({
           </>
         ) : null}
       </head>
-      <body
-        className={`${geist.className} antialiased dark`}
-      >
+      <body className={`${GeistSans.className} antialiased dark`}>
         <JsonLd data={buildSiteGraphJsonLd()} id="site-structured-data" />
         {children}
         <Analytics />

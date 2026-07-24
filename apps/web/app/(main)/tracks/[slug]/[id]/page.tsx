@@ -183,7 +183,7 @@ export default async function TrackPage({
         })}
         id="track-structured-data"
       />
-      <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
+      <section className="w-full max-w-6xl space-y-4 sm:space-y-5">
         <TrackPageHeaderBridge
           entityId={entity.id}
           provider={entity.provider}

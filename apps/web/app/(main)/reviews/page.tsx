@@ -67,11 +67,11 @@ export default async function ReviewsPage() {
   });
 
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-5 pb-4 sm:space-y-6">
+    <section className="w-full max-w-3xl space-y-5 pb-4 sm:space-y-6">
       <JsonLd data={buildReviewsPageJsonLd(structuredEntries)} id="reviews-structured-data" />
 
       <header className="space-y-2">
-        <h1 className="font-serif text-[2rem] font-semibold leading-[1.05] tracking-normal text-foreground sm:text-[2.45rem]">
+        <h1 className="font-heading text-[2rem] font-medium leading-[1.05] tracking-normal text-foreground sm:text-[2.45rem]">
           Music reviews
         </h1>
         <p className="max-w-xl text-sm leading-6 text-muted-foreground text-pretty">

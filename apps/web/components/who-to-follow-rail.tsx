@@ -208,7 +208,7 @@ export default function WhoToFollowRail({ isAuthenticated }: WhoToFollowRailProp
 
   return (
     <aside
-      className="hidden lg:block lg:min-h-0 lg:pt-3 lg:pb-6"
+      className="hidden lg:block lg:min-h-0"
       aria-label="Editorial rail"
     >
       <div className="flex h-full min-h-0 flex-col">

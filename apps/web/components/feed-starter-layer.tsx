@@ -145,7 +145,7 @@ export default function FeedStarterLayer({
             <Sparkles className="size-3.5" />
             Starter picks
           </div>
-          <h2 className="mt-1 font-serif text-[1.26rem] font-semibold leading-tight text-foreground sm:text-[1.55rem]">
+          <h2 className="mt-1 font-heading text-[1.26rem] font-medium leading-tight text-foreground sm:text-[1.55rem]">
             Pick your next review
           </h2>
         </div>
@@ -197,7 +197,7 @@ export default function FeedStarterLayer({
                 <Sparkles className="size-3" />
                 Editorial starter
               </div>
-              <h3 className="line-clamp-2 font-serif text-[1.42rem] font-semibold leading-[1.06] text-pretty text-foreground sm:text-[1.62rem]">
+              <h3 className="line-clamp-2 font-heading text-[1.42rem] font-medium leading-[1.06] text-pretty text-foreground sm:text-[1.62rem]">
                 {activeTrack.title}
               </h3>
               <p className="mt-2 truncate text-[13.5px] text-muted-foreground">

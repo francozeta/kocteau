@@ -17,7 +17,7 @@ export default function HelpChangelog() {
       <section aria-labelledby="latest-note">
         <h2
           id="latest-note"
-          className="scroll-m-24 text-balance font-heading text-[1.22rem] font-bold leading-tight text-foreground"
+          className="scroll-m-24 text-balance font-heading text-[1.22rem] font-medium leading-tight text-foreground"
         >
           Latest note
         </h2>
@@ -30,7 +30,7 @@ export default function HelpChangelog() {
         <section aria-labelledby="release-archive">
           <h2
             id="release-archive"
-            className="scroll-m-24 text-balance font-heading text-[1.22rem] font-bold leading-tight text-foreground"
+            className="scroll-m-24 text-balance font-heading text-[1.22rem] font-medium leading-tight text-foreground"
           >
             Release archive
           </h2>
@@ -63,7 +63,7 @@ function ChangelogEntry({
         ) : null}
       </div>
 
-      <h3 className="mt-4 text-balance font-heading text-[1.55rem] font-bold leading-tight text-foreground">
+      <h3 className="mt-4 text-balance font-heading text-[1.55rem] font-medium leading-tight text-foreground">
         {entry.title}
       </h3>
       <p className="mt-3 text-pretty text-[0.95rem] leading-7 text-muted-foreground/82">
