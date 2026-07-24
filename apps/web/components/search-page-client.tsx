@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Disc3, GearSixIcon, LoaderCircle, Music2, Search } from "@/components/ui/icons";
+import { Disc3, LoaderCircle, Search } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { Kbd } from "@/components/ui/kbd";
 import PrefetchLink from "@/components/prefetch-link";
@@ -12,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useKocteauSearch, type KocteauSearchResult } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { DiscoveryTrack } from "@/lib/queries/discovery";
 import type { SearchEntityType } from "@/lib/search-types";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import { cn } from "@/lib/utils";
@@ -20,7 +26,7 @@ import { cn } from "@/lib/utils";
 type SearchPageClientProps = {
   initialQuery: string;
   initialType: SearchEntityType;
-  highlights: DiscoveryTrack[];
+  discoverContent: ReactNode;
 };
 
 type RecentSearch = {
@@ -32,15 +38,6 @@ type ActiveSearchResultState = {
   key: string;
   index: number;
 };
-
-const suggestedSearches = [
-  "Massive Attack",
-  "Rosalia",
-  "The Cure",
-  "FKA twigs",
-  "Daft Punk",
-  "Frank Ocean",
-];
 
 const searchEntityTabs: Array<{
   value: SearchEntityType;
@@ -110,13 +107,6 @@ function notifyRecentSearchesChanged() {
   window.dispatchEvent(new Event(recentSearchesChangedEvent));
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "short",
-  });
-}
-
 function getResultHref(result: KocteauSearchResult) {
   return result.entity_id
     ? buildEntityCanonicalPath({
@@ -182,28 +172,6 @@ function getSearchTabHref(value: SearchEntityType, query: string) {
   const next = params.toString();
 
   return next ? `/search?${next}` : "/search";
-}
-
-function getTasteSettingsHref(query: string, type: SearchEntityType) {
-  const nextParams = new URLSearchParams();
-  const normalized = query.trim();
-
-  if (normalized) {
-    nextParams.set("q", normalized);
-  }
-
-  if (type !== "track") {
-    nextParams.set("type", type);
-  }
-
-  const nextSearch = nextParams.toString();
-  const nextPath = nextSearch ? `/search?${nextSearch}` : "/search";
-  const params = new URLSearchParams({
-    edit: "1",
-    next: nextPath,
-  });
-
-  return `/onboarding/taste?${params.toString()}`;
 }
 
 function SearchTypeTabs({
@@ -303,7 +271,7 @@ function SuggestionRow({
 export default function SearchPageClient({
   initialQuery,
   initialType,
-  highlights,
+  discoverContent,
 }: SearchPageClientProps) {
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -414,7 +382,6 @@ export default function SearchPageClient({
     error instanceof Error && error.message
       ? error.message
       : "Music search is taking longer than usual. Try again in a moment.";
-  const tasteSettingsHref = getTasteSettingsHref(normalizedQuery, searchType);
 
   function persistRecentSearch(nextQuery: string) {
     const label = nextQuery.trim();
@@ -478,28 +445,18 @@ export default function SearchPageClient({
     <div className="w-full max-w-5xl lg:max-w-none">
       <div className="min-w-0 space-y-5 sm:space-y-6">
           <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.5rem] gap-2.5">
-              <div className="relative min-w-0">
-                <Search className="pointer-events-none absolute top-1/2 left-3.5 z-10 size-4 -translate-y-1/2 text-muted-foreground/78" />
-                <Input
-                  data-global-search-input="true"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  onKeyDown={handleInputKeyDown}
-                  placeholder="Search tracks to explore…"
-                  className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/72"
-                  autoFocus={!isMobile}
-                  maxLength={80}
-                />
-              </div>
-              <PrefetchLink
-                href={tasteSettingsHref}
-                aria-label="Tune your taste"
-                title="Tune your taste"
-                className="mobile-liquid-panel inline-flex size-10 items-center justify-center rounded-[0.82rem] border border-border/24 bg-[var(--kocteau-surface-control)] text-muted-foreground/82 shadow-none transition-[background-color,color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-              >
-                <GearSixIcon className="size-[1.15rem]" weight="regular" />
-              </PrefetchLink>
+            <div className="relative min-w-0">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/78" />
+              <Input
+                data-global-search-input="true"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder="Search tracks, albums, or artists…"
+                className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/72"
+                autoFocus={!isMobile}
+                maxLength={80}
+              />
             </div>
 
             <SearchTypeTabs activeType={searchType} query={normalizedQuery} />
@@ -524,52 +481,32 @@ export default function SearchPageClient({
             </div>
           ) : null}
 
-          {!hasQuery ? (
+          {!hasQuery && recentSearches.length > 0 ? (
             <section className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-none">
-              <div className="divide-y divide-border/16">
-                {recentSearches.length > 0 ? (
-                  <div>
-                    <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                      <SearchSectionLabel>Recent</SearchSectionLabel>
-                      <button
-                        type="button"
-                        onClick={clearRecentSearches}
-                        className="text-[12px] text-muted-foreground hover:text-foreground"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                    <div className="divide-y divide-border/16">
-                      {recentSearches.map((item) => (
-                        <SuggestionRow
-                          key={item.query}
-                          onClick={() => handleSearchSuggestionSelect(item.query)}
-                        >
-                          {item.label}
-                        </SuggestionRow>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div>
-                  <div className="px-4 py-2.5">
-                    <SearchSectionLabel>Starting points</SearchSectionLabel>
-                  </div>
-                  <div className="divide-y divide-border/16">
-                    {suggestedSearches.map((suggestion) => (
-                      <SuggestionRow
-                        key={suggestion}
-                        onClick={() => handleSearchSuggestionSelect(suggestion)}
-                      >
-                        {suggestion}
-                      </SuggestionRow>
-                    ))}
-                  </div>
-                </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <SearchSectionLabel>Recent</SearchSectionLabel>
+                <button
+                  type="button"
+                  onClick={clearRecentSearches}
+                  className="text-[12px] text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                >
+                  Clear
+                </button>
+              </div>
+              <div className="divide-y divide-border/16 border-t border-border/16">
+                {recentSearches.map((item) => (
+                  <SuggestionRow
+                    key={item.query}
+                    onClick={() => handleSearchSuggestionSelect(item.query)}
+                  >
+                    {item.label}
+                  </SuggestionRow>
+                ))}
               </div>
             </section>
           ) : null}
+
+          {!hasQuery ? discoverContent : null}
 
           {hasQuery ? (
             <section className="space-y-3">
@@ -700,80 +637,7 @@ export default function SearchPageClient({
                 </div>
               ) : null}
             </section>
-          ) : (
-            <section className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <SearchSectionLabel>Recently discussed</SearchSectionLabel>
-              </div>
-
-              {highlights.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                  {highlights.map((track) => {
-                    const trackPath = buildEntityCanonicalPath({
-                      id: track.entityId,
-                      provider: track.provider,
-                      provider_id: track.providerId,
-                      type: track.type,
-                      title: track.title,
-                      artist_name: track.artistName,
-                    });
-
-                    return (
-                      <TrackContextMenu
-                        key={track.entityId}
-                        href={trackPath}
-                        title={track.title}
-                        artistName={track.artistName}
-                      >
-                        <PrefetchLink
-                          href={trackPath}
-                          queryWarmup={{ kind: "track", id: track.entityId }}
-                          className="block overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/22 bg-[var(--kocteau-surface)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] hover:bg-[var(--kocteau-surface-raised)]"
-                        >
-                          <div className="space-y-2.5">
-                            <EntityCoverImage
-                              src={track.coverUrl}
-                              alt={track.title}
-                              sizes="(max-width: 639px) 46vw, (max-width: 1023px) 30vw, 220px"
-                              quality={82}
-                              variant="card"
-                              className="aspect-square w-full rounded-[0.68rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
-                              iconClassName="size-6"
-                            />
-
-                            <div className="min-w-0 px-0.5 pb-0.5">
-                              <div className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/62">
-                                <Disc3 className="size-3" />
-                                <span>{formatDate(track.latestReviewAt)}</span>
-                              </div>
-                              <h3 className="line-clamp-1 text-[14px] font-semibold text-foreground">
-                                {track.title}
-                              </h3>
-                              <p className="line-clamp-1 text-[13px] text-muted-foreground/84">
-                                {track.artistName ?? "Unknown artist"}
-                              </p>
-                            </div>
-                          </div>
-                        </PrefetchLink>
-                      </TrackContextMenu>
-                    );
-                  })}
-                </div>
-              ) : (
-                <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <Music2 className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>No tracks yet</EmptyTitle>
-                    <EmptyDescription>
-                      New reviews will surface here as the community grows.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              )}
-            </section>
-          )}
+          ) : null}
       </div>
     </div>
   );

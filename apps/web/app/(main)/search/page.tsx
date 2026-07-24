@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import DiscoverEditorialEdition from "@/components/discover-editorial-edition";
 import SearchPageClient from "@/components/search-page-client";
 import { createPageMetadata } from "@/lib/metadata";
+import { getAtlasTags } from "@/lib/queries/atlas";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
+import { getPublicStarterTracks } from "@/lib/queries/starter";
 import { isSearchEntityType } from "@/lib/search-types";
 
 export async function generateMetadata({
@@ -36,14 +39,28 @@ export default async function SearchPage({
   const params = await searchParams;
   const initialQuery = params.q?.trim() ?? "";
   const initialType = isSearchEntityType(params.type) ? params.type : "track";
-  const highlights = await getRecentlyDiscussedTracks(8);
+  const discoverData = initialQuery
+    ? null
+    : await Promise.all([
+        getRecentlyDiscussedTracks(8),
+        getPublicStarterTracks({ limit: 6, contextKey: "discover" }),
+        getAtlasTags(),
+      ]);
+
+  const discoverContent = discoverData ? (
+    <DiscoverEditorialEdition
+      discussedTracks={discoverData[0]}
+      starterTracks={discoverData[1]}
+      atlasTags={discoverData[2]}
+    />
+  ) : null;
 
   return (
     <SearchPageClient
       key={`${initialType}:${initialQuery}`}
       initialQuery={initialQuery}
       initialType={initialType}
-      highlights={highlights}
+      discoverContent={discoverContent}
     />
   );
 }
