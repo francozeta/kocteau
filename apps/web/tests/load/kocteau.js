@@ -4,6 +4,8 @@ import { check, sleep } from "k6";
 const profile = (__ENV.K6_PROFILE || "smoke").toLowerCase();
 const baseUrl = normalizeBaseUrl(__ENV.K6_BASE_URL || "http://127.0.0.1:3000");
 const authCookie = (__ENV.K6_AUTH_COOKIE || "").trim();
+const previewCookie = (__ENV.K6_PREVIEW_COOKIE || "").trim();
+const vercelBypassSecret = (__ENV.K6_VERCEL_BYPASS_SECRET || "").trim();
 const searchQuery = (__ENV.K6_SEARCH_QUERY || "cocteau").trim();
 const explicitTrackPath = normalizePath(__ENV.K6_TRACK_PATH || "");
 const summaryPath = (__ENV.K6_SUMMARY_PATH || "").trim();
@@ -11,6 +13,10 @@ const summaryPath = (__ENV.K6_SUMMARY_PATH || "").trim();
 const defaultHeaders = {
   Accept: "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
   "User-Agent": `Kocteau-load-readiness/${profile}`,
+  ...(previewCookie ? { Cookie: previewCookie } : {}),
+  ...(vercelBypassSecret
+    ? { "x-vercel-protection-bypass": vercelBypassSecret }
+    : {}),
 };
 
 const publicSurfaces = {
@@ -90,7 +96,7 @@ export function searchSurface() {
 
 export function authenticatedFeedSurface() {
   const response = get("/feed?view=for-you", "authenticated_feed", {
-    Cookie: authCookie,
+    Cookie: joinCookies(previewCookie, authCookie),
   });
 
   check(response, {
@@ -113,6 +119,7 @@ export function handleSummary(data) {
         target: baseUrl,
         profile,
         authenticatedFeedIncluded: Boolean(authCookie),
+        protectedPreviewBypassIncluded: Boolean(previewCookie || vercelBypassSecret),
         data,
       },
       null,
@@ -209,6 +216,10 @@ function normalizePath(value) {
   }
 
   return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
+
+function joinCookies(...cookies) {
+  return cookies.filter(Boolean).join("; ");
 }
 
 function pause() {

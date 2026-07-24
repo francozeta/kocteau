@@ -44,6 +44,32 @@ $env:K6_SUMMARY_PATH = "tmp/load-tests/baseline.json"
 pnpm perf:load:baseline
 ```
 
+### Protected Vercel previews
+
+Keep Deployment Protection enabled. Either provide an existing automation bypass secret through `K6_VERCEL_BYPASS_SECRET`, or let the authenticated Vercel CLI create a temporary cookie for the current preview:
+
+```powershell
+New-Item -ItemType Directory -Force -Path tmp/load-tests | Out-Null
+vercel curl "$env:K6_BASE_URL/sitemap.xml" `
+  -H "x-vercel-set-bypass-cookie: true" `
+  -L `
+  -c tmp/load-tests/vercel.cookies `
+  -o tmp/load-tests/protected-sitemap.xml `
+  --silent `
+  --show-error
+
+$cookieLine = Get-Content tmp/load-tests/vercel.cookies |
+  Where-Object { $_ -match "_vercel_jwt" } |
+  Select-Object -Last 1
+$cookieFields = $cookieLine -split "`t"
+$env:K6_PREVIEW_COOKIE = "$($cookieFields[5])=$($cookieFields[6])"
+
+pnpm perf:load:baseline
+Remove-Item Env:K6_PREVIEW_COOKIE
+```
+
+The cookie and generated reports remain under ignored `tmp/`. Never copy either value into documentation, an issue, or a commit.
+
 Override discovery when a known canonical track should be measured:
 
 ```powershell
@@ -118,3 +144,27 @@ Stop a run when any of the following occurs:
 - external API failures cascade into application errors.
 
 Roll back the application change under test when the regression reproduces against the previous deployment with the same profile and data conditions. Otherwise open a focused issue for the responsible layer: application, query/index, cache/external API, or platform capacity.
+
+## Recorded baseline
+
+The first gradual baseline ran on July 23, 2026 against the protected Vercel preview for PR #146. It covered public traffic only; authenticated feed measurement remains opt-in because no test-session cookie was committed or shared.
+
+| Surface | P75 | P95 | Maximum | Failed requests |
+| --- | ---: | ---: | ---: | ---: |
+| Landing | 305 ms | 393 ms | 1,022 ms | 0% |
+| Canonical track | 1,115 ms | 1,437 ms | 5,392 ms | 0% |
+| Search page | 548 ms | 612 ms | 3,016 ms | 0% |
+| Search API | 917 ms | 1,213 ms | 1,787 ms | 0% |
+
+The run completed 211 iterations and 261 requests, with nine VUs at peak and a 100% check pass rate. Every P75, P95, and error-rate threshold passed.
+
+Supabase remained stable across the window:
+
+- active connections returned from 16 before the run to 14 after it;
+- `authenticator` remained at 9 active connections;
+- no role approached 80% of its connection limit;
+- database size remained 21 MB;
+- table and index hit rates remained 100%;
+- the cumulative query outliers were Supabase Dashboard introspection queries, not Kocteau application queries.
+
+The isolated maximums on canonical track and search page show a cold-tail opportunity, but they did not persist through P95 under gradual load. Investigate those paths separately before raising concurrency or changing database capacity.
