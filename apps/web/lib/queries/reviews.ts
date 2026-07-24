@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import type {
   ReviewCardAuthor,
   ReviewCardData,
@@ -43,7 +44,6 @@ export type ViewerReview = {
 };
 
 const publicReviewLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
-const publicReviewByRouteIdLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
 
 function normalizeReviewPageReview(review: ReviewPageReview): ReviewPageReview {
   return {
@@ -111,7 +111,9 @@ export async function getPublicReviewById(reviewId: string) {
   )();
 }
 
-export async function getPublicReviewByRouteId(routeId: string) {
+export const getPublicReviewByRouteId = cache(async function getPublicReviewByRouteId(
+  routeId: string,
+) {
   if (isFullUuid(routeId)) {
     return getPublicReviewById(routeId);
   }
@@ -121,53 +123,47 @@ export async function getPublicReviewByRouteId(routeId: string) {
   }
 
   const normalizedRouteId = routeId.toLowerCase();
-  const routeIdCandidates = Array.from(
-    new Set([normalizedRouteId, normalizedRouteId.slice(0, 8)]),
+
+  return measureServerTask(
+    "getPublicReviewByRouteId",
+    async () => {
+      const supabase = supabasePublic();
+      let query = supabase
+        .from("reviews")
+        .select("id")
+        .limit(2);
+
+      query =
+        normalizedRouteId.length === 8
+          ? query.like("short_id", `${normalizedRouteId}%`)
+          : query.eq("short_id", normalizedRouteId);
+
+      const { data, error } = await query.returns<Array<{ id: string }>>();
+
+      if (error) {
+        console.error("[reviews.getPublicReviewByRouteId] failed", {
+          code: error.code ?? null,
+          message: error.message ?? null,
+          routeId: normalizedRouteId,
+        });
+        return null;
+      }
+
+      if ((data?.length ?? 0) !== 1) {
+        if ((data?.length ?? 0) > 1) {
+          console.warn("[reviews.getPublicReviewByRouteId] ambiguous route id", {
+            routeId: normalizedRouteId,
+          });
+        }
+
+        return null;
+      }
+
+      return getPublicReviewById(data?.[0]?.id ?? "");
+    },
+    { routeId: normalizedRouteId },
   );
-
-  return getOrCreateLoader(
-    publicReviewByRouteIdLoaders,
-    ["review-route-id", normalizedRouteId],
-    () =>
-      unstable_cache(
-        async () =>
-          measureServerTask(
-            "getPublicReviewByRouteId",
-            async () => {
-              const supabase = supabasePublic();
-              const review = await runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
-                {
-                  let query = supabase
-                  .from("reviews")
-                  .select(
-                    buildReviewHydrationSelect(mode, {
-                      includeAuthor: true,
-                      includeEntity: true,
-                      includePinned: true,
-                    }),
-                  );
-
-                  query =
-                    normalizedRouteId.length === 8
-                      ? query.like("short_id", `${normalizedRouteId}%`)
-                      : query.in("short_id", routeIdCandidates);
-
-                  return query.maybeSingle();
-                },
-              );
-
-              return review ? normalizeReviewPageReview(review) : null;
-            },
-            { routeId: normalizedRouteId },
-          ),
-        ["review-route-id", normalizedRouteId],
-        {
-          revalidate: 60,
-          tags: ["reviews", `review-route:${normalizedRouteId}`],
-        },
-      ),
-  )();
-}
+});
 
 export async function getReviewViewerState(
   viewerId: string | null | undefined,

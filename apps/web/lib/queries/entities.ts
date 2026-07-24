@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { runReviewListQuery } from "@/lib/queries/review-likes";
@@ -61,7 +62,6 @@ function getHydratedAuthorId(author: EntityReview["author"]) {
 }
 
 const entityPageLoaders = new Map<string, () => Promise<EntityPage | null>>();
-const entityPageByRouteIdLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityPageByProviderLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | null>>();
 const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
@@ -131,7 +131,9 @@ export async function getEntityPageById(entityId: string) {
   )();
 }
 
-export async function getEntityPageByRouteId(routeId: string) {
+export const getEntityPageByRouteId = cache(async function getEntityPageByRouteId(
+  routeId: string,
+) {
   if (isFullUuid(routeId)) {
     return getEntityPageById(routeId);
   }
@@ -141,50 +143,45 @@ export async function getEntityPageByRouteId(routeId: string) {
   }
 
   const normalizedRouteId = routeId.toLowerCase();
-  const routeIdCandidates = Array.from(
-    new Set([normalizedRouteId, normalizedRouteId.slice(0, 8)]),
+
+  return measureServerTask(
+    "getEntityPageByRouteId",
+    async () => {
+      const supabase = supabasePublic();
+      let query = supabase
+        .from("entities")
+        .select(entityPageSelect)
+        .limit(2);
+
+      query =
+        normalizedRouteId.length === 8
+          ? query.like("short_id", `${normalizedRouteId}%`)
+          : query.eq("short_id", normalizedRouteId);
+
+      const { data, error } = await query.returns<EntityPage[]>();
+
+      if (error) {
+        logEntitiesQueryError("getEntityPageByRouteId", error, {
+          routeId: normalizedRouteId,
+        });
+        return null;
+      }
+
+      if ((data?.length ?? 0) !== 1) {
+        if ((data?.length ?? 0) > 1) {
+          console.warn("[entities.getEntityPageByRouteId] ambiguous route id", {
+            routeId: normalizedRouteId,
+          });
+        }
+
+        return null;
+      }
+
+      return data?.[0] ?? null;
+    },
+    { routeId: normalizedRouteId },
   );
-
-  return getOrCreateLoader(
-    entityPageByRouteIdLoaders,
-    ["entity-page-route-id", normalizedRouteId],
-    () =>
-      unstable_cache(
-        async () =>
-          measureServerTask(
-            "getEntityPageByRouteId",
-            async () => {
-              const supabase = supabasePublic();
-              let query = supabase
-                .from("entities")
-                .select(entityPageSelect);
-
-              query =
-                normalizedRouteId.length === 8
-                  ? query.like("short_id", `${normalizedRouteId}%`)
-                  : query.in("short_id", routeIdCandidates);
-
-              const { data, error } = await query.maybeSingle<EntityPage>();
-
-              if (error) {
-                logEntitiesQueryError("getEntityPageByRouteId", error, {
-                  routeId: normalizedRouteId,
-                });
-                return null;
-              }
-
-              return data;
-            },
-            { routeId: normalizedRouteId },
-          ),
-        ["entity-page-route-id", normalizedRouteId],
-        {
-          revalidate: entityLookupRevalidateSeconds,
-          tags: ["entities", `entity-route:${normalizedRouteId}`],
-        },
-      ),
-  )();
-}
+});
 
 export async function getEntityPageByProvider(
   provider: string,
