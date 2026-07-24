@@ -4,7 +4,6 @@ import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import {
-  ChatCircleTextIcon,
   MagnifyingGlassIcon,
 } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
@@ -39,8 +38,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-
-const FEEDBACK_URL = "https://github.com/francozeta/kocteau/issues/new";
 
 type AppSidebarProfile = {
   id: string;
@@ -171,7 +168,7 @@ export default function AppSidebar({
       isActive: profile ? pathname === "/feed" : pathname === "/",
     },
     {
-      title: "Explore",
+      title: "Discover",
       url: "/search",
       icon: MagnifyingGlassIcon,
       isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
@@ -181,12 +178,6 @@ export default function AppSidebar({
       url: "/atlas",
       icon: KocteauStarterIcon,
       isActive: pathname.startsWith("/atlas"),
-    },
-    {
-      title: "Feedback",
-      url: FEEDBACK_URL,
-      icon: ChatCircleTextIcon,
-      external: true,
     },
   ];
 
@@ -267,7 +258,13 @@ export default function AppSidebar({
 
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
           <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
-          {secondaryItems.length > 0 ? <NavSecondary items={secondaryItems} onNavigate={closeMobileSidebar} /> : null}
+          {secondaryItems.length > 0 ? (
+            <NavSecondary
+              items={secondaryItems}
+              label="Yours"
+              onNavigate={closeMobileSidebar}
+            />
+          ) : null}
           {studioItems.length > 0 ? (
             <NavSecondary
               items={studioItems}

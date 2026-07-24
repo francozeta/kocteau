@@ -84,7 +84,7 @@ export default function Header({
     }
 
     if (isSearchRoute) {
-      return "Explore";
+      return "Discover";
     }
 
     if (pathname === "/track") {
@@ -194,9 +194,9 @@ export default function Header({
           {renderMobileLogoMark(standardHeaderTitle)}
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 hidden justify-center md:flex">
-          <div className="pointer-events-none inline-flex max-w-[22rem] items-center justify-center px-4">
-            <span className="truncate text-sm font-medium text-foreground">
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:block md:px-7 xl:px-8">
+          <div className="mx-auto flex w-full max-w-[76rem] items-center">
+            <span className="truncate font-pixel text-[0.82rem] font-medium tracking-[-0.012em] text-foreground/92">
               {standardHeaderTitle}
             </span>
           </div>

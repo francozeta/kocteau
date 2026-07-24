@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  ChatCircleTextIcon,
   SparkleIcon,
   WarningCircleIcon,
 } from "@/components/ui/icons";
@@ -41,6 +42,8 @@ import {
 } from "@/components/ui/sidebar";
 import UserAvatar from "@/components/user-avatar";
 import { supabaseBrowser } from "@/lib/supabase/client";
+
+const FEEDBACK_URL = "https://github.com/francozeta/kocteau/issues/new";
 
 type SidebarProfile = {
   id: string;
@@ -166,6 +169,15 @@ export function NavUser({
                 <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
                   <KocteauEditProfileIcon className="size-4" />
                   Edit profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    onNavigate?.();
+                    window.open(FEEDBACK_URL, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  <ChatCircleTextIcon className="size-4" />
+                  Feedback
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onSelect={() => setLogoutOpen(true)}>

@@ -14,14 +14,14 @@ export async function generateMetadata({
 
   if (!query) {
     return createPageMetadata({
-      title: "Explore",
-      description: "Search tracks and browse active songs on Kocteau.",
+      title: "Discover",
+      description: "Search tracks and discover music through real reviews on Kocteau.",
       path: "/search",
     });
   }
 
   return createPageMetadata({
-    title: `Explore: ${query}`,
+    title: `Discover: ${query}`,
     description: `Track results for ${query} on Kocteau.`,
     path: `/search?q=${encodeURIComponent(query)}`,
     noIndex: true,

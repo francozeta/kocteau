@@ -24,14 +24,16 @@ type NavMainItem = {
 
 export function NavMain({
   items,
+  label = "Listen",
   onNavigate,
 }: {
   items: NavMainItem[];
+  label?: string;
   onNavigate?: () => void;
 }) {
   return (
     <SidebarGroup className="px-0">
-      <SidebarGroupLabel>Browse</SidebarGroupLabel>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (

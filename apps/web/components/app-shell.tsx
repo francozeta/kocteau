@@ -4,13 +4,13 @@ import ReactQueryProvider from "@/app/providers/react-query-provider";
 import AppSidebar from "@/components/app-sidebar";
 import DeferredToaster from "@/components/deferred-toaster";
 import DesktopScrollBridge from "@/components/desktop-scroll-bridge";
+import EditorialDiscoveryRail from "@/components/editorial-discovery-rail";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import Header from "@/components/header";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/route-header-context";
 import { SecondaryRailProvider } from "@/components/secondary-rail-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import WhoToFollowRail from "@/components/who-to-follow-rail";
 import {
   getCurrentOnboardingState,
   getCurrentUserId,
@@ -85,7 +85,7 @@ export default async function AppShell({
               >
                 {children}
               </main>
-              {safeProfile ? <WhoToFollowRail isAuthenticated /> : null}
+              {safeProfile ? <EditorialDiscoveryRail isAuthenticated /> : null}
             </div>
           )}
         </div>

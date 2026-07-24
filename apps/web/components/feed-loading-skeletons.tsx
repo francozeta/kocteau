@@ -10,10 +10,6 @@ type FeedControlsSkeletonProps = {
   fullWidth?: boolean;
 };
 
-type WhoToFollowRailSkeletonProps = {
-  showHeading?: boolean;
-};
-
 function SkeletonLine({ className }: { className?: string }) {
   return (
     <Skeleton
@@ -100,30 +96,6 @@ export function FeedStarterLayerSkeleton() {
       </div>
     </section>
   );
-}
-
-export function WhoToFollowRailSkeleton({
-  showHeading = true,
-}: WhoToFollowRailSkeletonProps = {}) {
-  const content = (
-    <>
-      {showHeading ? <SkeletonLine className="w-28" /> : null}
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={`rail-profile-${index}`} className="flex items-center gap-2.5">
-            <Skeleton className="size-8 shrink-0 rounded-full bg-muted-foreground/[0.1]" />
-            <SkeletonLine className={index === 1 ? "w-20" : "w-24"} />
-          </div>
-        ))}
-      </div>
-    </>
-  );
-
-  if (!showHeading) {
-    return content;
-  }
-
-  return <aside className="hidden flex-col gap-4 lg:flex">{content}</aside>;
 }
 
 export function FeedReviewStackSkeleton() {
