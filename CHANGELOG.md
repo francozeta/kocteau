@@ -1,5 +1,86 @@
 # Changelog
 
+## [0.3.9](https://github.com/francozeta/kocteau/compare/v0.3.8...v0.3.9) (2026-07-24)
+
+
+### Features
+
+* add structured data for home page to enhance SEO ([66ed9d0](https://github.com/francozeta/kocteau/commit/66ed9d02647d6aa97974ca06b50db53eac66629b))
+* **eve:** add curation copilot agent ([5a1f3bc](https://github.com/francozeta/kocteau/commit/5a1f3bc86cd01fb40b63488914e45176a2f9f24c))
+* **eve:** add curation copilot agent ([a7df4bd](https://github.com/francozeta/kocteau/commit/a7df4bd14cdaf0a0c2d8e5a25e3c6a257ba3d4f8))
+* **guest-home:** add GuestDitheredMark component and integrate into guest home layout ([52fcb49](https://github.com/francozeta/kocteau/commit/52fcb49b5e68b7466ba01cba5a6f7ff76590b2fd))
+* **home:** integrate new fonts and update typography styles across components ([631ed9c](https://github.com/francozeta/kocteau/commit/631ed9c7500ca862bec83d6c4e76b305473fa34e))
+* **home:** launch editorial guest experience ([#135](https://github.com/francozeta/kocteau/issues/135)) ([cd54e7d](https://github.com/francozeta/kocteau/commit/cd54e7da6a0b11b1a08fc3f83653f9449ec91efe))
+* implement GuestProductPreview component to showcase starter tracks and reviews for guests ([66ed9d0](https://github.com/francozeta/kocteau/commit/66ed9d02647d6aa97974ca06b50db53eac66629b))
+* **sound:** implement sound management system with custom hooks and audio playback ([f912625](https://github.com/francozeta/kocteau/commit/f912625ad9e772e0bbd59cc90ef9431b3a4dfe0f))
+* **starter:** add Eve curation suggestions ([837b574](https://github.com/francozeta/kocteau/commit/837b5742f83783ce8256489c3d55e81acaee0bb9))
+* **starter:** add Eve curation suggestions ([abb5f2e](https://github.com/francozeta/kocteau/commit/abb5f2e360ad98c908cbb6ed8965a41e5337c18f))
+* **ui:** refine editorial visual system ([59739c4](https://github.com/francozeta/kocteau/commit/59739c4886efd602cccd458d9bcc13c2c64f3e88))
+* **web:** add public atlas tag pages ([79ff9f5](https://github.com/francozeta/kocteau/commit/79ff9f52da19d8bf47e23d1f01ce13b8c8f5337c))
+* **web:** add public atlas tag pages ([0e6bf2b](https://github.com/francozeta/kocteau/commit/0e6bf2b80c5b2c47bc605c8182d1d2a6cee5a858))
+* **web:** polish starter curation drawer ([8f9200f](https://github.com/francozeta/kocteau/commit/8f9200f96c66c45a284460f5a797813fc33a8d4c))
+* **web:** polish starter curation drawer ([f0612b6](https://github.com/francozeta/kocteau/commit/f0612b6c703eb0cf74e8a9c17189567fceff589f))
+* **web:** polish starter studio command bar ([08d5935](https://github.com/francozeta/kocteau/commit/08d593574c74b3fe086ec8d5d30b7e704958a1a2))
+* **web:** polish starter studio curation UI ([b9567af](https://github.com/francozeta/kocteau/commit/b9567af4a13dcc49aa69dd1689d767adfd3b2dc4))
+* **web:** redesign guest home page with new footer, testimonials, and stagger animations ([069f6bb](https://github.com/francozeta/kocteau/commit/069f6bb04720dcb3adb8bfc481f6cd1959c42aea))
+* **web:** redesign starter studio workspace ([c8f535e](https://github.com/francozeta/kocteau/commit/c8f535ed7e0b0df0cd75aed7d18fb5f24ae8d020))
+* **web:** redesign starter studio workspace ([a110998](https://github.com/francozeta/kocteau/commit/a110998a83f73392b61790a727c8f621f0faf749))
+
+
+### Bug Fixes
+
+* **audio:** declare stop-on-unmount option ([ab4b29d](https://github.com/francozeta/kocteau/commit/ab4b29d0d4edb4ad70c3af687d810b8603ee851b))
+* **config:** add turbopack configuration with path resolution ([4830283](https://github.com/francozeta/kocteau/commit/4830283cea2d21577a51cca4cb2c98416307cb48))
+* enhance AppShell layout responsiveness and sidebar visibility based on user authentication ([66ed9d0](https://github.com/francozeta/kocteau/commit/66ed9d02647d6aa97974ca06b50db53eac66629b))
+* **guest-home:** replace SiOpenai icon with RiOpenaiFill in askKocteauLinks ([45113f0](https://github.com/francozeta/kocteau/commit/45113f0a4b00bd904dd520e83c85e11e0cfadbaf))
+* **performance:** contain Deezer resolver traffic ([8d80cc0](https://github.com/francozeta/kocteau/commit/8d80cc0bdc2f7ff588a63899e7dbc805f49311bf))
+* **testimonials:** remove emojis from testimonial quotes for consistency ([edf6445](https://github.com/francozeta/kocteau/commit/edf644525860b988f18bba7fd5b8270c2e428859))
+* update SpotlightLogo component for better visual effects and interaction ([66ed9d0](https://github.com/francozeta/kocteau/commit/66ed9d02647d6aa97974ca06b50db53eac66629b))
+* **web:** anchor starter signal comboboxes ([345166b](https://github.com/francozeta/kocteau/commit/345166b136147b1798fa1923a400bf158dfd3467))
+* **web:** refine starter studio curation ui ([3a10104](https://github.com/francozeta/kocteau/commit/3a10104e3f817841462e9ff619d76482f8a19d66))
+* **web:** restore starter studio build ([2d71c89](https://github.com/francozeta/kocteau/commit/2d71c89bdcc5958781af97457c172977bd4bab83))
+* **web:** restore starter studio build ([f289d27](https://github.com/francozeta/kocteau/commit/f289d27b2f163591d7127fa0c1aac21192374008))
+* **web:** restore starter studio build ([2b69897](https://github.com/francozeta/kocteau/commit/2b69897a0e2e4349061c33b5d89a1211f4f1e75a))
+* **web:** simplify starter curation drawer ([ebc3e5f](https://github.com/francozeta/kocteau/commit/ebc3e5f9b6a22ec101145ebda703e59e868bdba6))
+* **web:** speed up starter signal selection ([cc3dfb7](https://github.com/francozeta/kocteau/commit/cc3dfb731daed7565f9ace0d3c0abcae6cdf47b3))
+
+
+### Performance
+
+* **auth:** validate proxy sessions with JWT claims ([d1198be](https://github.com/francozeta/kocteau/commit/d1198be3653e69dbd0feae55587c179051f7ae15))
+* **db:** bound recommendation candidate scoring ([2ffa020](https://github.com/francozeta/kocteau/commit/2ffa020f8682cb87a6541dcff28599a8c4be3926))
+* **db:** bound recommendation candidate scoring ([85c181f](https://github.com/francozeta/kocteau/commit/85c181fdbd9e0a287d50bb7546ff939cf8f3e5ba))
+* **db:** streamline rls and indexes ([de6db61](https://github.com/francozeta/kocteau/commit/de6db6159b1098f283f6aad632385b00c07cc5d3))
+* **db:** streamline RLS and indexes ([cec26bb](https://github.com/francozeta/kocteau/commit/cec26bba1a5b229927b7a81d5736e582aba10f3e))
+* **observability:** reduce production tracing overhead ([baa5211](https://github.com/francozeta/kocteau/commit/baa521100de9b3ad6461b9d8eb162ba426036f51))
+* **observability:** reduce production tracing overhead ([566f44e](https://github.com/francozeta/kocteau/commit/566f44ee4c590bdec01e264dc67aa6e8afd877f2))
+* **routing:** isolate public home from feed ([b894f52](https://github.com/francozeta/kocteau/commit/b894f52f60a1d6aa245c3b114629151084d15e05))
+* **routing:** isolate public home from feed ([a5656ff](https://github.com/francozeta/kocteau/commit/a5656ff8a3c3d22ca5bdf3642e8c748d5983d1ef))
+* **web:** reduce repeated feed and resolver requests ([f011f43](https://github.com/francozeta/kocteau/commit/f011f430342deccce96b2b6a7335ec48050690a6))
+* **web:** reduce repeated feed and resolver requests ([84ed0b2](https://github.com/francozeta/kocteau/commit/84ed0b2bfe2cf3f5bdd83c7f444c46af90eb73ab))
+* **web:** reduce runtime and guest payload ([#142](https://github.com/francozeta/kocteau/issues/142)) ([60b74b2](https://github.com/francozeta/kocteau/commit/60b74b2a6c0c6c7414acc39bae3b1dcd31d743b6))
+
+
+### Documentation
+
+* define knowledge layer and atlas direction ([a8b035c](https://github.com/francozeta/kocteau/commit/a8b035c2dda8ba3ba42eb83f0dca64b4fcc4a689))
+* define knowledge layer and atlas direction ([4ecbd40](https://github.com/francozeta/kocteau/commit/4ecbd401b1d3662f411ca68f617dc546aeea6dd5))
+* **web:** draft public changelog for v0.3.8 ([a0dd4e8](https://github.com/francozeta/kocteau/commit/a0dd4e859d8030c3da4eca58efde408468b0c349))
+* **web:** draft public changelog for v0.3.8 ([99223b7](https://github.com/francozeta/kocteau/commit/99223b7b2ea342d41ab64985b182ed1a3bcfdfe6))
+
+
+### Refactors
+
+* **avatar:** remove unused functions and optimize unoptimized pr… ([059f536](https://github.com/francozeta/kocteau/commit/059f5364567f1fad4d5c8478c3097e46868de35b))
+* **avatar:** remove unused functions and optimize unoptimized prop usage ([9d0cfd1](https://github.com/francozeta/kocteau/commit/9d0cfd16fb521a5fdada2d5ab608dd93a3187725))
+* remove HomePage component and related logic; introduce GuestProductPreview component for guest users ([66ed9d0](https://github.com/francozeta/kocteau/commit/66ed9d02647d6aa97974ca06b50db53eac66629b))
+* **web:** implement guest home page with featured reviews and recent activity ([a5c1db1](https://github.com/francozeta/kocteau/commit/a5c1db104f55e16ab9b9297207df1d99234a7711))
+
+
+### Tests
+
+* **web:** add load-readiness scenarios ([#146](https://github.com/francozeta/kocteau/issues/146)) ([455c90b](https://github.com/francozeta/kocteau/commit/455c90b748ec29aff4062565286950742eb92c8b))
+
 ## [0.3.8](https://github.com/francozeta/kocteau/compare/v0.3.7...v0.3.8) (2026-06-20)
 
 
