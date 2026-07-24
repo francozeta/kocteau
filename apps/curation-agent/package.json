@@ -16,11 +16,11 @@
     "curate:entity:ai": "node scripts/run-entity-curation-draft.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.12.0",
-    "@supabase/supabase-js": "^2.110.0",
-    "@vercel/connect": "0.3.2",
-    "ai": "7.0.16",
-    "eve": "^0.20.0",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.8",
+    "@vercel/connect": "0.4.2",
+    "ai": "7.0.37",
+    "eve": "^0.27.3",
     "zod": "4.4.3"
   },
   "devDependencies": {
