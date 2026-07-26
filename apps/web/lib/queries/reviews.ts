@@ -54,7 +54,7 @@ function normalizeReviewPageReview(review: ReviewPageReview): ReviewPageReview {
 }
 
 function logQueryFallbackError(
-  scope: "getViewerReview",
+  scope: "getViewerReview" | "getPublicReviewById",
   error: {
     code?: string | null;
     message?: string | null;
@@ -73,7 +73,7 @@ function logQueryFallbackError(
 }
 
 export async function getPublicReviewById(reviewId: string) {
-  return getOrCreateLoader(
+  const loader = getOrCreateLoader(
     publicReviewLoaders,
     ["review", reviewId],
     () =>
@@ -84,18 +84,20 @@ export async function getPublicReviewById(reviewId: string) {
             async () => {
               const supabase = supabasePublic();
 
-              const review = await runReviewMaybeQuery<ReviewPageReview>(async (mode) =>
-                supabase
-                  .from("reviews")
-                  .select(
-                    buildReviewHydrationSelect(mode, {
-                      includeAuthor: true,
-                      includeEntity: true,
-                      includePinned: true,
-                    }),
-                  )
-                  .eq("id", reviewId)
-                  .maybeSingle(),
+              const review = await runReviewMaybeQuery<ReviewPageReview>(
+                async (mode) =>
+                  supabase
+                    .from("reviews")
+                    .select(
+                      buildReviewHydrationSelect(mode, {
+                        includeAuthor: true,
+                        includeEntity: true,
+                        includePinned: true,
+                      }),
+                    )
+                    .eq("id", reviewId)
+                    .maybeSingle(),
+                { throwOnError: true },
               );
 
               return review ? normalizeReviewPageReview(review) : null;
@@ -108,7 +110,18 @@ export async function getPublicReviewById(reviewId: string) {
           tags: ["reviews", `review:${reviewId}`],
         },
       ),
-  )();
+  );
+
+  try {
+    return await loader();
+  } catch (error) {
+    logQueryFallbackError(
+      "getPublicReviewById",
+      error as { code?: string; message?: string; details?: string; hint?: string },
+      { reviewId },
+    );
+    return null;
+  }
 }
 
 export const getPublicReviewByRouteId = cache(async function getPublicReviewByRouteId(

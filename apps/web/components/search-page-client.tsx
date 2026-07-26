@@ -133,7 +133,7 @@ export default function SearchPageClient({
   const { data = [], isFetching, error, refetch: retrySearch } = useKocteauSearch({
     query,
     type: searchType,
-    enabled: searchType === "track",
+    enabled: true,
   });
   const results = data as KocteauSearchResult[];
   const activeResultKey = useMemo(
@@ -206,7 +206,10 @@ export default function SearchPageClient({
   }, [normalizedQuery, pathname, searchType]);
 
   const hasQuery = normalizedQuery.length > 0;
-  const resultCountLabel = `${results.length} ${results.length === 1 ? "track" : "tracks"}`;
+  const resultKind =
+    searchType === "artist" ? "artist" : searchType === "album" ? "album" : "track";
+  const resultCountLabel = `${results.length} ${resultKind}${results.length === 1 ? "" : "s"}`;
+  const resultSectionTitle = `${resultKind[0]?.toUpperCase()}${resultKind.slice(1)}s`;
 
   const showSkeletonResults =
     hasQuery && normalizedQuery.length >= 2 && isFetching && results.length === 0;
@@ -384,7 +387,7 @@ export default function SearchPageClient({
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3 px-2">
                   <h2 className="font-pixel text-[1.05rem] font-medium text-foreground">
-                    Tracks
+                    {resultSectionTitle}
                   </h2>
                   <span className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/52">
                     {isFetching ? <LoaderCircle className="size-3 animate-spin" /> : null}
@@ -393,17 +396,13 @@ export default function SearchPageClient({
                 </div>
 
                 <div className="grid gap-1">
-                  {results.map((result, index) => (
-                    <TrackContextMenu
-                      key={`${result.provider}-${result.provider_id}`}
-                      href={getResultHref(result)}
-                      title={result.title}
-                      artistName={result.artist_name}
-                    >
+                  {results.map((result, index) => {
+                    const resultLink = (
                       <PrefetchLink
+                        key={`${result.provider}-${result.type}-${result.provider_id}`}
                         href={getResultHref(result)}
                         queryWarmup={
-                          result.entity_id
+                          result.type === "track" && result.entity_id
                             ? { kind: "track", id: result.entity_id }
                             : undefined
                         }
@@ -434,13 +433,28 @@ export default function SearchPageClient({
                               {result.title}
                             </h3>
                             <p className="line-clamp-1 text-[13px] text-muted-foreground/72">
-                              {result.artist_name ?? "Unknown artist"}
+                              {result.type === "artist"
+                                ? "Artist"
+                                : result.artist_name ?? "Unknown artist"}
                             </p>
                           </div>
                         </div>
                       </PrefetchLink>
-                    </TrackContextMenu>
-                  ))}
+                    );
+
+                    return result.type === "track" ? (
+                      <TrackContextMenu
+                        key={`${result.provider}-${result.type}-${result.provider_id}`}
+                        href={getResultHref(result)}
+                        title={result.title}
+                        artistName={result.artist_name}
+                      >
+                        {resultLink}
+                      </TrackContextMenu>
+                    ) : (
+                      resultLink
+                    );
+                  })}
                 </div>
               </div>
             ) : null}

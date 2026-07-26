@@ -11,6 +11,13 @@ export type TrackEntity = {
   provider_id: string;
   title: string;
   artist_name: string | null;
+  artist_provider_id?: string | null;
+  artist_picture_url?: string | null;
+  album_provider_id?: string | null;
+  album_title?: string | null;
+  album_deezer_url?: string | null;
+  album_record_type?: string | null;
+  release_date?: string | null;
   cover_url: string | null;
   deezer_url: string | null;
   type: "track" | "album";
@@ -43,12 +50,20 @@ export type DeezerSearchResult = {
   type: "track";
   title: string;
   artist_name: string | null;
+  artist_provider_id?: string | null;
+  artist_picture_url?: string | null;
+  album_provider_id?: string | null;
+  album_title?: string | null;
+  album_deezer_url?: string | null;
+  album_record_type?: string | null;
+  release_date?: string | null;
   cover_url: string | null;
   deezer_url: string | null;
   entity_id?: string | null;
 };
 
-export type KocteauSearchResult = DeezerSearchResult & {
+export type KocteauSearchResult = Omit<DeezerSearchResult, "type"> & {
+  type: "track" | "album" | "artist";
   source?: "local" | "starter" | "artist-match" | "deezer";
   source_label?: string;
   score?: number;

@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.4"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -68,6 +73,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      artists: {
+        Row: {
+          artist_type: string | null
+          country_code: string | null
+          created_at: string
+          deezer_url: string | null
+          disambiguation: string | null
+          genres: string[]
+          id: string
+          image_url: string | null
+          life_span_begin: string | null
+          life_span_end: string | null
+          musicbrainz_id: string | null
+          musicbrainz_match_score: number | null
+          musicbrainz_synced_at: string | null
+          name: string
+          provider: string
+          provider_id: string
+          short_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          artist_type?: string | null
+          country_code?: string | null
+          created_at?: string
+          deezer_url?: string | null
+          disambiguation?: string | null
+          genres?: string[]
+          id?: string
+          image_url?: string | null
+          life_span_begin?: string | null
+          life_span_end?: string | null
+          musicbrainz_id?: string | null
+          musicbrainz_match_score?: number | null
+          musicbrainz_synced_at?: string | null
+          name: string
+          provider?: string
+          provider_id: string
+          short_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          artist_type?: string | null
+          country_code?: string | null
+          created_at?: string
+          deezer_url?: string | null
+          disambiguation?: string | null
+          genres?: string[]
+          id?: string
+          image_url?: string | null
+          life_span_begin?: string | null
+          life_span_end?: string | null
+          musicbrainz_id?: string | null
+          musicbrainz_match_score?: number | null
+          musicbrainz_synced_at?: string | null
+          name?: string
+          provider?: string
+          provider_id?: string
+          short_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      catalog_enrichment_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          status: string
+          target_id: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          status?: string
+          target_id: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          status?: string
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       editorial_candidates: {
         Row: {
@@ -246,45 +350,93 @@ export type Database = {
       }
       entities: {
         Row: {
+          artist_id: string | null
           artist_name: string | null
           cover_url: string | null
           created_at: string
           deezer_url: string | null
+          disambiguation: string | null
+          first_release_date: string | null
+          genres: string[]
           id: string
+          musicbrainz_match_score: number | null
+          musicbrainz_recording_id: string | null
+          musicbrainz_release_group_id: string | null
+          musicbrainz_synced_at: string | null
+          parent_album_id: string | null
           provider: string
           provider_id: string
+          record_type: string | null
+          release_date: string | null
           short_id: string
           title: string
           type: Database["public"]["Enums"]["entity_type"]
           updated_at: string
         }
         Insert: {
+          artist_id?: string | null
           artist_name?: string | null
           cover_url?: string | null
           created_at?: string
           deezer_url?: string | null
+          disambiguation?: string | null
+          first_release_date?: string | null
+          genres?: string[]
           id?: string
+          musicbrainz_match_score?: number | null
+          musicbrainz_recording_id?: string | null
+          musicbrainz_release_group_id?: string | null
+          musicbrainz_synced_at?: string | null
+          parent_album_id?: string | null
           provider?: string
           provider_id: string
-          short_id?: never
+          record_type?: string | null
+          release_date?: string | null
+          short_id?: string
           title: string
-          type?: Database["public"]["Enums"]["entity_type"]
+          type: Database["public"]["Enums"]["entity_type"]
           updated_at?: string
         }
         Update: {
+          artist_id?: string | null
           artist_name?: string | null
           cover_url?: string | null
           created_at?: string
           deezer_url?: string | null
+          disambiguation?: string | null
+          first_release_date?: string | null
+          genres?: string[]
           id?: string
+          musicbrainz_match_score?: number | null
+          musicbrainz_recording_id?: string | null
+          musicbrainz_release_group_id?: string | null
+          musicbrainz_synced_at?: string | null
+          parent_album_id?: string | null
           provider?: string
           provider_id?: string
-          short_id?: never
+          record_type?: string | null
+          release_date?: string | null
+          short_id?: string
           title?: string
           type?: Database["public"]["Enums"]["entity_type"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "entities_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entities_parent_album_id_fkey"
+            columns: ["parent_album_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entity_bookmarks: {
         Row: {
@@ -621,7 +773,7 @@ export type Database = {
           request_count?: number
           scope: string
           updated_at?: string
-          window_start: string
+          window_start?: string
         }
         Update: {
           identifier?: string
@@ -775,7 +927,7 @@ export type Database = {
           is_pinned?: boolean
           likes_count?: number
           rating: number
-          short_id?: never
+          short_id?: string
           title?: string | null
           updated_at?: string
         }
@@ -789,7 +941,7 @@ export type Database = {
           is_pinned?: boolean
           likes_count?: number
           rating?: number
-          short_id?: never
+          short_id?: string
           title?: string | null
           updated_at?: string
         }
@@ -809,6 +961,132 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      starter_source_items: {
+        Row: {
+          album_title: string | null
+          apple_music_url: string | null
+          artist_name: string | null
+          artwork_url: string | null
+          created_at: string
+          duration_ms: number | null
+          first_seen_at: string
+          last_seen_at: string
+          matched_provider: string | null
+          matched_provider_id: string | null
+          matched_score: number | null
+          metadata: Json
+          removed_at: string | null
+          source_id: string
+          source_item_id: string
+          source_position: number
+          starter_track_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          album_title?: string | null
+          apple_music_url?: string | null
+          artist_name?: string | null
+          artwork_url?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          first_seen_at?: string
+          last_seen_at?: string
+          matched_provider?: string | null
+          matched_provider_id?: string | null
+          matched_score?: number | null
+          metadata?: Json
+          removed_at?: string | null
+          source_id: string
+          source_item_id: string
+          source_position: number
+          starter_track_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          album_title?: string | null
+          apple_music_url?: string | null
+          artist_name?: string | null
+          artwork_url?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          first_seen_at?: string
+          last_seen_at?: string
+          matched_provider?: string | null
+          matched_provider_id?: string | null
+          matched_score?: number | null
+          metadata?: Json
+          removed_at?: string | null
+          source_id?: string
+          source_item_id?: string
+          source_position?: number
+          starter_track_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "starter_source_items_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "starter_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "starter_source_items_starter_track_id_fkey"
+            columns: ["starter_track_id"]
+            isOneToOne: false
+            referencedRelation: "starter_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      starter_sources: {
+        Row: {
+          created_at: string
+          default_tag_slugs: string[]
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          provider: string
+          provider_source_id: string
+          sync_mode: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          default_tag_slugs?: string[]
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          provider: string
+          provider_source_id: string
+          sync_mode?: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          default_tag_slugs?: string[]
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          provider?: string
+          provider_source_id?: string
+          sync_mode?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
       }
       starter_track_tags: {
         Row: {
@@ -964,7 +1242,7 @@ export type Database = {
           provider_id: string
           source?: string
           title: string
-          type?: string
+          type: string
           user_id: string
           weight?: number
         }
@@ -1072,6 +1350,12 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      build_notification_realtime_payload: {
+        Args: {
+          notification_row: Database["public"]["Tables"]["notifications"]["Row"]
+        }
+        Returns: Json
+      }
       check_rate_limit: {
         Args: {
           p_identifier: string
@@ -1084,6 +1368,15 @@ export type Database = {
           ok: boolean
           remaining: number
           reset_at: string
+        }[]
+      }
+      claim_catalog_enrichment_job: {
+        Args: never
+        Returns: {
+          attempts: number
+          job_id: string
+          target_id: string
+          target_type: string
         }[]
       }
       create_notification: {
@@ -1113,7 +1406,15 @@ export type Database = {
       }
       create_review_with_entity: {
         Args: {
+          p_album_cover_url?: string
+          p_album_deezer_url?: string
+          p_album_provider_id?: string
+          p_album_record_type?: string
+          p_album_release_date?: string
+          p_album_title?: string
+          p_artist_image_url?: string
           p_artist_name?: string
+          p_artist_provider_id?: string
           p_cover_url?: string
           p_deezer_url?: string
           p_is_pinned?: boolean
@@ -1130,12 +1431,9 @@ export type Database = {
           review_id: string
         }[]
       }
-      get_viewer_entity_library_state: {
-        Args: { p_entity_ids: string[] }
-        Returns: {
-          entity_id: string
-          library: boolean
-        }[]
+      get_recommendation_health_snapshot: {
+        Args: { p_days?: number }
+        Returns: Json
       }
       get_recommended_review_ids: {
         Args: {
@@ -1150,10 +1448,6 @@ export type Database = {
           review_id: string
           score: number
         }[]
-      }
-      get_recommendation_health_snapshot: {
-        Args: { p_days?: number }
-        Returns: Json
       }
       get_starter_tracks: {
         Args: { p_limit?: number }
@@ -1198,18 +1492,11 @@ export type Database = {
           type: Database["public"]["Enums"]["entity_type"]
         }[]
       }
-      set_entity_library_item: {
-        Args: {
-          p_active: boolean
-          p_entity_id: string
-          p_item_type: string
-          p_source?: string
-        }
+      get_viewer_entity_library_state: {
+        Args: { p_entity_ids: string[] }
         Returns: {
-          active: boolean
-          created_at: string | null
           entity_id: string
-          item_type: string
+          library: boolean
         }[]
       }
       get_viewer_review_collection_state: {
@@ -1225,11 +1512,29 @@ export type Database = {
         Returns: number
       }
       is_starter_curator: { Args: never; Returns: boolean }
+      notification_channel_topic: {
+        Args: { recipient_id: string }
+        Returns: string
+      }
       reconcile_review_comments_count: {
         Args: { p_review_id: string }
         Returns: {
           comments_count: number
           review_id: string
+        }[]
+      }
+      set_entity_library_item: {
+        Args: {
+          p_active: boolean
+          p_entity_id: string
+          p_item_type: string
+          p_source?: string
+        }
+        Returns: {
+          active: boolean
+          created_at: string
+          entity_id: string
+          item_type: string
         }[]
       }
       sync_entity_tags_from_starter_track: {
@@ -1264,31 +1569,6 @@ export type Database = {
           liked: boolean
           likes_count: number
         }[]
-      }
-      update_preference_tag: {
-        Args: {
-          p_description?: string
-          p_is_featured?: boolean
-          p_kind: Database["public"]["Enums"]["preference_kind"]
-          p_label: string
-          p_tag_id: string
-        }
-        Returns: {
-          created_at: string
-          description: string | null
-          id: string
-          is_featured: boolean
-          kind: Database["public"]["Enums"]["preference_kind"]
-          label: string
-          slug: string
-          sort_order: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "preference_tags"
-          isOneToOne: true
-          isSetofReturn: false
-        }
       }
       update_editorial_candidate_status: {
         Args: {
@@ -1325,6 +1605,31 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "editorial_candidates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_preference_tag: {
+        Args: {
+          p_description?: string
+          p_is_featured?: boolean
+          p_kind: Database["public"]["Enums"]["preference_kind"]
+          p_label: string
+          p_tag_id: string
+        }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          is_featured: boolean
+          kind: Database["public"]["Enums"]["preference_kind"]
+          label: string
+          slug: string
+          sort_order: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "preference_tags"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1548,101 +1853,6 @@ export type Database = {
         }
         Relationships: []
       }
-      iceberg_namespaces: {
-        Row: {
-          bucket_name: string
-          catalog_id: string
-          created_at: string
-          id: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          bucket_name: string
-          catalog_id: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          bucket_name?: string
-          catalog_id?: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "iceberg_namespaces_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "buckets_analytics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      iceberg_tables: {
-        Row: {
-          bucket_name: string
-          catalog_id: string
-          created_at: string
-          id: string
-          location: string
-          name: string
-          namespace_id: string
-          remote_table_id: string | null
-          shard_id: string | null
-          shard_key: string | null
-          updated_at: string
-        }
-        Insert: {
-          bucket_name: string
-          catalog_id: string
-          created_at?: string
-          id?: string
-          location: string
-          name: string
-          namespace_id: string
-          remote_table_id?: string | null
-          shard_id?: string | null
-          shard_key?: string | null
-          updated_at?: string
-        }
-        Update: {
-          bucket_name?: string
-          catalog_id?: string
-          created_at?: string
-          id?: string
-          location?: string
-          name?: string
-          namespace_id?: string
-          remote_table_id?: string | null
-          shard_id?: string | null
-          shard_key?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "iceberg_tables_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "buckets_analytics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "iceberg_tables_namespace_id_fkey"
-            columns: ["namespace_id"]
-            isOneToOne: false
-            referencedRelation: "iceberg_namespaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       migrations: {
         Row: {
           executed_at: string | null
@@ -1724,6 +1934,7 @@ export type Database = {
           id: string
           in_progress_size: number
           key: string
+          metadata: Json | null
           owner_id: string | null
           upload_signature: string
           user_metadata: Json | null
@@ -1735,6 +1946,7 @@ export type Database = {
           id: string
           in_progress_size?: number
           key: string
+          metadata?: Json | null
           owner_id?: string | null
           upload_signature: string
           user_metadata?: Json | null
@@ -1746,6 +1958,7 @@ export type Database = {
           id?: string
           in_progress_size?: number
           key?: string
+          metadata?: Json | null
           owner_id?: string | null
           upload_signature?: string
           user_metadata?: Json | null
@@ -1864,6 +2077,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      allow_any_operation: {
+        Args: { expected_operations: string[] }
+        Returns: boolean
+      }
+      allow_only_operation: {
+        Args: { expected_operation: string }
+        Returns: boolean
+      }
       can_insert_object: {
         Args: { bucketid: string; metadata: Json; name: string; owner: string }
         Returns: undefined

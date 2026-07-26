@@ -5,7 +5,12 @@ export type DeezerTrackResult = {
   title: string;
   artist_name: string | null;
   artist_id: string | null;
+  artist_picture_url?: string | null;
   artist_fan_count: number | null;
+  album_id?: string | null;
+  album_title?: string | null;
+  album_deezer_url?: string | null;
+  album_record_type?: string | null;
   cover_url: string | null;
   deezer_url: string | null;
   release_date?: string | null;
@@ -25,7 +30,10 @@ export type DeezerAlbumResult = {
   provider: "deezer";
   id: string;
   title: string;
+  artist_id: string | null;
+  artist_name: string | null;
   cover_url: string | null;
+  deezer_url: string | null;
   record_type: string | null;
   release_date: string | null;
 };
@@ -39,11 +47,17 @@ type DeezerTrackApiItem = {
     id?: number | string | null;
     name?: string | null;
     nb_fan?: number | null;
+    picture_medium?: string | null;
+    picture?: string | null;
   } | null;
   album?: {
+    id?: number | string | null;
+    title?: string | null;
+    link?: string | null;
     cover_medium?: string | null;
     cover?: string | null;
     release_date?: string | null;
+    record_type?: string | null;
   } | null;
   release_date?: string | null;
 };
@@ -78,10 +92,20 @@ type DeezerArtistTopTracksResponse = {
 type DeezerAlbumApiItem = {
   id: number | string;
   title?: string | null;
+  link?: string | null;
   cover_medium?: string | null;
   cover?: string | null;
   record_type?: string | null;
   release_date?: string | null;
+  artist?: {
+    id?: number | string | null;
+    name?: string | null;
+  } | null;
+};
+
+type DeezerAlbumSearchResponse = {
+  data?: DeezerAlbumApiItem[];
+  error?: unknown;
 };
 
 type DeezerArtistAlbumsResponse = {
@@ -96,6 +120,11 @@ type DeezerTrackMapOptions = {
   artist_id?: string | null;
   artist_name?: string | null;
   artist_fan_count?: number | null;
+  artist_picture_url?: string | null;
+  album_id?: string | null;
+  album_title?: string | null;
+  album_deezer_url?: string | null;
+  album_record_type?: string | null;
   cover_url?: string | null;
 };
 
@@ -236,8 +265,14 @@ function mapDeezerTrack(
     title: item.title,
     artist_name: item.artist?.name ?? options.artist_name ?? null,
     artist_id: options.artist_id ?? (item.artist?.id ? String(item.artist.id) : null),
+    artist_picture_url:
+      options.artist_picture_url ?? item.artist?.picture_medium ?? item.artist?.picture ?? null,
     artist_fan_count:
       options.artist_fan_count ?? getOptionalNumber(item.artist?.nb_fan),
+    album_id: options.album_id ?? (item.album?.id ? String(item.album.id) : null),
+    album_title: options.album_title ?? item.album?.title ?? null,
+    album_deezer_url: options.album_deezer_url ?? item.album?.link ?? null,
+    album_record_type: options.album_record_type ?? item.album?.record_type ?? null,
     cover_url: item.album?.cover_medium ?? item.album?.cover ?? options.cover_url ?? null,
     deezer_url: item.link ?? null,
     release_date: item.release_date ?? item.album?.release_date ?? null,
@@ -305,10 +340,74 @@ function mapDeezerAlbum(item: DeezerAlbumApiItem): DeezerAlbumResult | null {
     provider: "deezer",
     id: String(item.id),
     title: item.title,
+    artist_id: item.artist?.id ? String(item.artist.id) : null,
+    artist_name: item.artist?.name ?? null,
     cover_url: item.cover_medium ?? item.cover ?? null,
+    deezer_url: item.link ?? null,
     record_type: item.record_type ?? null,
     release_date: item.release_date ?? null,
   };
+}
+
+export async function searchDeezerAlbums(
+  query: string,
+  limit = 12,
+): Promise<DeezerAlbumResult[]> {
+  const url = `https://api.deezer.com/search/album?q=${encodeURIComponent(query)}&limit=${limit}`;
+  const json = await fetchDeezerJson<DeezerAlbumSearchResponse>(url, {
+    errorMessage: "Deezer album search request failed",
+    revalidate: 300,
+    retryDelays: deezerSearchRetryDelaysMs,
+  });
+
+  if (hasDeezerApiError(json)) {
+    throw new DeezerRequestError("Deezer album search request failed");
+  }
+
+  return (json.data ?? []).flatMap((item) => {
+    const album = mapDeezerAlbum(item);
+    return album ? [album] : [];
+  });
+}
+
+export async function getDeezerArtist(
+  artistId: string,
+): Promise<DeezerArtistResult | null> {
+  if (!isDeezerProviderId(artistId)) {
+    return null;
+  }
+
+  const url = `https://api.deezer.com/artist/${encodeURIComponent(artistId)}`;
+  const json = await fetchOptionalDeezerJson<DeezerArtistApiItem & { error?: unknown }>(
+    url,
+    {
+      errorMessage: "Deezer artist request failed",
+      revalidate: deezerResourceRevalidateSeconds,
+      scope: "artist",
+    },
+  );
+
+  return json ? mapDeezerArtist(json) : null;
+}
+
+export async function getDeezerAlbum(
+  albumId: string,
+): Promise<DeezerAlbumResult | null> {
+  if (!isDeezerProviderId(albumId)) {
+    return null;
+  }
+
+  const url = `https://api.deezer.com/album/${encodeURIComponent(albumId)}`;
+  const json = await fetchOptionalDeezerJson<DeezerAlbumApiItem & { error?: unknown }>(
+    url,
+    {
+      errorMessage: "Deezer album request failed",
+      revalidate: deezerResourceRevalidateSeconds,
+      scope: "album",
+    },
+  );
+
+  return json ? mapDeezerAlbum(json) : null;
 }
 
 export async function getDeezerRelatedArtists(
@@ -386,7 +485,10 @@ export async function getDeezerArtistTopTracks(
 }
 
 export async function getDeezerAlbumTracks(
-  album: Pick<DeezerAlbumResult, "id" | "cover_url">,
+  album: Pick<
+    DeezerAlbumResult,
+    "id" | "title" | "cover_url" | "deezer_url" | "record_type"
+  >,
   artist: Pick<DeezerArtistResult, "id" | "name" | "fan_count">,
   limit = 12,
 ): Promise<DeezerTrackResult[]> {
@@ -409,6 +511,10 @@ export async function getDeezerAlbumTracks(
       artist_id: artist.id,
       artist_name: artist.name,
       artist_fan_count: artist.fan_count,
+      album_id: album.id,
+      album_title: album.title,
+      album_deezer_url: album.deezer_url,
+      album_record_type: album.record_type,
       cover_url: album.cover_url,
     }),
   );

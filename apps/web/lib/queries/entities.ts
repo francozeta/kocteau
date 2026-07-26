@@ -21,8 +21,17 @@ export type EntityPage = {
   provider_id: string;
   title: string;
   artist_name: string | null;
+  artist_id: string | null;
+  parent_album_id: string | null;
   cover_url: string | null;
   deezer_url: string | null;
+  release_date: string | null;
+  record_type: string | null;
+  disambiguation: string | null;
+  musicbrainz_recording_id: string | null;
+  musicbrainz_release_group_id: string | null;
+  first_release_date: string | null;
+  genres: string[];
   type: "track" | "album";
 };
 
@@ -67,7 +76,7 @@ const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | n
 const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
 const entityTasteTagLoaders = new Map<string, () => Promise<EntityTasteTag[]>>();
 
-const entityPageSelect = "id, provider, provider_id, title, artist_name, cover_url, deezer_url, type";
+const entityPageSelect = "id, provider, provider_id, title, artist_name, artist_id, parent_album_id, cover_url, deezer_url, release_date, record_type, disambiguation, musicbrainz_recording_id, musicbrainz_release_group_id, first_release_date, genres, type";
 const entityLookupRevalidateSeconds = 15 * 60;
 
 function logEntitiesQueryError(
@@ -94,7 +103,7 @@ function logEntitiesQueryError(
 }
 
 export async function getEntityPageById(entityId: string) {
-  return getOrCreateLoader(
+  const loader = getOrCreateLoader(
     entityPageLoaders,
     ["entity-page", entityId],
     () =>
@@ -112,10 +121,7 @@ export async function getEntityPageById(entityId: string) {
                 .maybeSingle<EntityPage>();
 
               if (error) {
-                logEntitiesQueryError("getEntityPageById", error, {
-                  entityId,
-                });
-                return null;
+                throw error;
               }
 
               return data;
@@ -128,7 +134,18 @@ export async function getEntityPageById(entityId: string) {
           tags: ["entities", `entity:${entityId}`],
         },
       ),
-  )();
+  );
+
+  try {
+    return await loader();
+  } catch (error) {
+    logEntitiesQueryError(
+      "getEntityPageById",
+      error as { code?: string; message?: string; details?: string; hint?: string },
+      { entityId },
+    );
+    return null;
+  }
 }
 
 export const getEntityPageByRouteId = cache(async function getEntityPageByRouteId(
@@ -188,7 +205,7 @@ export async function getEntityPageByProvider(
   type: EntityPage["type"],
   providerId: string,
 ) {
-  return getOrCreateLoader(
+  const loader = getOrCreateLoader(
     entityPageByProviderLoaders,
     ["entity-page-by-provider", provider, type, providerId],
     () =>
@@ -208,12 +225,7 @@ export async function getEntityPageByProvider(
                 .maybeSingle<EntityPage>();
 
               if (error) {
-                logEntitiesQueryError("getEntityPageByProvider", error, {
-                  provider,
-                  type,
-                  providerId,
-                });
-                return null;
+                throw error;
               }
 
               return data;
@@ -226,7 +238,18 @@ export async function getEntityPageByProvider(
           tags: ["entities", `entity-provider:${provider}:${type}:${providerId}`],
         },
       ),
-  )();
+  );
+
+  try {
+    return await loader();
+  } catch (error) {
+    logEntitiesQueryError(
+      "getEntityPageByProvider",
+      error as { code?: string; message?: string; details?: string; hint?: string },
+      { provider, type, providerId },
+    );
+    return null;
+  }
 }
 
 export async function findEntityByProvider(
@@ -234,7 +257,7 @@ export async function findEntityByProvider(
   type: EntityPage["type"],
   providerId: string,
 ) {
-  return getOrCreateLoader(
+  const loader = getOrCreateLoader(
     entityByProviderLoaders,
     ["entity-by-provider", provider, type, providerId],
     () =>
@@ -254,12 +277,7 @@ export async function findEntityByProvider(
                 .maybeSingle<ExistingEntity>();
 
               if (error) {
-                logEntitiesQueryError("findEntityByProvider", error, {
-                  provider,
-                  type,
-                  providerId,
-                });
-                return null;
+                throw error;
               }
 
               return data;
@@ -272,7 +290,18 @@ export async function findEntityByProvider(
           tags: ["entities", `entity-provider:${provider}:${type}:${providerId}`],
         },
       ),
-  )();
+  );
+
+  try {
+    return await loader();
+  } catch (error) {
+    logEntitiesQueryError(
+      "findEntityByProvider",
+      error as { code?: string; message?: string; details?: string; hint?: string },
+      { provider, type, providerId },
+    );
+    return null;
+  }
 }
 
 export async function getReviewsForEntity(entityId: string) {

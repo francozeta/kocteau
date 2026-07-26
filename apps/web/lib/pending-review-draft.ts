@@ -4,6 +4,13 @@ export type PendingReviewDraftSelection = {
   type: "track";
   title: string;
   artist_name: string | null;
+  artist_provider_id?: string | null;
+  artist_picture_url?: string | null;
+  album_provider_id?: string | null;
+  album_title?: string | null;
+  album_deezer_url?: string | null;
+  album_record_type?: string | null;
+  release_date?: string | null;
   cover_url: string | null;
   deezer_url: string | null;
   entity_id?: string | null;
@@ -89,6 +96,13 @@ function normalizeStoredDraft(value: unknown): StoredPendingReviewDraft | null {
       type: "track",
       title: selection.title,
       artist_name: normalizeNullableString(selection.artist_name),
+      artist_provider_id: normalizeNullableString(selection.artist_provider_id),
+      artist_picture_url: normalizeNullableString(selection.artist_picture_url),
+      album_provider_id: normalizeNullableString(selection.album_provider_id),
+      album_title: normalizeNullableString(selection.album_title),
+      album_deezer_url: normalizeNullableString(selection.album_deezer_url),
+      album_record_type: normalizeNullableString(selection.album_record_type),
+      release_date: normalizeNullableString(selection.release_date),
       cover_url: normalizeNullableString(selection.cover_url),
       deezer_url: normalizeNullableString(selection.deezer_url),
       entity_id: normalizeNullableString(selection.entity_id),

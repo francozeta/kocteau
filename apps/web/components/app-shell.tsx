@@ -85,7 +85,7 @@ export default async function AppShell({
               >
                 {children}
               </main>
-              {safeProfile ? <EditorialDiscoveryRail isAuthenticated /> : null}
+              {safeProfile ? <EditorialDiscoveryRail /> : null}
             </div>
           )}
         </div>

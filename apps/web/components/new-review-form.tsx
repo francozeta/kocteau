@@ -39,6 +39,13 @@ type DeezerResult = {
   type: "track";
   title: string;
   artist_name: string | null;
+  artist_provider_id?: string | null;
+  artist_picture_url?: string | null;
+  album_provider_id?: string | null;
+  album_title?: string | null;
+  album_deezer_url?: string | null;
+  album_record_type?: string | null;
+  release_date?: string | null;
   cover_url: string | null;
   deezer_url: string | null;
   entity_id?: string | null;
@@ -526,6 +533,14 @@ function NewReviewFormState({
           type: selected.type,
           title: selected.title,
           artist_name: selected.artist_name,
+          artist_provider_id: selected.artist_provider_id,
+          artist_picture_url: selected.artist_picture_url,
+          album_provider_id: selected.album_provider_id,
+          album_title: selected.album_title,
+          album_cover_url: selected.cover_url,
+          album_deezer_url: selected.album_deezer_url,
+          album_record_type: selected.album_record_type,
+          album_release_date: selected.release_date,
           cover_url: selected.cover_url,
           deezer_url: selected.deezer_url,
           review_title: title,

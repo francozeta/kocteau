@@ -1,5 +1,6 @@
 import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
+import SectionLinkHeading from "@/components/section-link-heading";
 import type { AtlasTag } from "@/lib/queries/atlas";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
@@ -59,7 +60,7 @@ function chooseAtlasTags(tags: AtlasTag[], limit: number) {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-balance font-pixel text-[1.2rem] font-medium leading-tight tracking-[-0.02em] text-foreground sm:text-[1.35rem]">
+    <h2 className="text-balance text-[15px] font-semibold leading-tight text-foreground">
       {children}
     </h2>
   );
@@ -171,9 +172,9 @@ export default function DiscoverEditorialEdition({
 
       {visibleDiscussedTracks.length > 0 ? (
         <section className="space-y-4" aria-labelledby="discover-discussed-title">
-          <div id="discover-discussed-title">
-            <SectionHeading>Recently discussed</SectionHeading>
-          </div>
+          <SectionLinkHeading id="discover-discussed-title" href="/reviews">
+            Recently discussed
+          </SectionLinkHeading>
 
           <div className="grid gap-1 sm:grid-cols-2 sm:gap-x-4">
             {visibleDiscussedTracks.map((track) => (
@@ -211,17 +212,9 @@ export default function DiscoverEditorialEdition({
 
       {visibleAtlasTags.length > 0 ? (
         <section className="space-y-4" aria-labelledby="discover-atlas-title">
-          <div className="flex items-center justify-between gap-4">
-            <div id="discover-atlas-title">
-              <SectionHeading>Atlas</SectionHeading>
-            </div>
-            <PrefetchLink
-              href="/atlas"
-              className="inline-flex min-h-8 items-center text-[12px] text-muted-foreground/64 transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
-            >
-              View all
-            </PrefetchLink>
-          </div>
+          <SectionLinkHeading id="discover-atlas-title" href="/atlas">
+            Atlas
+          </SectionLinkHeading>
 
           <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-4">
             {visibleAtlasTags.map((tag) => (

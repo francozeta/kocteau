@@ -7,6 +7,7 @@ import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
 import EntityLibraryActions from "@/components/entity-library-actions";
 import NewReviewDialog from "@/components/new-review-dialog";
+import PrefetchLink from "@/components/prefetch-link";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
@@ -24,6 +25,20 @@ type TrackPageHeroProps = {
     cover_url: string | null;
     deezer_url: string | null;
   };
+  artist?: {
+    provider_id: string;
+    image_url: string | null;
+    href: string;
+  } | null;
+  album?: {
+    provider_id: string;
+    title: string;
+    cover_url: string | null;
+    deezer_url: string | null;
+    release_date: string | null;
+    record_type: string | null;
+    href: string;
+  } | null;
   isAuthenticated: boolean;
   sharePath?: string;
   viewerReview: {
@@ -45,6 +60,8 @@ const sideActionClassName =
 
 export default function TrackPageHero({
   entity,
+  artist,
+  album,
   isAuthenticated,
   sharePath,
   viewerReview,
@@ -63,6 +80,13 @@ export default function TrackPageHero({
     type: "track" as const,
     title: entity.title,
     artist_name: entity.artist_name,
+    artist_provider_id: artist?.provider_id ?? null,
+    artist_picture_url: artist?.image_url ?? null,
+    album_provider_id: album?.provider_id ?? null,
+    album_title: album?.title ?? null,
+    album_deezer_url: album?.deezer_url ?? null,
+    album_record_type: album?.record_type ?? null,
+    release_date: album?.release_date ?? null,
     cover_url: entity.cover_url,
     deezer_url: entity.deezer_url,
     entity_id: entity.id ?? null,
@@ -145,8 +169,29 @@ export default function TrackPageHero({
             {entity.title}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground text-pretty sm:text-[0.95rem]">
-            {entity.artist_name ?? "Unknown artist"}
+            {artist && entity.artist_name ? (
+              <PrefetchLink
+                href={artist.href}
+                className="rounded-sm underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+              >
+                {entity.artist_name}
+              </PrefetchLink>
+            ) : (
+              entity.artist_name ?? "Unknown artist"
+            )}
           </p>
+
+          {album ? (
+            <p className="mt-1 text-xs text-muted-foreground/64">
+              From{" "}
+              <PrefetchLink
+                href={album.href}
+                className="rounded-sm underline-offset-4 transition-colors hover:text-muted-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+              >
+                {album.title}
+              </PrefetchLink>
+            </p>
+          ) : null}
 
           <div className="mt-4 grid grid-cols-[2.5rem_minmax(0,auto)_2.5rem] items-center justify-center gap-2.5 md:inline-grid md:grid-cols-[2.75rem_minmax(0,auto)_2.75rem] md:justify-start md:gap-3">
             <Button

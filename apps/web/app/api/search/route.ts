@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getDeezerArtistTopTracks,
   getDeezerErrorDetails,
+  searchDeezerAlbums,
   searchDeezerArtists,
   searchDeezerTracks,
   type DeezerTrackResult,
@@ -23,6 +24,15 @@ type LocalEntityRow = {
   title: string;
   artist_name: string | null;
   cover_url: string | null;
+  deezer_url: string | null;
+};
+
+type LocalArtistRow = {
+  id: string;
+  provider: string;
+  provider_id: string;
+  name: string;
+  image_url: string | null;
   deezer_url: string | null;
 };
 
@@ -70,10 +80,28 @@ function mapLocalEntityCandidate(
   return {
     provider: "deezer",
     provider_id: row.provider_id,
-    type: "track",
+    type: row.type,
     title: row.title,
     artist_name: row.artist_name,
     cover_url: row.cover_url,
+    deezer_url: row.deezer_url,
+    entity_id: row.id,
+    source: "local",
+    source_index: sourceIndex,
+  };
+}
+
+function mapLocalArtistCandidate(
+  row: LocalArtistRow,
+  sourceIndex: number,
+): KocteauTrackSearchCandidate {
+  return {
+    provider: "deezer",
+    provider_id: row.provider_id,
+    type: "artist",
+    title: row.name,
+    artist_name: null,
+    cover_url: row.image_url,
     deezer_url: row.deezer_url,
     entity_id: row.id,
     source: "local",
@@ -113,11 +141,56 @@ function mapDeezerTrackCandidate({
     type: "track",
     title: track.title,
     artist_name: track.artist_name,
+    artist_provider_id: track.artist_id,
+    artist_picture_url: track.artist_picture_url,
+    album_provider_id: track.album_id,
+    album_title: track.album_title,
+    album_deezer_url: track.album_deezer_url,
+    album_record_type: track.album_record_type,
+    release_date: track.release_date ?? null,
     cover_url: track.cover_url,
     deezer_url: track.deezer_url,
     source,
     source_index: sourceIndex,
     rank: track.rank ?? null,
+  };
+}
+
+function mapDeezerAlbumCandidate(
+  album: Awaited<ReturnType<typeof searchDeezerAlbums>>[number],
+  sourceIndex: number,
+): KocteauTrackSearchCandidate {
+  return {
+    provider: "deezer",
+    provider_id: album.id,
+    type: "album",
+    title: album.title,
+    artist_name: album.artist_name,
+    artist_provider_id: album.artist_id,
+    cover_url: album.cover_url,
+    deezer_url: album.deezer_url,
+    release_date: album.release_date,
+    album_record_type: album.record_type,
+    source: "deezer",
+    source_index: sourceIndex,
+  };
+}
+
+function mapDeezerArtistCandidate(
+  artist: Awaited<ReturnType<typeof searchDeezerArtists>>[number],
+  sourceIndex: number,
+): KocteauTrackSearchCandidate {
+  return {
+    provider: "deezer",
+    provider_id: artist.id,
+    type: "artist",
+    title: artist.name,
+    artist_name: null,
+    cover_url: artist.picture_url,
+    deezer_url: artist.deezer_url,
+    source: "deezer",
+    source_index: sourceIndex,
+    rank: artist.fan_count,
   };
 }
 
@@ -128,11 +201,19 @@ function mapSearchResponse(result: ReturnType<typeof rankKocteauTrackSearchResul
     type: result.type,
     title: result.title,
     artist_name: result.artist_name,
+    artist_provider_id: result.artist_provider_id ?? null,
+    artist_picture_url: result.artist_picture_url ?? null,
+    album_provider_id: result.album_provider_id ?? null,
+    album_title: result.album_title ?? null,
+    album_deezer_url: result.album_deezer_url ?? null,
+    album_record_type: result.album_record_type ?? null,
+    release_date: result.release_date ?? null,
     cover_url: result.cover_url,
     deezer_url: result.deezer_url,
     entity_id: result.entity_id ?? null,
     source: result.source,
     source_label: result.source_label,
+    score: result.score,
   };
 }
 
@@ -170,6 +251,60 @@ async function getLocalEntityCandidates(query: string) {
     ...((titleResult.data ?? []) as LocalEntityRow[]),
     ...((artistResult.data ?? []) as LocalEntityRow[]),
   ]).map(mapLocalEntityCandidate);
+}
+
+async function getLocalAlbumCandidates(query: string) {
+  const supabase = supabasePublic();
+  const pattern = toIlikePattern(query);
+  const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url";
+
+  const [titleResult, artistResult] = await Promise.all([
+    supabase
+      .from("entities")
+      .select(baseSelect)
+      .eq("provider", "deezer")
+      .eq("type", "album")
+      .ilike("title", pattern)
+      .limit(localSearchLimit),
+    supabase
+      .from("entities")
+      .select(baseSelect)
+      .eq("provider", "deezer")
+      .eq("type", "album")
+      .ilike("artist_name", pattern)
+      .limit(localSearchLimit),
+  ]);
+
+  if (titleResult.error) {
+    console.warn("[search.local_albums] title lookup failed", titleResult.error.message);
+  }
+
+  if (artistResult.error) {
+    console.warn("[search.local_albums] artist lookup failed", artistResult.error.message);
+  }
+
+  return dedupeByProviderId([
+    ...((titleResult.data ?? []) as LocalEntityRow[]),
+    ...((artistResult.data ?? []) as LocalEntityRow[]),
+  ]).map(mapLocalEntityCandidate);
+}
+
+async function getLocalArtistCandidates(query: string) {
+  const supabase = supabasePublic();
+  const pattern = toIlikePattern(query);
+  const { data, error } = await supabase
+    .from("artists")
+    .select("id, provider, provider_id, name, image_url, deezer_url")
+    .eq("provider", "deezer")
+    .ilike("name", pattern)
+    .limit(localSearchLimit);
+
+  if (error) {
+    console.warn("[search.local_artists] lookup failed", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as LocalArtistRow[]).map(mapLocalArtistCandidate);
 }
 
 async function getStarterTrackCandidates(query: string) {
@@ -295,6 +430,52 @@ async function getDeezerCandidates(query: string) {
   };
 }
 
+async function getCatalogCandidates(query: string, type: "album" | "artist") {
+  const localPromise =
+    type === "album"
+      ? getLocalAlbumCandidates(query)
+      : getLocalArtistCandidates(query);
+  const remotePromise =
+    type === "album"
+      ? searchDeezerAlbums(query, deezerSearchLimit).then((albums) =>
+          albums.map(mapDeezerAlbumCandidate),
+        )
+      : searchDeezerArtists(query, deezerSearchLimit).then((artists) =>
+          artists.map(mapDeezerArtistCandidate),
+        );
+  const [localCandidates, remoteResult] = await Promise.all([
+    localPromise,
+    Promise.allSettled([remotePromise]),
+  ]);
+  const remoteCandidates =
+    remoteResult[0]?.status === "fulfilled" ? remoteResult[0].value : [];
+  const error = remoteResult[0]?.status === "rejected" ? remoteResult[0].reason : null;
+  const results = rankKocteauTrackSearchResults({
+    query,
+    candidates: [...localCandidates, ...remoteCandidates],
+    limit: responseLimit,
+  });
+
+  if (results.length > 0) {
+    return NextResponse.json(results.map(mapSearchResponse));
+  }
+
+  if (error) {
+    console.error(`[search.deezer_${type}] failed with no fallback`, {
+      type,
+      queryLength: query.length,
+      ...getDeezerErrorDetails(error),
+    });
+
+    return NextResponse.json(
+      { error: "Music search is taking longer than usual. Try again in a moment." },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json([]);
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const parsed = deezerSearchQuerySchema.safeParse({
@@ -309,11 +490,8 @@ export async function GET(req: Request) {
   const { q, type } = parsed.data;
 
   if (!q) return NextResponse.json([], { status: 200 });
-  if (type !== "track") {
-    return NextResponse.json(
-      { error: `Search for ${type} is not available yet.` },
-      { status: 501 },
-    );
+  if (type === "album" || type === "artist") {
+    return getCatalogCandidates(q, type);
   }
 
   const [localCandidates, starterCandidates, deezerCandidatesResult] = await Promise.all([
