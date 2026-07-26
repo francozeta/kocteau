@@ -72,6 +72,8 @@ Use surface color shifts plus soft layered shadows. Avoid heavy borders.
 
 ## Component Patterns
 
+- Navigable collection headings use one compact inline link: a semantic `h2` in Geist Sans at roughly `15px/600`, followed immediately by a `ChevronRight` around `16px`. The label and chevron share the same leading edge and hit area. Do not split the action into a heading on the left and `View all`, `Discover`, or similar copy on the trailing edge. Use this pattern only when the heading opens a real, broader collection; non-navigable section titles omit the chevron.
+- Horizontal music shelves use cover-led tiles around `8rem–8.5rem` on desktop, with `12px` gaps and a partial next item or edge fade to signal more content. Keep metadata to track and artist, and avoid wrapping each tile in an additional visible card surface.
 - Review cards should prioritize track identity, cover art, reviewer, rating, written take, then lightweight actions.
 - Feed review cards should keep equal visual weight; do not make the first item larger or label a viewer's own review as "Your contribution."
 - Rating-only reviews should read as intentional quiet copy, not an italic error or empty-state warning.

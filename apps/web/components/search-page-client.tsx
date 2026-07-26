@@ -9,12 +9,10 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Disc3, LoaderCircle, Search } from "@/components/ui/icons";
+import { LoaderCircle, Search } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
-import { Kbd } from "@/components/ui/kbd";
 import PrefetchLink from "@/components/prefetch-link";
 import TrackContextMenu from "@/components/track-context-menu";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useKocteauSearch, type KocteauSearchResult } from "@/hooks/use-kocteau-search";
@@ -38,28 +36,6 @@ type ActiveSearchResultState = {
   key: string;
   index: number;
 };
-
-const searchEntityTabs: Array<{
-  value: SearchEntityType;
-  label: string;
-  enabled: boolean;
-}> = [
-  {
-    value: "track",
-    label: "Tracks",
-    enabled: true,
-  },
-  {
-    value: "album",
-    label: "Albums",
-    enabled: false,
-  },
-  {
-    value: "artist",
-    label: "Artists",
-    enabled: false,
-  },
-];
 
 const recentSearchesStorageKey = "kocteau:recent-searches";
 const recentSearchesChangedEvent = "kocteau:recent-searches-changed";
@@ -120,151 +96,11 @@ function getResultHref(result: KocteauSearchResult) {
     : `/track/deezer/${result.provider_id}`;
 }
 
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function highlightMatch(text: string, query: string) {
-  const normalized = query.trim();
-
-  if (!normalized || normalized.length < 2) {
-    return text;
-  }
-
-  const matcher = new RegExp(`(${escapeRegExp(normalized)})`, "ig");
-  const parts = text.split(matcher);
-  const normalizedLower = normalized.toLowerCase();
-
-  return parts.map((part, index) =>
-    part.toLowerCase() === normalizedLower ? (
-      <mark
-        key={`${part}-${index}`}
-        className="rounded-[0.35rem] bg-foreground/10 px-0.5 text-foreground"
-      >
-        {part}
-      </mark>
-    ) : (
-      <span key={`${part}-${index}`}>{part}</span>
-    ),
-  );
-}
-
 function SearchSectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-[11px] font-medium text-muted-foreground/72">
       {children}
     </p>
-  );
-}
-
-function getSearchTabHref(value: SearchEntityType, query: string) {
-  const params = new URLSearchParams();
-  const normalized = query.trim();
-
-  if (normalized) {
-    params.set("q", normalized);
-  }
-
-  if (value !== "track") {
-    params.set("type", value);
-  }
-
-  const next = params.toString();
-
-  return next ? `/search?${next}` : "/search";
-}
-
-function SearchTypeTabs({
-  activeType,
-  query,
-}: {
-  activeType: SearchEntityType;
-  query: string;
-}) {
-  const visibleTabs = searchEntityTabs.filter((tab) => tab.enabled);
-
-  if (visibleTabs.length <= 1) {
-    return null;
-  }
-
-  const isThreeColumn = visibleTabs.length >= 3;
-
-  return (
-    <div
-      className={cn(
-        "kocteau-feed-tabs mobile-liquid-panel relative grid min-w-0 gap-0.5 overflow-hidden rounded-[var(--kocteau-radius-control)] p-0.5 max-lg:w-full lg:w-[17.25rem]",
-        isThreeColumn ? "grid-cols-3" : "grid-cols-2",
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute top-1/2 h-5 w-px -translate-x-1/2 -translate-y-1/2 rounded-full bg-border/42",
-          isThreeColumn ? "left-1/3" : "left-1/2",
-        )}
-      />
-      {isThreeColumn ? (
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute left-2/3 top-1/2 h-5 w-px -translate-x-1/2 -translate-y-1/2 rounded-full bg-border/42"
-        />
-      ) : null}
-
-      {visibleTabs.map((tab) => {
-        const isActive = activeType === tab.value;
-        const className = cn(
-          "relative z-10 inline-flex h-8 min-w-0 items-center justify-center rounded-[0.62rem] px-2 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-0",
-          isActive
-            ? "kocteau-feed-tab-active text-foreground"
-            : tab.enabled
-              ? "text-muted-foreground/84 hover:text-foreground"
-              : "cursor-not-allowed text-muted-foreground/42",
-        );
-
-        if (!tab.enabled || isActive) {
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              disabled={!tab.enabled}
-              aria-current={isActive ? "page" : undefined}
-              aria-disabled={!tab.enabled}
-              className={className}
-            >
-              <span className="truncate">{tab.label}</span>
-            </button>
-          );
-        }
-
-        return (
-          <PrefetchLink
-            key={tab.value}
-            href={getSearchTabHref(tab.value, query)}
-            className={className}
-          >
-            <span className="truncate">{tab.label}</span>
-          </PrefetchLink>
-        );
-      })}
-    </div>
-  );
-}
-
-function SuggestionRow({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex min-h-11 w-full items-center px-4 py-2.5 text-left text-[13px] hover:bg-foreground/[0.045]"
-    >
-      <span className="min-w-0 flex-1 truncate text-foreground/90">{children}</span>
-    </button>
   );
 }
 
@@ -297,7 +133,7 @@ export default function SearchPageClient({
   const { data = [], isFetching, error, refetch: retrySearch } = useKocteauSearch({
     query,
     type: searchType,
-    enabled: searchType === "track",
+    enabled: true,
   });
   const results = data as KocteauSearchResult[];
   const activeResultKey = useMemo(
@@ -308,7 +144,7 @@ export default function SearchPageClient({
       ].join("|"),
     [normalizedQuery, results],
   );
-  const defaultActiveIndex = normalizedQuery.length >= 2 && results.length > 0 ? 0 : -1;
+  const defaultActiveIndex = -1;
   const activeIndex =
     activeIndexState.key === activeResultKey ? activeIndexState.index : defaultActiveIndex;
 
@@ -370,10 +206,10 @@ export default function SearchPageClient({
   }, [normalizedQuery, pathname, searchType]);
 
   const hasQuery = normalizedQuery.length > 0;
-  const resultCountLabel = useMemo(() => {
-    if (!hasQuery) return null;
-    return `${results.length} ${results.length === 1 ? "result" : "results"}`;
-  }, [hasQuery, results.length]);
+  const resultKind =
+    searchType === "artist" ? "artist" : searchType === "album" ? "album" : "track";
+  const resultCountLabel = `${results.length} ${resultKind}${results.length === 1 ? "" : "s"}`;
+  const resultSectionTitle = `${resultKind[0]?.toUpperCase()}${resultKind.slice(1)}s`;
 
   const showSkeletonResults =
     hasQuery && normalizedQuery.length >= 2 && isFetching && results.length === 0;
@@ -443,201 +279,187 @@ export default function SearchPageClient({
 
   return (
     <div className="w-full max-w-5xl lg:max-w-none">
-      <div className="min-w-0 space-y-5 sm:space-y-6">
-          <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-            <div className="relative min-w-0">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/78" />
-              <Input
-                data-global-search-input="true"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={handleInputKeyDown}
-                placeholder="Search tracks, albums, or artists…"
-                className="mobile-liquid-panel h-10 rounded-[0.75rem] border-border/24 bg-[var(--kocteau-surface-control)] pl-10 text-[13px] shadow-none placeholder:text-muted-foreground/72"
-                autoFocus={!isMobile}
-                maxLength={80}
-              />
-            </div>
+      <div className="min-w-0 space-y-6">
+        <div className="relative min-w-0">
+          <label htmlFor="discover-search" className="sr-only">
+            Search music
+          </label>
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/68" />
+          <Input
+            id="discover-search"
+            data-global-search-input="true"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder="Search tracks or artists…"
+            className="mobile-liquid-panel h-11 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] pl-10 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/58 sm:text-[13px]"
+            autoFocus={!isMobile}
+            maxLength={80}
+          />
+        </div>
 
-            <SearchTypeTabs activeType={searchType} query={normalizedQuery} />
-          </div>
-
-          {showSearchError ? (
-            <div className="relative rounded-[var(--kocteau-radius-card)] border border-border/28 bg-[var(--kocteau-surface)] px-4 py-3 pr-24 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-              <p className="font-medium text-foreground">Music search is slow</p>
-              <p className="mt-0.5 text-xs leading-5 text-muted-foreground/82">
+        {showSearchError ? (
+          <div className="flex flex-col gap-3 rounded-[var(--kocteau-radius-card)] bg-[var(--kocteau-surface)] px-4 py-3 shadow-[var(--kocteau-shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-foreground">
+                Search is taking longer than usual
+              </p>
+              <p className="mt-0.5 text-pretty text-[12px] leading-5 text-muted-foreground/72">
                 {searchErrorMessage}
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  void retrySearch();
-                }}
-                disabled={isFetching}
-                className="absolute top-1/2 right-3 inline-flex h-8 -translate-y-1/2 items-center rounded-full border border-border/28 px-3 text-[12px] font-medium text-foreground/88 transition hover:bg-foreground/[0.055] disabled:pointer-events-none disabled:opacity-55"
-              >
-                {isFetching ? "Retrying" : "Retry"}
-              </button>
             </div>
-          ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                void retrySearch();
+              }}
+              disabled={isFetching}
+              className="inline-flex h-8 shrink-0 items-center justify-center rounded-[0.65rem] bg-[var(--kocteau-surface-control)] px-3 text-[12px] font-medium text-foreground/84 shadow-[var(--kocteau-shadow-control)] transition-[background-color,transform] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] disabled:pointer-events-none disabled:opacity-55"
+            >
+              {isFetching ? "Retrying" : "Try again"}
+            </button>
+          </div>
+        ) : null}
 
-          {!hasQuery && recentSearches.length > 0 ? (
-            <section className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-none">
-              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <SearchSectionLabel>Recent</SearchSectionLabel>
-                <button
-                  type="button"
-                  onClick={clearRecentSearches}
-                  className="text-[12px] text-muted-foreground transition-colors duration-150 hover:text-foreground"
-                >
-                  Clear
-                </button>
-              </div>
-              <div className="divide-y divide-border/16 border-t border-border/16">
-                {recentSearches.map((item) => (
-                  <SuggestionRow
-                    key={item.query}
-                    onClick={() => handleSearchSuggestionSelect(item.query)}
-                  >
-                    {item.label}
-                  </SuggestionRow>
-                ))}
-              </div>
-            </section>
-          ) : null}
+        {!hasQuery && recentSearches.length > 0 ? (
+          <section
+            aria-label="Recent searches"
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1"
+          >
+            <SearchSectionLabel>Recent</SearchSectionLabel>
+            {recentSearches.slice(0, 4).map((item) => (
+              <button
+                key={item.query}
+                type="button"
+                onClick={() => handleSearchSuggestionSelect(item.query)}
+                className="inline-flex min-h-8 items-center rounded-[0.55rem] px-1 text-[13px] text-foreground/72 transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+              >
+                {item.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={clearRecentSearches}
+              aria-label="Clear recent searches"
+              className="inline-flex min-h-8 items-center rounded-[0.55rem] px-1 text-[12px] text-muted-foreground/46 transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+            >
+              Clear
+            </button>
+          </section>
+        ) : null}
 
-          {!hasQuery ? discoverContent : null}
+        {!hasQuery ? discoverContent : null}
 
-          {hasQuery ? (
-            <section className="space-y-3">
-              {showSkeletonResults ? (
-                <div className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-                  <div className="space-y-0 divide-y divide-border/16">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="flex items-center gap-3 px-3 py-3">
-                        <Skeleton className="size-14 rounded-[0.68rem] bg-foreground/[0.07]" />
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <Skeleton className="h-3 w-16 bg-foreground/[0.055]" />
-                          <Skeleton className="h-4 w-2/5 bg-foreground/[0.075]" />
-                          <Skeleton className="h-3.5 w-1/3 bg-foreground/[0.055]" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {!showSkeletonResults && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
-                <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <Search className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>Keep typing</EmptyTitle>
-                    <EmptyDescription>
-                      Type at least 2 characters to search.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              ) : null}
-
-              {!showSkeletonResults && !showSearchError && normalizedQuery.length >= 2 && results.length === 0 ? (
-                <Empty className="rounded-[var(--kocteau-radius-card)] border-border/24 bg-[var(--kocteau-surface)] px-6 py-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <Search className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>No results</EmptyTitle>
-                    <EmptyDescription>
-                      Try another track or artist.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              ) : null}
-
-              {results.length > 0 ? (
-                <div className="overflow-hidden rounded-[var(--kocteau-radius-card)] border border-border/24 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
-                  <div className="flex items-center justify-between gap-3 border-b border-border/18 px-4 py-2.5">
-                    <SearchSectionLabel>{resultCountLabel ?? "Matches"}</SearchSectionLabel>
-                    <div className="hidden items-center gap-1.5 text-[11px] text-muted-foreground/64 sm:flex">
-                      {isFetching ? (
-                        <>
-                          <LoaderCircle className="size-3 animate-spin" />
-                          <span>Updating</span>
-                        </>
-                      ) : (
-                        <>
-                          <Kbd className="h-5 rounded-md border-border/28 bg-foreground/[0.055] px-1.5 text-[0.625rem]">
-                            ↑
-                          </Kbd>
-                          <Kbd className="h-5 rounded-md border-border/28 bg-foreground/[0.055] px-1.5 text-[0.625rem]">
-                            ↓
-                          </Kbd>
-                          <span>Enter to open</span>
-                        </>
-                      )}
+        {hasQuery ? (
+          <section className="max-w-3xl space-y-3" aria-live="polite">
+            {showSkeletonResults ? (
+              <div className="grid gap-1" aria-label="Searching tracks">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="flex items-center gap-3 rounded-[0.75rem] p-2">
+                    <Skeleton className="size-14 rounded-[0.62rem] bg-foreground/[0.065]" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-2/5 bg-foreground/[0.07]" />
+                      <Skeleton className="h-3 w-1/3 bg-foreground/[0.05]" />
                     </div>
                   </div>
-                  <div className="divide-y divide-border/16">
-                    {results.map((result, index) => (
+                ))}
+              </div>
+            ) : null}
+
+            {!showSkeletonResults && normalizedQuery.length > 0 && normalizedQuery.length < 2 ? (
+              <p className="px-1 py-4 text-[13px] text-muted-foreground/64">
+                Type one more character to search.
+              </p>
+            ) : null}
+
+            {!showSkeletonResults && !showSearchError && normalizedQuery.length >= 2 && results.length === 0 ? (
+              <div className="px-1 py-10">
+                <p className="font-pixel text-[1.05rem] font-medium text-foreground">
+                  No matches for “{normalizedQuery}”
+                </p>
+                <p className="mt-1 text-[13px] text-muted-foreground/66">
+                  Try another track or artist.
+                </p>
+              </div>
+            ) : null}
+
+            {results.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3 px-2">
+                  <h2 className="font-pixel text-[1.05rem] font-medium text-foreground">
+                    {resultSectionTitle}
+                  </h2>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/52">
+                    {isFetching ? <LoaderCircle className="size-3 animate-spin" /> : null}
+                    {resultCountLabel}
+                  </span>
+                </div>
+
+                <div className="grid gap-1">
+                  {results.map((result, index) => {
+                    const resultLink = (
+                      <PrefetchLink
+                        key={`${result.provider}-${result.type}-${result.provider_id}`}
+                        href={getResultHref(result)}
+                        queryWarmup={
+                          result.type === "track" && result.entity_id
+                            ? { kind: "track", id: result.entity_id }
+                            : undefined
+                        }
+                        onClick={() => persistRecentSearch(result.title)}
+                        ref={(node) => {
+                          resultRefs.current[index] = node;
+                        }}
+                        className="block rounded-[0.75rem] outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
+                      >
+                        <div
+                          className={cn(
+                            "flex min-h-[4.5rem] items-center gap-3 rounded-[0.75rem] p-2 transition-colors duration-150 hover:bg-foreground/[0.035]",
+                            activeIndex === index && "bg-foreground/[0.045]",
+                          )}
+                        >
+                          <EntityCoverImage
+                            src={result.cover_url}
+                            alt={result.title}
+                            sizes="56px"
+                            quality={78}
+                            variant="card"
+                            className="size-14 shrink-0 rounded-[0.62rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
+                            iconClassName="size-5"
+                          />
+
+                          <div className="min-w-0 flex-1">
+                            <h3 className="line-clamp-1 font-pixel text-[0.95rem] font-medium text-foreground">
+                              {result.title}
+                            </h3>
+                            <p className="line-clamp-1 text-[13px] text-muted-foreground/72">
+                              {result.type === "artist"
+                                ? "Artist"
+                                : result.artist_name ?? "Unknown artist"}
+                            </p>
+                          </div>
+                        </div>
+                      </PrefetchLink>
+                    );
+
+                    return result.type === "track" ? (
                       <TrackContextMenu
-                        key={`${result.provider}-${result.provider_id}`}
+                        key={`${result.provider}-${result.type}-${result.provider_id}`}
                         href={getResultHref(result)}
                         title={result.title}
                         artistName={result.artist_name}
                       >
-                        <PrefetchLink
-                          href={getResultHref(result)}
-                          queryWarmup={
-                            result.entity_id
-                              ? { kind: "track", id: result.entity_id }
-                              : undefined
-                          }
-                          onClick={() => persistRecentSearch(result.title)}
-                          ref={(node) => {
-                            resultRefs.current[index] = node;
-                          }}
-                          className="block"
-                        >
-                          <div
-                            className={cn(
-                              "flex min-h-[4.75rem] items-center gap-3 px-3 py-3 hover:bg-foreground/[0.045]",
-                              activeIndex === index && "bg-foreground/[0.06]",
-                            )}
-                          >
-                            <EntityCoverImage
-                              src={result.cover_url}
-                              alt={result.title}
-                              sizes="56px"
-                              quality={78}
-                              variant="card"
-                              className="size-14 shrink-0 rounded-[0.68rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.055)]"
-                              iconClassName="size-5"
-                            />
-
-                            <div className="min-w-0 flex-1">
-                              <h3 className="line-clamp-1 text-[14px] font-semibold text-foreground">
-                                {highlightMatch(result.title, normalizedQuery)}
-                              </h3>
-                              <p className="line-clamp-1 text-[13px] text-muted-foreground/84">
-                                {highlightMatch(result.artist_name ?? "Unknown artist", normalizedQuery)}
-                              </p>
-                              <div className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/62">
-                                <Disc3 className="size-3" />
-                                <span>Track</span>
-                                <span aria-hidden="true">·</span>
-                                <span>{result.source_label ?? (result.entity_id ? "Kocteau" : "Deezer")}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </PrefetchLink>
+                        {resultLink}
                       </TrackContextMenu>
-                    ))}
-                  </div>
+                    ) : (
+                      resultLink
+                    );
+                  })}
                 </div>
-              ) : null}
-            </section>
-          ) : null}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
       </div>
     </div>
   );

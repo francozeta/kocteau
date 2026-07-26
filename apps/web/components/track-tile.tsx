@@ -18,6 +18,7 @@ type TrackTileProps = {
   artistClassName?: string;
   sizes?: string;
   quality?: number;
+  priority?: boolean;
 };
 
 function TrackTileContent({
@@ -31,6 +32,7 @@ function TrackTileContent({
   artistClassName,
   sizes = "(min-width: 1024px) 128px, 42vw",
   quality = 84,
+  priority = false,
 }: Omit<TrackTileProps, "href" | "queryWarmup">) {
   return (
     <div className={cn("group min-w-0", className)}>
@@ -45,6 +47,7 @@ function TrackTileContent({
           alt={title}
           sizes={sizes}
           quality={quality}
+          priority={priority}
           variant="card"
           className="absolute inset-0 bg-muted/20"
           iconClassName="size-6"

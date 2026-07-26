@@ -1,11 +1,10 @@
 import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
-import { ArrowRight } from "@/components/ui/icons";
+import SectionLinkHeading from "@/components/section-link-heading";
 import type { AtlasTag } from "@/lib/queries/atlas";
 import type { DiscoveryTrack } from "@/lib/queries/discovery";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import type { StarterTrack } from "@/lib/starter";
-import { preferenceKindLabels } from "@/lib/taste";
 
 type DiscoverEditorialEditionProps = {
   atlasTags: AtlasTag[];
@@ -28,13 +27,6 @@ function getDiscussedTrackHref(track: DiscoveryTrack) {
   });
 }
 
-function formatDiscussionDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    day: "numeric",
-    month: "short",
-  }).format(new Date(value));
-}
-
 function getDiscussionMeta(track: DiscoveryTrack) {
   if (track.reviewCount <= 0) {
     return "Recently reviewed";
@@ -46,29 +38,31 @@ function getDiscussionMeta(track: DiscoveryTrack) {
   return `${track.reviewCount} ${reviewLabel}${rating}`;
 }
 
-function EditionHeading({
-  index,
-  label,
-  title,
-}: {
-  index: string;
-  label: string;
-  title: string;
-}) {
+function chooseAtlasTags(tags: AtlasTag[], limit: number) {
+  const available = tags.filter((tag) => tag.starterPickCount > 0);
+  const firstByKind = new Map<AtlasTag["kind"], AtlasTag>();
+
+  for (const tag of available) {
+    if (!firstByKind.has(tag.kind)) {
+      firstByKind.set(tag.kind, tag);
+    }
+  }
+
+  const firstTagIds = new Set(
+    Array.from(firstByKind.values(), (tag) => tag.id),
+  );
+
+  return [
+    ...firstByKind.values(),
+    ...available.filter((tag) => !firstTagIds.has(tag.id)),
+  ].slice(0, limit);
+}
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:gap-4">
-      <span className="pt-0.5 font-pixel text-[0.68rem] font-medium tabular-nums text-muted-foreground/48">
-        {index}
-      </span>
-      <div className="space-y-1">
-        <p className="text-[11px] font-medium text-muted-foreground/68">
-          {label}
-        </p>
-        <h2 className="max-w-2xl text-balance font-pixel text-[1.35rem] font-medium leading-[1.08] tracking-[-0.025em] text-foreground sm:text-[1.65rem]">
-          {title}
-        </h2>
-      </div>
-    </div>
+    <h2 className="text-balance text-[15px] font-semibold leading-tight text-foreground">
+      {children}
+    </h2>
   );
 }
 
@@ -78,39 +72,35 @@ function RotationFeature({ track }: { track: StarterTrack }) {
   return (
     <PrefetchLink
       href={getStarterTrackHref(track)}
-      className="group grid min-w-0 gap-4 rounded-[var(--kocteau-radius-card)] bg-[var(--kocteau-surface)] p-3 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] transition-[background-color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-raised)] focus-visible:ring-2 focus-visible:ring-ring/35 active:scale-[0.99] sm:grid-cols-[minmax(9.5rem,12.5rem)_minmax(0,1fr)] sm:items-end"
+      className="grid min-w-0 gap-4 rounded-[var(--kocteau-radius-card)] bg-[var(--kocteau-surface)] p-3 shadow-[var(--kocteau-shadow-card)] outline-none transition-[background-color,box-shadow] duration-150 ease-out hover:bg-[var(--kocteau-surface-raised)] hover:shadow-[var(--kocteau-shadow-card-hover)] focus-visible:ring-2 focus-visible:ring-ring/35 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:items-center"
     >
       <EntityCoverImage
         src={track.cover_url}
         alt={track.title}
-        sizes="(max-width: 639px) calc(100vw - 5rem), 200px"
+        sizes="(max-width: 639px) calc(100vw - 5rem), 152px"
         quality={84}
         variant="card"
         priority
-        className="aspect-square w-full rounded-[0.72rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:max-w-[12.5rem]"
+        className="aspect-square w-full rounded-[0.72rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.1)] sm:size-[9.5rem]"
         iconClassName="size-7"
       />
 
-      <div className="min-w-0 space-y-4 px-0.5 pb-0.5 sm:pb-1">
+      <div className="min-w-0 space-y-3 px-0.5 py-1">
         <div className="space-y-1">
-          <p className="font-pixel text-[1.3rem] font-medium leading-tight tracking-[-0.02em] text-foreground sm:text-[1.55rem]">
+          <p className="text-balance font-pixel text-[1.25rem] font-medium leading-tight tracking-[-0.02em] text-foreground sm:text-[1.45rem]">
             {track.title}
           </p>
-          <p className="text-[13px] text-muted-foreground/82">
+          <p className="text-[13px] text-muted-foreground/78">
             {track.artist_name || "Unknown artist"}
           </p>
         </div>
 
         {note ? (
-          <p className="line-clamp-3 max-w-md text-pretty text-[13px] leading-5 text-muted-foreground/72">
+          <p className="line-clamp-2 max-w-md text-pretty text-[13px] leading-[1.55] text-muted-foreground/68">
             {note}
           </p>
         ) : null}
 
-        <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-foreground/86">
-          Open track
-          <ArrowRight className="size-3.5 transition-transform duration-150 ease-out group-hover:translate-x-0.5" />
-        </span>
       </div>
     </PrefetchLink>
   );
@@ -120,7 +110,7 @@ function RotationTrack({ track }: { track: StarterTrack }) {
   return (
     <PrefetchLink
       href={getStarterTrackHref(track)}
-      className="group grid grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 py-3 outline-none transition-opacity duration-150 ease-out hover:opacity-75 focus-visible:rounded-[0.55rem] focus-visible:ring-2 focus-visible:ring-ring/35"
+      className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-3 rounded-[0.75rem] p-2 outline-none transition-colors duration-150 ease-out hover:bg-foreground/[0.035] focus-visible:ring-2 focus-visible:ring-ring/35"
     >
       <EntityCoverImage
         src={track.cover_url}
@@ -128,18 +118,17 @@ function RotationTrack({ track }: { track: StarterTrack }) {
         sizes="52px"
         quality={76}
         variant="thumbnail"
-        className="size-[3.25rem] rounded-[0.58rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+        className="size-[3.25rem] rounded-[0.58rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
         iconClassName="size-4"
       />
       <div className="min-w-0">
-        <p className="truncate text-[13px] font-medium text-foreground/92">
+        <p className="truncate text-[13px] font-medium text-foreground/90">
           {track.title}
         </p>
-        <p className="truncate text-[12px] text-muted-foreground/66">
+        <p className="truncate text-[12px] text-muted-foreground/62">
           {track.artist_name || "Unknown artist"}
         </p>
       </div>
-      <ArrowRight className="size-3.5 text-muted-foreground/42 transition-[color,transform] duration-150 ease-out group-hover:translate-x-0.5 group-hover:text-foreground/74" />
     </PrefetchLink>
   );
 }
@@ -154,27 +143,24 @@ export default function DiscoverEditorialEdition({
   const visibleDiscussedTracks = discussedTracks
     .filter((track) => track.providerId !== featuredTrack?.provider_id)
     .slice(0, 6);
-  const visibleAtlasTags = atlasTags
-    .filter((tag) => tag.starterPickCount > 0)
-    .slice(0, 8);
+  const visibleAtlasTags = chooseAtlasTags(atlasTags, 8);
 
   return (
-    <div className="space-y-12 pb-10 sm:space-y-14 sm:pb-14" data-testid="discover-edition">
+    <div
+      className="space-y-12 pb-10 sm:space-y-14 sm:pb-14"
+      data-testid="discover-edition"
+    >
       {featuredTrack ? (
-        <section className="space-y-5" aria-labelledby="discover-rotation-title">
+        <section className="space-y-4" aria-labelledby="discover-rotation-title">
           <div id="discover-rotation-title">
-            <EditionHeading
-              index="01"
-              label="In rotation"
-              title="One way into something new."
-            />
+            <SectionHeading>In rotation</SectionHeading>
           </div>
 
-          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(15rem,0.72fr)] lg:items-stretch">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(15rem,0.72fr)] lg:items-start">
             <RotationFeature track={featuredTrack} />
 
             {rotationTracks.length > 0 ? (
-              <div className="divide-y divide-border/14 px-1 lg:px-2">
+              <div className="grid gap-1">
                 {rotationTracks.map((track) => (
                   <RotationTrack key={track.id} track={track} />
                 ))}
@@ -185,48 +171,36 @@ export default function DiscoverEditorialEdition({
       ) : null}
 
       {visibleDiscussedTracks.length > 0 ? (
-        <section className="space-y-5" aria-labelledby="discover-discussed-title">
-          <div id="discover-discussed-title">
-            <EditionHeading
-              index="02"
-              label="Recently discussed"
-              title="What stayed with listeners."
-            />
-          </div>
+        <section className="space-y-4" aria-labelledby="discover-discussed-title">
+          <SectionLinkHeading id="discover-discussed-title" href="/reviews">
+            Recently discussed
+          </SectionLinkHeading>
 
-          <div className="grid border-t border-border/18 sm:grid-cols-2 sm:gap-x-7">
-            {visibleDiscussedTracks.map((track, index) => (
+          <div className="grid gap-1 sm:grid-cols-2 sm:gap-x-4">
+            {visibleDiscussedTracks.map((track) => (
               <PrefetchLink
                 key={track.entityId}
                 href={getDiscussedTrackHref(track)}
                 queryWarmup={{ kind: "track", id: track.entityId }}
-                className="group grid min-w-0 grid-cols-[1.75rem_3.5rem_minmax(0,1fr)] items-center gap-3 border-b border-border/18 py-3.5 outline-none transition-opacity duration-150 ease-out hover:opacity-75 focus-visible:rounded-[0.55rem] focus-visible:ring-2 focus-visible:ring-ring/35"
+                className="grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-3 rounded-[0.75rem] p-2 outline-none transition-colors duration-150 ease-out hover:bg-foreground/[0.035] focus-visible:ring-2 focus-visible:ring-ring/35"
               >
-                <span className="font-pixel text-[0.65rem] tabular-nums text-muted-foreground/42">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
                 <EntityCoverImage
                   src={track.coverUrl}
                   alt=""
                   sizes="56px"
                   quality={76}
                   variant="thumbnail"
-                  className="size-14 rounded-[0.62rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+                  className="size-14 rounded-[0.62rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
                   iconClassName="size-4"
                 />
                 <div className="min-w-0">
-                  <div className="flex min-w-0 items-baseline justify-between gap-2">
-                    <p className="truncate text-[13px] font-medium text-foreground/92">
-                      {track.title}
-                    </p>
-                    <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/42">
-                      {formatDiscussionDate(track.latestReviewAt)}
-                    </span>
-                  </div>
+                  <p className="truncate font-pixel text-[0.92rem] font-medium text-foreground/92">
+                    {track.title}
+                  </p>
                   <p className="truncate text-[12px] text-muted-foreground/66">
                     {track.artistName || "Unknown artist"}
                   </p>
-                  <p className="mt-0.5 text-[10px] tabular-nums text-muted-foreground/48">
+                  <p className="mt-0.5 text-[11px] tabular-nums text-muted-foreground/46">
                     {getDiscussionMeta(track)}
                   </p>
                 </div>
@@ -237,42 +211,22 @@ export default function DiscoverEditorialEdition({
       ) : null}
 
       {visibleAtlasTags.length > 0 ? (
-        <section className="space-y-5" aria-labelledby="discover-atlas-title">
-          <div id="discover-atlas-title">
-            <EditionHeading
-              index="03"
-              label="Atlas"
-              title="Follow a sound, scene, or feeling."
-            />
-          </div>
+        <section className="space-y-4" aria-labelledby="discover-atlas-title">
+          <SectionLinkHeading id="discover-atlas-title" href="/atlas">
+            Atlas
+          </SectionLinkHeading>
 
-          <div className="grid border-t border-border/18 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-4">
             {visibleAtlasTags.map((tag) => (
               <PrefetchLink
                 key={tag.id}
                 href={`/atlas/${tag.slug}`}
-                className="group flex min-h-[4.6rem] items-center justify-between gap-4 border-b border-border/18 py-3.5 outline-none transition-opacity duration-150 ease-out hover:opacity-75 focus-visible:rounded-[0.55rem] focus-visible:ring-2 focus-visible:ring-ring/35 sm:odd:pr-4 sm:even:pl-4 lg:px-4 lg:first:pl-0"
+                className="flex min-h-10 items-center rounded-[0.7rem] px-3 py-2 text-[13px] font-medium text-foreground/82 outline-none transition-colors duration-150 ease-out hover:bg-foreground/[0.035] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/35"
               >
-                <div className="min-w-0">
-                  <p className="truncate text-[13px] font-medium text-foreground/90">
-                    {tag.label}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground/48">
-                    {preferenceKindLabels[tag.kind]}
-                  </p>
-                </div>
-                <ArrowRight className="size-3.5 shrink-0 text-muted-foreground/42 transition-[color,transform] duration-150 ease-out group-hover:translate-x-0.5 group-hover:text-foreground/74" />
+                <span className="truncate">{tag.label}</span>
               </PrefetchLink>
             ))}
           </div>
-
-          <PrefetchLink
-            href="/atlas"
-            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground/68 transition-colors duration-150 hover:text-foreground"
-          >
-            Browse the full Atlas
-            <ArrowRight className="size-3.5" />
-          </PrefetchLink>
         </section>
       ) : null}
     </div>

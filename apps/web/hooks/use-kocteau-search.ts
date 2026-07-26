@@ -25,6 +25,6 @@ export function useKocteauSearch({
 
   return useQuery({
     ...kocteauTrackSearchQueryOptions(debouncedQuery, type),
-    enabled: enabled && type === "track" && debouncedQuery.length >= 2,
+    enabled: enabled && debouncedQuery.length >= 2,
   });
 }

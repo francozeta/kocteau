@@ -34,11 +34,20 @@ type SitemapPreferenceTag = {
   created_at: string;
 };
 
+type SitemapArtist = {
+  id: string;
+  provider: string;
+  provider_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const metadataBase = getMetadataBase();
   const supabase = supabasePublic();
   const now = new Date();
-  const [profilesResult, reviewsResult, atlasTagsResult] = await Promise.all([
+  const [profilesResult, reviewsResult, atlasTagsResult, albumsResult, artistsResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("username, created_at, updated_at")
@@ -69,11 +78,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from("preference_tags")
       .select("slug, created_at")
       .order("sort_order", { ascending: true }),
+    supabase
+      .from("entities")
+      .select("id, provider, provider_id, created_at, updated_at, type, title, artist_name")
+      .eq("type", "album")
+      .order("updated_at", { ascending: false })
+      .limit(5000),
+    supabase
+      .from("artists")
+      .select("id, provider, provider_id, name, created_at, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(5000),
   ]);
 
   const profiles = (profilesResult.data ?? []) as SitemapProfile[];
   const reviews = (reviewsResult.data ?? []) as SitemapReview[];
   const atlasTags = (atlasTagsResult.data ?? []) as SitemapPreferenceTag[];
+  const albums = (albumsResult.data ?? []) as SitemapEntity[];
+  const artists = (artistsResult.data ?? []) as SitemapArtist[];
   const reviewedTracks = new Map<
     string,
     {
@@ -181,10 +203,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.54,
   }));
 
+  const albumRoutes: MetadataRoute.Sitemap = albums.map((album) => ({
+    url: new URL(buildEntityCanonicalPath(album), metadataBase).toString(),
+    lastModified: new Date(album.updated_at ?? album.created_at),
+    changeFrequency: "weekly",
+    priority: 0.68,
+  }));
+
+  const artistRoutes: MetadataRoute.Sitemap = artists.map((artist) => ({
+    url: new URL(
+      buildEntityCanonicalPath({
+        id: artist.id,
+        provider: artist.provider,
+        provider_id: artist.provider_id,
+        type: "artist",
+        title: artist.name,
+      }),
+      metadataBase,
+    ).toString(),
+    lastModified: new Date(artist.updated_at ?? artist.created_at),
+    changeFrequency: "weekly",
+    priority: 0.68,
+  }));
+
   return [
     ...staticRoutes,
     ...reviewRoutes,
     ...trackRoutes,
+    ...albumRoutes,
+    ...artistRoutes,
     ...profileRoutes,
     ...atlasRoutes,
   ];

@@ -555,8 +555,11 @@ export default function StarterStudioClient() {
     () => new Set(starterTracks.map((track) => track.provider_id)),
     [starterTracks],
   );
-  const activeSearchResults =
-    studioSearchMode === "search" ? coreSearchResults ?? [] : scoutResults ?? [];
+  const activeSearchResults = (
+    studioSearchMode === "search" ? coreSearchResults ?? [] : scoutResults ?? []
+  ).flatMap((result) =>
+    result.type === "track" ? [{ ...result, type: "track" as const }] : [],
+  );
   const activeSearchFetching =
     studioSearchMode === "search" ? coreSearchFetching : scoutFetching;
   const activeSearchError =

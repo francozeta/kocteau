@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import FeedInRotationShelf from "@/components/feed-in-rotation-shelf";
 import FeedReviewList from "@/components/feed-review-list";
 import FeedViewTabs from "@/components/feed-view-tabs";
 import {
@@ -72,6 +73,9 @@ export default function AuthenticatedFeedSurface({
           onViewChange={handleViewChange}
         />
       </div>
+      {activeView === "for-you" ? (
+        <FeedInRotationShelf tracks={starterTracks} />
+      ) : null}
       <div className="space-y-4">
         <FeedReviewList
           view={activeView}

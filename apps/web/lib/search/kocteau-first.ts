@@ -3,9 +3,16 @@ export type KocteauSearchSource = "local" | "starter" | "artist-match" | "deezer
 export type KocteauTrackSearchCandidate = {
   provider: "deezer";
   provider_id: string;
-  type: "track";
+  type: "track" | "album" | "artist";
   title: string;
   artist_name: string | null;
+  artist_provider_id?: string | null;
+  artist_picture_url?: string | null;
+  album_provider_id?: string | null;
+  album_title?: string | null;
+  album_deezer_url?: string | null;
+  album_record_type?: string | null;
+  release_date?: string | null;
   cover_url: string | null;
   deezer_url: string | null;
   entity_id?: string | null;
@@ -91,6 +98,18 @@ function mergeDuplicateCandidate(
     entity_id: winner.entity_id ?? fallback.entity_id ?? null,
     cover_url: winner.cover_url ?? fallback.cover_url,
     deezer_url: winner.deezer_url ?? fallback.deezer_url,
+    artist_provider_id:
+      winner.artist_provider_id ?? fallback.artist_provider_id ?? null,
+    artist_picture_url:
+      winner.artist_picture_url ?? fallback.artist_picture_url ?? null,
+    album_provider_id:
+      winner.album_provider_id ?? fallback.album_provider_id ?? null,
+    album_title: winner.album_title ?? fallback.album_title ?? null,
+    album_deezer_url:
+      winner.album_deezer_url ?? fallback.album_deezer_url ?? null,
+    album_record_type:
+      winner.album_record_type ?? fallback.album_record_type ?? null,
+    release_date: winner.release_date ?? fallback.release_date ?? null,
     rank: winner.rank ?? fallback.rank ?? null,
     source_index: Math.min(
       winner.source_index ?? Number.MAX_SAFE_INTEGER,
@@ -103,7 +122,7 @@ export function getKocteauSearchScore(
   query: string,
   candidate: Pick<
     KocteauTrackSearchCandidate,
-    "title" | "artist_name" | "source" | "entity_id" | "rank"
+    "type" | "title" | "artist_name" | "source" | "entity_id" | "rank"
   >,
 ) {
   const normalizedQuery = normalizeSearchText(query);
@@ -113,29 +132,30 @@ export function getKocteauSearchScore(
   if (!normalizedQuery) return 0;
 
   let score = sourceScore[candidate.source];
+  const artistWeight = candidate.type === "album" ? 0.35 : 1;
 
   if (candidate.entity_id) {
     score += 45;
   }
 
-  if (normalizedArtist === normalizedQuery) {
-    score += 650;
-  } else if (normalizedArtist.startsWith(normalizedQuery)) {
-    score += 430;
-  } else if (hasWordMatch(normalizedArtist, normalizedQuery)) {
-    score += 320;
-  } else if (normalizedArtist.includes(normalizedQuery)) {
-    score += 180;
+  if (candidate.type !== "artist" && normalizedArtist === normalizedQuery) {
+    score += 650 * artistWeight;
+  } else if (candidate.type !== "artist" && normalizedArtist.startsWith(normalizedQuery)) {
+    score += 430 * artistWeight;
+  } else if (candidate.type !== "artist" && hasWordMatch(normalizedArtist, normalizedQuery)) {
+    score += 320 * artistWeight;
+  } else if (candidate.type !== "artist" && normalizedArtist.includes(normalizedQuery)) {
+    score += 180 * artistWeight;
   }
 
   if (normalizedTitle === normalizedQuery) {
-    score += 360;
+    score += candidate.type === "track" ? 360 : 820;
   } else if (normalizedTitle.startsWith(normalizedQuery)) {
-    score += 250;
+    score += candidate.type === "track" ? 250 : 520;
   } else if (hasWordMatch(normalizedTitle, normalizedQuery)) {
-    score += 180;
+    score += candidate.type === "track" ? 180 : 300;
   } else if (normalizedTitle.includes(normalizedQuery)) {
-    score += 120;
+    score += candidate.type === "track" ? 120 : 220;
   }
 
   score += getTokenOverlapScore(normalizedArtist, normalizedQuery);

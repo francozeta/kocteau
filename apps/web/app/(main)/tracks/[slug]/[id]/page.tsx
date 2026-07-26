@@ -12,9 +12,11 @@ import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata, createTrackDescription } from "@/lib/metadata";
 import {
   getEntityPageByRouteId,
+  getEntityPageById,
   getTrackPublicBundle,
   getTrackViewerState,
 } from "@/lib/queries/entities";
+import { getArtistPageById } from "@/lib/queries/artists";
 import {
   getEntityLibraryStateOrEmpty,
   getViewerEntityLibraryState,
@@ -100,7 +102,14 @@ export default async function TrackPage({
 
   const userIdPromise = getCurrentUserId();
   const publicBundlePromise = getTrackPublicBundle(entityPage.id);
-  const [userId, bundle] = await Promise.all([userIdPromise, publicBundlePromise]);
+  const [userId, bundle, artist, album] = await Promise.all([
+    userIdPromise,
+    publicBundlePromise,
+    entityPage.artist_id ? getArtistPageById(entityPage.artist_id) : Promise.resolve(null),
+    entityPage.parent_album_id
+      ? getEntityPageById(entityPage.parent_album_id)
+      : Promise.resolve(null),
+  ]);
 
   if (!bundle) notFound();
 
@@ -198,6 +207,34 @@ export default async function TrackPage({
 
         <TrackPageHero
           entity={entity}
+          artist={
+            artist
+              ? {
+                  provider_id: artist.provider_id,
+                  image_url: artist.image_url,
+                  href: buildEntityCanonicalPath({
+                    id: artist.id,
+                    provider: artist.provider,
+                    provider_id: artist.provider_id,
+                    type: "artist",
+                    title: artist.name,
+                  }),
+                }
+              : null
+          }
+          album={
+            album?.type === "album"
+              ? {
+                  provider_id: album.provider_id,
+                  title: album.title,
+                  cover_url: album.cover_url,
+                  deezer_url: album.deezer_url,
+                  release_date: album.release_date,
+                  record_type: album.record_type,
+                  href: buildEntityCanonicalPath(album),
+                }
+              : null
+          }
           isAuthenticated={Boolean(userId)}
           initialLibraryState={initialLibraryState}
           viewerReview={

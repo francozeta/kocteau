@@ -19,8 +19,10 @@ const shortRouteIdLength = 12;
 const fullUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const shortUuidPrefixPattern = /^(?:[0-9a-f]{8}|[0-9a-f]{12})$/i;
 
-const entityRouteRoots: Record<Extract<SeoEntityType, "track">, string> = {
+const entityRouteRoots: Record<SeoEntityType, string> = {
   track: "tracks",
+  album: "albums",
+  artist: "artists",
 };
 
 export function isSeoEntityType(value: string | null | undefined): value is SeoEntityType {
@@ -28,7 +30,11 @@ export function isSeoEntityType(value: string | null | undefined): value is SeoE
 }
 
 export function getEntityRouteRoot(type: string | null | undefined) {
-  return type === "track" || !type ? entityRouteRoots.track : null;
+  if (!type) {
+    return entityRouteRoots.track;
+  }
+
+  return isSeoEntityType(type) ? entityRouteRoots[type] : null;
 }
 
 export function slugifyForUrl(value: string | null | undefined) {
@@ -82,7 +88,9 @@ export function buildEntityCanonicalPath(entity: SeoEntityRouteInput) {
   }
 
   if (routeRoot && entity.provider === "deezer" && entity.provider_id) {
-    return `/track/deezer/${encodeURIComponent(entity.provider_id)}`;
+    const providerRouteRoot =
+      entity.type === "album" ? "album" : entity.type === "artist" ? "artist" : "track";
+    return `/${providerRouteRoot}/deezer/${encodeURIComponent(entity.provider_id)}`;
   }
 
   const searchQuery = [entity.title, entity.artist_name].filter(Boolean).join(" ") || fallbackSlug;
