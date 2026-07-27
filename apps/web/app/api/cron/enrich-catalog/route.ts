@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await processCatalogEnrichmentBatch(8);
+    const result = await processCatalogEnrichmentBatch(18);
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },
     });

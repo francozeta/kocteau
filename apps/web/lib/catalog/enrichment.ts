@@ -338,6 +338,19 @@ async function claimJob() {
   return data[0] ?? null;
 }
 
+async function prepareJobs() {
+  const supabase = supabaseAdmin();
+  const { data, error } = await supabase.rpc(
+    "prepare_catalog_enrichment_jobs",
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? 0;
+}
+
 async function processJob(job: CatalogJob) {
   const supabase = supabaseAdmin();
 
@@ -377,7 +390,8 @@ async function processJob(job: CatalogJob) {
 }
 
 export async function processCatalogEnrichmentBatch(limit = 8) {
-  const safeLimit = Math.max(1, Math.min(12, Math.floor(limit)));
+  const safeLimit = Math.max(1, Math.min(24, Math.floor(limit)));
+  const prepared = await prepareJobs();
   let completed = 0;
   let failed = 0;
 
@@ -403,5 +417,5 @@ export async function processCatalogEnrichmentBatch(limit = 8) {
     }
   }
 
-  return { completed, failed };
+  return { prepared, completed, failed };
 }
