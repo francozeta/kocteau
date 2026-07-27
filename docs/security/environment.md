@@ -41,6 +41,27 @@ Never commit, paste, or include these in examples:
 
 Secrets live only in controlled systems such as Vercel environment variables, GitHub environment secrets, Supabase dashboard settings, or a maintainer password manager.
 
+## Web Runtime Inventory
+
+The web app intentionally keeps a small environment surface:
+
+| Variable | Scope | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Public | Canonical URL outside Vercel. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Public | Supabase API origin. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | RLS-protected browser access. The legacy `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` remains a temporary deployment fallback. |
+| `SUPABASE_SECRET_KEY` | Server only | Catalog worker and other privileged server operations. |
+| `CRON_SECRET` | Server only | Authenticates Vercel Cron requests to `/api/cron/enrich-catalog`. Configure it in Project Settings → Environment Variables, not in the Cron Jobs screen. |
+| `V0_REFERRAL_URL` | Server only, optional | Creator Perks destination. |
+| `APPLE_MUSIC_DEVELOPER_TOKEN` | Server only, optional | Maintainer-only Apple Music import. |
+| `SENTRY_AUTH_TOKEN` | Build only, optional | Source-map upload during deployment. |
+| `KOCTEAU_PERF_*` | Server only, optional | Sampled performance diagnostics. |
+
+MusicBrainz does not require an API key. Kocteau identifies itself with a stable
+`User-Agent`, stores matches in Supabase, and performs enrichment only through
+the protected background worker. Do not add MusicBrainz calls to client components
+or synchronous page rendering.
+
 ## Contributor Defaults
 
 Contributors should need only:
