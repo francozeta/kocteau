@@ -13,7 +13,7 @@ import {
   type KocteauTrackSearchCandidate,
 } from "@/lib/search/kocteau-first";
 import { supabasePublic } from "@/lib/supabase/public";
-import { deezerSearchQuerySchema } from "@/lib/validation/schemas";
+import { kocteauSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
 
 type LocalEntityRow = {
@@ -25,6 +25,11 @@ type LocalEntityRow = {
   artist_name: string | null;
   cover_url: string | null;
   deezer_url: string | null;
+  release_date: string | null;
+  record_type: string | null;
+  disambiguation: string | null;
+  first_release_date: string | null;
+  genres: string[];
 };
 
 type LocalArtistRow = {
@@ -34,6 +39,10 @@ type LocalArtistRow = {
   name: string;
   image_url: string | null;
   deezer_url: string | null;
+  artist_type: string | null;
+  country_code: string | null;
+  disambiguation: string | null;
+  genres: string[];
 };
 
 type StarterTrackRow = {
@@ -56,6 +65,9 @@ const localSearchLimit = 18;
 const deezerSearchLimit = 18;
 const artistMatchLimit = 12;
 const responseLimit = 28;
+const groupedTrackLimit = 8;
+const groupedAlbumLimit = 4;
+const groupedArtistLimit = 3;
 
 function toIlikePattern(query: string) {
   return `%${query.replace(/[\\%_]/g, "\\$&")}%`;
@@ -86,6 +98,11 @@ function mapLocalEntityCandidate(
     cover_url: row.cover_url,
     deezer_url: row.deezer_url,
     entity_id: row.id,
+    release_date: row.release_date,
+    album_record_type: row.record_type,
+    disambiguation: row.disambiguation,
+    first_release_date: row.first_release_date,
+    genres: row.genres,
     source: "local",
     source_index: sourceIndex,
   };
@@ -104,6 +121,10 @@ function mapLocalArtistCandidate(
     cover_url: row.image_url,
     deezer_url: row.deezer_url,
     entity_id: row.id,
+    artist_type: row.artist_type,
+    country_code: row.country_code,
+    disambiguation: row.disambiguation,
+    genres: row.genres,
     source: "local",
     source_index: sourceIndex,
   };
@@ -208,6 +229,11 @@ function mapSearchResponse(result: ReturnType<typeof rankKocteauTrackSearchResul
     album_deezer_url: result.album_deezer_url ?? null,
     album_record_type: result.album_record_type ?? null,
     release_date: result.release_date ?? null,
+    artist_type: result.artist_type ?? null,
+    country_code: result.country_code ?? null,
+    disambiguation: result.disambiguation ?? null,
+    first_release_date: result.first_release_date ?? null,
+    genres: result.genres ?? [],
     cover_url: result.cover_url,
     deezer_url: result.deezer_url,
     entity_id: result.entity_id ?? null,
@@ -220,7 +246,7 @@ function mapSearchResponse(result: ReturnType<typeof rankKocteauTrackSearchResul
 async function getLocalEntityCandidates(query: string) {
   const supabase = supabasePublic();
   const pattern = toIlikePattern(query);
-  const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url";
+  const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url, release_date, record_type, disambiguation, first_release_date, genres";
 
   const [titleResult, artistResult] = await Promise.all([
     supabase
@@ -256,7 +282,7 @@ async function getLocalEntityCandidates(query: string) {
 async function getLocalAlbumCandidates(query: string) {
   const supabase = supabasePublic();
   const pattern = toIlikePattern(query);
-  const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url";
+  const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url, release_date, record_type, disambiguation, first_release_date, genres";
 
   const [titleResult, artistResult] = await Promise.all([
     supabase
@@ -294,7 +320,7 @@ async function getLocalArtistCandidates(query: string) {
   const pattern = toIlikePattern(query);
   const { data, error } = await supabase
     .from("artists")
-    .select("id, provider, provider_id, name, image_url, deezer_url")
+    .select("id, provider, provider_id, name, image_url, deezer_url, artist_type, country_code, disambiguation, genres")
     .eq("provider", "deezer")
     .ilike("name", pattern)
     .limit(localSearchLimit);
@@ -476,9 +502,105 @@ async function getCatalogCandidates(query: string, type: "album" | "artist") {
   return NextResponse.json([]);
 }
 
+async function getAllCatalogCandidates(query: string) {
+  const [
+    localTracks,
+    localAlbums,
+    localArtists,
+    starterTracks,
+    remoteResults,
+  ] = await Promise.all([
+    getLocalEntityCandidates(query),
+    getLocalAlbumCandidates(query),
+    getLocalArtistCandidates(query),
+    getStarterTrackCandidates(query),
+    Promise.allSettled([
+      searchDeezerTracks(query, deezerSearchLimit),
+      searchDeezerAlbums(query, deezerSearchLimit),
+      searchDeezerArtists(query, deezerSearchLimit),
+    ]),
+  ]);
+  const [remoteTracksResult, remoteAlbumsResult, remoteArtistsResult] = remoteResults;
+  const remoteTracks =
+    remoteTracksResult?.status === "fulfilled"
+      ? remoteTracksResult.value.map((track, index) =>
+          mapDeezerTrackCandidate({
+            track,
+            source: "deezer",
+            sourceIndex: index,
+          }),
+        )
+      : [];
+  const remoteAlbums =
+    remoteAlbumsResult?.status === "fulfilled"
+      ? remoteAlbumsResult.value.map(mapDeezerAlbumCandidate)
+      : [];
+  const remoteArtists =
+    remoteArtistsResult?.status === "fulfilled"
+      ? remoteArtistsResult.value.map(mapDeezerArtistCandidate)
+      : [];
+  const trackCandidates = [...localTracks, ...starterTracks, ...remoteTracks];
+  const entityIdsByProviderId = await getEntityIdsByProviderId(
+    trackCandidates.map((candidate) => candidate.provider_id),
+  );
+  const linkedTrackCandidates = trackCandidates.map((candidate) => ({
+    ...candidate,
+    entity_id:
+      candidate.entity_id ??
+      entityIdsByProviderId.get(candidate.provider_id) ??
+      null,
+  }));
+  const artists = rankKocteauTrackSearchResults({
+    query,
+    candidates: [...localArtists, ...remoteArtists],
+    limit: groupedArtistLimit,
+  });
+  const albums = rankKocteauTrackSearchResults({
+    query,
+    candidates: [...localAlbums, ...remoteAlbums],
+    limit: groupedAlbumLimit,
+  });
+  const tracks = rankKocteauTrackSearchResults({
+    query,
+    candidates: linkedTrackCandidates,
+    limit: groupedTrackLimit,
+  });
+  const results = [...artists, ...albums, ...tracks];
+  const remoteErrors = remoteResults.flatMap((result) =>
+    result.status === "rejected" ? [result.reason] : [],
+  );
+
+  if (results.length > 0) {
+    if (remoteErrors.length > 0) {
+      console.warn("[search.catalog] returned partial results", {
+        queryLength: query.length,
+        errorCount: remoteErrors.length,
+      });
+    }
+
+    return NextResponse.json(results.map(mapSearchResponse));
+  }
+
+  const [firstError] = remoteErrors;
+
+  if (firstError) {
+    console.error("[search.catalog] failed with no fallback", {
+      queryLength: query.length,
+      ...getDeezerErrorDetails(firstError),
+    });
+
+    return NextResponse.json(
+      { error: "Music search is taking longer than usual. Try again in a moment." },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json([]);
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const parsed = deezerSearchQuerySchema.safeParse({
+  const parsed = kocteauSearchQuerySchema.safeParse({
     q: searchParams.get("q") ?? undefined,
     type: searchParams.get("type") ?? undefined,
   });
@@ -490,6 +612,9 @@ export async function GET(req: Request) {
   const { q, type } = parsed.data;
 
   if (!q) return NextResponse.json([], { status: 200 });
+  if (type === "all") {
+    return getAllCatalogCandidates(q);
+  }
   if (type === "album" || type === "artist") {
     return getCatalogCandidates(q, type);
   }

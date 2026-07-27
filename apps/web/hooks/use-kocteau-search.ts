@@ -3,14 +3,14 @@
 import { useDeferredValue } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import type { SearchEntityType } from "@/lib/search-types";
+import type { SearchScope } from "@/lib/search-types";
 import { kocteauTrackSearchQueryOptions } from "@/queries/tracks";
 
 export type { KocteauSearchResult } from "@/queries/tracks";
 
 type UseKocteauSearchOptions = {
   query: string;
-  type?: SearchEntityType;
+  type?: SearchScope;
   enabled?: boolean;
 };
 

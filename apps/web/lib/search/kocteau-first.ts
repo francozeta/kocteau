@@ -13,6 +13,11 @@ export type KocteauTrackSearchCandidate = {
   album_deezer_url?: string | null;
   album_record_type?: string | null;
   release_date?: string | null;
+  artist_type?: string | null;
+  country_code?: string | null;
+  disambiguation?: string | null;
+  first_release_date?: string | null;
+  genres?: string[];
   cover_url: string | null;
   deezer_url: string | null;
   entity_id?: string | null;
@@ -110,6 +115,12 @@ function mergeDuplicateCandidate(
     album_record_type:
       winner.album_record_type ?? fallback.album_record_type ?? null,
     release_date: winner.release_date ?? fallback.release_date ?? null,
+    artist_type: winner.artist_type ?? fallback.artist_type ?? null,
+    country_code: winner.country_code ?? fallback.country_code ?? null,
+    disambiguation: winner.disambiguation ?? fallback.disambiguation ?? null,
+    first_release_date:
+      winner.first_release_date ?? fallback.first_release_date ?? null,
+    genres: winner.genres?.length ? winner.genres : fallback.genres ?? [],
     rank: winner.rank ?? fallback.rank ?? null,
     source_index: Math.min(
       winner.source_index ?? Number.MAX_SAFE_INTEGER,

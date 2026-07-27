@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import type { ReviewCardAuthor, ReviewCardData } from "@/components/review-card";
 import type { DiscoveryTrack } from "@/lib/types/discovery";
-import type { SearchEntityType } from "@/lib/search-types";
+import type { SearchEntityType, SearchScope } from "@/lib/search-types";
 import { fetchJson, isRetryableFetchJsonError } from "@/queries/http";
 
 export type TrackEntity = {
@@ -64,6 +64,11 @@ export type DeezerSearchResult = {
 
 export type KocteauSearchResult = Omit<DeezerSearchResult, "type"> & {
   type: "track" | "album" | "artist";
+  artist_type?: string | null;
+  country_code?: string | null;
+  disambiguation?: string | null;
+  first_release_date?: string | null;
+  genres?: string[];
   source?: "local" | "starter" | "artist-match" | "deezer";
   source_label?: string;
   score?: number;
@@ -76,7 +81,7 @@ export const trackKeys = {
   detail: (trackId: string) => ["tracks", "detail", trackId] as const,
   search: (type: SearchEntityType, query: string) =>
     ["tracks", "search", type, query] as const,
-  kocteauSearch: (type: SearchEntityType, query: string) =>
+  kocteauSearch: (type: SearchScope, query: string) =>
     ["tracks", "kocteau-search", type, query] as const,
 };
 
@@ -128,7 +133,7 @@ export function deezerTrackSearchQueryOptions(
 
 export function kocteauTrackSearchQueryOptions(
   query: string,
-  type: SearchEntityType = "track",
+  type: SearchScope = "track",
 ) {
   const params = new URLSearchParams({
     q: query,
