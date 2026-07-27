@@ -1431,6 +1431,10 @@ export type Database = {
           review_id: string
         }[]
       }
+      enqueue_catalog_enrichment_target: {
+        Args: { p_target_id: string; p_target_type: string }
+        Returns: undefined
+      }
       get_recommendation_health_snapshot: {
         Args: { p_days?: number }
         Returns: Json
@@ -1516,6 +1520,7 @@ export type Database = {
         Args: { recipient_id: string }
         Returns: string
       }
+      prepare_catalog_enrichment_jobs: { Args: never; Returns: number }
       reconcile_review_comments_count: {
         Args: { p_review_id: string }
         Returns: {
