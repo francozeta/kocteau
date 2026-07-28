@@ -17,13 +17,14 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useKocteauSearch, type KocteauSearchResult } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { SearchEntityType } from "@/lib/search-types";
+import type { SearchEntityType, SearchScope } from "@/lib/search-types";
+import { normalizeSearchText } from "@/lib/search/kocteau-first";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import { cn } from "@/lib/utils";
 
 type SearchPageClientProps = {
   initialQuery: string;
-  initialType: SearchEntityType;
+  initialType: SearchScope;
   discoverContent: ReactNode;
 };
 
@@ -84,16 +85,71 @@ function notifyRecentSearchesChanged() {
 }
 
 function getResultHref(result: KocteauSearchResult) {
-  return result.entity_id
-    ? buildEntityCanonicalPath({
-        id: result.entity_id,
-        provider: result.provider,
-        provider_id: result.provider_id,
-        type: result.type,
-        title: result.title,
-        artist_name: result.artist_name,
-      })
-    : `/track/deezer/${result.provider_id}`;
+  return buildEntityCanonicalPath({
+    id: result.entity_id,
+    provider: result.provider,
+    provider_id: result.provider_id,
+    type: result.type,
+    title: result.title,
+    artist_name: result.artist_name,
+  });
+}
+
+const searchScopeOptions = [
+  { value: "all", label: "All" },
+  { value: "track", label: "Songs" },
+  { value: "album", label: "Albums" },
+  { value: "artist", label: "Artists" },
+] satisfies Array<{ value: SearchScope; label: string }>;
+
+const resultTypeOrder = ["artist", "album", "track"] satisfies SearchEntityType[];
+
+function getResultIdentity(result: KocteauSearchResult) {
+  return `${result.provider}:${result.type}:${result.provider_id}`;
+}
+
+function getReleaseYear(result: KocteauSearchResult) {
+  const date = result.first_release_date ?? result.release_date;
+  const year = date?.match(/^\d{4}/)?.[0];
+
+  return year ?? null;
+}
+
+function formatCatalogType(value: string | null | undefined) {
+  if (!value) return null;
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function getResultContext(result: KocteauSearchResult) {
+  const year = getReleaseYear(result);
+  const genre = result.genres?.[0] ?? null;
+
+  if (result.type === "artist") {
+    return [formatCatalogType(result.artist_type) ?? "Artist", result.country_code, genre]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  if (result.type === "album") {
+    return [
+      result.artist_name,
+      year,
+      formatCatalogType(result.album_record_type) ?? "Album",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  return [result.artist_name, year, genre].filter(Boolean).join(" · ");
+}
+
+function getResultSectionTitle(type: SearchEntityType) {
+  if (type === "artist") return "Artists";
+  if (type === "album") return "Albums";
+  return "Songs";
 }
 
 function SearchSectionLabel({ children }: { children: React.ReactNode }) {
@@ -114,12 +170,12 @@ export default function SearchPageClient({
   const pathname = usePathname();
 
   const [query, setQuery] = useState(initialQuery);
+  const [searchType, setSearchType] = useState<SearchScope>(initialType);
   const [activeIndexState, setActiveIndexState] = useState<ActiveSearchResultState>({
     key: "",
     index: -1,
   });
   const resultRefs = useRef<Array<HTMLAnchorElement | null>>([]);
-  const searchType = initialType;
   const normalizedQuery = query.trim();
   const recentSearchesSnapshot = useSyncExternalStore(
     subscribeRecentSearches,
@@ -136,13 +192,60 @@ export default function SearchPageClient({
     enabled: true,
   });
   const results = data as KocteauSearchResult[];
+  const searchGroups = useMemo(() => {
+    const visibleTypes: SearchEntityType[] =
+      searchType === "all" ? resultTypeOrder : [searchType];
+    const normalizedSearchQuery = normalizeSearchText(normalizedQuery);
+
+    const groups = visibleTypes
+      .map((type) => ({
+        type,
+        title: getResultSectionTitle(type),
+        results: results.filter((result) => result.type === type),
+      }))
+      .filter((group) => group.results.length > 0);
+
+    if (searchType !== "all") {
+      return groups;
+    }
+
+    return groups.sort((left, right) => {
+      function getIntentRank(group: (typeof groups)[number]) {
+        const exactMatches = group.results.filter(
+          (result) => normalizeSearchText(result.title) === normalizedSearchQuery,
+        );
+
+        if (exactMatches.some((result) => result.entity_id)) return 2;
+        if (exactMatches.length > 0) return 1;
+        return 0;
+      }
+
+      const intentDifference = getIntentRank(right) - getIntentRank(left);
+
+      if (intentDifference !== 0) return intentDifference;
+
+      return resultTypeOrder.indexOf(left.type) - resultTypeOrder.indexOf(right.type);
+    });
+  }, [normalizedQuery, results, searchType]);
+  const orderedResults = useMemo(
+    () => searchGroups.flatMap((group) => group.results),
+    [searchGroups],
+  );
+  const resultIndexByIdentity = useMemo(
+    () =>
+      new Map(
+        orderedResults.map((result, index) => [getResultIdentity(result), index]),
+      ),
+    [orderedResults],
+  );
   const activeResultKey = useMemo(
     () =>
       [
         normalizedQuery,
-        ...results.map((result) => `${result.provider}:${result.provider_id}`),
+        searchType,
+        ...orderedResults.map(getResultIdentity),
       ].join("|"),
-    [normalizedQuery, results],
+    [normalizedQuery, orderedResults, searchType],
   );
   const defaultActiveIndex = -1;
   const activeIndex =
@@ -185,7 +288,7 @@ export default function SearchPageClient({
         next.delete("q");
       }
 
-      if (searchType !== "track") {
+      if (searchType !== "all") {
         next.set("type", searchType);
       } else {
         next.delete("type");
@@ -206,10 +309,6 @@ export default function SearchPageClient({
   }, [normalizedQuery, pathname, searchType]);
 
   const hasQuery = normalizedQuery.length > 0;
-  const resultKind =
-    searchType === "artist" ? "artist" : searchType === "album" ? "album" : "track";
-  const resultCountLabel = `${results.length} ${resultKind}${results.length === 1 ? "" : "s"}`;
-  const resultSectionTitle = `${resultKind[0]?.toUpperCase()}${resultKind.slice(1)}s`;
 
   const showSkeletonResults =
     hasQuery && normalizedQuery.length >= 2 && isFetching && results.length === 0;
@@ -253,25 +352,27 @@ export default function SearchPageClient({
   }
 
   function handleInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (normalizedQuery.length < 2 || results.length === 0) {
+    if (normalizedQuery.length < 2 || orderedResults.length === 0) {
       return;
     }
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((current) => (current + 1) % results.length);
+      setActiveIndex((current) => (current + 1) % orderedResults.length);
       return;
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveIndex((current) => (current <= 0 ? results.length - 1 : current - 1));
+      setActiveIndex((current) =>
+        current <= 0 ? orderedResults.length - 1 : current - 1,
+      );
       return;
     }
 
     if (event.key === "Enter" && activeIndex >= 0) {
       event.preventDefault();
-      const activeResult = results[activeIndex];
+      const activeResult = orderedResults[activeIndex];
       persistRecentSearch(activeResult.title);
       router.push(getResultHref(activeResult));
     }
@@ -291,11 +392,36 @@ export default function SearchPageClient({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
-            placeholder="Search tracks or artists…"
+            placeholder="Search songs, albums, or artists…"
             className="mobile-liquid-panel h-11 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] pl-10 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/58 sm:text-[13px]"
             autoFocus={!isMobile}
             maxLength={80}
           />
+        </div>
+
+        <div
+          className="flex min-h-8 items-center gap-5 px-1"
+          role="group"
+          aria-label="Filter music search"
+        >
+          {searchScopeOptions.map((option) => {
+            const isActive = searchType === option.value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setSearchType(option.value)}
+                className={cn(
+                  "relative inline-flex min-h-8 items-center text-[12px] font-medium text-muted-foreground/58 outline-none transition-colors duration-150 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-center after:scale-x-0 after:bg-foreground/72 after:transition-transform after:duration-150 hover:text-foreground/84 focus-visible:ring-2 focus-visible:ring-ring/35",
+                  isActive && "text-foreground after:scale-x-100",
+                )}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
 
         {showSearchError ? (
@@ -351,9 +477,9 @@ export default function SearchPageClient({
         {!hasQuery ? discoverContent : null}
 
         {hasQuery ? (
-          <section className="max-w-3xl space-y-3" aria-live="polite">
+          <div className="max-w-3xl space-y-8" aria-live="polite">
             {showSkeletonResults ? (
-              <div className="grid gap-1" aria-label="Searching tracks">
+              <div className="grid gap-1" aria-label="Searching music">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div key={index} className="flex items-center gap-3 rounded-[0.75rem] p-2">
                     <Skeleton className="size-14 rounded-[0.62rem] bg-foreground/[0.065]" />
@@ -378,28 +504,37 @@ export default function SearchPageClient({
                   No matches for “{normalizedQuery}”
                 </p>
                 <p className="mt-1 text-[13px] text-muted-foreground/66">
-                  Try another track or artist.
+                  Try another song, album, or artist.
                 </p>
               </div>
             ) : null}
 
-            {results.length > 0 ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3 px-2">
-                  <h2 className="font-pixel text-[1.05rem] font-medium text-foreground">
-                    {resultSectionTitle}
+            {searchGroups.map((group, groupIndex) => (
+              <section
+                key={group.type}
+                className="space-y-2"
+                aria-labelledby={`search-${group.type}-heading`}
+              >
+                <div className="flex min-h-6 items-center gap-2 px-2">
+                  <h2
+                    id={`search-${group.type}-heading`}
+                    className="text-[13px] font-semibold text-foreground/92"
+                  >
+                    {group.title}
                   </h2>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/52">
-                    {isFetching ? <LoaderCircle className="size-3 animate-spin" /> : null}
-                    {resultCountLabel}
-                  </span>
+                  {groupIndex === 0 && isFetching ? (
+                    <LoaderCircle className="size-3 animate-spin text-muted-foreground/48" />
+                  ) : null}
                 </div>
 
                 <div className="grid gap-1">
-                  {results.map((result, index) => {
+                  {group.results.map((result) => {
+                    const resultIdentity = getResultIdentity(result);
+                    const index = resultIndexByIdentity.get(resultIdentity) ?? -1;
+                    const context = getResultContext(result);
                     const resultLink = (
                       <PrefetchLink
-                        key={`${result.provider}-${result.type}-${result.provider_id}`}
+                        key={resultIdentity}
                         href={getResultHref(result)}
                         queryWarmup={
                           result.type === "track" && result.entity_id
@@ -424,7 +559,12 @@ export default function SearchPageClient({
                             sizes="56px"
                             quality={78}
                             variant="card"
-                            className="size-14 shrink-0 rounded-[0.62rem] bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
+                            className={cn(
+                              "size-14 shrink-0 bg-muted/50 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]",
+                              result.type === "artist"
+                                ? "rounded-full"
+                                : "rounded-[0.62rem]",
+                            )}
                             iconClassName="size-5"
                           />
 
@@ -433,9 +573,7 @@ export default function SearchPageClient({
                               {result.title}
                             </h3>
                             <p className="line-clamp-1 text-[13px] text-muted-foreground/72">
-                              {result.type === "artist"
-                                ? "Artist"
-                                : result.artist_name ?? "Unknown artist"}
+                              {context}
                             </p>
                           </div>
                         </div>
@@ -444,7 +582,7 @@ export default function SearchPageClient({
 
                     return result.type === "track" ? (
                       <TrackContextMenu
-                        key={`${result.provider}-${result.type}-${result.provider_id}`}
+                        key={resultIdentity}
                         href={getResultHref(result)}
                         title={result.title}
                         artistName={result.artist_name}
@@ -456,9 +594,9 @@ export default function SearchPageClient({
                     );
                   })}
                 </div>
-              </div>
-            ) : null}
-          </section>
+              </section>
+            ))}
+          </div>
         ) : null}
       </div>
     </div>

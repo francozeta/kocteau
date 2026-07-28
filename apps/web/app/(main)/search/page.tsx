@@ -5,7 +5,7 @@ import { createPageMetadata } from "@/lib/metadata";
 import { getAtlasTags } from "@/lib/queries/atlas";
 import { getRecentlyDiscussedTracks } from "@/lib/queries/discovery";
 import { getPublicStarterTracks } from "@/lib/queries/starter";
-import { isSearchEntityType } from "@/lib/search-types";
+import { isSearchScope } from "@/lib/search-types";
 
 export async function generateMetadata({
   searchParams,
@@ -18,14 +18,14 @@ export async function generateMetadata({
   if (!query) {
     return createPageMetadata({
       title: "Discover",
-      description: "Search tracks and discover music through real reviews on Kocteau.",
+      description: "Search songs, albums, and artists, then discover music through real reviews on Kocteau.",
       path: "/search",
     });
   }
 
   return createPageMetadata({
     title: `Discover: ${query}`,
-    description: `Track results for ${query} on Kocteau.`,
+    description: `Music results for ${query} on Kocteau.`,
     path: `/search?q=${encodeURIComponent(query)}`,
     noIndex: true,
   });
@@ -38,7 +38,7 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const initialQuery = params.q?.trim() ?? "";
-  const initialType = isSearchEntityType(params.type) ? params.type : "track";
+  const initialType = isSearchScope(params.type) ? params.type : "all";
   const discoverData = initialQuery
     ? null
     : await Promise.all([

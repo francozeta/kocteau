@@ -116,7 +116,7 @@ function RotationTrack({ track }: { track: StarterTrack }) {
         src={track.cover_url}
         alt=""
         sizes="52px"
-        quality={76}
+        quality={75}
         variant="thumbnail"
         className="size-[3.25rem] rounded-[0.58rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
         iconClassName="size-4"
@@ -188,7 +188,7 @@ export default function DiscoverEditorialEdition({
                   src={track.coverUrl}
                   alt=""
                   sizes="56px"
-                  quality={76}
+                  quality={75}
                   variant="thumbnail"
                   className="size-14 rounded-[0.62rem] bg-muted/40 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
                   iconClassName="size-4"

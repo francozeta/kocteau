@@ -4,7 +4,7 @@ import {
   getCanonicalAnalyticsEventType,
   isAllowedAnalyticsMetadataKey,
 } from "@/lib/analytics/events";
-import { searchableEntityTypes } from "@/lib/search-types";
+import { searchableEntityTypes, searchScopes } from "@/lib/search-types";
 import { editorialCandidateStatuses } from "@/lib/starter/candidate-queue";
 import { tasteOnboardingMaxTags, tasteOnboardingMinTags } from "@/lib/taste";
 import { entityLibraryItemTypes } from "@/lib/library/entity-library";
@@ -82,6 +82,16 @@ export const deezerSearchQuerySchema = z.object({
     .optional()
     .transform((value) => value ?? ""),
   type: z.enum(searchableEntityTypes).optional().default("track"),
+});
+
+export const kocteauSearchQuerySchema = z.object({
+  q: z
+    .string()
+    .trim()
+    .max(80, "Search queries can be up to 80 characters.")
+    .optional()
+    .transform((value) => value ?? ""),
+  type: z.enum(searchScopes).optional().default("all"),
 });
 
 export const starterCandidateQuerySchema = z.object({
