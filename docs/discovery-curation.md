@@ -421,7 +421,7 @@ The first implementation should stay simple:
 The AI posture is future-ready, not AI-dependent:
 
 - Today, Kocteau can use SQL, tags, reviews, saves, follows, and collections.
-- Eve or another AI assistant can summarize collection intent, propose tags, score mainstream/discovery fit, or draft explanation copy.
+- A future controlled AI layer may summarize collection intent or draft explanation copy, but it is not required for candidate generation.
 - The first AI-assisted implementation should stay local-only: export safe entity data, draft suggestions, require maintainer review, then apply SQL manually.
 - AI should never write directly to production recommendation tables without maintainer review.
 - User-facing explanations should cite product signals, not hidden model confidence.
@@ -478,11 +478,11 @@ Engineering constraints:
 
 This phase should wait until feed tuning has a baseline and the existing health checks can show whether discovery changes improve review creation, saves, and useful exploration.
 
-### Phase 9B: Eve Routes
+### Phase 9B: Guided Search Routes
 
-Eve should become the voice that turns Knowledge Layer evidence into public discovery paths.
+Search should turn Knowledge Layer evidence into public discovery paths.
 
-The first listener-facing Eve route should start from a track, artist, or tag and return a compact set of intent lanes:
+The first listener-facing route should start from a track, artist, or tag and return a compact set of intent lanes:
 
 - `Continue`: the closest next listen
 - `Go deeper`: a less obvious but connected route
@@ -499,7 +499,7 @@ Each route needs evidence, not mystique:
 - external metadata
 - curator-approved relationships
 
-Do not expose Eve as a generic music chatbot. Eve's product job is to direct exploration with visible criteria.
+Do not expose a generic music chatbot. Guidance should direct exploration with visible criteria.
 
 ### Future Research
 

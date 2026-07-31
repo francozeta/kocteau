@@ -62,8 +62,8 @@ These are the next useful moves after enabling public contribution.
 | P1 | Add a short "first contribution path" section to the README with links to good first issues. | ready | `docs`, `area:docs`, `good first issue` |
 | P1 | Open discovery and curation issues from `docs/discovery-curation.md` with clear owner lanes. | done | `docs`, `area:recommendations`, `needs maintainer decision` |
 | P1 | Add a private track library signal on track pages. | in progress | `feature`, `area:web`, `area:supabase`, `area:recommendations` |
-| P1 | Design public Atlas tag pages that help listeners explore genres, moods, scenes, and styles without turning the product into a generic wiki. | in progress ([#126](https://github.com/francozeta/kocteau/issues/126)) | `feature`, `design`, `area:web`, `area:recommendations` |
-| P1 | Design Eve route lanes around discovery intent: Continue, Go deeper, Take a stranger path, Travel back, and Travel forward. | needs design ([#127](https://github.com/francozeta/kocteau/issues/127)) | `feature`, `design`, `area:web`, `area:recommendations`, `needs maintainer decision` |
+| P1 | Make Search an immersive discovery surface that starts from listener intent. | in progress ([#126](https://github.com/francozeta/kocteau/issues/126)) | `feature`, `design`, `area:web`, `area:recommendations` |
+| P1 | Design explainable route lanes around nearby, deeper, stranger, and serendipitous discovery. | in progress ([#127](https://github.com/francozeta/kocteau/issues/127)) | `feature`, `design`, `area:web`, `area:recommendations` |
 | P1 | Add an editable taste preferences path after onboarding. | needs design | `feature`, `area:web`, `area:recommendations` |
 | P1 | Add a mobile social discovery carousel near review detail pages. | needs design ([#90](https://github.com/francozeta/kocteau/issues/90)) | `feature`, `area:web`, `area:ui` |
 | P1 | Design a listener-facing candidate finder for similar songs that feels curated rather than chart-driven. | needs design ([#89](https://github.com/francozeta/kocteau/issues/89)) | `feature`, `area:web`, `area:recommendations` |
@@ -103,7 +103,6 @@ This plan makes Kocteau learn from human taste without requiring an AI provider 
 | 3 | Add collection tags and intent labels so grouped tracks have explainable meaning. | blocked | `feature`, `area:recommendations`, `area:supabase` |
 | 4 | Derive track relationships from repeated co-curation, reviews, and collection meaning. | blocked | `feature`, `area:recommendations`, `needs maintainer decision` |
 | 5 | Show `Why this?` explanations only when backed by real product signals. | blocked | `feature`, `area:web`, `area:recommendations`, `area:analytics` |
-| 6 | Add a local-only Eve curation copilot for entity tags and metadata drafts. | in progress | `feature`, `area:recommendations`, `area:supabase`, `area:maintenance` |
 
 Acceptance criteria for the loop:
 
@@ -112,7 +111,6 @@ Acceptance criteria for the loop:
 - Recommendation logic can read collection membership without treating every collection as equal.
 - Known artists remain allowed, but weak popularity-only signals should not dominate discovery.
 - Any future AI step drafts metadata or explanations for human review instead of writing directly to production recommendation tables.
-- Eve-assisted curation stays local-only until usage limits, approvals, and Studio UX are proven.
 
 ## Ready for First Contributors
 
@@ -830,7 +828,7 @@ Suggested issue: `docs: define Kocteau Knowledge Layer source policy`
 - Separate canonical facts from editorial knowledge.
 - Use MusicBrainz, Deezer, Discogs, Wikidata, and Kocteau signals by strength rather than choosing one source of truth.
 - Keep `preference_tags` as the current product-facing vocabulary while the richer entity/relationship layer is designed.
-- Do not let Eve invent genres as facts. Eve can draft editorial knowledge when the evidence is visible.
+- Do not let automated systems invent genres as facts. Editorial knowledge must keep visible evidence.
 
 Suggested labels: `docs`, `area:recommendations`, `area:supabase`, `needs maintainer decision`
 
@@ -857,13 +855,13 @@ Suggested RFC: `rfc: define Kocteau Knowledge Layer relationships`
 
 Suggested labels: `docs`, `area:recommendations`, `area:supabase`, `needs maintainer decision`
 
-### Taste Atlas
+### Search Discovery
 
 GitHub issue: [#126](https://github.com/francozeta/kocteau/issues/126)
 
-Suggested issue: `feat(web): design public Atlas discovery pages`
+Suggested issue: `feat(web): design immersive Search discovery routes`
 
-- Atlas is not a wiki. A wiki answers "what is this?" Atlas should ask "how do you want to explore?"
+- Search is not a result list. It should ask "where do you want to start?" and make the next move visible.
 - Explore an interactive discovery surface where listeners can start from a track, artist, tag, or mood and move through nearby discovery paths.
 - Treat the first version as an editorial and explainable graph, not as a black-box algorithm.
 - Use Kocteau signals first: starter tags, entity tags, reviews, saves, follows, curator relationships, and underexposed tracks.
@@ -874,13 +872,13 @@ Suggested issue: `feat(web): design public Atlas discovery pages`
 
 Suggested labels: `feature`, `design`, `area:web`, `area:recommendations`, `needs design review`, `needs maintainer decision`
 
-### Eve Routes
+### Explainable Routes
 
 GitHub issue: [#127](https://github.com/francozeta/kocteau/issues/127)
 
-Suggested issue: `feat(eve): design explainable public discovery routes`
+Suggested issue: `feat(search): design explainable public discovery routes`
 
-- Eve should act as a discovery director, not as a generic music chatbot.
+- Search should guide discovery through visible relationships, not a generic music chatbot.
 - Start from listener intent: Continue, Go deeper, Take a stranger path, Travel back, Travel forward, and Why it matters.
 - Route explanations must cite visible evidence such as shared tags, starter curation, reviews, library signals, external metadata, or curator-approved relationships.
 - Keep generated language compact and editorial. The value should be in the path, not a long AI verdict.

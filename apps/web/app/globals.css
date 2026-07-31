@@ -1008,11 +1008,40 @@
     color: color-mix(in oklch, var(--foreground) 72%, transparent) !important;
   }
 
+  .kocteau-content-frame:has([data-kocteau-full-bleed]) {
+    max-width: none !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+  }
+
   @media (min-width: 1024px) {
     .kocteau-app-frame {
       background: var(--kocteau-shell);
       border-color: var(--kocteau-line);
       box-shadow: inset 0 1px 0 var(--kocteau-topline);
+    }
+
+    .kocteau-main-grid:has([data-kocteau-full-width]) {
+      max-width: none;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .kocteau-main-grid:has([data-kocteau-full-width]) > aside {
+      display: none;
+    }
+
+    .kocteau-content-frame:has([data-kocteau-full-bleed]) {
+      padding: 0 !important;
+    }
+
+    .kocteau-sidebar-inset:has([data-kocteau-full-bleed]) {
+      padding: 0 !important;
+    }
+
+    .kocteau-app-frame:has([data-kocteau-full-bleed]) {
+      border-color: transparent;
+      border-radius: 0;
     }
 
   }

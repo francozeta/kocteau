@@ -1,4 +1,4 @@
-# Kocteau Knowledge Layer And Atlas
+# Kocteau Knowledge Layer And Search
 
 [Docs index](./README.md) | [Discovery and curation](./discovery-curation.md) | [Public backlog](./backlog.md)
 
@@ -8,7 +8,7 @@ Kocteau should not feel like another recommendation engine. The product promise 
 Kocteau does not recommend music. Kocteau teaches people how to discover it.
 ```
 
-The Knowledge Layer is the system that makes that promise real. It separates music facts from editorial judgment, gives Eve evidence to explain discovery paths, and gives Atlas enough structure to feel like exploration rather than a static wiki.
+The Knowledge Layer is the system that makes that promise real. It separates music facts from editorial judgment and gives Search enough structure to feel like exploration rather than a static results list.
 
 ## Product Boundaries
 
@@ -17,12 +17,11 @@ Use these names as working architecture, not necessarily user-facing labels:
 | Layer | Role |
 | --- | --- |
 | Kocteau | Public music review, discovery, and taste expression product. |
-| Atlas | Public exploration surface for genres, moods, scenes, artists, tracks, and routes. |
-| Eve | Discovery director that turns structured evidence into human paths. |
+| Search | Public exploration surface for artists, albums, tracks, and connected routes. |
 | Studio | Maintainer-facing curation desk for starter picks, tags, candidates, and review queues. |
 | Kura | Internal operating-system idea for curation. Do not expose this name until it earns product clarity. |
 
-Atlas is not a wiki. A wiki answers "what is this?" Atlas asks "how do you want to explore?"
+Search is not a catalog lookup. It asks for a starting point and lets the listener choose where to move next.
 
 ## Canonical Facts vs Editorial Knowledge
 
@@ -58,7 +57,7 @@ Editorial knowledge is where Kocteau becomes its own product:
 - rainy-room context
 - why a pick belongs here
 
-These are not objective music facts. They should come from Kocteau curation, reviews, starter picks, trusted community behavior, or Eve drafts that a human can inspect.
+These are not objective music facts. They should come from Kocteau curation, reviews, starter picks, or trusted community behavior.
 
 ## Source Policy
 
@@ -112,7 +111,7 @@ Examples:
 
 ## Discovery Intent
 
-Eve should not start from "what should I recommend?" It should start from:
+Discovery should not start from "what should I recommend?" It should start from:
 
 ```text
 How does this listener want to explore?
@@ -131,46 +130,35 @@ V0 intent lanes:
 
 These lanes should feel like editorial decisions, not algorithm labels.
 
-## Atlas V0
+## Search Discovery
 
-Atlas should begin as public, indexable exploration pages powered by existing data:
+Search should begin as a public exploration surface powered by existing catalog and product data:
 
-- tag pages such as `/atlas/dream-pop`
-- mood pages such as `/atlas/nocturnal`
-- scene pages such as `/atlas/spanish-new-wave`
-- future artist and route pages when entity depth is ready
+- a track, album, or artist selected by the listener
+- nearby, deeper, stranger, and serendipitous routes
+- future artist and tag routes when entity depth is ready
 
-Each Atlas page should eventually show:
+Each search route should eventually show:
 
 - a short definition
 - starter picks
 - reviewed tracks
 - nearby tags
-- Eve route lanes
+- directional route lanes
 - human reviews that explain the sound
 
 Do not build a large generic encyclopedia first. Start with the pages that help a listener find what to hear next.
 
-Current phase 1 implementation:
+Current implementation:
 
-- `/atlas` lists the current `preference_tags` vocabulary by kind.
-- `/atlas/[slug]` explains one signal, links nearby signals, and shows active starter picks attached through `starter_track_tags`.
-- The surface is intentionally read-only and powered by existing public tables.
-- Eve route language appears as directional lanes, but there is no AI generation or graph engine in this phase.
+- `/search` accepts a listener-selected seed and turns catalog relationships into an interactive route.
+- Starter picks are optional visual entry points, not the source of truth for discovery.
+- Candidate generation, ranking, explanation, and personalization stay separate.
+- There is no generative recommendation engine or separate agent runtime.
 
-## Eve Contract
+## Guidance Contract
 
-Eve is a discovery director, not a generic chat assistant.
-
-Eve may:
-
-- infer likely discovery intent from surface context
-- draft editorial tags for curator review
-- propose route lanes from structured evidence
-- explain why two entities are connected
-- identify missing tags or relationships
-
-Eve must not:
+The discovery layer may rerank catalog candidates and explain visible connections. It must not:
 
 - invent genres as facts
 - publish production metadata without review
@@ -178,7 +166,7 @@ Eve must not:
 - act like a final music authority
 - replace reviews or human taste
 
-Every user-facing Eve route should be explainable from at least one of:
+Every user-facing route should be explainable from at least one of:
 
 - shared tags
 - starter curation
@@ -226,7 +214,7 @@ The first cleanup pass should:
 - merge `live-sessions` into `live-recordings`
 - keep existing starter, entity, and user tag relations intact
 
-This keeps today's product working while making the next public Atlas/Eve work less messy.
+This keeps today's product working while making Search routes more coherent and explainable.
 
 After applying the cleanup migration, run:
 

@@ -7,7 +7,7 @@
 - [MVP baseline](./mvp.md): current product loop, scope, and out-of-scope guardrails.
 - [Web roadmap](./web-roadmap.md): phased web product direction and execution order.
 - [Discovery and curation](./discovery-curation.md): hybrid recommendation philosophy, signal contract, starter curation, and future RFC lanes.
-- [Knowledge Layer and Atlas](./knowledge-layer.md): source policy, taste taxonomy, Atlas direction, and Eve's public discovery role.
+- [Knowledge Layer and Search](./knowledge-layer.md): source policy, taste taxonomy, and explainable discovery direction.
 - [Public backlog](./backlog.md): issue-ready work, maintainer-led work, and future RFC backlog.
 
 ## Setup And Operations
@@ -22,7 +22,6 @@
 
 - [Release automation](./maintainers/release.md): Release Please, changelog flow, and release smoke checks.
 - [Supabase maintainer workflow](./maintainers/supabase-workflow.md): versioned Supabase Cloud migration flow for maintainers.
-- [Eve curation copilot](./maintainers/eve-curation-copilot.md): local-only assisted entity tagging with human review.
 - [GitHub rules](./maintainers/github-rules.md): repository settings, branch protection, labels, and Actions permissions.
 
 ## Interface Craft
@@ -39,4 +38,4 @@
 - New contributor: read [CONTRIBUTING.md](../CONTRIBUTING.md), then [local development](./setup/local-development.md), then [public backlog](./backlog.md).
 - Product/design contributor: read [MVP baseline](./mvp.md), [web roadmap](./web-roadmap.md), and [interface craft rules](./ai/interface-craft-rules.md).
 - Recommendation or analytics contributor: read [discovery and curation](./discovery-curation.md), [operations](./operations.md), and the sensitive-system notes in [public backlog](./backlog.md).
-- Maintainer: read [operations](./operations.md), [Supabase maintainer workflow](./maintainers/supabase-workflow.md), [Eve curation copilot](./maintainers/eve-curation-copilot.md), [release automation](./maintainers/release.md), and [GitHub rules](./maintainers/github-rules.md).
+- Maintainer: read [operations](./operations.md), [Supabase maintainer workflow](./maintainers/supabase-workflow.md), [release automation](./maintainers/release.md), and [GitHub rules](./maintainers/github-rules.md).

@@ -84,29 +84,6 @@ type StarterTagResponse = {
   tag: StarterPreferenceTag;
 };
 
-type StarterEveSuggestion = {
-  suggestedSignals: {
-    tagId: string;
-    confidence: "low" | "medium" | "high";
-    reason: string | null;
-  }[];
-  suggestedTagIds: string[];
-  prompt: string | null;
-  editorialNote: string | null;
-  confidence: "low" | "medium" | "high";
-  rationale: string | null;
-  missingTagIdeas: {
-    kind: PreferenceKind;
-    label: string;
-    reason?: string | null;
-  }[];
-};
-
-type StarterEveSuggestionResponse = {
-  ok: boolean;
-  suggestion: StarterEveSuggestion;
-};
-
 type StarterDraftTrack = Pick<
   StarterTrackRow,
   | "provider"
@@ -273,26 +250,6 @@ type StarterSignalMenuProps = {
   onToggleTag: (tag: StarterPreferenceTag) => void;
   onEditTag: (tag: StarterPreferenceTag) => void;
 };
-
-function EveWordmarkIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-label="eve"
-      className={className}
-      fill="none"
-      height="24"
-      role="img"
-      viewBox="0 0 78 25"
-      width="74.88"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M77.7002 3.89551H54.0762L37.5781 24.3818H32.3486L36.5322 19.1729L51.958 0H77.7002V3.89551ZM21.0898 24.3721H0V20.4766H21.0898V24.3721ZM77.7012 20.4766V24.3721H56.6104V20.4766H77.7012ZM17.7744 14.0537H0V10.1582H17.7744V14.0537ZM77.7012 14.0537H59.9268V10.1582H77.7012V14.0537ZM34.7197 3.89551H0V0H34.7197V3.89551Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
 
 function StarterSignalMenu({
   kind,
@@ -487,8 +444,6 @@ export default function StarterStudioClient() {
     useState<StarterDraftTrack | null>(null);
   const [editingTrack, setEditingTrack] =
     useState<StarterTrackWithTags | null>(null);
-  const [eveSuggestion, setEveSuggestion] =
-    useState<StarterEveSuggestion | null>(null);
   const normalizedQuery = query.trim();
   const starterTracksQuery = useInfiniteQuery(
     starterCuratorTracksInfiniteQueryOptions({ limit: starterCatalogPageSize }),
@@ -661,7 +616,6 @@ export default function StarterStudioClient() {
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
-    setEveSuggestion(null);
   }, []);
 
   function resetTagDraft() {
@@ -684,7 +638,6 @@ export default function StarterStudioClient() {
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
-    setEveSuggestion(null);
     setCurationOpen(true);
   }, []);
 
@@ -707,7 +660,6 @@ export default function StarterStudioClient() {
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
-    setEveSuggestion(null);
     setCurationOpen(true);
   }, [startEditing, starterTracks]);
 
@@ -831,55 +783,6 @@ export default function StarterStudioClient() {
         [payload.tag.kind]: "",
       }));
       void queryClient.invalidateQueries({ queryKey: starterKeys.curatorTracks() });
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const eveSuggestionMutation = useMutation({
-    mutationFn: (track: StarterDraftTrack | StarterTrackWithTags) =>
-      fetchJson<StarterEveSuggestionResponse>("/api/starter/eve-suggestions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          track: {
-            provider: track.provider,
-            provider_id: track.provider_id,
-            type: track.type,
-            title: track.title,
-            artist_name: track.artist_name,
-            cover_url: track.cover_url,
-            deezer_url: track.deezer_url,
-            prompt,
-            editorial_note: editorialNote || null,
-          },
-          selected_tag_ids: Array.from(selectedTagIds),
-        }),
-      }),
-    onSuccess: (payload) => {
-      const suggestion = payload.suggestion;
-      const suggestedSignalIds = suggestion.suggestedSignals.map((signal) => signal.tagId);
-      const suggestedTagIds = (
-        suggestedSignalIds.length > 0 ? suggestedSignalIds : suggestion.suggestedTagIds
-      ).filter((tagId) => tagById.has(tagId));
-
-      if (suggestedTagIds.length > 0) {
-        setSelectedTagIds(new Set(suggestedTagIds));
-      }
-
-      if (suggestion.prompt) {
-        setPrompt(suggestion.prompt);
-      }
-
-      if (suggestion.editorialNote) {
-        setEditorialNote(suggestion.editorialNote);
-      }
-
-      setEveSuggestion(suggestion);
-      toast.success("Eve drafted curation signals.");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -1023,20 +926,6 @@ export default function StarterStudioClient() {
                     Clear
                   </Button>
                 ) : null}
-                <button
-                  type="button"
-                  disabled={eveSuggestionMutation.isPending}
-                  onClick={() => eveSuggestionMutation.mutate(inspectedTrack)}
-                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-md px-1 text-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50"
-                  title="Ask Eve"
-                >
-                  {eveSuggestionMutation.isPending ? (
-                    <LoaderCircle className="size-3 animate-spin" />
-                  ) : (
-                    <EveWordmarkIcon className="h-4.5 w-7 shrink-0" />
-                  )}
-                  <span className="sr-only">Ask Eve</span>
-                </button>
                 <Button
                   type="button"
                   variant="ghost"
@@ -1051,115 +940,6 @@ export default function StarterStudioClient() {
                 </Button>
               </div>
             </div>
-
-            {eveSuggestion ? (
-              <div className="rounded-xl border border-border/16 bg-foreground/[0.035] p-2.5">
-                <div className="flex min-w-0 items-center gap-2 px-0.5">
-                  <EveWordmarkIcon className="h-3.5 w-10 shrink-0 text-foreground" />
-                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                    Draft signals ready to review
-                  </p>
-                </div>
-
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {(eveSuggestion.suggestedSignals.length > 0
-                    ? eveSuggestion.suggestedSignals
-                    : eveSuggestion.suggestedTagIds.map((tagId) => ({
-                        tagId,
-                        confidence: eveSuggestion.confidence,
-                        reason: null,
-                      }))
-                  ).flatMap((signal) => {
-                    const tag = tagById.get(signal.tagId);
-
-                    if (!tag) {
-                      return [];
-                    }
-
-                    const isSelected = selectedTagIds.has(tag.id);
-
-                    return [
-                      <span
-                        key={tag.id}
-                        className={cn(
-                          "inline-flex h-7 max-w-full items-center gap-1 rounded-full border px-1.5 pl-2 text-[0.66rem] leading-none transition-colors",
-                          isSelected
-                            ? "border-border/24 bg-foreground/[0.07] text-muted-foreground"
-                            : "border-border/14 bg-background/18 text-muted-foreground/62",
-                        )}
-                        title={signal.reason ?? undefined}
-                      >
-                        <span className="shrink-0 text-muted-foreground/72">
-                          {getTagKindLabel(tag.kind)}
-                        </span>
-                        <span className="max-w-32 truncate text-foreground/86">
-                          {tag.label}
-                        </span>
-                        <span className="rounded-full bg-background/42 px-1.5 py-0.5 text-[0.58rem] uppercase tracking-normal text-muted-foreground">
-                          {signal.confidence}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedTagIds((current) => {
-                              const next = new Set(current);
-
-                              if (next.has(tag.id)) {
-                                next.delete(tag.id);
-                                return next;
-                              }
-
-                              if (next.size >= starterTagLimit) {
-                                toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
-                                return current;
-                              }
-
-                              next.add(tag.id);
-                              return next;
-                            })
-                          }
-                          className="grid size-5 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                          aria-label={
-                            isSelected
-                              ? `Remove ${tag.label} from Eve draft`
-                              : `Approve ${tag.label} from Eve draft`
-                          }
-                        >
-                          {isSelected ? (
-                            <X className="size-3" />
-                          ) : (
-                            <Check className="size-3" />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => focusTagKind(tag.kind)}
-                          className="grid size-5 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                          aria-label={`Edit ${getTagKindLabel(tag.kind).toLowerCase()} signals`}
-                        >
-                          <Pencil className="size-3" />
-                        </button>
-                      </span>,
-                    ];
-                  })}
-                </div>
-
-                {eveSuggestion.missingTagIdeas.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5 border-t border-border/12 pt-2">
-                    {eveSuggestion.missingTagIdeas.map((idea) => (
-                      <span
-                        key={`${idea.kind}-${idea.label}`}
-                        className="inline-flex h-5 max-w-full items-center gap-1 rounded-full border border-border/18 bg-background/28 px-2 text-[0.66rem] leading-none text-muted-foreground"
-                        title={idea.reason ?? undefined}
-                      >
-                        <span>{getTagKindLabel(idea.kind)}</span>
-                        <span className="truncate text-foreground/82">{idea.label}</span>
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
 
             <div className="-mx-1 scroll-mask-x scroll-mask-x-from-[calc(100%_-_1.5rem)] flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {starterTagKinds.map((kind) => {

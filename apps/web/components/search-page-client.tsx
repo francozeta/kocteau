@@ -152,14 +152,6 @@ function getResultSectionTitle(type: SearchEntityType) {
   return "Songs";
 }
 
-function SearchSectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[11px] font-medium text-muted-foreground/72">
-      {children}
-    </p>
-  );
-}
-
 export default function SearchPageClient({
   initialQuery,
   initialType,
@@ -339,18 +331,6 @@ export default function SearchPageClient({
     notifyRecentSearchesChanged();
   }
 
-  function clearRecentSearches() {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(recentSearchesStorageKey);
-      notifyRecentSearchesChanged();
-    }
-  }
-
-  function handleSearchSuggestionSelect(nextQuery: string) {
-    setQuery(nextQuery);
-    persistRecentSearch(nextQuery);
-  }
-
   function handleInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (normalizedQuery.length < 2 || orderedResults.length === 0) {
       return;
@@ -381,48 +361,52 @@ export default function SearchPageClient({
   return (
     <div className="w-full max-w-5xl lg:max-w-none">
       <div className="min-w-0 space-y-6">
-        <div className="relative min-w-0">
-          <label htmlFor="discover-search" className="sr-only">
-            Search music
-          </label>
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/68" />
-          <Input
-            id="discover-search"
-            data-global-search-input="true"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Search songs, albums, or artists…"
-            className="mobile-liquid-panel h-11 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] pl-10 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/58 sm:text-[13px]"
-            autoFocus={!isMobile}
-            maxLength={80}
-          />
-        </div>
+        {hasQuery ? (
+          <div className="space-y-3">
+            <div className="relative min-w-0">
+              <label htmlFor="discover-search" className="sr-only">
+                Search music
+              </label>
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/68" />
+              <Input
+                id="discover-search"
+                data-global-search-input="true"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder="Search songs, albums, or artists…"
+                className="mobile-liquid-panel h-11 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] pl-10 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/58 sm:text-[13px]"
+                autoFocus={!isMobile}
+                maxLength={80}
+              />
+            </div>
 
-        <div
-          className="flex min-h-8 items-center gap-5 px-1"
-          role="group"
-          aria-label="Filter music search"
-        >
-          {searchScopeOptions.map((option) => {
-            const isActive = searchType === option.value;
+            <div
+              className="flex min-h-8 items-center gap-5 px-1"
+              role="group"
+              aria-label="Filter music search"
+            >
+              {searchScopeOptions.map((option) => {
+                const isActive = searchType === option.value;
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={isActive}
-                onClick={() => setSearchType(option.value)}
-                className={cn(
-                  "relative inline-flex min-h-8 items-center text-[12px] font-medium text-muted-foreground/58 outline-none transition-colors duration-150 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-center after:scale-x-0 after:bg-foreground/72 after:transition-transform after:duration-150 hover:text-foreground/84 focus-visible:ring-2 focus-visible:ring-ring/35",
-                  isActive && "text-foreground after:scale-x-100",
-                )}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => setSearchType(option.value)}
+                    className={cn(
+                      "relative inline-flex min-h-8 items-center text-[12px] font-medium text-muted-foreground/58 outline-none transition-colors duration-150 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-center after:scale-x-0 after:bg-foreground/72 after:transition-transform after:duration-150 hover:text-foreground/84 focus-visible:ring-2 focus-visible:ring-ring/35",
+                      isActive && "text-foreground after:scale-x-100",
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {showSearchError ? (
           <div className="flex flex-col gap-3 rounded-[var(--kocteau-radius-card)] bg-[var(--kocteau-surface)] px-4 py-3 shadow-[var(--kocteau-shadow-card)] sm:flex-row sm:items-center sm:justify-between">
@@ -445,33 +429,6 @@ export default function SearchPageClient({
               {isFetching ? "Retrying" : "Try again"}
             </button>
           </div>
-        ) : null}
-
-        {!hasQuery && recentSearches.length > 0 ? (
-          <section
-            aria-label="Recent searches"
-            className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1"
-          >
-            <SearchSectionLabel>Recent</SearchSectionLabel>
-            {recentSearches.slice(0, 4).map((item) => (
-              <button
-                key={item.query}
-                type="button"
-                onClick={() => handleSearchSuggestionSelect(item.query)}
-                className="inline-flex min-h-8 items-center rounded-[0.55rem] px-1 text-[13px] text-foreground/72 transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
-              >
-                {item.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={clearRecentSearches}
-              aria-label="Clear recent searches"
-              className="inline-flex min-h-8 items-center rounded-[0.55rem] px-1 text-[12px] text-muted-foreground/46 transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35"
-            >
-              Clear
-            </button>
-          </section>
         ) : null}
 
         {!hasQuery ? discoverContent : null}

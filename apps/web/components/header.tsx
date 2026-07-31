@@ -84,7 +84,7 @@ export default function Header({
     }
 
     if (isSearchRoute) {
-      return "Discover";
+      return "Search";
     }
 
     if (pathname === "/track") {

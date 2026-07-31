@@ -1,4 +1,7 @@
-export type TrackRecommendationSource = "local-signal" | "deezer-related";
+export type TrackRecommendationSource =
+  | "local-signal"
+  | "deezer-related"
+  | "deezer-deep-cut";
 
 export type TrackRecommendationCandidate = {
   id: string;
@@ -14,11 +17,14 @@ export type TrackRecommendationCandidate = {
   source: TrackRecommendationSource;
   sourceLabel: string;
   score: number;
+  catalogRank?: number | null;
+  artistFanCount?: number | null;
 };
 
 export type TrackRecommendationGroup = {
-  id: "related";
+  id: "nearby" | "deep-cut" | "left-field" | "serendipity";
   label: string;
+  shortLabel: string;
   description: string;
   recommendations: TrackRecommendationCandidate[];
 };
@@ -27,16 +33,19 @@ type SelectTrackRecommendationGroupsOptions = {
   currentProviderId: string;
   relatedCandidates: TrackRecommendationCandidate[];
   localSignalCandidates: TrackRecommendationCandidate[];
+  deepCutCandidates?: TrackRecommendationCandidate[];
   perGroupLimit?: number;
 };
 
 const sourcePriority: Record<TrackRecommendationSource, number> = {
-  "local-signal": 4,
+  "local-signal": 5,
+  "deezer-deep-cut": 4,
   "deezer-related": 3,
 };
 
 const sourceScoreBonus: Record<TrackRecommendationSource, number> = {
   "local-signal": 18,
+  "deezer-deep-cut": 14,
   "deezer-related": 10,
 };
 
@@ -74,12 +83,34 @@ function getStableExplorationBonus(
   return (hash % 13) / 2;
 }
 
-function getExperimentalScore(candidate: TrackRecommendationCandidate, currentProviderId: string) {
+function getExperimentalScore(
+  candidate: TrackRecommendationCandidate,
+  currentProviderId: string,
+) {
   return (
     candidate.score +
     sourceScoreBonus[candidate.source] +
     getStableExplorationBonus(candidate, currentProviderId)
   );
+}
+
+function getObscurityScore(candidate: TrackRecommendationCandidate) {
+  const fanCount = candidate.artistFanCount;
+  const catalogRank = candidate.catalogRank;
+  let score = 0;
+
+  if (typeof fanCount === "number") {
+    if (fanCount <= 25_000) score += 30;
+    else if (fanCount <= 250_000) score += 18;
+    else if (fanCount >= 1_000_000) score -= 18;
+  }
+
+  if (typeof catalogRank === "number") {
+    if (catalogRank <= 150_000) score += 16;
+    else if (catalogRank >= 750_000) score -= 14;
+  }
+
+  return score;
 }
 
 function diversifyByArtist(
@@ -107,15 +138,10 @@ function diversifyByArtist(
   return [...selected, ...deferred].slice(0, limit);
 }
 
-function selectCandidates({
-  candidates,
-  currentProviderId,
-  limit,
-}: {
-  candidates: TrackRecommendationCandidate[];
-  currentProviderId: string;
-  limit: number;
-}) {
+function dedupeCandidates(
+  candidates: TrackRecommendationCandidate[],
+  currentProviderId: string,
+) {
   const bestByKey = new Map<string, TrackRecommendationCandidate>();
 
   candidates
@@ -140,7 +166,37 @@ function selectCandidates({
       }
     });
 
-  const ranked = Array.from(bestByKey.values()).sort((left, right) => {
+  return Array.from(bestByKey.values());
+}
+
+function rankCandidates({
+  candidates,
+  currentProviderId,
+  route,
+}: {
+  candidates: TrackRecommendationCandidate[];
+  currentProviderId: string;
+  route: TrackRecommendationGroup["id"];
+}) {
+  return candidates.toSorted((left, right) => {
+    if (route === "left-field") {
+      const obscurityDelta = getObscurityScore(right) - getObscurityScore(left);
+
+      if (obscurityDelta !== 0) {
+        return obscurityDelta;
+      }
+    }
+
+    if (route === "serendipity") {
+      const driftDelta =
+        getStableExplorationBonus(right, currentProviderId) -
+        getStableExplorationBonus(left, currentProviderId);
+
+      if (driftDelta !== 0) {
+        return driftDelta;
+      }
+    }
+
     const scoreDelta =
       getExperimentalScore(right, currentProviderId) -
       getExperimentalScore(left, currentProviderId);
@@ -151,34 +207,118 @@ function selectCandidates({
 
     return sourcePriority[right.source] - sourcePriority[left.source];
   });
+}
 
-  return diversifyByArtist(ranked, limit);
+function selectRoute({
+  candidates,
+  currentProviderId,
+  usedCandidateKeys,
+  route,
+  limit,
+}: {
+  candidates: TrackRecommendationCandidate[];
+  currentProviderId: string;
+  usedCandidateKeys: Set<string>;
+  route: TrackRecommendationGroup["id"];
+  limit: number;
+}) {
+  const available = candidates.filter(
+    (candidate) => !usedCandidateKeys.has(getCandidateKey(candidate)),
+  );
+  const selected = diversifyByArtist(
+    rankCandidates({ candidates: available, currentProviderId, route }),
+    limit,
+  );
+
+  selected.forEach((candidate) => {
+    usedCandidateKeys.add(getCandidateKey(candidate));
+  });
+
+  return selected;
 }
 
 export function selectTrackRecommendationGroups({
   currentProviderId,
   relatedCandidates,
   localSignalCandidates,
-  perGroupLimit = 6,
+  deepCutCandidates = [],
+  perGroupLimit = 4,
 }: SelectTrackRecommendationGroupsOptions): TrackRecommendationGroup[] {
-  const limit = Math.max(1, Math.min(perGroupLimit, 24));
-  const related = selectCandidates({
-    candidates: [...localSignalCandidates, ...relatedCandidates],
+  const limit = Math.max(1, Math.min(perGroupLimit, 8));
+  const candidates = dedupeCandidates(
+    [...localSignalCandidates, ...relatedCandidates, ...deepCutCandidates],
     currentProviderId,
-    limit,
-  });
+  );
 
-  if (related.length === 0) {
+  if (candidates.length === 0) {
     return [];
   }
 
+  const usedCandidateKeys = new Set<string>();
+  const nearby = selectRoute({
+    candidates: candidates.filter((candidate) => candidate.source !== "deezer-deep-cut"),
+    currentProviderId,
+    usedCandidateKeys,
+    route: "nearby",
+    limit,
+  });
+  const deepCut = selectRoute({
+    candidates: candidates.filter((candidate) => candidate.source === "deezer-deep-cut"),
+    currentProviderId,
+    usedCandidateKeys,
+    route: "deep-cut",
+    limit,
+  });
+  const leftField = selectRoute({
+    candidates: candidates.filter((candidate) => candidate.source === "deezer-related"),
+    currentProviderId,
+    usedCandidateKeys,
+    route: "left-field",
+    limit,
+  });
+  const serendipity = selectRoute({
+    candidates,
+    currentProviderId,
+    usedCandidateKeys,
+    route: "serendipity",
+    limit,
+  });
+
   const groups: Array<TrackRecommendationGroup | null> = [
-    related.length > 0
+    nearby.length > 0
       ? {
-          id: "related",
-          label: "Related",
-          description: "Filtered from nearby artists and Kocteau signals.",
-          recommendations: related,
+          id: "nearby",
+          label: "Stay close",
+          shortLabel: "Nearby",
+          description: "Shared artist orbit and Kocteau signals.",
+          recommendations: nearby,
+        }
+      : null,
+    deepCut.length > 0
+      ? {
+          id: "deep-cut",
+          label: "Go deeper",
+          shortLabel: "Deep cut",
+          description: "Past the usual entry points in this catalog.",
+          recommendations: deepCut,
+        }
+      : null,
+    leftField.length > 0
+      ? {
+          id: "left-field",
+          label: "Go stranger",
+          shortLabel: "Further out",
+          description: "A quieter edge of the same neighborhood.",
+          recommendations: leftField,
+        }
+      : null,
+    serendipity.length > 0
+      ? {
+          id: "serendipity",
+          label: "Drift",
+          shortLabel: "Serendipity",
+          description: "A controlled left turn from the candidate pool.",
+          recommendations: serendipity,
         }
       : null,
   ];

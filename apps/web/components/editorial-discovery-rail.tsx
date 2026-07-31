@@ -1,7 +1,6 @@
 "use client";
 
 import PrefetchLink from "@/components/prefetch-link";
-import SectionLinkHeading from "@/components/section-link-heading";
 import { useSecondaryRailContent } from "@/components/secondary-rail-context";
 import { helpFooterLinks } from "@/lib/help";
 
@@ -26,17 +25,6 @@ export default function EditorialDiscoveryRail() {
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           {customRailContent}
         </div>
-
-        {!customRailContent ? (
-          <section className="space-y-1 px-1 pt-8" aria-label="Explore the Atlas">
-            <SectionLinkHeading href="/atlas" className="text-[12px]">
-              Atlas
-            </SectionLinkHeading>
-            <p className="text-pretty text-[11px] leading-[1.55] text-muted-foreground/64">
-              Browse by scene, mood, and era.
-            </p>
-          </section>
-        ) : null}
 
         <footer className="mt-4 px-1 pb-8 pt-1 text-[11px] leading-5 text-muted-foreground/52">
           <div className="flex flex-wrap gap-x-2 gap-y-0.5">

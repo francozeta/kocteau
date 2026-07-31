@@ -1,6 +1,5 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createMDX from "@next/mdx";
-import { withEve } from "eve/next";
 import path from "node:path";
 import type { NextConfig } from "next";
 
@@ -50,11 +49,8 @@ const nextConfig: NextConfig = {
 };
 
 const configWithMdx = withMDX(nextConfig);
-const configWithEve = withEve(configWithMdx, {
-  eveRoot: "../curation-agent",
-});
 
-export default withSentryConfig(configWithEve, {
+export default withSentryConfig(configWithMdx, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 

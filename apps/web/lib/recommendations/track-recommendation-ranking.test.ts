@@ -26,7 +26,12 @@ function candidate(
     href,
     reason: "Related lane, quieter profile.",
     source,
-    sourceLabel: source === "local-signal" ? "Kocteau signal" : "Nearby",
+    sourceLabel:
+      source === "local-signal"
+        ? "Kocteau signal"
+        : source === "deezer-deep-cut"
+          ? "Deep cut"
+          : "Nearby",
     score,
   };
 }
@@ -90,8 +95,29 @@ describe("track recommendation ranking", () => {
     });
 
     assert.deepEqual(
-      groups.flatMap((group) => group.recommendations.map((track) => track.provider_id)),
+      groups
+        .find((group) => group.id === "nearby")
+        ?.recommendations.map((track) => track.provider_id),
       ["same-1", "same-2", "other-1"],
+    );
+  });
+
+  it("keeps same-catalog deep cuts in their own route", () => {
+    const groups = selectTrackRecommendationGroups({
+      currentProviderId: "current",
+      relatedCandidates: [candidate("nearby", "deezer-related")],
+      localSignalCandidates: [],
+      deepCutCandidates: [candidate("album-cut", "deezer-deep-cut")],
+      perGroupLimit: 2,
+    });
+
+    assert.equal(
+      groups.find((group) => group.id === "deep-cut")?.recommendations[0]?.provider_id,
+      "album-cut",
+    );
+    assert.equal(
+      groups.find((group) => group.id === "nearby")?.recommendations[0]?.provider_id,
+      "nearby",
     );
   });
 });

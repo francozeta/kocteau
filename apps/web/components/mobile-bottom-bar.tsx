@@ -79,7 +79,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
     },
     {
       href: "/search",
-      label: "Discover",
+      label: "Search",
       icon: MagnifyingGlassIcon,
       active: (current) => current.startsWith("/search") || current.startsWith("/track"),
     },

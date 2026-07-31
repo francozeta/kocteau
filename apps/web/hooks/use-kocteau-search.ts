@@ -12,16 +12,18 @@ type UseKocteauSearchOptions = {
   query: string;
   type?: SearchScope;
   enabled?: boolean;
+  debounceMs?: number;
 };
 
 export function useKocteauSearch({
   query,
   type = "track",
   enabled = true,
+  debounceMs = 250,
 }: UseKocteauSearchOptions) {
   const trimmedQuery = query.trim();
   const deferredQuery = useDeferredValue(trimmedQuery);
-  const debouncedQuery = useDebouncedValue(deferredQuery, 250);
+  const debouncedQuery = useDebouncedValue(deferredQuery, debounceMs);
 
   return useQuery({
     ...kocteauTrackSearchQueryOptions(debouncedQuery, type),
