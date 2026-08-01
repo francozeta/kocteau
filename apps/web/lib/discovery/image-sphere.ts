@@ -5,17 +5,47 @@ const PLANE_SIZE = 50;
 const AUTO_ROT_Y = 0.0005;
 const AUTO_ROT_X = 0.0002;
 const DRAG_EASE = 0.2;
-const HOVER_SCALE = 1.2;
+const HOVER_SCALE = 1.14;
+const PRESS_SCALE = 1.1;
 const SCALE_EASE = 0.1;
 const OPACITY_EASE = 0.12;
 const INERTIA_DECAY = 0.94;
 const FLICK_SCALE = 0.9;
 const CLICK_SLOP = 6;
-const STALE_FADE_MS = 620;
-const HOME_EASE = 0.075;
+const STALE_FADE_MS = 420;
+const HOME_EASE = 0.105;
 const ANCHOR_WORLD_Z = 72;
 const ANCHOR_SCALE = 1.08;
+const DEPTH_SCALE_BACK = 0.68;
+const DEPTH_SCALE_FRONT = 1.1;
+const DEPTH_OPACITY_BACK = 0.46;
+const INTERACTION_RENDER_ORDER = 20_000;
+const ANCHOR_RENDER_ORDER = 10_000;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+function getFrameEase(baseEase: number, deltaSeconds: number) {
+  return 1 - Math.pow(1 - baseEase, deltaSeconds * 60);
+}
+
+function getDepthProgress(depth: number) {
+  return THREE.MathUtils.clamp((depth + RADIUS * 1.2) / (RADIUS * 2.4), 0, 1);
+}
+
+function getDepthScale(depth: number) {
+  return THREE.MathUtils.lerp(
+    DEPTH_SCALE_BACK,
+    DEPTH_SCALE_FRONT,
+    getDepthProgress(depth),
+  );
+}
+
+function getDepthOpacity(depth: number) {
+  return THREE.MathUtils.lerp(
+    DEPTH_OPACITY_BACK,
+    1,
+    getDepthProgress(depth),
+  );
+}
 
 function hashFraction(value: string) {
   let hash = 2166136261;
@@ -82,6 +112,7 @@ export interface ImageSphereOptions {
   distance?: number;
   fov?: number;
   autoRotate?: boolean;
+  reducedMotion?: boolean;
   anchorIndex?: number;
   onReady?: () => void;
   onHoverChange?: (
@@ -104,6 +135,7 @@ export class ImageSphere {
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2(-2, -2);
   private hovered: PlaneMesh | null = null;
+  private pressed: PlaneMesh | null = null;
   private rotationX = 0;
   private rotationY = 0;
   private currentRotationX = 0;
@@ -122,13 +154,16 @@ export class ImageSphere {
   private centerPos = new THREE.Vector3();
   private tmpPos = new THREE.Vector3();
   private raf = 0;
+  private lastFrameTime = 0;
   private running = false;
   private disposed = false;
+  private pointerCanHover = false;
   private imageGeneration = 0;
   private ro?: ResizeObserver;
   private cleanup: Array<() => void> = [];
   private removalTimers = new Set<ReturnType<typeof setTimeout>>();
   private autoRotate: boolean;
+  private reducedMotion: boolean;
   private anchorIndex?: number;
   private readyNotified = false;
   private onReady?: () => void;
@@ -143,6 +178,8 @@ export class ImageSphere {
   ) {
     this.host = host;
     this.autoRotate = options.autoRotate ?? true;
+    this.reducedMotion = options.reducedMotion ?? false;
+    this.pointerCanHover = window.matchMedia("(hover: hover)").matches;
     this.anchorIndex = options.anchorIndex;
     this.onReady = options.onReady;
     this.onHoverChange = options.onHoverChange;
@@ -197,8 +234,14 @@ export class ImageSphere {
     if (this.hovered) {
       this.hovered.userData.isHovered = false;
       this.hovered = null;
-      this.onHoverChange?.(null);
     }
+
+    if (this.pressed) {
+      this.pressed.userData.isPressed = false;
+      this.pressed = null;
+    }
+
+    this.onHoverChange?.(null);
 
     for (const plane of this.planes) {
       const imageUrl = plane.userData.imageUrl as string | undefined;
@@ -247,10 +290,14 @@ export class ImageSphere {
 
       plane.userData.stale = true;
       plane.userData.isHovered = false;
+      plane.userData.isPressed = false;
 
       if (plane === this.hovered) {
         this.hovered = null;
-        this.onHoverChange?.(null);
+      }
+
+      if (plane === this.pressed) {
+        this.pressed = null;
       }
 
       const removalTimer = setTimeout(() => {
@@ -300,11 +347,13 @@ export class ImageSphere {
           transparent: true,
         });
 
+        material.depthTest = true;
         material.depthWrite = false;
         const plane = new THREE.Mesh(geometry, material) as PlaneMesh;
         plane.userData = {
           index,
           isHovered: false,
+          isPressed: false,
           opacity: 0,
           aspect,
           imageUrl: url,
@@ -337,6 +386,16 @@ export class ImageSphere {
   }
 
   private removePlane(plane: PlaneMesh) {
+    const wasActive = plane === this.hovered || plane === this.pressed;
+
+    if (plane === this.hovered) {
+      this.hovered = null;
+    }
+
+    if (plane === this.pressed) {
+      this.pressed = null;
+    }
+
     const index = this.planes.indexOf(plane);
 
     if (index >= 0) {
@@ -347,6 +406,41 @@ export class ImageSphere {
     plane.geometry.dispose();
     plane.material.map?.dispose();
     plane.material.dispose();
+
+    if (wasActive) {
+      this.notifyActiveChange();
+    }
+  }
+
+  private getActivePlane() {
+    return this.pressed ?? this.hovered;
+  }
+
+  private notifyActiveChange() {
+    const active = this.getActivePlane();
+
+    this.onHoverChange?.(
+      active ? (active.userData.index as number) : null,
+      active ? this.getHoverPosition(active) : undefined,
+    );
+  }
+
+  private setPressed(next: PlaneMesh | null) {
+    if (next === this.pressed) {
+      return;
+    }
+
+    if (this.pressed) {
+      this.pressed.userData.isPressed = false;
+    }
+
+    this.pressed = next;
+
+    if (this.pressed) {
+      this.pressed.userData.isPressed = true;
+    }
+
+    this.notifyActiveChange();
   }
 
   private bindEvents() {
@@ -360,6 +454,7 @@ export class ImageSphere {
     let downX = 0;
     let downY = 0;
     const onDown = (event: PointerEvent) => {
+      localMouse(event.clientX, event.clientY);
       this.dragging = true;
       this.startX = event.clientX;
       this.startY = event.clientY;
@@ -369,6 +464,7 @@ export class ImageSphere {
       this.velY = 0;
       this.lastDX = 0;
       this.lastDY = 0;
+      this.setPressed(this.pick());
       this.renderer.domElement.style.cursor = "grabbing";
       this.renderer.domElement.setPointerCapture(event.pointerId);
     };
@@ -377,6 +473,10 @@ export class ImageSphere {
 
       if (!this.dragging) {
         return;
+      }
+
+      if (Math.hypot(event.clientX - downX, event.clientY - downY) > CLICK_SLOP) {
+        this.setPressed(null);
       }
 
       const deltaX = event.clientX - this.startX;
@@ -396,20 +496,29 @@ export class ImageSphere {
       this.dragging = false;
       this.velY = this.lastDX * FLICK_SCALE;
       this.velX = -this.lastDY * FLICK_SCALE;
+
+      if (this.reducedMotion) {
+        this.velX = 0;
+        this.velY = 0;
+      }
+
       this.renderer.domElement.style.cursor = "grab";
     };
     const onUp = (event: PointerEvent) => {
       const moved = Math.hypot(event.clientX - downX, event.clientY - downY);
+      const pressed = this.pressed;
       release();
 
       if (moved > CLICK_SLOP || !this.running) {
+        this.setPressed(null);
         return;
       }
 
       this.velX = 0;
       this.velY = 0;
       localMouse(event.clientX, event.clientY);
-      const hit = this.pick();
+      const hit = pressed ?? this.pick();
+      this.setPressed(null);
 
       if (hit) {
         this.onSelect?.(hit.userData.index as number);
@@ -417,16 +526,24 @@ export class ImageSphere {
     };
     const onLeave = () => {
       release();
+      this.setPressed(null);
+      this.mouse.set(-2, -2);
+    };
+    const onCancel = () => {
+      release();
+      this.setPressed(null);
       this.mouse.set(-2, -2);
     };
     host.addEventListener("pointerdown", onDown);
     host.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
     host.addEventListener("pointerleave", onLeave);
     this.cleanup.push(() => {
       host.removeEventListener("pointerdown", onDown);
       host.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
       host.removeEventListener("pointerleave", onLeave);
     });
 
@@ -483,6 +600,10 @@ export class ImageSphere {
   }
 
   private hoverDetection() {
+    if (!this.pointerCanHover) {
+      return;
+    }
+
     const next = this.pick();
 
     if (next === this.hovered) {
@@ -499,10 +620,7 @@ export class ImageSphere {
       this.hovered.userData.isHovered = true;
     }
 
-    this.onHoverChange?.(
-      this.hovered ? (this.hovered.userData.index as number) : null,
-      this.hovered ? this.getHoverPosition(this.hovered) : undefined,
-    );
+    this.notifyActiveChange();
   }
 
   start() {
@@ -511,6 +629,7 @@ export class ImageSphere {
     }
 
     this.running = true;
+    this.lastFrameTime = 0;
     this.raf = requestAnimationFrame(this.loop);
   }
 
@@ -522,32 +641,48 @@ export class ImageSphere {
     }
 
     this.raf = 0;
+    this.lastFrameTime = 0;
   }
 
-  private loop = () => {
+  private loop = (timestamp: number) => {
     if (!this.running) {
       return;
     }
 
+    const deltaSeconds = this.lastFrameTime
+      ? Math.min((timestamp - this.lastFrameTime) / 1000, 0.05)
+      : 1 / 60;
+    this.lastFrameTime = timestamp;
+    const dragEase = this.reducedMotion
+      ? 1
+      : getFrameEase(DRAG_EASE, deltaSeconds);
+    const homeEase = this.reducedMotion
+      ? 1
+      : getFrameEase(HOME_EASE, deltaSeconds);
+    const scaleEase = this.reducedMotion
+      ? 1
+      : getFrameEase(SCALE_EASE, deltaSeconds);
+
     if (!this.dragging && (this.velX !== 0 || this.velY !== 0)) {
       this.rotationY += this.velY;
       this.rotationX -= this.velX;
-      this.velX *= INERTIA_DECAY;
-      this.velY *= INERTIA_DECAY;
+      const inertiaDecay = Math.pow(INERTIA_DECAY, deltaSeconds * 60);
+      this.velX *= inertiaDecay;
+      this.velY *= inertiaDecay;
 
       if (Math.abs(this.velX) < 0.01) this.velX = 0;
       if (Math.abs(this.velY) < 0.01) this.velY = 0;
     }
 
-    if (this.autoRotate && !this.dragging && !this.hovered) {
-      this.baseRotationY += AUTO_ROT_Y;
-      this.baseRotationX += AUTO_ROT_X;
+    if (this.autoRotate && !this.dragging && !this.getActivePlane()) {
+      this.baseRotationY += AUTO_ROT_Y * deltaSeconds * 60;
+      this.baseRotationX += AUTO_ROT_X * deltaSeconds * 60;
     }
 
     this.currentRotationX +=
-      (this.rotationX - this.currentRotationX) * DRAG_EASE;
+      (this.rotationX - this.currentRotationX) * dragEase;
     this.currentRotationY +=
-      (this.rotationY - this.currentRotationY) * DRAG_EASE;
+      (this.rotationY - this.currentRotationY) * dragEase;
     this.group.rotation.x = this.baseRotationX + this.currentRotationX * 0.002;
     this.group.rotation.y = this.baseRotationY + this.currentRotationY * 0.002;
 
@@ -566,9 +701,9 @@ export class ImageSphere {
         this.centerPos.set(0, 0, ANCHOR_WORLD_Z);
         this.tmpPos.copy(this.centerPos);
         this.group.worldToLocal(this.tmpPos);
-        home.lerp(this.tmpPos, HOME_EASE);
+        home.lerp(this.tmpPos, homeEase);
       } else if (homeTarget) {
-        home.lerp(homeTarget, HOME_EASE);
+        home.lerp(homeTarget, homeEase);
       }
 
       plane.quaternion.copy(this.invQuat);
@@ -582,31 +717,55 @@ export class ImageSphere {
 
       plane.getWorldPosition(this.worldPos);
       const depth = this.worldPos.z;
-      const depthScale = 0.8 + depth / 2000;
-      let targetScale = plane.userData.isHovered
-        ? depthScale * HOVER_SCALE
-        : depthScale;
+      const depthScale = getDepthScale(depth);
+      const isHovered = plane.userData.isHovered === true;
+      const isPressed = plane.userData.isPressed === true;
+      let targetScale = depthScale;
+
+      if (isHovered) {
+        targetScale *= HOVER_SCALE;
+      }
+
+      if (isPressed) {
+        targetScale *= PRESS_SCALE;
+      }
 
       if (isAnchor) {
         targetScale *= ANCHOR_SCALE;
       }
 
-      const scale = plane.scale.x + (targetScale - plane.scale.x) * SCALE_EASE;
+      const scale = plane.scale.x + (targetScale - plane.scale.x) * scaleEase;
       plane.scale.set(scale, scale, scale);
 
-      const targetOpacity = plane.userData.stale ? 0 : 1;
+      const targetOpacity = plane.userData.stale
+        ? 0
+        : isAnchor || isHovered || isPressed
+          ? 1
+          : getDepthOpacity(depth);
 
-      const opacityEase = plane.userData.stale ? 0.065 : OPACITY_EASE;
+      const opacityEase = this.reducedMotion
+        ? 1
+        : getFrameEase(
+            plane.userData.stale ? 0.085 : OPACITY_EASE,
+            deltaSeconds,
+          );
       const opacity =
         plane.userData.opacity +
         (targetOpacity - plane.userData.opacity) * opacityEase;
       plane.userData.opacity = opacity;
       plane.material.opacity = opacity;
-      plane.renderOrder = isAnchor ? 1 : 0;
+      plane.renderOrder =
+        isHovered || isPressed
+          ? INTERACTION_RENDER_ORDER
+          : isAnchor
+            ? ANCHOR_RENDER_ORDER
+            : Math.round((depth + RADIUS * 1.5) * 10);
     }
 
-    if (this.hovered && !this.hovered.userData.stale) {
-      this.onHoverMove?.(this.getHoverPosition(this.hovered));
+    const active = this.getActivePlane();
+
+    if (active && !active.userData.stale) {
+      this.onHoverMove?.(this.getHoverPosition(active));
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -626,14 +785,20 @@ export class ImageSphere {
 
       plane.quaternion.copy(this.invQuat);
       plane.getWorldPosition(this.worldPos);
-      const depthScale = 0.8 + this.worldPos.z / 2000;
+      const depth = this.worldPos.z;
+      const depthScale = getDepthScale(depth);
+      const isAnchor = plane.userData.isAnchor === true;
       const scale =
-        plane.userData.isAnchor === true
+        isAnchor
           ? depthScale * ANCHOR_SCALE
           : depthScale;
       plane.scale.set(scale, scale, scale);
-      plane.userData.opacity = 1;
-      plane.material.opacity = 1;
+      const opacity = isAnchor ? 1 : getDepthOpacity(depth);
+      plane.userData.opacity = opacity;
+      plane.material.opacity = opacity;
+      plane.renderOrder = isAnchor
+        ? ANCHOR_RENDER_ORDER
+        : Math.round((depth + RADIUS * 1.5) * 10);
     }
 
     this.renderer.render(this.scene, this.camera);

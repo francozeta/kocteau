@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import DiscoveryOrbit, {
   type DiscoveryOrbitItem,
 } from "@/components/discovery-orbit";
+import DiscoverySeedActions from "@/components/discovery-seed-actions";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { Input } from "@/components/ui/input";
 import { Search } from "@/components/ui/icons";
@@ -443,7 +444,7 @@ export default function DiscoveryMap({
 
   return (
     <section
-      className="relative h-[calc(100svh-10.5rem)] min-h-[32rem] overflow-hidden bg-transparent lg:h-full lg:min-h-[32rem]"
+      className="relative h-[calc(100svh-10.5rem)] min-h-0 overflow-hidden bg-transparent lg:h-full"
       aria-labelledby="discovery-map-title"
       data-kocteau-full-width
     >
@@ -458,7 +459,7 @@ export default function DiscoveryMap({
 
       <form
         className={cn(
-          "absolute inset-x-0 z-40 mx-auto flex w-full max-w-2xl items-start px-4 transition-[top,transform] duration-300 ease-[var(--kocteau-ease)] sm:px-6 lg:px-0",
+          "absolute inset-x-0 z-40 mx-auto flex w-full max-w-2xl items-start px-4 transition-[top,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:px-6 lg:px-0",
           hasExplorationIntent
             ? "top-4 sm:top-5 lg:top-6"
             : "top-1/2 -translate-y-1/2",
@@ -565,8 +566,15 @@ export default function DiscoveryMap({
         ) : null}
       </div>
 
+      <DiscoverySeedActions seed={selectedSeed} />
+
       {hasMapError ? (
-        <div className="absolute inset-x-0 bottom-5 z-30 flex justify-center px-4">
+        <div
+          className={cn(
+            "absolute inset-x-0 z-30 flex justify-center px-4",
+            selectedSeed ? "bottom-20 sm:bottom-24" : "bottom-5",
+          )}
+        >
           <button
             type="button"
             onClick={() => {
