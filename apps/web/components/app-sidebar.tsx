@@ -168,16 +168,10 @@ export default function AppSidebar({
       isActive: profile ? pathname === "/feed" : pathname === "/",
     },
     {
-      title: "Discover",
+      title: "Search",
       url: "/search",
       icon: MagnifyingGlassIcon,
       isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
-    },
-    {
-      title: "Atlas",
-      url: "/atlas",
-      icon: KocteauStarterIcon,
-      isActive: pathname.startsWith("/atlas"),
     },
   ];
 

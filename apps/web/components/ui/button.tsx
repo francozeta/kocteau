@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-white bg-primary text-primary-foreground hover:bg-primary/94",
+        default: "kocteau-glossy-button",
         outline:
           "border-border bg-transparent text-foreground hover:border-white/16 hover:bg-accent hover:text-foreground aria-expanded:border-white/16 aria-expanded:bg-accent aria-expanded:text-foreground",
         secondary:

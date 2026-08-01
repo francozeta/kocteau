@@ -2,6 +2,7 @@ import PrefetchLink from "@/components/prefetch-link";
 import SectionLinkHeading from "@/components/section-link-heading";
 import TrackCarousel from "@/components/track-carousel";
 import TrackTile from "@/components/track-tile";
+import { getDiscoverySeedPath } from "@/lib/discovery/seed";
 import type { StarterTrack } from "@/lib/starter";
 
 type FeedInRotationShelfProps = {
@@ -9,7 +10,11 @@ type FeedInRotationShelfProps = {
 };
 
 function getStarterTrackHref(track: StarterTrack) {
-  return `/track/deezer/${encodeURIComponent(track.provider_id)}`;
+  return getDiscoverySeedPath({
+    provider_id: track.provider_id,
+    title: track.title,
+    type: "track",
+  });
 }
 
 export default function FeedInRotationShelf({
@@ -24,14 +29,14 @@ export default function FeedInRotationShelf({
   return (
     <section
       className="hidden space-y-3.5 lg:block"
-      aria-labelledby="feed-in-rotation-title"
+      aria-labelledby="feed-discovery-seeds-title"
     >
-      <SectionLinkHeading id="feed-in-rotation-title" href="/search">
-        In rotation
+      <SectionLinkHeading id="feed-discovery-seeds-title" href="/search">
+        Start a route
       </SectionLinkHeading>
 
       <TrackCarousel
-        ariaLabel="Tracks in rotation"
+        ariaLabel="Discovery starting points"
         compactControls
         contentClassName="gap-3"
         controlClassName="[--kocteau-carousel-cover-size:8.25rem]"
@@ -44,7 +49,7 @@ export default function FeedInRotationShelf({
             key={track.id}
             href={getStarterTrackHref(track)}
             className="group block rounded-[0.78rem] outline-none transition-opacity duration-150 hover:opacity-85 focus-visible:ring-2 focus-visible:ring-ring/55"
-            aria-label={`Open ${track.title} by ${track.artist_name ?? "Unknown artist"}`}
+            aria-label={`Start a discovery route from ${track.title} by ${track.artist_name ?? "Unknown artist"}`}
           >
             <TrackTile
               title={track.title}

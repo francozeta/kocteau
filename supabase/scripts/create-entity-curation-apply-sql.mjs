@@ -34,7 +34,7 @@ try {
   console.error(`Could not read ${path.relative(repoRoot, inputPath)}.`);
   console.error("This is expected right after running `pnpm curate:entity:draft`.");
   console.error(
-    "Fill tmp/entity-curation/draft-output-template.json with Eve's reviewed JSON, then save it as tmp/entity-curation/draft-output.json."
+    "Fill tmp/entity-curation/draft-output-template.json with reviewed JSON, then save it as tmp/entity-curation/draft-output.json."
   );
   console.error("Keep humanReviewed=true and reviewedBy set before generating SQL.");
   console.error(error instanceof Error ? error.message : String(error));

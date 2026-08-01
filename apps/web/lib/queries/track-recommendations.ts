@@ -10,7 +10,10 @@ import {
   type DeezerTrackResult,
 } from "@/lib/deezer";
 import { measureServerTask } from "@/lib/perf";
-import type { EntityTasteTag } from "@/lib/queries/entities";
+import {
+  getEntityTasteTags,
+  type EntityTasteTag,
+} from "@/lib/queries/entities";
 import {
   getTrackRecommendationQueryLabel,
   selectTrackRecommendationGroups,
@@ -58,9 +61,59 @@ type TrackRecommendationOptions = {
   artistName?: string | null;
   tags?: EntityTasteTag[];
   limit?: number;
+  includeLocalSignals?: boolean;
+  resolveLocalLinks?: boolean;
+  includeDeepCuts?: boolean;
+  resolveCatalogContext?: boolean;
 };
 
 const defaultRecommendationLimit = 18;
+
+async function resolveSignalContext({
+  currentEntityId,
+  currentProviderId,
+  tags,
+}: {
+  currentEntityId?: string | null;
+  currentProviderId: string;
+  tags: EntityTasteTag[];
+}) {
+  if (currentEntityId && tags.length > 0) {
+    return { entityId: currentEntityId, tags };
+  }
+
+  let entityId = currentEntityId ?? null;
+
+  if (!entityId) {
+    const supabase = supabasePublic();
+    const { data, error } = await supabase
+      .from("entities")
+      .select("id")
+      .eq("provider", "deezer")
+      .eq("type", "track")
+      .eq("provider_id", currentProviderId)
+      .maybeSingle<{ id: string }>();
+
+    if (error) {
+      console.warn("[track-recommendations.resolveSignalContext] lookup failed", {
+        code: error.code ?? null,
+        message: error.message ?? null,
+        currentProviderId,
+      });
+    }
+
+    entityId = data?.id ?? null;
+  }
+
+  if (!entityId || tags.length > 0) {
+    return { entityId, tags };
+  }
+
+  return {
+    entityId,
+    tags: await getEntityTasteTags(entityId),
+  };
+}
 
 function getContextArtistFromTrack(
   track: DeezerTrackResult | null,
@@ -127,10 +180,10 @@ function getDeezerCandidateReason(track: DeezerTrackResult) {
   const fanCount = getNumber(track.artist_fan_count);
 
   if (fanCount !== null && fanCount <= 250_000) {
-    return "Nearby track with a quieter artist profile.";
+    return "A smaller artist in the same catalog neighborhood.";
   }
 
-  return "Nearby track outside the obvious lane.";
+  return "Connected through the same artist orbit.";
 }
 
 function mapDeezerRelatedCandidate(track: DeezerTrackResult): TrackRecommendationCandidate {
@@ -148,6 +201,32 @@ function mapDeezerRelatedCandidate(track: DeezerTrackResult): TrackRecommendatio
     source: "deezer-related",
     sourceLabel: "Nearby",
     score: getDeezerCandidateScore(track),
+    catalogRank: track.rank,
+    artistFanCount: track.artist_fan_count,
+  };
+}
+
+function mapDeezerDeepCutCandidate(
+  track: DeezerTrackResult,
+  seedLabel: string,
+  position: number,
+): TrackRecommendationCandidate {
+  return {
+    id: `deezer-deep-cut:${track.provider_id}`,
+    provider: "deezer",
+    provider_id: track.provider_id,
+    type: "track",
+    title: track.title,
+    artist_name: track.artist_name,
+    cover_url: track.cover_url,
+    deezer_url: track.deezer_url,
+    href: `/track/deezer/${track.provider_id}`,
+    reason: `Past the usual entry points in ${seedLabel}'s catalog.`,
+    source: "deezer-deep-cut",
+    sourceLabel: "Deep cut",
+    score: 72 - Math.min(position, 24),
+    catalogRank: track.rank,
+    artistFanCount: track.artist_fan_count,
   };
 }
 
@@ -262,6 +341,8 @@ async function getLocalSignalCandidates({
       source: "local-signal",
       sourceLabel: "Kocteau signal",
       score,
+      catalogRank: null,
+      artistFanCount: null,
     }));
 }
 
@@ -295,6 +376,40 @@ async function getDeezerCandidateRecommendations({
     })
     .map(mapDeezerRelatedCandidate)
     .sort((left, right) => right.score - left.score)
+    .slice(0, Math.max(limit * 2, 12));
+}
+
+async function getDeezerDeepCutRecommendations({
+  currentProviderId,
+  query,
+  limit,
+  contextArtist,
+}: {
+  currentProviderId: string;
+  query: string;
+  limit: number;
+  contextArtist: DeezerCandidateContextArtist | null;
+}) {
+  const sourceTracks = await getCandidateSourceTracks({
+    mode: "deep-cut",
+    query,
+    limit: Math.max(limit * 3, 18),
+    contextArtist,
+  });
+  const seenProviderIds = new Set([currentProviderId]);
+
+  return sourceTracks.tracks
+    .filter((track) => {
+      if (seenProviderIds.has(track.provider_id)) {
+        return false;
+      }
+
+      seenProviderIds.add(track.provider_id);
+      return true;
+    })
+    .map((track, position) =>
+      mapDeezerDeepCutCandidate(track, sourceTracks.seedLabel, position),
+    )
     .slice(0, Math.max(limit * 2, 12));
 }
 
@@ -356,53 +471,90 @@ export async function getTrackRecommendations({
   artistName,
   tags = [],
   limit = defaultRecommendationLimit,
+  includeLocalSignals = true,
+  resolveLocalLinks = true,
+  includeDeepCuts = true,
+  resolveCatalogContext = true,
 }: TrackRecommendationOptions) {
   return measureServerTask(
     "getTrackRecommendations",
     async () => {
       const requestedLimit = Math.max(1, Math.min(limit, 24));
+      const signalContext = includeLocalSignals
+        ? await resolveSignalContext({
+            currentEntityId,
+            currentProviderId,
+            tags,
+          })
+        : { entityId: currentEntityId ?? null, tags: [] };
       const [catalogTrack, localSignalCandidates] = await Promise.all([
-        getDeezerTrack(currentProviderId).catch(() => null),
-        getLocalSignalCandidates({
-          currentEntityId,
-          currentProviderId,
-          tags,
-          limit: requestedLimit,
-        }),
+        resolveCatalogContext
+          ? getDeezerTrack(currentProviderId).catch(() => null)
+          : Promise.resolve(null),
+        includeLocalSignals
+          ? getLocalSignalCandidates({
+              currentEntityId: signalContext.entityId,
+              currentProviderId,
+              tags: signalContext.tags,
+              limit: requestedLimit,
+            })
+          : Promise.resolve([]),
       ]);
       const contextArtist = getContextArtistFromTrack(catalogTrack);
       const queryLabel = getTrackRecommendationQueryLabel({
         title,
         artistName: contextArtist?.name ?? artistName,
       });
-      const relatedCandidates = await getDeezerCandidateRecommendations({
-        currentProviderId,
-        query: queryLabel,
-        limit: requestedLimit,
-        contextArtist,
-      }).catch((error) => {
-        console.warn("[track-recommendations.deezer] skipped related candidates", {
+      const [relatedCandidates, deepCutCandidates] = await Promise.all([
+        getDeezerCandidateRecommendations({
           currentProviderId,
-          ...getDeezerErrorDetails(error),
-        });
+          query: queryLabel,
+          limit: requestedLimit,
+          contextArtist,
+        }).catch((error) => {
+          console.warn("[track-recommendations.deezer] skipped related candidates", {
+            currentProviderId,
+            ...getDeezerErrorDetails(error),
+          });
 
-        return [];
-      });
+          return [];
+        }),
+        includeDeepCuts
+          ? getDeezerDeepCutRecommendations({
+              currentProviderId,
+              query: queryLabel,
+              limit: requestedLimit,
+              contextArtist,
+            }).catch((error) => {
+              console.warn("[track-recommendations.deezer] skipped deep-cut candidates", {
+                currentProviderId,
+                ...getDeezerErrorDetails(error),
+              });
+
+              return [];
+            })
+          : Promise.resolve([]),
+      ]);
 
       const groups = selectTrackRecommendationGroups({
         currentProviderId,
         relatedCandidates,
         localSignalCandidates,
-        perGroupLimit: requestedLimit,
+        deepCutCandidates,
+        perGroupLimit: Math.max(2, Math.min(4, Math.ceil(requestedLimit / 4))),
       });
 
-      return resolveRecommendationLinks(groups);
+      return resolveLocalLinks ? resolveRecommendationLinks(groups) : groups;
     },
     {
       currentEntityId,
       currentProviderId,
       tagCount: tags.length,
       limit,
+      includeLocalSignals,
+      resolveLocalLinks,
+      includeDeepCuts,
+      resolveCatalogContext,
     },
   );
 }

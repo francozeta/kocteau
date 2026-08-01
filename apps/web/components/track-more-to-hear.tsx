@@ -1,5 +1,5 @@
-import TrackCarousel from "@/components/track-carousel";
-import TrackTile from "@/components/track-tile";
+import EntityCoverImage from "@/components/entity-cover-image";
+import PrefetchLink from "@/components/prefetch-link";
 import type {
   TrackRecommendation,
   TrackRecommendationGroup,
@@ -11,20 +11,37 @@ type TrackMoreToHearProps = {
   className?: string;
 };
 
-function RecommendationTile({ recommendation }: { recommendation: TrackRecommendation }) {
+function RecommendationRow({
+  recommendation,
+}: {
+  recommendation: TrackRecommendation;
+}) {
   return (
-    <div className="min-w-0">
-      <TrackTile
-        href={recommendation.href}
-        title={recommendation.title}
-        artistName={recommendation.artist_name}
-        coverUrl={recommendation.cover_url}
-        sizes="(max-width: 640px) 38vw, (max-width: 1024px) 132px, 144px"
-        coverClassName="rounded-[0.7rem]"
-        titleClassName="text-[12px] leading-4 sm:text-[13px]"
-        artistClassName="text-[11px] leading-4"
+    <PrefetchLink
+      href={recommendation.href}
+      className="group grid min-w-0 grid-cols-[3rem_minmax(0,1fr)] items-center gap-3 rounded-[0.7rem] p-1.5 outline-none transition-colors duration-150 hover:bg-foreground/[0.035] focus-visible:ring-2 focus-visible:ring-ring/40"
+    >
+      <EntityCoverImage
+        src={recommendation.cover_url}
+        alt=""
+        sizes="48px"
+        quality={74}
+        variant="thumbnail"
+        className="size-12 rounded-[0.55rem] bg-muted/30 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]"
+        iconClassName="size-4"
       />
-    </div>
+      <span className="min-w-0">
+        <span className="block truncate text-[12px] font-medium text-foreground/88 group-hover:text-foreground">
+          {recommendation.title}
+        </span>
+        <span className="block truncate text-[11px] text-muted-foreground/58">
+          {recommendation.artist_name || "Unknown artist"}
+        </span>
+        <span className="mt-0.5 block line-clamp-1 text-[10px] text-muted-foreground/42">
+          {recommendation.reason}
+        </span>
+      </span>
+    </PrefetchLink>
   );
 }
 
@@ -32,40 +49,54 @@ export default function TrackMoreToHear({
   groups,
   className,
 }: TrackMoreToHearProps) {
-  const recommendations = groups.flatMap((group) => group.recommendations);
-
-  if (recommendations.length === 0) {
+  if (groups.length === 0) {
     return null;
   }
 
   return (
     <section
       className={cn(
-        "space-y-4 border-b border-border/24 pb-4 md:pb-5",
+        "space-y-4 border-b border-border/24 pb-5",
         className,
       )}
-      aria-label="More to hear"
+      aria-labelledby="track-routes-title"
     >
       <div className="px-0.5">
-        <p className="text-[12px] font-medium leading-none text-muted-foreground/72">
-          More like this
-        </p>
+        <p className="text-[10px] font-medium text-muted-foreground/48">Music map</p>
+        <h2
+          id="track-routes-title"
+          className="mt-1 font-pixel text-[1rem] font-medium text-foreground"
+        >
+          Where to next
+        </h2>
       </div>
 
-      <TrackCarousel
-        ariaLabel="More like this"
-        compactControls
-        contentClassName="gap-3.5"
-        controlClassName="left-2 right-2 [--kocteau-carousel-cover-size:8.05rem] lg:[--kocteau-carousel-cover-size:8.25rem]"
-        itemClassName="basis-[8.05rem] sm:basis-[8.35rem] lg:basis-[8.25rem]"
-      >
-        {recommendations.map((recommendation) => (
-          <RecommendationTile
-            key={`${recommendation.provider}:${recommendation.provider_id}`}
-            recommendation={recommendation}
-          />
+      <div className="grid gap-x-6 sm:grid-cols-2">
+        {groups.map((group) => (
+          <section
+            key={group.id}
+            className="border-t border-border/14 py-3"
+            aria-label={group.label}
+          >
+            <div className="px-1.5 pb-2">
+              <h3 className="text-[11px] font-medium text-foreground/82">
+                {group.label}
+              </h3>
+              <p className="mt-0.5 text-pretty text-[10px] leading-4 text-muted-foreground/48">
+                {group.description}
+              </p>
+            </div>
+            <div className="grid gap-0.5">
+              {group.recommendations.slice(0, 3).map((recommendation) => (
+                <RecommendationRow
+                  key={`${recommendation.provider}:${recommendation.provider_id}`}
+                  recommendation={recommendation}
+                />
+              ))}
+            </div>
+          </section>
         ))}
-      </TrackCarousel>
+      </div>
     </section>
   );
 }

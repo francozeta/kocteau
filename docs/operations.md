@@ -185,7 +185,7 @@ After reviewing and filling `tmp/starter-curation/draft-output.json`, set `human
 
 This workflow is maintainer-only tooling. Outputs in `tmp/` must stay out of Git, and `--allow-unreviewed` is only for local fixture tests. Do not run generated SQL against Supabase Cloud unless the draft has been human-reviewed.
 
-For local-only Eve-assisted entity tagging, use `supabase/scripts/maintenance/entity-curation-draft-export.sql`, copy the JSON cell into `tmp/entity-curation-export.json`, then run `pnpm curate:entity:draft`. The versioned Eve copilot in `apps/curation-agent` can fill the draft with `pnpm curate:entity:ai`, or you can run it interactively with `pnpm eve:curation:info` followed by `cd apps/curation-agent && pnpm dev`. The maintainer must review the output, set `humanReviewed` to `true`, and run `pnpm curate:entity:sql` before applying the generated SQL in Supabase. This flow inserts only non-genre tags into `entity_preference_tags`, preserves existing manual tags, and keeps genre candidates in a separate review file. See [Eve curation copilot](./maintainers/eve-curation-copilot.md).
+For local entity tagging, use `supabase/scripts/maintenance/entity-curation-draft-export.sql`, copy the JSON cell into `tmp/entity-curation-export.json`, then run `pnpm curate:entity:draft`. Fill the generated draft manually, set `humanReviewed` to `true`, and run `pnpm curate:entity:sql` before applying the generated SQL in Supabase. This flow inserts only non-genre tags into `entity_preference_tags`, preserves existing manual tags, and keeps genre candidates in a separate review file.
 
 The easiest way to seed starter picks is the internal route:
 
