@@ -5,6 +5,25 @@ import { useEffect } from "react";
 export const OPEN_NEW_REVIEW_SHORTCUT_EVENT = "kocteau:new-review-open";
 export const OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT = "kocteau:search-launcher-open";
 
+export type ReviewComposerSelection = {
+  provider: "deezer";
+  provider_id: string;
+  type: "track";
+  title: string;
+  artist_name: string | null;
+  cover_url: string | null;
+  deezer_url: string | null;
+  entity_id?: string | null;
+};
+
+export function openTrackReviewComposer(selection: ReviewComposerSelection) {
+  window.dispatchEvent(
+    new CustomEvent<ReviewComposerSelection>(OPEN_NEW_REVIEW_SHORTCUT_EVENT, {
+      detail: selection,
+    }),
+  );
+}
+
 function shouldIgnoreGlobalShortcut(event: KeyboardEvent) {
   if (event.defaultPrevented || event.repeat) {
     return true;

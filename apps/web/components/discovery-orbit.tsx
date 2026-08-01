@@ -67,6 +67,10 @@ export default function DiscoveryOrbit({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const sphereRef = useRef<ImageSphere | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const sphereItems = useMemo(() => {
     const combined: SphereDisplayItem[] = [
       ...(seed?.coverUrl
@@ -161,9 +165,11 @@ export default function DiscoveryOrbit({
         distance: compactViewport ? 590 : 545,
         fov: compactViewport ? 29 : 25,
         autoRotate: !reducedMotion.matches,
+        reducedMotion: reducedMotion.matches,
         anchorIndex: centerSeedRef.current && seedRef.current ? 0 : undefined,
-        onHoverChange: (index) => {
+        onHoverChange: (index, position) => {
           setHoveredIndex(index);
+          setHoverPosition(position ?? null);
         },
         onHoverMove: (position) => {
           if (tooltipRef.current) {
@@ -213,7 +219,7 @@ export default function DiscoveryOrbit({
     <div className="relative h-full min-h-0 overflow-hidden">
       <div
         ref={hostRef}
-        className="relative h-full min-h-[24rem] overflow-hidden bg-transparent sm:min-h-[30rem]"
+        className="relative h-full min-h-0 overflow-hidden bg-transparent"
         aria-label="A draggable 3D sphere of music covers"
       >
         <div className="sr-only">
@@ -227,7 +233,14 @@ export default function DiscoveryOrbit({
         {hoveredItem ? (
           <div
             ref={tooltipRef}
-            className="pointer-events-none absolute left-0 top-0 z-20 max-w-44 rounded-[0.3rem] bg-black/72 px-2 py-1.5 text-center will-change-transform backdrop-blur-sm"
+            style={
+              hoverPosition
+                ? {
+                    transform: `translate3d(${hoverPosition.x}px, ${hoverPosition.y}px, 0) translateX(-50%)`,
+                  }
+                : undefined
+            }
+            className="pointer-events-none absolute left-0 top-0 z-30 max-w-44 rounded-[0.3rem] bg-black/78 px-2 py-1.5 text-center will-change-transform backdrop-blur-sm"
           >
             <p className="truncate font-pixel text-[10px] leading-tight text-foreground/90">
               {hoveredItem.title}

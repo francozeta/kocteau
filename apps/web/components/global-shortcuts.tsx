@@ -7,6 +7,7 @@ import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
 import {
   OPEN_NEW_REVIEW_SHORTCUT_EVENT,
   OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT,
+  type ReviewComposerSelection,
 } from "@/hooks/use-global-shortcuts";
 
 export default function GlobalShortcuts({
@@ -15,11 +16,16 @@ export default function GlobalShortcuts({
   isAuthenticated?: boolean;
 }) {
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewSelection, setReviewSelection] =
+    useState<ReviewComposerSelection | null>(null);
   const router = useRouter();
   useGlobalShortcuts();
 
   useEffect(() => {
-    function handleOpenReview() {
+    function handleOpenReview(event: Event) {
+      setReviewSelection(
+        event instanceof CustomEvent && event.detail ? event.detail : null,
+      );
       setReviewOpen(true);
     }
 
@@ -43,6 +49,7 @@ export default function GlobalShortcuts({
         open={reviewOpen}
         onOpenChange={setReviewOpen}
         showTrigger={false}
+        initialSelection={reviewSelection}
       />
     </>
   );
