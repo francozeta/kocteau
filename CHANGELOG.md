@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.10](https://github.com/francozeta/kocteau/compare/v0.3.9...v0.3.10) (2026-08-01)
+
+
+### Features
+
+* **search:** connect discovery to reviews ([b2a8e4b](https://github.com/francozeta/kocteau/commit/b2a8e4b9305e43437f31355496d0c8fc1c0e9b78))
+* **search:** connect discovery to reviews ([15043e6](https://github.com/francozeta/kocteau/commit/15043e67cbfc59708b1fb4e3a8880a34ab906842))
+* **search:** launch routed 3d discovery ([e516d77](https://github.com/francozeta/kocteau/commit/e516d777a8a76fd9a94c8ea08f8f0c2123faf43f))
+* **search:** launch routed 3D discovery ([d8ff296](https://github.com/francozeta/kocteau/commit/d8ff296bac5acc634dcfe6bd5cfccc69fd1322b5))
+* **web:** make search the discovery core ([e551430](https://github.com/francozeta/kocteau/commit/e5514300d74bd73498c8a75a86d06a252c88329d))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.9 ([#154](https://github.com/francozeta/kocteau/issues/154)) ([5a4b3ef](https://github.com/francozeta/kocteau/commit/5a4b3ef226027a443b0cd3694ab1afef70e3bf1f))
+
 ## [0.3.9](https://github.com/francozeta/kocteau/compare/v0.3.8...v0.3.9) (2026-07-28)
 
 
