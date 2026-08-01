@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import Kocteau030Changelog from "./kocteau-0-3-0.mdx";
+import Kocteau039Changelog from "./kocteau-0-3-9.mdx";
 import Kocteau038Changelog from "./kocteau-0-3-8.mdx";
 import Kocteau037Changelog from "./kocteau-0-3-7.mdx";
 import Kocteau036Changelog from "./kocteau-0-3-6.mdx";
@@ -91,6 +92,15 @@ export const publicChangelogEntries: PublicChangelogEntry[] = [
     summary:
       "A public draft from the latest release, focused on reviews and discovery.",
     Content: Kocteau038Changelog,
+  },
+  {
+    slug: "kocteau-0-3-9",
+    title: "A cleaner review loop",
+    date: "2026-07-28",
+    version: "0.3.9",
+    summary:
+      "A public draft from the latest release, focused on reviews and discovery.",
+    Content: Kocteau039Changelog,
   },
   // public-changelog-entry
   {
