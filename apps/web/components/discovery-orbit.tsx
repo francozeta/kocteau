@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ImageSphere } from "@/lib/discovery/image-sphere";
+import type { SearchEntityType } from "@/lib/search-types";
 
 export type DiscoveryOrbitItem = {
   id: string;
@@ -12,66 +12,110 @@ export type DiscoveryOrbitItem = {
   artistName: string | null;
   coverUrl: string | null;
   href: string;
+  type: SearchEntityType;
   routeLabel: string;
   reason: string;
   providerId: string;
   entityId: string | null;
+  artistProviderId: string | null;
+};
+
+type DiscoveryOrbitSeed = {
+  id: string;
+  title: string;
+  artistName: string | null;
+  coverUrl: string | null;
+  href: string;
+  type: SearchEntityType;
+};
+
+type SphereDisplayItem = {
+  id: string;
+  title: string;
+  artistName: string | null;
+  coverUrl: string;
+  href: string;
+  type: SearchEntityType;
+  routeLabel: string;
+  reason: string;
+  providerId?: string;
+  entityId?: string | null;
+  artistProviderId?: string | null;
 };
 
 type DiscoveryOrbitProps = {
-  seed: {
-    id: string;
-    title: string;
-    artistName: string | null;
-    coverUrl: string | null;
-    href: string;
-  };
+  seed?: DiscoveryOrbitSeed | null;
   items: DiscoveryOrbitItem[];
-  keepSeedFocused?: boolean;
+  centerSeed?: boolean;
   onSelect: (item: DiscoveryOrbitItem) => void;
 };
 
+function getArtistLabel(item: SphereDisplayItem) {
+  return item.type === "artist"
+    ? "Artist"
+    : item.artistName || "Unknown artist";
+}
+
 export default function DiscoveryOrbit({
-  seed,
+  seed = null,
   items,
-  keepSeedFocused = false,
+  centerSeed = false,
   onSelect,
 }: DiscoveryOrbitProps) {
   const isMobile = useIsMobile();
   const hostRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const sphereRef = useRef<ImageSphere | null>(null);
-  const [focusedCoverUrl, setFocusedCoverUrl] = useState<string | null>(null);
-  const sphereItems = useMemo(
-    () =>
-      [
-        {
-          ...seed,
-          routeLabel: "Seed",
-          reason: "The point you chose to begin from.",
-        },
-        ...items,
-      ]
-        .filter((item): item is typeof item & { coverUrl: string } =>
-          Boolean(item.coverUrl),
-        )
-        .slice(0, isMobile ? 11 : 16),
-    [isMobile, items, seed],
-  );
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const sphereItems = useMemo(() => {
+    const combined: SphereDisplayItem[] = [
+      ...(seed?.coverUrl
+        ? [
+            {
+              ...seed,
+              coverUrl: seed.coverUrl,
+              routeLabel: "Starting from",
+              reason:
+                "The point you chose. Every cover around it opens another route.",
+            },
+          ]
+        : []),
+      ...items.flatMap((item) =>
+        item.coverUrl ? [{ ...item, coverUrl: item.coverUrl }] : [],
+      ),
+    ];
+    const seenCovers = new Set<string>();
+
+    return combined
+      .filter((item) => {
+        const key = item.coverUrl.split("?")[0]?.toLowerCase();
+
+        if (!key || seenCovers.has(key)) {
+          return false;
+        }
+
+        seenCovers.add(key);
+        return true;
+      })
+      .slice(0, isMobile ? 14 : 24);
+  }, [isMobile, items, seed]);
   const imageUrls = useMemo(
     () => sphereItems.map((item) => item.coverUrl),
     [sphereItems],
   );
   const sphereItemsRef = useRef(sphereItems);
   const imageUrlsRef = useRef(imageUrls);
-  const keepSeedFocusedRef = useRef(keepSeedFocused);
+  const centerSeedRef = useRef(centerSeed);
+  const seedRef = useRef(seed);
   const onSelectRef = useRef(onSelect);
 
   useEffect(() => {
     sphereItemsRef.current = sphereItems;
     imageUrlsRef.current = imageUrls;
-    keepSeedFocusedRef.current = keepSeedFocused;
+    centerSeedRef.current = centerSeed;
+    seedRef.current = seed;
     onSelectRef.current = onSelect;
-  }, [imageUrls, keepSeedFocused, onSelect, sphereItems]);
+  }, [centerSeed, imageUrls, onSelect, seed, sphereItems]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -114,23 +158,23 @@ export default function DiscoveryOrbit({
 
       const compactViewport = host.clientWidth < 640;
       sphere = new ImageSphere(host, imageUrlsRef.current, {
-        distance: compactViewport ? 590 : 560,
+        distance: compactViewport ? 590 : 545,
         fov: compactViewport ? 29 : 25,
         autoRotate: !reducedMotion.matches,
-        initialFocusIndex: keepSeedFocusedRef.current ? 0 : undefined,
-        hideFocusedPlane: true,
-        onFocusChange: (index) => {
-          setFocusedCoverUrl(
-            index !== null
-              ? sphereItemsRef.current[index]?.coverUrl ?? null
-              : null,
-          );
+        anchorIndex: centerSeedRef.current && seedRef.current ? 0 : undefined,
+        onHoverChange: (index) => {
+          setHoveredIndex(index);
+        },
+        onHoverMove: (position) => {
+          if (tooltipRef.current) {
+            tooltipRef.current.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) translateX(-50%)`;
+          }
         },
         onSelect: (index) => {
           const item = sphereItemsRef.current[index];
 
-          if (index > 0 && item && "providerId" in item) {
-            onSelectRef.current(item);
+          if (item?.providerId) {
+            onSelectRef.current(item as DiscoveryOrbitItem);
           }
         },
       });
@@ -154,65 +198,45 @@ export default function DiscoveryOrbit({
 
   useEffect(() => {
     sphereRef.current?.updateImages(imageUrls, {
-      initialFocusIndex: keepSeedFocused ? 0 : undefined,
+      anchorIndex: centerSeed && seed ? 0 : undefined,
     });
-  }, [imageUrls, keepSeedFocused]);
+  }, [centerSeed, imageUrls, seed]);
 
   if (sphereItems.length === 0) {
     return null;
   }
 
-  const focusedItem = focusedCoverUrl
-    ? sphereItems.find((item) => item.coverUrl === focusedCoverUrl) ?? null
-    : null;
+  const hoveredItem =
+    hoveredIndex !== null ? (sphereItems[hoveredIndex] ?? null) : null;
+
   return (
     <div className="relative h-full min-h-0 overflow-hidden">
       <div
         ref={hostRef}
         className="relative h-full min-h-[24rem] overflow-hidden bg-transparent sm:min-h-[30rem]"
-        aria-label="A draggable 3D sphere of related music covers"
+        aria-label="A draggable 3D sphere of music covers"
       >
         <div className="sr-only">
           {sphereItems.map((item) => (
             <PrefetchLink key={item.id} href={item.href}>
-              {item.title} by {item.artistName || "Unknown artist"} — {item.routeLabel}
+              {item.title} by {getArtistLabel(item)} — {item.routeLabel}
             </PrefetchLink>
           ))}
         </div>
 
-        {focusedItem ? (
-          <>
-            <div
-              className="pointer-events-none absolute inset-0 z-10 bg-black/18 backdrop-blur-[10px]"
-              aria-hidden="true"
-            />
-            <div
-              className="pointer-events-none absolute inset-0 z-20 grid place-items-center px-4 py-8"
-              aria-live="polite"
-            >
-              <div className="flex max-h-full min-w-0 flex-col items-center">
-                <EntityCoverImage
-                  src={focusedItem.coverUrl}
-                  alt=""
-                  sizes="(max-width: 640px) 68vw, 42vh"
-                  quality={88}
-                  variant="card"
-                  className="aspect-square w-[min(68vw,17rem)] shrink-0 rounded-[0.35rem] bg-muted/30 shadow-[0_0_0_1px_rgba(255,255,255,0.12)] sm:w-[min(42vh,21rem)]"
-                  iconClassName="size-8"
-                />
-                <div className="mt-4 max-w-[min(82vw,28rem)] text-center">
-                  <p className="text-balance font-pixel text-[0.98rem] font-medium leading-tight text-foreground sm:text-[1.08rem]">
-                    {focusedItem.title}
-                  </p>
-                  <p className="mt-1 truncate text-[12px] text-muted-foreground/72 sm:text-[13px]">
-                    {focusedItem.artistName || "Unknown artist"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </>
+        {hoveredItem ? (
+          <div
+            ref={tooltipRef}
+            className="pointer-events-none absolute left-0 top-0 z-20 max-w-44 rounded-[0.3rem] bg-black/72 px-2 py-1.5 text-center will-change-transform backdrop-blur-sm"
+          >
+            <p className="truncate font-pixel text-[10px] leading-tight text-foreground/90">
+              {hoveredItem.title}
+            </p>
+            <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground/68">
+              {getArtistLabel(hoveredItem)}
+            </p>
+          </div>
         ) : null}
-
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import DiscoverEditorialEdition from "@/components/discover-editorial-edition";
-import SearchPageClient from "@/components/search-page-client";
+import { getDiscoverySeedPath } from "@/lib/discovery/seed";
 import { createPageMetadata } from "@/lib/metadata";
 import { getPublicStarterTracks } from "@/lib/queries/starter";
-import { isSearchScope } from "@/lib/search-types";
 
 export async function generateMetadata({
   searchParams,
@@ -16,7 +16,8 @@ export async function generateMetadata({
   if (!query) {
     return createPageMetadata({
       title: "Search",
-      description: "Search songs, albums, and artists, then discover music through real reviews on Kocteau.",
+      description:
+        "Search songs, albums, and artists, then discover music through real reviews on Kocteau.",
       path: "/search",
     });
   }
@@ -36,27 +37,28 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const initialQuery = params.q?.trim() ?? "";
-  const initialType = isSearchScope(params.type) ? params.type : "all";
-  const starterTracks = initialQuery
-    ? []
-    : await getPublicStarterTracks({
-        limit: 6,
-        contextKey: "search-orbit",
-      });
+  const starterTracks = await getPublicStarterTracks({
+    limit: 18,
+    contextKey: "search-orbit",
+  });
+  const legacySeedTrack = params.seed
+    ? starterTracks.find((track) => track.provider_id === params.seed)
+    : null;
 
-  const discoverContent = !initialQuery ? (
-    <DiscoverEditorialEdition
-      starterTracks={starterTracks}
-      initialSeedProviderId={params.seed}
-    />
-  ) : null;
+  if (legacySeedTrack) {
+    redirect(
+      getDiscoverySeedPath({
+        provider_id: legacySeedTrack.provider_id,
+        title: legacySeedTrack.title,
+        type: "track",
+      }),
+    );
+  }
 
   return (
-    <SearchPageClient
-      key={`${initialType}:${initialQuery}`}
+    <DiscoverEditorialEdition
+      starterTracks={starterTracks}
       initialQuery={initialQuery}
-      initialType={initialType}
-      discoverContent={discoverContent}
     />
   );
 }

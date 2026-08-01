@@ -53,11 +53,11 @@ export default async function AppShell({
       <GlobalShortcuts isAuthenticated={Boolean(safeProfile)} />
       <div
         data-kocteau-scroll-boundary
-        className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem] lg:has-[[data-kocteau-full-bleed]]:!rounded-none lg:has-[[data-kocteau-full-bleed]]:!border-transparent"
+        className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]"
       >
         <Header profile={safeProfile} />
         <DesktopScrollBridge />
-        <div className="kocteau-content-frame mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] has-[[data-kocteau-full-bleed]]:!max-w-none has-[[data-kocteau-full-bleed]]:!px-0 has-[[data-kocteau-full-bleed]]:!pb-0 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-7 lg:py-6 lg:has-[[data-kocteau-full-bleed]]:!py-0 xl:px-8">
+        <div className="kocteau-content-frame mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-7 lg:py-6 xl:px-8">
           {isStudio ? (
             <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 lg:h-full">
               <main
@@ -114,7 +114,7 @@ export default async function AppShell({
         />
         <SidebarInset
           className={cn(
-            "kocteau-sidebar-inset min-h-svh overflow-x-clip lg:h-dvh lg:overflow-hidden lg:p-2.5 lg:has-[[data-kocteau-full-bleed]]:!p-0 lg:has-[[data-kocteau-full-bleed]]:!rounded-none",
+            "kocteau-sidebar-inset min-h-svh overflow-x-clip lg:h-dvh lg:overflow-hidden lg:p-2.5",
             safeProfile
               ? "bg-[var(--kocteau-canvas)]"
               : "bg-[var(--kocteau-shell)] lg:bg-[var(--kocteau-canvas)]",

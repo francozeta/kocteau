@@ -11,12 +11,67 @@ const OPACITY_EASE = 0.12;
 const INERTIA_DECAY = 0.94;
 const FLICK_SCALE = 0.9;
 const CLICK_SLOP = 6;
-const FOCUS_EASE = 0.14;
-const FOCUS_DISTANCE = 300;
-const FOCUS_FILL = 0.62;
-const FOCUS_WIDTH_FILL = 0.74;
-const BACKDROP_DIM = 0.16;
-const STALE_FADE_MS = 420;
+const STALE_FADE_MS = 620;
+const HOME_EASE = 0.075;
+const ANCHOR_WORLD_Z = 72;
+const ANCHOR_SCALE = 1.08;
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+function hashFraction(value: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0) / 4_294_967_295;
+}
+
+function getSphereHome(index: number, count: number, imageUrl: string) {
+  const safeCount = Math.max(1, count);
+  const vertical = 1 - (2 * (index + 0.5)) / safeCount;
+  const ring = Math.sqrt(Math.max(0, 1 - vertical * vertical));
+  const angle = GOLDEN_ANGLE * index + hashFraction(imageUrl) * 0.4;
+  const radius = RADIUS + (hashFraction(`${imageUrl}:radius`) - 0.5) * 54;
+
+  return new THREE.Vector3(
+    radius * ring * Math.cos(angle),
+    radius * vertical,
+    radius * ring * Math.sin(angle),
+  );
+}
+
+function createRoundedPlaneGeometry(width: number, height: number) {
+  const radius = Math.min(width, height) * 0.035;
+  const left = -width / 2;
+  const right = width / 2;
+  const bottom = -height / 2;
+  const top = height / 2;
+  const shape = new THREE.Shape();
+
+  shape.moveTo(left + radius, bottom);
+  shape.lineTo(right - radius, bottom);
+  shape.quadraticCurveTo(right, bottom, right, bottom + radius);
+  shape.lineTo(right, top - radius);
+  shape.quadraticCurveTo(right, top, right - radius, top);
+  shape.lineTo(left + radius, top);
+  shape.quadraticCurveTo(left, top, left, top - radius);
+  shape.lineTo(left, bottom + radius);
+  shape.quadraticCurveTo(left, bottom, left + radius, bottom);
+
+  const geometry = new THREE.ShapeGeometry(shape, 4);
+  const positions = geometry.getAttribute("position");
+  const uvs = new Float32Array(positions.count * 2);
+
+  for (let index = 0; index < positions.count; index += 1) {
+    uvs[index * 2] = (positions.getX(index) - left) / width;
+    uvs[index * 2 + 1] = (positions.getY(index) - bottom) / height;
+  }
+
+  geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+  return geometry;
+}
 
 export type ImageSphereHoverPosition = {
   x: number;
@@ -27,17 +82,17 @@ export interface ImageSphereOptions {
   distance?: number;
   fov?: number;
   autoRotate?: boolean;
-  initialFocusIndex?: number;
-  hideFocusedPlane?: boolean;
+  anchorIndex?: number;
+  onReady?: () => void;
   onHoverChange?: (
     index: number | null,
     position?: ImageSphereHoverPosition,
   ) => void;
-  onFocusChange?: (index: number | null) => void;
+  onHoverMove?: (position: ImageSphereHoverPosition) => void;
   onSelect?: (index: number) => void;
 }
 
-type PlaneMesh = THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+type PlaneMesh = THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>;
 
 export class ImageSphere {
   private host: HTMLElement;
@@ -49,7 +104,6 @@ export class ImageSphere {
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2(-2, -2);
   private hovered: PlaneMesh | null = null;
-  private focused: PlaneMesh | null = null;
   private rotationX = 0;
   private rotationY = 0;
   private currentRotationX = 0;
@@ -75,10 +129,11 @@ export class ImageSphere {
   private cleanup: Array<() => void> = [];
   private removalTimers = new Set<ReturnType<typeof setTimeout>>();
   private autoRotate: boolean;
-  private initialFocusIndex?: number;
-  private hideFocusedPlane: boolean;
+  private anchorIndex?: number;
+  private readyNotified = false;
+  private onReady?: () => void;
   private onHoverChange?: ImageSphereOptions["onHoverChange"];
-  private onFocusChange?: (index: number | null) => void;
+  private onHoverMove?: ImageSphereOptions["onHoverMove"];
   private onSelect?: (index: number) => void;
 
   constructor(
@@ -88,14 +143,14 @@ export class ImageSphere {
   ) {
     this.host = host;
     this.autoRotate = options.autoRotate ?? true;
-    this.initialFocusIndex = options.initialFocusIndex;
-    this.hideFocusedPlane = options.hideFocusedPlane ?? false;
+    this.anchorIndex = options.anchorIndex;
+    this.onReady = options.onReady;
     this.onHoverChange = options.onHoverChange;
-    this.onFocusChange = options.onFocusChange;
+    this.onHoverMove = options.onHoverMove;
     this.onSelect = options.onSelect;
     const width = host.clientWidth || 1;
     const height = host.clientHeight || 1;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, width < 640 ? 1.5 : 2);
 
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     this.renderer.setPixelRatio(dpr);
@@ -109,6 +164,7 @@ export class ImageSphere {
       width: "100%",
       height: "100%",
       display: "block",
+      zIndex: "1",
       cursor: "grab",
       touchAction: "none",
     });
@@ -123,30 +179,35 @@ export class ImageSphere {
     this.camera.position.z = options.distance ?? 520;
     this.scene.add(this.group);
 
-    this.updateImages(imageUrls, {
-      initialFocusIndex: this.initialFocusIndex,
-    });
+    this.updateImages(imageUrls, { anchorIndex: this.anchorIndex });
     this.bindEvents();
   }
 
-  updateImages(
-    urls: string[],
-    { initialFocusIndex }: { initialFocusIndex?: number } = {},
-  ) {
+  updateImages(urls: string[], { anchorIndex }: { anchorIndex?: number } = {}) {
     if (this.disposed) {
       return;
     }
 
     const generation = ++this.imageGeneration;
-    this.initialFocusIndex = initialFocusIndex;
+    this.anchorIndex = anchorIndex;
     const nextUrls = Array.from(new Set(urls));
     const nextUrlSet = new Set(nextUrls);
     const reusableByUrl = new Map<string, PlaneMesh>();
 
+    if (this.hovered) {
+      this.hovered.userData.isHovered = false;
+      this.hovered = null;
+      this.onHoverChange?.(null);
+    }
+
     for (const plane of this.planes) {
       const imageUrl = plane.userData.imageUrl as string | undefined;
 
-      if (imageUrl && nextUrlSet.has(imageUrl) && !reusableByUrl.has(imageUrl)) {
+      if (
+        imageUrl &&
+        nextUrlSet.has(imageUrl) &&
+        !reusableByUrl.has(imageUrl)
+      ) {
         reusableByUrl.set(imageUrl, plane);
       }
     }
@@ -169,7 +230,12 @@ export class ImageSphere {
 
       reusable.userData.index = index;
       reusable.userData.stale = false;
+      reusable.userData.isAnchor = index === anchorIndex;
       reusable.userData.removalTimer = undefined;
+      reusable.userData.homeTarget =
+        index === anchorIndex
+          ? undefined
+          : getSphereHome(index, nextUrls.length, url);
     });
 
     for (const plane of this.planes) {
@@ -185,11 +251,6 @@ export class ImageSphere {
       if (plane === this.hovered) {
         this.hovered = null;
         this.onHoverChange?.(null);
-      }
-
-      if (plane === this.focused) {
-        this.focused = null;
-        this.onFocusChange?.(null);
       }
 
       const removalTimer = setTimeout(() => {
@@ -220,14 +281,17 @@ export class ImageSphere {
           return;
         }
 
-        texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+        texture.anisotropy = Math.min(
+          this.renderer.capabilities.getMaxAnisotropy(),
+          4,
+        );
         texture.minFilter = THREE.LinearMipmapLinearFilter;
         texture.magFilter = THREE.LinearFilter;
         texture.colorSpace = THREE.SRGBColorSpace;
 
         const image = texture.image as { width?: number; height?: number };
         const aspect = (image.width || 1) / (image.height || 1);
-        const geometry = new THREE.PlaneGeometry(
+        const geometry = createRoundedPlaneGeometry(
           PLANE_SIZE * aspect,
           PLANE_SIZE,
         );
@@ -242,45 +306,34 @@ export class ImageSphere {
           index,
           isHovered: false,
           opacity: 0,
-          focus: 0,
           aspect,
           imageUrl: url,
           stale: false,
+          isAnchor: index === anchorIndex,
         };
         material.opacity = 0;
 
-        const phi = (Math.random() * 2 - 1) * Math.PI;
-        const theta = Math.random() * Math.PI * 2;
-        const radius = RADIUS + (Math.random() - 0.5) * 80;
+        const home =
+          index === anchorIndex
+            ? new THREE.Vector3(0, 0, ANCHOR_WORLD_Z)
+            : getSphereHome(index, nextUrls.length, url);
 
-        plane.position.set(
-          radius * Math.sin(phi) * Math.cos(theta),
-          radius * Math.sin(phi) * Math.sin(theta),
-          radius * Math.cos(phi),
-        );
+        plane.position.copy(home);
         plane.userData.home = plane.position.clone();
+        plane.userData.homeTarget = home.clone();
         this.group.add(plane);
         this.planes.push(plane);
-
-        if (index === initialFocusIndex) {
-          this.focused = plane;
-          plane.userData.focus = 1;
-          this.centerPos.set(0, 0, this.camera.position.z - FOCUS_DISTANCE);
-          this.tmpPos.copy(this.centerPos);
-          this.group.worldToLocal(this.tmpPos);
-          plane.position.copy(this.tmpPos);
-          this.onFocusChange?.(index);
-        }
 
         if (!this.running) {
           this.renderStill();
         }
+
+        if (!this.readyNotified) {
+          this.readyNotified = true;
+          this.onReady?.();
+        }
       });
     });
-
-    if (this.focused) {
-      this.onFocusChange?.(this.focused.userData.index as number);
-    }
   }
 
   private removePlane(plane: PlaneMesh) {
@@ -361,37 +414,16 @@ export class ImageSphere {
       if (hit) {
         this.onSelect?.(hit.userData.index as number);
       }
-
-      if (this.focused) {
-        this.focused = hit === this.focused ? null : hit;
-      } else {
-        this.focused = hit;
-      }
-
-      this.onFocusChange?.(
-        this.focused ? (this.focused.userData.index as number) : null,
-      );
     };
     const onLeave = () => {
       release();
       this.mouse.set(-2, -2);
     };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || !this.focused) {
-        return;
-      }
-
-      this.focused = null;
-      this.onFocusChange?.(null);
-    };
-
-    window.addEventListener("keydown", onKey);
     host.addEventListener("pointerdown", onDown);
     host.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     host.addEventListener("pointerleave", onLeave);
     this.cleanup.push(() => {
-      window.removeEventListener("keydown", onKey);
       host.removeEventListener("pointerdown", onDown);
       host.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
@@ -431,16 +463,22 @@ export class ImageSphere {
   private getHoverPosition(plane: PlaneMesh): ImageSphereHoverPosition {
     const rect = this.host.getBoundingClientRect();
     plane.getWorldPosition(this.worldPos);
-    const distance = Math.max(1, this.camera.position.distanceTo(this.worldPos));
+    const distance = Math.max(
+      1,
+      this.camera.position.distanceTo(this.worldPos),
+    );
     const viewHeight =
       2 * distance * Math.tan((this.camera.fov * Math.PI) / 360);
     const planeHeight = PLANE_SIZE * plane.scale.y;
     const pixelHeight = (planeHeight / viewHeight) * rect.height;
     this.tmpPos.copy(this.worldPos).project(this.camera);
 
+    const x = ((this.tmpPos.x + 1) / 2) * rect.width;
+    const y = ((1 - this.tmpPos.y) / 2) * rect.height + pixelHeight / 2 + 10;
+
     return {
-      x: ((this.tmpPos.x + 1) / 2) * rect.width,
-      y: ((1 - this.tmpPos.y) / 2) * rect.height + pixelHeight / 2 + 10,
+      x: THREE.MathUtils.clamp(x, 88, Math.max(88, rect.width - 88)),
+      y: THREE.MathUtils.clamp(y, 8, Math.max(8, rect.height - 48)),
     };
   }
 
@@ -501,7 +539,7 @@ export class ImageSphere {
       if (Math.abs(this.velY) < 0.01) this.velY = 0;
     }
 
-    if (this.autoRotate && !this.dragging && !this.hovered && !this.focused) {
+    if (this.autoRotate && !this.dragging && !this.hovered) {
       this.baseRotationY += AUTO_ROT_Y;
       this.baseRotationX += AUTO_ROT_X;
     }
@@ -510,48 +548,36 @@ export class ImageSphere {
       (this.rotationX - this.currentRotationX) * DRAG_EASE;
     this.currentRotationY +=
       (this.rotationY - this.currentRotationY) * DRAG_EASE;
-    this.group.rotation.x =
-      this.baseRotationX + this.currentRotationX * 0.002;
-    this.group.rotation.y =
-      this.baseRotationY + this.currentRotationY * 0.002;
+    this.group.rotation.x = this.baseRotationX + this.currentRotationX * 0.002;
+    this.group.rotation.y = this.baseRotationY + this.currentRotationY * 0.002;
 
-    if (!this.dragging && !this.focused) {
+    if (!this.dragging) {
       this.hoverDetection();
-    } else if (this.focused && this.hovered) {
-      this.hovered.userData.isHovered = false;
-      this.hovered = null;
-      this.onHoverChange?.(null);
     }
 
-    const anyFocused = this.focused !== null;
-    this.centerPos.set(0, 0, this.camera.position.z - FOCUS_DISTANCE);
-    const viewHeight =
-      2 *
-      FOCUS_DISTANCE *
-      Math.tan((this.camera.fov * Math.PI) / 360);
-    const viewWidth = viewHeight * this.camera.aspect;
-    const focusScale =
-      Math.min(viewHeight * FOCUS_FILL, viewWidth * FOCUS_WIDTH_FILL) /
-      PLANE_SIZE;
     this.invQuat.copy(this.group.quaternion).invert();
 
     for (const plane of this.planes) {
-      plane.quaternion.copy(this.invQuat);
-      const focusTarget = plane === this.focused ? 1 : 0;
-      const focus =
-        plane.userData.focus +
-        (focusTarget - plane.userData.focus) * FOCUS_EASE;
-      plane.userData.focus = focus;
+      const home = plane.userData.home as THREE.Vector3;
+      const homeTarget = plane.userData.homeTarget as THREE.Vector3 | undefined;
+      const isAnchor = plane.userData.isAnchor === true;
 
-      if (focus > 0.0005) {
+      if (isAnchor) {
+        this.centerPos.set(0, 0, ANCHOR_WORLD_Z);
         this.tmpPos.copy(this.centerPos);
         this.group.worldToLocal(this.tmpPos);
-        plane.position.copy(plane.userData.home).lerp(this.tmpPos, focus);
-      } else if (
-        plane.position.x !== plane.userData.home.x ||
-        plane.position.z !== plane.userData.home.z
+        home.lerp(this.tmpPos, HOME_EASE);
+      } else if (homeTarget) {
+        home.lerp(homeTarget, HOME_EASE);
+      }
+
+      plane.quaternion.copy(this.invQuat);
+      if (
+        plane.position.x !== home.x ||
+        plane.position.y !== home.y ||
+        plane.position.z !== home.z
       ) {
-        plane.position.copy(plane.userData.home);
+        plane.position.copy(home);
       }
 
       plane.getWorldPosition(this.worldPos);
@@ -560,27 +586,27 @@ export class ImageSphere {
       let targetScale = plane.userData.isHovered
         ? depthScale * HOVER_SCALE
         : depthScale;
-      targetScale = targetScale + (focusScale - targetScale) * focus;
-      const scale =
-        plane.scale.x + (targetScale - plane.scale.x) * SCALE_EASE;
-      plane.scale.set(scale, scale, scale);
 
-      let targetOpacity = plane.userData.stale ? 0 : 1;
-
-      if (anyFocused && !plane.userData.stale) {
-        targetOpacity = BACKDROP_DIM + (1 - BACKDROP_DIM) * focus;
-
-        if (plane === this.focused && this.hideFocusedPlane) {
-          targetOpacity = 0;
-        }
+      if (isAnchor) {
+        targetScale *= ANCHOR_SCALE;
       }
 
+      const scale = plane.scale.x + (targetScale - plane.scale.x) * SCALE_EASE;
+      plane.scale.set(scale, scale, scale);
+
+      const targetOpacity = plane.userData.stale ? 0 : 1;
+
+      const opacityEase = plane.userData.stale ? 0.065 : OPACITY_EASE;
       const opacity =
         plane.userData.opacity +
-        (targetOpacity - plane.userData.opacity) * OPACITY_EASE;
+        (targetOpacity - plane.userData.opacity) * opacityEase;
       plane.userData.opacity = opacity;
       plane.material.opacity = opacity;
-      plane.renderOrder = focus > 0.5 ? 1 : 0;
+      plane.renderOrder = isAnchor ? 1 : 0;
+    }
+
+    if (this.hovered && !this.hovered.userData.stale) {
+      this.onHoverMove?.(this.getHoverPosition(this.hovered));
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -591,10 +617,21 @@ export class ImageSphere {
     this.invQuat.copy(this.group.quaternion).invert();
 
     for (const plane of this.planes) {
+      if (plane.userData.isAnchor === true) {
+        this.centerPos.set(0, 0, ANCHOR_WORLD_Z);
+        this.tmpPos.copy(this.centerPos);
+        this.group.worldToLocal(this.tmpPos);
+        plane.position.copy(this.tmpPos);
+      }
+
       plane.quaternion.copy(this.invQuat);
       plane.getWorldPosition(this.worldPos);
       const depthScale = 0.8 + this.worldPos.z / 2000;
-      plane.scale.set(depthScale, depthScale, depthScale);
+      const scale =
+        plane.userData.isAnchor === true
+          ? depthScale * ANCHOR_SCALE
+          : depthScale;
+      plane.scale.set(scale, scale, scale);
       plane.userData.opacity = 1;
       plane.material.opacity = 1;
     }

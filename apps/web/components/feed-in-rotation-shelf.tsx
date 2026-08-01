@@ -2,6 +2,7 @@ import PrefetchLink from "@/components/prefetch-link";
 import SectionLinkHeading from "@/components/section-link-heading";
 import TrackCarousel from "@/components/track-carousel";
 import TrackTile from "@/components/track-tile";
+import { getDiscoverySeedPath } from "@/lib/discovery/seed";
 import type { StarterTrack } from "@/lib/starter";
 
 type FeedInRotationShelfProps = {
@@ -9,7 +10,11 @@ type FeedInRotationShelfProps = {
 };
 
 function getStarterTrackHref(track: StarterTrack) {
-  return `/search?seed=${encodeURIComponent(track.provider_id)}`;
+  return getDiscoverySeedPath({
+    provider_id: track.provider_id,
+    title: track.title,
+    type: "track",
+  });
 }
 
 export default function FeedInRotationShelf({

@@ -1,19 +1,23 @@
 import DiscoveryMap from "@/components/discovery-map";
+import type { DiscoverySeed } from "@/lib/discovery/seed";
 import type { StarterTrack } from "@/lib/starter";
 
 type DiscoverEditorialEditionProps = {
   starterTracks?: StarterTrack[];
-  initialSeedProviderId?: string | null;
+  initialQuery?: string;
+  initialSeed?: DiscoverySeed | null;
 };
 
 export default function DiscoverEditorialEdition({
   starterTracks = [],
-  initialSeedProviderId,
+  initialQuery = "",
+  initialSeed = null,
 }: DiscoverEditorialEditionProps) {
   return (
     <DiscoveryMap
       seeds={starterTracks}
-      initialSeedProviderId={initialSeedProviderId}
+      initialQuery={initialQuery}
+      initialSeed={initialSeed}
     />
   );
 }
