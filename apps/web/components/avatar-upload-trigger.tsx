@@ -2,6 +2,7 @@
 
 import type { DragEventHandler } from "react";
 import { CameraIcon, UserCircleIcon } from "@/components/ui/icons";
+import GeneratedUserAvatar from "@/components/generated-user-avatar";
 import { cn } from "@/lib/utils";
 
 type AvatarUploadTriggerProps = {
@@ -13,6 +14,7 @@ type AvatarUploadTriggerProps = {
   onDragOver?: DragEventHandler<HTMLButtonElement>;
   onDrop?: DragEventHandler<HTMLButtonElement>;
   previewUrl?: string | null;
+  generatedSeed?: string;
   size?: "lg" | "md" | "sm";
 };
 
@@ -46,6 +48,7 @@ export default function AvatarUploadTrigger({
   onDragOver,
   onDrop,
   previewUrl,
+  generatedSeed,
   size = "md",
 }: AvatarUploadTriggerProps) {
   const scale = sizeClasses[size];
@@ -73,6 +76,8 @@ export default function AvatarUploadTrigger({
           alt={alt}
           className="size-full rounded-full object-cover"
         />
+      ) : generatedSeed ? (
+        <GeneratedUserAvatar seed={generatedSeed} />
       ) : (
         <UserCircleIcon
           className={cn("text-muted-foreground/70", scale.icon)}

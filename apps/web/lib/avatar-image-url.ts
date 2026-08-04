@@ -1,6 +1,14 @@
+export function isLegacyPresetAvatarUrl(value?: string | null) {
+  return Boolean(value?.includes("/preset-") && value.includes(".svg"));
+}
+
 export function getAvatarThumbnailUrl(value?: string | null) {
   if (!value) {
     return value ?? null;
+  }
+
+  if (isLegacyPresetAvatarUrl(value)) {
+    return null;
   }
 
   try {

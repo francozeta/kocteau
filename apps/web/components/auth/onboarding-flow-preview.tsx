@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, Disc3 } from "@/components/ui/icons";
+import { ArrowLeft, ArrowRight } from "@/components/ui/icons";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { OnboardingProgressBar } from "@/components/auth/onboarding-progress-bar";
@@ -13,17 +12,12 @@ import { OnboardingWelcomeDialog } from "@/components/auth/onboarding-welcome-di
 import BrandLogo from "@/components/brand-logo";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
-import {
-  avatarPresets,
-  createAvatarPresetDataUrl,
-  type AvatarPresetId,
-} from "@/lib/avatar-presets";
+import GeneratedUserAvatar from "@/components/generated-user-avatar";
 import { cn } from "@/lib/utils";
 
 type PreviewDraft = {
   displayName: string;
   username: string;
-  avatarPresetId: AvatarPresetId | null;
   uploadedAvatarUrl: string | null;
   bio: string;
   signals: string[];
@@ -62,7 +56,7 @@ const steps = [
     id: "avatar",
     section: "Profile",
     question: "Choose a profile image.",
-    helper: "Pick a disc, or upload a photo.",
+    helper: "Your dither avatar is ready, or upload a photo.",
   },
   {
     id: "bio",
@@ -140,7 +134,6 @@ const starterTracks = [
 const initialDraft: PreviewDraft = {
   displayName: "",
   username: "",
-  avatarPresetId: "silver-haze",
   uploadedAvatarUrl: null,
   bio: "",
   signals: [],
@@ -465,11 +458,6 @@ function AvatarStepControl({
   draft: PreviewDraft;
   updateDraft: (draft: Partial<PreviewDraft>) => void;
 }) {
-  const [isDiscPickerOpen, setIsDiscPickerOpen] = useState(false);
-  const avatarPreviewUrl =
-    draft.uploadedAvatarUrl ??
-    createAvatarPresetDataUrl(draft.avatarPresetId ?? "silver-haze", 180);
-
   function handleAvatarFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
 
@@ -477,9 +465,7 @@ function AvatarStepControl({
       return;
     }
 
-    setIsDiscPickerOpen(false);
     updateDraft({
-      avatarPresetId: null,
       uploadedAvatarUrl: URL.createObjectURL(file),
     });
     event.currentTarget.value = "";
@@ -496,14 +482,12 @@ function AvatarStepControl({
           )}
         >
           <span className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-background outline outline-1 outline-white/10">
-            <Image
-              src={avatarPreviewUrl}
-              alt=""
-              width={112}
-              height={112}
-              unoptimized
-              className="size-full rounded-full object-cover"
-            />
+            {draft.uploadedAvatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={draft.uploadedAvatarUrl} alt="" className="size-full rounded-full object-cover" />
+            ) : (
+              <GeneratedUserAvatar seed={draft.username || draft.displayName || "kocteau-user"} />
+            )}
             <span
               aria-hidden="true"
               className="absolute inset-0 rounded-full bg-black/0 transition-colors duration-150 ease-out group-hover:bg-black/12"
@@ -516,80 +500,7 @@ function AvatarStepControl({
             onChange={handleAvatarFileChange}
           />
         </label>
-
-        <button
-          type="button"
-          aria-label="Choose a Kocteau disc"
-          aria-expanded={isDiscPickerOpen}
-          onClick={() => setIsDiscPickerOpen((open) => !open)}
-          className={cn(
-            "absolute -right-1 bottom-1 flex size-9 items-center justify-center rounded-full border border-transparent bg-background text-foreground ring-4 ring-background transition-[background-color,border-color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
-            previewFocusVisibleClass,
-            isDiscPickerOpen && "bg-foreground text-background",
-          )}
-        >
-          <Disc3
-            className={cn(
-              "size-4 transition-transform duration-150 ease-out",
-              isDiscPickerOpen ? "rotate-45 scale-[0.96]" : "rotate-0 scale-100",
-            )}
-          />
-        </button>
       </div>
-
-      <AnimatePresence initial={false}>
-        {isDiscPickerOpen ? (
-          <motion.div
-            key="disc-picker"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
-            className="absolute left-1/2 top-[calc(100%+0.75rem)] z-10 w-[17rem] -translate-x-1/2 rounded-[1.05rem] bg-[var(--kocteau-surface)] p-2 shadow-[var(--kocteau-shadow-card-hover)]"
-          >
-            <div className="grid grid-cols-3 gap-2">
-              {avatarPresets.map((preset) => {
-                const isSelected = draft.avatarPresetId === preset.id;
-
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={() => {
-                      updateDraft({
-                        avatarPresetId: preset.id,
-                        uploadedAvatarUrl: null,
-                      });
-                      setIsDiscPickerOpen(false);
-                    }}
-                    className={cn(
-                      "group relative flex aspect-square min-h-[4rem] items-center justify-center rounded-[0.85rem] border border-transparent bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
-                      previewFocusVisibleClass,
-                      isSelected &&
-                        "bg-[var(--kocteau-surface-featured)] shadow-[var(--kocteau-shadow-card-hover)]",
-                    )}
-                  >
-                    <Image
-                      src={createAvatarPresetDataUrl(preset.id, 160)}
-                      alt={preset.label}
-                      width={52}
-                      height={52}
-                      unoptimized
-                      className="size-12 rounded-full object-cover outline outline-1 outline-white/10"
-                    />
-                    {isSelected ? (
-                      <span className="absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded-full bg-foreground text-background">
-                        <Check className="size-3" />
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
     </div>
   );
 }

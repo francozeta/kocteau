@@ -9,7 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Disc3 } from "@/components/ui/icons";
+import { ArrowRight } from "@/components/ui/icons";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";
 import GeneratedUserAvatar from "@/components/generated-user-avatar";
 import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
@@ -17,12 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import type { PreparedAvatarUpload } from "@/lib/avatar-image";
-import {
-  avatarPresets,
-  createAvatarPresetDataUrl,
-  createAvatarPresetSvg,
-  type AvatarPresetId,
-} from "@/lib/avatar-presets";
+import { isLegacyPresetAvatarUrl } from "@/lib/avatar-image-url";
 import { appendInternalNext } from "@/lib/internal-path";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { getFirstFieldError } from "@/lib/validation/errors";
@@ -147,9 +142,6 @@ export default function ProfileOnboardingFlow({
   const [displayName, setDisplayName] = useState(initialProfile?.display_name ?? "");
   const [bio, setBio] = useState(initialProfile?.bio ?? "");
   const [avatarUpload, setAvatarUpload] = useState<PreparedAvatarUpload | null>(null);
-  const [selectedPresetId, setSelectedPresetId] = useState<AvatarPresetId | null>(
-    null,
-  );
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const [isAvatarCropDialogOpen, setIsAvatarCropDialogOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -198,25 +190,15 @@ export default function ProfileOnboardingFlow({
     avatarUploadErrors[0] ??
     null;
 
-  const presetPreview = useMemo(() => {
-    if (!selectedPresetId) {
-      return null;
-    }
-
-    return createAvatarPresetDataUrl(selectedPresetId, 640);
-  }, [selectedPresetId]);
-
   const avatarPreview = useMemo(() => {
     if (avatarUpload) {
       return URL.createObjectURL(avatarUpload.master.file);
     }
 
-    if (presetPreview) {
-      return presetPreview;
-    }
-
-    return initialProfile?.avatar_url ?? null;
-  }, [avatarUpload, initialProfile?.avatar_url, presetPreview]);
+    return isLegacyPresetAvatarUrl(initialProfile?.avatar_url)
+      ? null
+      : initialProfile?.avatar_url ?? null;
+  }, [avatarUpload, initialProfile?.avatar_url]);
 
   useEffect(() => {
     if (!avatarUpload || !avatarPreview) {
@@ -234,14 +216,6 @@ export default function ProfileOnboardingFlow({
     setCurrentStepIndex((index) => Math.max(index - 1, 0));
   }
 
-  function handlePresetSelect(presetId: AvatarPresetId) {
-    setSelectedPresetId(presetId);
-    setAvatarUpload(null);
-    setPendingAvatarFile(null);
-    clearAvatarUploadErrors();
-    setMessage(null);
-  }
-
   function handleAvatarCropDialogOpenChange(open: boolean) {
     setIsAvatarCropDialogOpen(open);
 
@@ -252,7 +226,6 @@ export default function ProfileOnboardingFlow({
 
   function handleAvatarCropConfirm(upload: PreparedAvatarUpload) {
     setAvatarUpload(upload);
-    setSelectedPresetId(null);
     setPendingAvatarFile(null);
     setIsAvatarCropDialogOpen(false);
     clearAvatarUploadErrors();
@@ -287,27 +260,6 @@ export default function ProfileOnboardingFlow({
     if (thumbUploadError) throw thumbUploadError;
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(masterPath);
-    return `${data.publicUrl}?v=${Date.now()}`;
-  }
-
-  async function uploadPresetAvatar(userId: string) {
-    if (!selectedPresetId) {
-      return initialProfile?.avatar_url ?? null;
-    }
-
-    const path = `${userId}/preset-${selectedPresetId}.svg`;
-    const svg = createAvatarPresetSvg(selectedPresetId, 640);
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(path, new Blob([svg], { type: "image/svg+xml" }), {
-        upsert: true,
-        contentType: "image/svg+xml",
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     return `${data.publicUrl}?v=${Date.now()}`;
   }
 
@@ -374,8 +326,8 @@ export default function ProfileOnboardingFlow({
       const previousUsername = initialProfile?.username?.trim().toLowerCase() ?? null;
       const avatarUrl = avatarUpload
         ? await uploadAvatar(user.id)
-        : selectedPresetId
-          ? await uploadPresetAvatar(user.id)
+        : isLegacyPresetAvatarUrl(initialProfile?.avatar_url)
+          ? null
           : initialProfile?.avatar_url ?? null;
       const profilePayload = {
         id: user.id,
@@ -474,14 +426,12 @@ export default function ProfileOnboardingFlow({
           setBio,
           avatarPreviewUrl: avatarPreview,
           avatarSeed: username || displayName || "kocteau-user",
-          selectedPresetId,
           isAvatarDragging,
           onAvatarClick: openAvatarFileDialog,
           onAvatarDragEnter: handleAvatarDragEnter,
           onAvatarDragLeave: handleAvatarDragLeave,
           onAvatarDragOver: handleAvatarDragOver,
           onAvatarDrop: handleAvatarDrop,
-          onPresetSelect: handlePresetSelect,
           clearStepErrors: () => {
             setMessage(null);
             setAttemptedStepId(null);
@@ -518,14 +468,12 @@ function renderProfileStepControl({
   setBio,
   avatarPreviewUrl,
   avatarSeed,
-  selectedPresetId,
   isAvatarDragging,
   onAvatarClick,
   onAvatarDragEnter,
   onAvatarDragLeave,
   onAvatarDragOver,
   onAvatarDrop,
-  onPresetSelect,
   clearStepErrors,
 }: {
   stepId: ProfileStepId;
@@ -537,14 +485,12 @@ function renderProfileStepControl({
   setBio: (value: string) => void;
   avatarPreviewUrl: string | null;
   avatarSeed: string;
-  selectedPresetId: AvatarPresetId | null;
   isAvatarDragging: boolean;
   onAvatarClick: () => void;
   onAvatarDragEnter: DragEventHandler<HTMLButtonElement>;
   onAvatarDragLeave: DragEventHandler<HTMLButtonElement>;
   onAvatarDragOver: DragEventHandler<HTMLButtonElement>;
   onAvatarDrop: DragEventHandler<HTMLButtonElement>;
-  onPresetSelect: (presetId: AvatarPresetId) => void;
   clearStepErrors: () => void;
 }) {
   if (stepId === "name") {
@@ -593,14 +539,12 @@ function renderProfileStepControl({
       <ProfileAvatarControl
         previewUrl={avatarPreviewUrl}
         avatarSeed={avatarSeed}
-        selectedPresetId={selectedPresetId}
         isDragging={isAvatarDragging}
         onAvatarClick={onAvatarClick}
         onAvatarDragEnter={onAvatarDragEnter}
         onAvatarDragLeave={onAvatarDragLeave}
         onAvatarDragOver={onAvatarDragOver}
         onAvatarDrop={onAvatarDrop}
-        onPresetSelect={onPresetSelect}
       />
     );
   }
@@ -625,28 +569,22 @@ function renderProfileStepControl({
 function ProfileAvatarControl({
   previewUrl,
   avatarSeed,
-  selectedPresetId,
   isDragging,
   onAvatarClick,
   onAvatarDragEnter,
   onAvatarDragLeave,
   onAvatarDragOver,
   onAvatarDrop,
-  onPresetSelect,
 }: {
   previewUrl: string | null;
   avatarSeed: string;
-  selectedPresetId: AvatarPresetId | null;
   isDragging: boolean;
   onAvatarClick: () => void;
   onAvatarDragEnter: DragEventHandler<HTMLButtonElement>;
   onAvatarDragLeave: DragEventHandler<HTMLButtonElement>;
   onAvatarDragOver: DragEventHandler<HTMLButtonElement>;
   onAvatarDrop: DragEventHandler<HTMLButtonElement>;
-  onPresetSelect: (presetId: AvatarPresetId) => void;
 }) {
-  const [isDiscPickerOpen, setIsDiscPickerOpen] = useState(false);
-
   return (
     <div className="relative mx-auto flex w-full max-w-[20rem] justify-center">
       <div className="relative">
@@ -682,65 +620,7 @@ function ProfileAvatarControl({
           </span>
         </button>
 
-        <button
-          type="button"
-          aria-label="Choose a Kocteau disc"
-          aria-expanded={isDiscPickerOpen}
-          onClick={() => setIsDiscPickerOpen((open) => !open)}
-          className={cn(
-            "absolute -right-1 bottom-1 flex size-9 items-center justify-center rounded-full border border-transparent bg-background text-foreground ring-4 ring-background transition-[background-color,border-color,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
-            onboardingFocusVisibleClass,
-            isDiscPickerOpen && "bg-foreground text-background",
-          )}
-        >
-          <Disc3
-            className={cn(
-              "size-4 transition-transform duration-150 ease-out",
-              isDiscPickerOpen ? "rotate-45 scale-[0.96]" : "rotate-0 scale-100",
-            )}
-          />
-        </button>
       </div>
-
-      {isDiscPickerOpen ? (
-        <div className="absolute left-1/2 top-[calc(100%+0.75rem)] z-10 w-[17rem] -translate-x-1/2 rounded-[1.05rem] bg-[var(--kocteau-surface)] p-2 shadow-[var(--kocteau-shadow-card-hover)]">
-          <div className="grid grid-cols-3 gap-2">
-            {avatarPresets.map((preset) => {
-              const isSelected = selectedPresetId === preset.id;
-
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => {
-                    onPresetSelect(preset.id);
-                    setIsDiscPickerOpen(false);
-                  }}
-                  className={cn(
-                    "group relative flex aspect-square min-h-[4rem] items-center justify-center rounded-[0.85rem] border border-transparent bg-[var(--kocteau-surface-control)] shadow-[var(--kocteau-shadow-control)] transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none",
-                    onboardingFocusVisibleClass,
-                    isSelected &&
-                      "bg-[var(--kocteau-surface-featured)] shadow-[var(--kocteau-shadow-card-hover)]",
-                  )}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={createAvatarPresetDataUrl(preset.id, 160)}
-                    alt={preset.label}
-                    className="size-12 rounded-full object-cover outline outline-1 outline-white/10"
-                  />
-                  {isSelected ? (
-                    <span className="absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded-full bg-foreground text-background">
-                      <Check className="size-3" />
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
