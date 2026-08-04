@@ -1,4 +1,5 @@
 import Image from "next/image";
+import GeneratedUserAvatar from "@/components/generated-user-avatar";
 import { getAvatarThumbnailUrl } from "@/lib/avatar-image-url";
 import { cn } from "@/lib/utils";
 
@@ -11,25 +12,6 @@ type ProfileHeroAvatarProps = {
   fallbackClassName?: string;
   priority?: boolean;
 };
-
-const fallbackPatterns = [
-  { angle: 132, spotX: 24, spotY: 18, ringOpacity: 0.12 },
-  { angle: 156, spotX: 72, spotY: 20, ringOpacity: 0.1 },
-  { angle: 118, spotX: 26, spotY: 76, ringOpacity: 0.14 },
-  { angle: 144, spotX: 78, spotY: 70, ringOpacity: 0.11 },
-  { angle: 168, spotX: 50, spotY: 16, ringOpacity: 0.13 },
-  { angle: 120, spotX: 56, spotY: 82, ringOpacity: 0.12 },
-] as const;
-
-function getSeedValue(seed: string) {
-  let hash = 0;
-
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
-  }
-
-  return hash;
-}
 
 function getAvatarLabel(displayName?: string | null, username?: string | null) {
   if (displayName?.trim()) {
@@ -80,7 +62,6 @@ export default function ProfileHeroAvatar({
 }: ProfileHeroAvatarProps) {
   const label = getAvatarLabel(displayName, username);
   const seed = username?.trim() || displayName?.trim() || "kocteau-user";
-  const pattern = fallbackPatterns[getSeedValue(seed) % fallbackPatterns.length];
   const initials = getInitials(label);
   const resolvedAvatarUrl = avatarUrl ? getAvatarThumbnailUrl(avatarUrl) : avatarUrl;
 
@@ -92,18 +73,7 @@ export default function ProfileHeroAvatar({
       )}
       aria-label={label}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0"
-        style={{
-          backgroundColor: "var(--muted)",
-          backgroundImage: [
-            `radial-gradient(circle at ${pattern.spotX}% ${pattern.spotY}%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 28%, transparent 46%)`,
-            `linear-gradient(${pattern.angle}deg, color-mix(in oklch, var(--muted) 86%, var(--foreground)) 0%, color-mix(in oklch, var(--card) 74%, var(--background)) 52%, color-mix(in oklch, var(--background) 88%, var(--foreground)) 100%)`,
-          ].join(", "),
-          boxShadow: `inset 0 0 0 1px rgba(255,255,255,${pattern.ringOpacity}), inset 0 1px 0 rgba(255,255,255,0.06)`,
-        }}
-      />
+      {!resolvedAvatarUrl ? <GeneratedUserAvatar seed={seed} /> : null}
 
       {resolvedAvatarUrl ? (
         <Image
@@ -120,7 +90,7 @@ export default function ProfileHeroAvatar({
       <span
         aria-hidden="true"
         className={cn(
-          "absolute inset-0 flex items-center justify-center text-3xl font-semibold text-foreground/92",
+          "absolute inset-0 z-[1] flex items-center justify-center text-3xl font-semibold text-white [text-shadow:0_1px_4px_rgb(0_0_0/0.72)]",
           fallbackClassName,
           resolvedAvatarUrl && "sr-only",
         )}
