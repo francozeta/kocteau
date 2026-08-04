@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.11](https://github.com/francozeta/kocteau/compare/v0.3.10...v0.3.11) (2026-08-04)
+
+
+### Features
+
+* **profile:** add seeded dither avatars ([542ed02](https://github.com/francozeta/kocteau/commit/542ed02b9232bba0bf8bc4aa2c0f5384c3c88d64))
+
+
+### Bug Fixes
+
+* **profile:** remove initials from dither avatars ([1b27b53](https://github.com/francozeta/kocteau/commit/1b27b5347d2a77f5f284bd509c811e551f5881fe))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.10 ([f2c543b](https://github.com/francozeta/kocteau/commit/f2c543bd36a8770db8031baeb8310244d0823d12))
+* **web:** draft public changelog for v0.3.10 ([405dfe5](https://github.com/francozeta/kocteau/commit/405dfe58cbe01e2095d3737bb45e4f141aebd376))
+
+
+### Refactors
+
+* **profile:** remove preset disc avatars ([eb00cf4](https://github.com/francozeta/kocteau/commit/eb00cf48c8ec7e417120f55d7e1626232af8046a))
+
 ## [0.3.10](https://github.com/francozeta/kocteau/compare/v0.3.9...v0.3.10) (2026-08-01)
 
 
