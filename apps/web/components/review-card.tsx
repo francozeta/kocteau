@@ -340,7 +340,6 @@ export default function ReviewCard({
                     size="sm"
                     sizes="24px"
                     className="size-6"
-                    fallbackClassName="text-[10px]"
                   />
 
                   {slots?.authorName ?? (

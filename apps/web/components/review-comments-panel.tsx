@@ -321,7 +321,6 @@ export default function ReviewCommentsPanel({
         displayName={viewer?.display_name ?? null}
         username={viewer?.username ?? null}
         className="size-8"
-        fallbackClassName="text-[11px]"
       />
       <Textarea
         id={composerId}

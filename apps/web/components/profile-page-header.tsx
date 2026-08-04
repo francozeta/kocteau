@@ -181,7 +181,6 @@ function ProfilePageHeaderState({
             displayName={localProfile.display_name}
             username={localProfile.username}
             className="size-20 shrink-0 border-border/28 md:size-24 md:border-border/20"
-            fallbackClassName="text-xl font-semibold md:text-2xl"
             priority
           />
 

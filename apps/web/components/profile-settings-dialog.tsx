@@ -183,7 +183,6 @@ export default function ProfileSettingsDialog({
                   displayName={profile.display_name}
                   username={profile.username}
                   className="size-9"
-                  initialsLength={2}
                 />
                 <div className="min-w-0">
                   <p className="truncate text-[13px] font-medium text-foreground">
