@@ -153,6 +153,9 @@ importers:
       '@origin-space/image-cropper':
         specifier: ^0.1.9
         version: 0.1.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@outpacelabs/avatars':
+        specifier: ^0.4.0
+        version: 0.4.0(react@19.2.7)
       '@paper-design/shaders-react':
         specifier: ^0.0.77
         version: 0.0.77(@types/react@19.2.14)(react@19.2.7)
@@ -1918,6 +1921,11 @@ packages:
     peerDependencies:
       react: ^19.1.0
       react-dom: ^19.1.0
+
+  '@outpacelabs/avatars@0.4.0':
+    resolution: {integrity: sha512-l//lzqRJmkvm8mNg70m9dHyYxHAq1/yyAAdOPPRC5nOMxX7TaE+ILyBQN+rxJGBQMNqktbLqkG1k9VmNbkBb1Q==}
+    peerDependencies:
+      react: '>=18'
 
   '@paper-design/shaders-react@0.0.77':
     resolution: {integrity: sha512-VCjhK7k6GT1BMjq7kLsDHMnMy1ryjCTALdhOVIf2Z5b1jh5eEHXqHdQCvMAJ7v6evjiN1twzjM1KUNOg2RoXBw==}
@@ -10470,6 +10478,10 @@ snapshots:
     dependencies:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
+
+  '@outpacelabs/avatars@0.4.0(react@19.2.7)':
+    dependencies:
+      react: 19.2.7
 
   '@paper-design/shaders-react@0.0.77(@types/react@19.2.14)(react@19.2.7)':
     dependencies:

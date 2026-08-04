@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Disc3 } from "@/components/ui/icons";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";
+import GeneratedUserAvatar from "@/components/generated-user-avatar";
 import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -147,7 +148,7 @@ export default function ProfileOnboardingFlow({
   const [bio, setBio] = useState(initialProfile?.bio ?? "");
   const [avatarUpload, setAvatarUpload] = useState<PreparedAvatarUpload | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<AvatarPresetId | null>(
-    initialProfile?.avatar_url ? null : avatarPresets[1].id,
+    null,
   );
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const [isAvatarCropDialogOpen, setIsAvatarCropDialogOpen] = useState(false);
@@ -471,7 +472,8 @@ export default function ProfileOnboardingFlow({
           setDisplayName,
           bio,
           setBio,
-          avatarPreviewUrl: avatarPreview ?? createAvatarPresetDataUrl("silver-haze", 640),
+          avatarPreviewUrl: avatarPreview,
+          avatarSeed: username || displayName || "kocteau-user",
           selectedPresetId,
           isAvatarDragging,
           onAvatarClick: openAvatarFileDialog,
@@ -515,6 +517,7 @@ function renderProfileStepControl({
   bio,
   setBio,
   avatarPreviewUrl,
+  avatarSeed,
   selectedPresetId,
   isAvatarDragging,
   onAvatarClick,
@@ -532,7 +535,8 @@ function renderProfileStepControl({
   setDisplayName: (value: string) => void;
   bio: string;
   setBio: (value: string) => void;
-  avatarPreviewUrl: string;
+  avatarPreviewUrl: string | null;
+  avatarSeed: string;
   selectedPresetId: AvatarPresetId | null;
   isAvatarDragging: boolean;
   onAvatarClick: () => void;
@@ -588,6 +592,7 @@ function renderProfileStepControl({
     return (
       <ProfileAvatarControl
         previewUrl={avatarPreviewUrl}
+        avatarSeed={avatarSeed}
         selectedPresetId={selectedPresetId}
         isDragging={isAvatarDragging}
         onAvatarClick={onAvatarClick}
@@ -619,6 +624,7 @@ function renderProfileStepControl({
 
 function ProfileAvatarControl({
   previewUrl,
+  avatarSeed,
   selectedPresetId,
   isDragging,
   onAvatarClick,
@@ -628,7 +634,8 @@ function ProfileAvatarControl({
   onAvatarDrop,
   onPresetSelect,
 }: {
-  previewUrl: string;
+  previewUrl: string | null;
+  avatarSeed: string;
   selectedPresetId: AvatarPresetId | null;
   isDragging: boolean;
   onAvatarClick: () => void;
@@ -658,12 +665,16 @@ function ProfileAvatarControl({
           )}
         >
           <span className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-background outline outline-1 outline-white/10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewUrl}
-              alt=""
-              className="size-full rounded-full object-cover"
-            />
+            {previewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={previewUrl}
+                alt=""
+                className="size-full rounded-full object-cover"
+              />
+            ) : (
+              <GeneratedUserAvatar seed={avatarSeed} />
+            )}
             <span
               aria-hidden="true"
               className="absolute inset-0 rounded-full bg-black/0 transition-colors duration-150 ease-out group-hover:bg-black/12"

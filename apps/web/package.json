@@ -20,6 +20,7 @@
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.2.10",
     "@origin-space/image-cropper": "^0.1.9",
+    "@outpacelabs/avatars": "^0.4.0",
     "@paper-design/shaders-react": "^0.0.77",
     "@sentry/nextjs": "10",
     "@supabase/ssr": "^0.12.0",
