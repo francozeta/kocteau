@@ -10,6 +10,7 @@ import {
 } from "@/components/kocteau-icons";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
+import UserAvatar from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 
 type MobileBottomBarProps = {
@@ -46,22 +47,26 @@ function NavTab({
     <Link
       href={item.href}
       aria-label={item.label}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "group flex h-10.5 min-w-10.5 items-center justify-center rounded-full border border-transparent text-muted-foreground/70 transition-[transform,color,background-color,border-color,box-shadow] duration-150 ease-out active:scale-[0.96]",
+        "group relative flex h-11 min-w-11 items-center justify-center rounded-full text-foreground/48 transition-[transform,color] duration-150 ease-out hover:text-foreground/80 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
         active
-          ? "gap-1.5 border-foreground/10 bg-foreground/10 px-3 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-          : "px-0 hover:border-foreground/10 hover:bg-foreground/7 hover:text-foreground/90",
+          ? "gap-1.5 px-3 text-foreground/96"
+          : "",
       )}
     >
-      <Icon
-        className={cn("size-[1.04rem] shrink-0", active && "text-foreground")}
-        weight={active ? "fill" : "regular"}
-      />
-      {active ? (
-        <span aria-hidden="true" className="whitespace-nowrap text-[0.68rem] font-medium leading-none">
-          {item.label}
-        </span>
-      ) : null}
+      {active ? <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/[0.14]" /> : null}
+      <span className="relative z-[1] flex items-center gap-1.5">
+        <Icon
+          className={cn("size-[1.04rem] shrink-0", active && "text-foreground")}
+          weight={active ? "fill" : "regular"}
+        />
+        {active ? (
+          <span aria-hidden="true" className="whitespace-nowrap text-[12px] font-medium leading-none">
+            {item.label}
+          </span>
+        ) : null}
+      </span>
       <span className="sr-only">{item.label}</span>
     </Link>
   );
@@ -70,10 +75,10 @@ function NavTab({
 export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
 
-  const primaryItems: NavItem[] = [
+  const navItems: NavItem[] = [
     {
       href: profile ? "/feed" : "/",
-      label: "Feed",
+      label: "Home",
       icon: KocteauHomeIcon,
       active: (current) => current === (profile ? "/feed" : "/"),
     },
@@ -83,74 +88,75 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       icon: MagnifyingGlassIcon,
       active: (current) => current.startsWith("/search") || current.startsWith("/track"),
     },
+    {
+      href: profile ? "/library" : "/login?next=%2Flibrary",
+      label: "Library",
+      icon: KocteauLibraryIcon,
+      active: (current) => current.startsWith("/library") || current.startsWith("/saved"),
+    },
   ];
-
-  const secondaryItems: NavItem[] = [
-    ...(profile
-      ? [
-          {
-            href: "/library",
-            label: "Library",
-            icon: KocteauLibraryIcon,
-            active: (current: string) =>
-              current.startsWith("/library") || current.startsWith("/saved"),
-          },
-          {
-            href: `/u/${profile.username}`,
-            label: "Profile",
-            icon: KocteauProfileIcon,
-            active: (current: string) => current.startsWith(`/u/${profile.username}`),
-          },
-        ]
-      : [
-          {
-            href: "/login",
-            label: "Log in",
-            icon: KocteauProfileIcon,
-            active: (current: string) =>
-              current.startsWith("/login") || current.startsWith("/signup"),
-          },
-        ]),
-  ];
-  const navItems = [...primaryItems, ...secondaryItems];
-  const reviewEntryLabel = profile ? "New review" : "Find a track";
+  const profileHref = profile ? `/u/${profile.username}` : "/login";
+  const isProfileActive = profile
+    ? pathname.startsWith(`/u/${profile.username}`)
+    : pathname.startsWith("/login") || pathname.startsWith("/signup");
+  const reviewEntryLabel = profile ? "Review a track" : "Find a track to review";
 
   return (
-    <nav className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.85rem)] z-50 px-3 md:hidden">
-      <div
-        className="mobile-liquid-footer pointer-events-none absolute bottom-[-0.85rem] left-1/2 h-[5.25rem] w-screen -translate-x-1/2"
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 mx-auto flex w-full max-w-[24rem] justify-center">
-        <div
-          className={cn(
-            "mobile-liquid-bar grid w-full items-center justify-between rounded-full p-1",
-            profile
-              ? "grid-cols-[auto_auto_auto_auto_1px_auto]"
-              : "grid-cols-[auto_auto_auto_1px_auto]",
-          )}
-        >
+    <nav
+      aria-label="Primary navigation"
+      className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
+    >
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 rounded-full bg-white/[0.08] p-1 backdrop-blur-2xl backdrop-saturate-150">
           {navItems.map((item) => (
             <NavTab key={item.href} item={item} pathname={pathname} />
           ))}
-          <span className="mx-1 h-7 w-px shrink-0 bg-foreground/10" aria-hidden="true" />
-          <NewReviewDialog
-            isAuthenticated={Boolean(profile)}
-            intent="review"
-            trigger={
-              <button
-                type="button"
-                aria-label={reviewEntryLabel}
-                className="flex size-10 items-center justify-center rounded-full border border-foreground bg-foreground text-background shadow-[0_10px_28px_rgba(0,0,0,0.32)] transition-[transform,background-color,border-color,color] duration-150 ease-out hover:border-foreground/90 hover:bg-foreground/90 hover:text-background active:scale-[0.96]"
-              >
-                <ReviewGlyphIcon className="size-[1.05rem]" />
-                <span className="sr-only">{reviewEntryLabel}</span>
-              </button>
-            }
-            triggerLabelClassName="sr-only"
-          />
+
+          <Link
+            href={profileHref}
+            aria-label={profile ? "Profile" : "Log in"}
+            aria-current={isProfileActive ? "page" : undefined}
+            className={cn(
+              "relative flex h-11 min-w-11 items-center justify-center rounded-full text-foreground/48 transition-[transform,color] duration-150 hover:text-foreground/80 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
+              isProfileActive && "gap-1.5 px-2.5 text-foreground/96",
+            )}
+          >
+            {isProfileActive ? <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/[0.14]" /> : null}
+            <span className="relative z-[1] flex items-center gap-1.5">
+              {profile ? (
+                <UserAvatar
+                  avatarUrl={profile.avatar_url}
+                  displayName={profile.display_name}
+                  username={profile.username}
+                  className="size-7"
+                  sizes="28px"
+                />
+              ) : (
+                <KocteauProfileIcon className="size-[1.04rem]" weight={isProfileActive ? "fill" : "regular"} />
+              )}
+              {isProfileActive ? (
+                <span aria-hidden="true" className="whitespace-nowrap text-[12px] font-medium leading-none">
+                  {profile ? "Profile" : "Log in"}
+                </span>
+              ) : null}
+            </span>
+          </Link>
         </div>
+
+        <NewReviewDialog
+          isAuthenticated={Boolean(profile)}
+          intent="review"
+          trigger={
+            <button
+              type="button"
+              aria-label={reviewEntryLabel}
+              className="flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground backdrop-blur-2xl backdrop-saturate-150 transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            >
+              <ReviewGlyphIcon className="size-[1.12rem]" weight="fill" />
+            </button>
+          }
+          triggerLabelClassName="sr-only"
+        />
       </div>
     </nav>
   );

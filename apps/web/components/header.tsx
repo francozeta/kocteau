@@ -4,8 +4,6 @@ import { useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ExternalLink, MoreHorizontal, Share2 } from "@/components/ui/icons";
-import BrandLogo from "@/components/brand-logo";
-import PrefetchLink from "@/components/prefetch-link";
 import { useRouteHeader } from "@/components/route-header-context";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,20 +113,6 @@ export default function Header({
       .join(" ");
   })();
 
-  function renderMobileLogoMark(label: string) {
-    return (
-      <PrefetchLink
-        href={profile ? "/feed" : "/"}
-        queryWarmup={{ kind: "feed" }}
-        className="mobile-liquid-logo pointer-events-auto inline-flex size-11 items-center justify-center rounded-full"
-        aria-label={`Go to feed. Current route: ${label}`}
-      >
-        <BrandLogo iconClassName="h-[1.35rem] w-[1.35rem] shrink-0" />
-        <span className="sr-only">{label}</span>
-      </PrefetchLink>
-    );
-  }
-
   const handleDetailBack = useCallback(() => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
@@ -172,7 +156,7 @@ export default function Header({
       shouldUseContextualHeader && "max-md:hidden",
     )}>
       <div
-        className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[3.75rem] w-screen -translate-x-1/2 md:hidden"
+        className="pointer-events-none absolute left-1/2 top-0 h-20 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-landing-canvas)_0%,color-mix(in_oklch,var(--kocteau-landing-canvas)_72%,transparent)_52%,transparent_100%)] md:hidden"
         aria-hidden="true"
       />
 
@@ -188,10 +172,6 @@ export default function Header({
           >
             <HamburgerIcon className="size-[1.15rem]" />
           </Button>
-        </div>
-
-        <div className="pointer-events-none absolute inset-x-14 z-10 flex min-w-0 justify-center md:hidden">
-          {renderMobileLogoMark(standardHeaderTitle)}
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:block md:px-7 xl:px-8">
@@ -224,7 +204,7 @@ export default function Header({
       <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
           <div
-            className="mobile-liquid-header pointer-events-none absolute left-1/2 top-0 h-[3.75rem] w-screen -translate-x-1/2"
+            className="pointer-events-none absolute left-1/2 top-0 h-20 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-landing-canvas)_0%,color-mix(in_oklch,var(--kocteau-landing-canvas)_72%,transparent)_52%,transparent_100%)]"
             aria-hidden="true"
           />
 
@@ -239,10 +219,6 @@ export default function Header({
             >
               <ChevronLeft className="size-[1.1rem]" />
             </Button>
-
-            <div className="pointer-events-none absolute inset-x-16 z-10 flex min-w-0 justify-center">
-              {renderMobileLogoMark(standardHeaderTitle)}
-            </div>
 
             <div className="pointer-events-auto relative z-10 inline-flex items-center rounded-full">
               <DropdownMenu>

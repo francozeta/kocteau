@@ -1021,9 +1021,8 @@
   }
 
   .kocteau-glossy-button {
-    corner-shape: squircle;
     border-color: color-mix(in oklch, white 72%, transparent);
-    border-radius: 0.68rem;
+    border-radius: 9999px;
     background-color: #f2f2f3;
     background-image:
       radial-gradient(90% 100% at 50% 0%, rgba(255, 255, 255, 0.92), transparent 58%),
@@ -1045,7 +1044,7 @@
 
   .kocteau-glossy-button:active {
     filter: brightness(1.04);
-    scale: 0.97;
+    scale: 0.96;
   }
 
   @media (min-width: 1024px) {
@@ -1067,42 +1066,6 @@
   }
 
   @media (max-width: 767px) {
-    .mobile-liquid-header {
-      @apply backdrop-blur-md backdrop-saturate-100;
-      border: 0 !important;
-      background:
-        linear-gradient(
-          180deg,
-          color-mix(in oklch, var(--background) 78%, transparent) 0%,
-          color-mix(in oklch, var(--background) 54%, transparent) 48%,
-          color-mix(in oklch, var(--background) 18%, transparent) 76%,
-          transparent 100%
-        ) !important;
-      box-shadow: none !important;
-      backdrop-filter: blur(14px) saturate(110%) !important;
-      -webkit-backdrop-filter: blur(14px) saturate(110%) !important;
-      mask-image: linear-gradient(180deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
-      -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
-    }
-
-    .mobile-liquid-footer {
-      @apply backdrop-blur-md backdrop-saturate-100;
-      border: 0 !important;
-      background:
-        linear-gradient(
-          0deg,
-          color-mix(in oklch, var(--background) 78%, transparent) 0%,
-          color-mix(in oklch, var(--background) 54%, transparent) 48%,
-          color-mix(in oklch, var(--background) 18%, transparent) 76%,
-          transparent 100%
-        ) !important;
-      box-shadow: none !important;
-      backdrop-filter: blur(14px) saturate(110%) !important;
-      -webkit-backdrop-filter: blur(14px) saturate(110%) !important;
-      mask-image: linear-gradient(0deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
-      -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 40%, rgba(0, 0, 0, 0.45) 68%, transparent 100%);
-    }
-
     .mobile-liquid-button {
       @apply backdrop-blur-md backdrop-saturate-100;
       border: 1px solid var(--kocteau-line-soft) !important;
@@ -1122,15 +1085,6 @@
 
     .mobile-liquid-button:active {
       transform: scale(0.96);
-    }
-
-    .mobile-liquid-logo {
-      @apply backdrop-blur-md backdrop-saturate-100;
-      border: 1px solid var(--kocteau-line-soft) !important;
-      background: color-mix(in oklch, var(--background) 78%, transparent) !important;
-      box-shadow: none !important;
-      backdrop-filter: blur(14px) saturate(108%) !important;
-      -webkit-backdrop-filter: blur(14px) saturate(108%) !important;
     }
 
     .mobile-liquid-bar {
@@ -1164,35 +1118,6 @@
 
     .dark .mobile-liquid-button:hover {
       background: rgba(20, 20, 23, 0.92) !important;
-    }
-
-    .dark .mobile-liquid-header {
-      background:
-        linear-gradient(
-          180deg,
-          rgba(9, 9, 10, 0.82) 0%,
-          rgba(9, 9, 10, 0.58) 48%,
-          rgba(9, 9, 10, 0.2) 76%,
-          rgba(9, 9, 10, 0) 100%
-        ) !important;
-      box-shadow: none !important;
-    }
-
-    .dark .mobile-liquid-footer {
-      background:
-        linear-gradient(
-          0deg,
-          rgba(9, 9, 10, 0.82) 0%,
-          rgba(9, 9, 10, 0.58) 48%,
-          rgba(9, 9, 10, 0.2) 76%,
-          rgba(9, 9, 10, 0) 100%
-        ) !important;
-      box-shadow: none !important;
-    }
-
-    .dark .mobile-liquid-logo {
-      background: rgba(12, 12, 14, 0.82) !important;
-      box-shadow: none !important;
     }
 
     .dark .mobile-liquid-bar {

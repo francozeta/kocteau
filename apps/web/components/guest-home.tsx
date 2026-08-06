@@ -62,7 +62,7 @@ function AskKocteauLinks() {
           rel="noreferrer"
           aria-label={`Ask ${label} about Kocteau`}
           title={label}
-          className="flex size-9 items-center justify-center rounded-[0.5rem] bg-foreground/[0.065] text-muted-foreground shadow-[0_0_0_1px_oklch(1_0_0/0.055)] transition-[background-color,color,transform] duration-150 hover:bg-foreground/[0.1] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 active:scale-[0.96]"
+          className="flex size-8 items-center justify-center rounded-full bg-foreground/[0.065] text-muted-foreground shadow-[0_0_0_1px_oklch(1_0_0/0.055)] transition-[background-color,color,transform] duration-150 hover:bg-foreground/[0.1] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 active:scale-[0.96]"
         >
           <Icon className="size-3.5" aria-hidden="true" />
         </a>
@@ -84,14 +84,14 @@ function GuestHomeHero() {
         <div className="mt-8 flex flex-wrap items-center gap-2.5">
           <Link
             href="/signup"
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-foreground px-4 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96]"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-foreground px-3.5 font-circular text-[12px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96] sm:text-[13px]"
           >
             Join Kocteau
             <ArrowRight className="size-3.5" />
           </Link>
           <Link
             href="/reviews"
-            className="inline-flex h-10 items-center justify-center rounded-full px-3 font-circular text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            className="inline-flex h-9 items-center justify-center rounded-full px-2.5 font-circular text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 sm:text-[13px]"
           >
             Read recent reviews
           </Link>
@@ -262,14 +262,14 @@ function GuestClosingCta() {
         <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <Link
             href="/signup"
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-foreground px-4 font-circular text-[13px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-foreground px-3.5 font-circular text-[12px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96] sm:text-[13px]"
           >
             Join Kocteau
             <ArrowRight className="size-3.5" />
           </Link>
           <Link
             href="/reviews"
-            className="inline-flex h-10 items-center justify-center rounded-full border border-foreground/[0.14] px-4 font-circular text-[13px] font-medium text-foreground/82 transition-[border-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-[0.97]"
+            className="inline-flex h-9 items-center justify-center rounded-full border border-foreground/[0.14] px-3 font-circular text-[12px] font-medium text-foreground/82 transition-[border-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 active:scale-[0.96] sm:text-[13px]"
           >
             Read music reviews
           </Link>
