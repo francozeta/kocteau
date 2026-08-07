@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.12](https://github.com/francozeta/kocteau/compare/v0.3.11...v0.3.12) (2026-08-07)
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.11 ([1a5621d](https://github.com/francozeta/kocteau/commit/1a5621d3d310ec9c329500ffee5a441450fcd148))
+* **web:** draft public changelog for v0.3.11 ([08b42d7](https://github.com/francozeta/kocteau/commit/08b42d703f0c1965e9a2be80978e81119f3751a9))
+
 ## [0.3.11](https://github.com/francozeta/kocteau/compare/v0.3.10...v0.3.11) (2026-08-04)
 
 
