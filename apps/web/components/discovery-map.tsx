@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import DiscoveryOrbit, {
   type DiscoveryOrbitItem,
@@ -8,7 +16,7 @@ import DiscoveryOrbit, {
 import DiscoverySeedActions from "@/components/discovery-seed-actions";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { Input } from "@/components/ui/input";
-import { Search } from "@/components/ui/icons";
+import { Search, XIcon } from "@/components/ui/icons";
 import {
   useKocteauSearch,
   type KocteauSearchResult,
@@ -280,6 +288,228 @@ function getResultTypeLabel(result: KocteauSearchResult) {
   return "Song";
 }
 
+type DiscoverySearchProps = {
+  query: string;
+  results: KocteauSearchResult[];
+  isSearching: boolean;
+  isExpanding: boolean;
+  onQueryChange: (query: string) => void;
+  onChooseResult: (result: KocteauSearchResult) => void;
+  onSubmit: () => boolean;
+  mobile?: boolean;
+};
+
+function DiscoverySearch({
+  query,
+  results,
+  isSearching,
+  isExpanding,
+  onQueryChange,
+  onChooseResult,
+  onSubmit,
+  mobile = false,
+}: DiscoverySearchProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const hasQuery = query.trim().length >= 2;
+  const resultListId = mobile
+    ? "mobile-discovery-seed-results"
+    : "discovery-seed-results";
+  const inputId = mobile
+    ? "mobile-discovery-seed-search"
+    : "discovery-seed-search";
+
+  const chooseResult = (result: KocteauSearchResult) => {
+    if (mobile) {
+      inputRef.current?.blur();
+      setIsFocused(false);
+    }
+
+    onChooseResult(result);
+  };
+
+  const resultList = hasQuery && (!mobile || isFocused) ? (
+    <div
+      id={resultListId}
+      className={cn(
+        "absolute inset-x-0 z-40 overflow-hidden bg-[var(--kocteau-surface-raised)] p-1.5",
+        mobile
+          ? "bottom-[calc(100%+0.5rem)] max-h-[min(23rem,calc(100dvh-9rem))] overflow-y-auto rounded-[0.9rem]"
+          : "top-[calc(100%+0.35rem)] rounded-[0.75rem] shadow-[var(--kocteau-shadow-card)]",
+      )}
+    >
+      {results.length > 0 ? (
+        <div className="grid gap-0.5">
+          {results.map((result) => (
+            <button
+              key={`${result.provider}:${result.type}:${result.provider_id}`}
+              type="button"
+              onPointerDown={(event) => {
+                if (mobile) event.preventDefault();
+              }}
+              onClick={() => chooseResult(result)}
+              className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2.5 rounded-[0.6rem] p-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.045] focus-visible:ring-2 focus-visible:ring-ring/40"
+            >
+              <EntityCoverImage
+                src={result.cover_url}
+                alt=""
+                sizes="44px"
+                quality={70}
+                variant="thumbnail"
+                className={cn(
+                  "size-11 bg-muted/30",
+                  result.type === "artist"
+                    ? "rounded-full"
+                    : "rounded-[0.5rem]",
+                )}
+                iconClassName="size-3.5"
+              />
+              <span className="min-w-0">
+                <span className="block truncate font-pixel text-[12px] font-medium text-foreground/88">
+                  {result.title}
+                </span>
+                <span className="block truncate text-[11px] text-muted-foreground/56">
+                  {result.type === "artist"
+                    ? "Artist"
+                    : result.artist_name || "Unknown artist"}
+                </span>
+              </span>
+              <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/42">
+                {getResultTypeLabel(result)}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="px-3 py-4 text-[11px] text-muted-foreground/58">
+          {isSearching ? "Searching the catalog…" : "No matches. Try another name."}
+        </p>
+      )}
+    </div>
+  ) : null;
+
+  if (mobile) {
+    return (
+      <div
+        className={cn(
+          "grid items-center transition-[grid-template-columns,gap] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
+          isFocused
+            ? "grid-cols-[minmax(0,1fr)_2.75rem] gap-3"
+            : "grid-cols-[minmax(0,1fr)_0fr] gap-0",
+        )}
+      >
+        <form
+          role="search"
+          className="relative min-w-0"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (onSubmit()) {
+              inputRef.current?.blur();
+              setIsFocused(false);
+            }
+          }}
+        >
+          <label htmlFor={inputId} className="sr-only">
+            Search a song, album, or artist to start
+          </label>
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.08rem] -translate-y-1/2 text-muted-foreground/62" />
+          <Input
+            ref={inputRef}
+            id={inputId}
+            data-global-search-input="true"
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+              if (event.key !== "Enter") return;
+
+              event.preventDefault();
+
+              if (onSubmit()) {
+                inputRef.current?.blur();
+                setIsFocused(false);
+              }
+            }}
+            placeholder="Search a song, album, or artist…"
+            autoComplete="off"
+            maxLength={80}
+            aria-expanded={Boolean(isFocused && hasQuery)}
+            aria-controls={resultListId}
+            className="h-11 rounded-full border-transparent bg-white/[0.08] pl-10 pr-11 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70"
+          />
+          {query ? (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => onQueryChange("")}
+              className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/[0.14] text-muted-foreground/72 transition-[transform,color,background-color] duration-150 hover:bg-white/[0.2] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            >
+              <XIcon className="size-3.5" />
+            </button>
+          ) : null}
+          {resultList}
+        </form>
+
+        <div className="overflow-hidden">
+          <button
+            type="button"
+            aria-label="Close search"
+            aria-hidden={!isFocused}
+            tabIndex={isFocused ? 0 : -1}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() => {
+              inputRef.current?.blur();
+              setIsFocused(false);
+            }}
+            className={cn(
+              "flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
+              isFocused ? "opacity-100 scale-100" : "pointer-events-none opacity-0 scale-95",
+            )}
+          >
+            <XIcon className="size-5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="relative min-w-0 flex-1"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+      role="search"
+    >
+      <label htmlFor={inputId} className="sr-only">
+        Search a song, album, or artist to start
+      </label>
+      <Search className="pointer-events-none absolute left-3.5 top-[1.35rem] z-10 size-4 -translate-y-1/2 text-muted-foreground/62" />
+      <Input
+        id={inputId}
+        data-global-search-input="true"
+        value={query}
+        onChange={(event) => onQueryChange(event.target.value)}
+        placeholder="Search a song, album, or artist…"
+        autoComplete="off"
+        maxLength={80}
+        aria-expanded={results.length > 0}
+        aria-controls={resultListId}
+        className="h-11 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-12 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/58 sm:text-[13px]"
+      />
+      {isExpanding ? (
+        <span
+          className="pointer-events-none absolute right-3.5 top-[1.35rem] size-1.5 -translate-y-1/2 rounded-full bg-foreground/60 motion-safe:animate-pulse"
+          aria-hidden="true"
+        />
+      ) : null}
+      {resultList}
+    </form>
+  );
+}
+
 export default function DiscoveryMap({
   seeds = [],
   initialQuery = "",
@@ -297,6 +527,8 @@ export default function DiscoveryMap({
     initialSeed,
   );
   const [seedQuery, setSeedQuery] = useState(initialQuery);
+  const [mobileSearchDock, setMobileSearchDock] =
+    useState<HTMLElement | null>(null);
   const seedSearch = useKocteauSearch({
     query: seedQuery,
     type: "all",
@@ -379,6 +611,10 @@ export default function DiscoveryMap({
   const hasExplorationIntent = Boolean(selectedSeed || seedQuery.trim());
 
   useEffect(() => {
+    setMobileSearchDock(document.getElementById("mobile-search-dock"));
+  }, []);
+
+  useEffect(() => {
     const currentState = (window.history.state ?? {}) as DiscoveryHistoryState;
 
     if (!currentState.kocteauDiscovery) {
@@ -441,6 +677,14 @@ export default function DiscoveryMap({
   const chooseSearchSeed = (result: KocteauSearchResult) => {
     selectSeed(mapSearchResultToSeed(result));
   };
+  const chooseFirstSearchResult = () => {
+    const firstResult = seedResults[0];
+
+    if (!firstResult) return false;
+
+    chooseSearchSeed(firstResult);
+    return true;
+  };
 
   return (
     <section
@@ -457,103 +701,40 @@ export default function DiscoveryMap({
         aria-hidden="true"
       />
 
-      <form
+      <div
         className={cn(
-          "absolute inset-x-0 z-40 mx-auto flex w-full max-w-2xl items-start px-4 transition-[top,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:px-6 lg:px-0",
+          "absolute inset-x-0 z-40 mx-auto hidden w-full max-w-2xl items-start px-4 transition-[top,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:flex md:px-6 lg:px-0",
           hasExplorationIntent
             ? "top-4 sm:top-5 lg:top-6"
             : "top-1/2 -translate-y-1/2",
         )}
-        onSubmit={(event) => {
-          event.preventDefault();
-          const firstResult = seedResults[0];
-
-          if (firstResult) {
-            chooseSearchSeed(firstResult);
-          }
-        }}
-        role="search"
       >
-        <div className="relative min-w-0 flex-1">
-          <label htmlFor="discovery-seed-search" className="sr-only">
-            Search a song, album, or artist to start
-          </label>
-          <Search className="pointer-events-none absolute left-3.5 top-[1.35rem] z-10 size-4 -translate-y-1/2 text-muted-foreground/62" />
-          <Input
-            id="discovery-seed-search"
-            data-global-search-input="true"
-            value={seedQuery}
-            onChange={(event) => setSeedQuery(event.target.value)}
-            placeholder="Search a song, album, or artist…"
-            autoComplete="off"
-            maxLength={80}
-            aria-expanded={seedResults.length > 0}
-            aria-controls="discovery-seed-results"
-            className="h-11 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-12 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/58 sm:text-[13px]"
-          />
+        <DiscoverySearch
+          query={seedQuery}
+          results={seedResults}
+          isSearching={seedSearch.isFetching}
+          isExpanding={isExpanding}
+          onQueryChange={setSeedQuery}
+          onChooseResult={chooseSearchSeed}
+          onSubmit={chooseFirstSearchResult}
+        />
+      </div>
 
-          {isExpanding ? (
-            <span
-              className="pointer-events-none absolute right-3.5 top-[1.35rem] size-1.5 -translate-y-1/2 rounded-full bg-foreground/60 motion-safe:animate-pulse"
-              aria-hidden="true"
-            />
-          ) : null}
-
-          {seedQuery.trim().length >= 2 ? (
-            <div
-              id="discovery-seed-results"
-              className="absolute inset-x-0 top-[calc(100%+0.35rem)] z-40 overflow-hidden rounded-[0.75rem] bg-[var(--kocteau-surface-raised)] p-1.5 shadow-[var(--kocteau-shadow-card)]"
-            >
-              {seedResults.length > 0 ? (
-                <div className="grid gap-0.5">
-                  {seedResults.map((result) => (
-                    <button
-                      key={`${result.provider}:${result.type}:${result.provider_id}`}
-                      type="button"
-                      onClick={() => chooseSearchSeed(result)}
-                      className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2.5 rounded-[0.6rem] p-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.045] focus-visible:ring-2 focus-visible:ring-ring/40"
-                    >
-                      <EntityCoverImage
-                        src={result.cover_url}
-                        alt=""
-                        sizes="44px"
-                        quality={70}
-                        variant="thumbnail"
-                        className={cn(
-                          "size-11 bg-muted/30",
-                          result.type === "artist"
-                            ? "rounded-full"
-                            : "rounded-[0.5rem]",
-                        )}
-                        iconClassName="size-3.5"
-                      />
-                      <span className="min-w-0">
-                        <span className="block truncate font-pixel text-[12px] font-medium text-foreground/88">
-                          {result.title}
-                        </span>
-                        <span className="block truncate text-[11px] text-muted-foreground/56">
-                          {result.type === "artist"
-                            ? "Artist"
-                            : result.artist_name || "Unknown artist"}
-                        </span>
-                      </span>
-                      <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/42">
-                        {getResultTypeLabel(result)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="px-3 py-4 text-[11px] text-muted-foreground/58">
-                  {seedSearch.isFetching
-                    ? "Searching the catalog…"
-                    : "No matches. Try another name."}
-                </p>
-              )}
-            </div>
-          ) : null}
-        </div>
-      </form>
+      {mobileSearchDock
+        ? createPortal(
+            <DiscoverySearch
+              query={seedQuery}
+              results={seedResults}
+              isSearching={seedSearch.isFetching}
+              isExpanding={isExpanding}
+              onQueryChange={setSeedQuery}
+              onChooseResult={chooseSearchSeed}
+              onSubmit={chooseFirstSearchResult}
+              mobile
+            />,
+            mobileSearchDock,
+          )
+        : null}
 
       <div className="absolute inset-0 z-10 overflow-hidden">
         {orbitItems.length > 0 ? (

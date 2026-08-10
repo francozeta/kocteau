@@ -75,6 +75,17 @@ function NavTab({
 export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
 
+  if (pathname.startsWith("/search")) {
+    return (
+      <nav
+        aria-label="Search controls"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-[100001] w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+      >
+        <div id="mobile-search-dock" />
+      </nav>
+    );
+  }
+
   const navItems: NavItem[] = [
     {
       href: profile ? "/feed" : "/",
