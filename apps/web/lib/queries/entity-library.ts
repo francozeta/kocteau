@@ -22,7 +22,23 @@ export type ViewerEntityLibraryItem = {
     cover_url: string | null;
     deezer_url: string | null;
     href: string;
+    artist: ViewerLibraryArtist | null;
   } | null;
+};
+
+export type ViewerLibraryArtist = {
+  id: string;
+  provider: string;
+  provider_id: string;
+  name: string;
+  image_url: string | null;
+  deezer_url: string | null;
+  href: string;
+};
+
+export type ViewerLibraryArtistItem = {
+  saved_at: string;
+  artist: ViewerLibraryArtist;
 };
 
 type EntityLibraryRow = {
@@ -37,6 +53,14 @@ type EntityLibraryRow = {
     artist_name: string | null;
     cover_url: string | null;
     deezer_url: string | null;
+    artist: {
+      id: string;
+      provider: string;
+      provider_id: string;
+      name: string;
+      image_url: string | null;
+      deezer_url: string | null;
+    } | null;
   } | null;
 };
 
@@ -53,6 +77,18 @@ function normalizeLibraryItem(row: EntityLibraryRow): ViewerEntityLibraryItem {
       ? {
           ...row.entities,
           href: buildEntityCanonicalPath(row.entities),
+          artist: row.entities.artist
+            ? {
+                ...row.entities.artist,
+                href: buildEntityCanonicalPath({
+                  id: row.entities.artist.id,
+                  provider: row.entities.artist.provider,
+                  provider_id: row.entities.artist.provider_id,
+                  type: "artist",
+                  title: row.entities.artist.name,
+                }),
+              }
+            : null,
         }
       : null,
   };
@@ -112,7 +148,15 @@ export async function getViewerEntityLibraryItems(userId: string) {
               title,
               artist_name,
               cover_url,
-              deezer_url
+              deezer_url,
+              artist:artists (
+                id,
+                provider,
+                provider_id,
+                name,
+                image_url,
+                deezer_url
+              )
             )
           `,
         )
@@ -129,13 +173,31 @@ export async function getViewerEntityLibraryItems(userId: string) {
 
         return {
           tracks: [] satisfies ViewerEntityLibraryItem[],
+          albums: [] satisfies ViewerEntityLibraryItem[],
+          artists: [] satisfies ViewerLibraryArtistItem[],
         };
       }
 
       const items = (data ?? []).map(normalizeLibraryItem);
 
+      const libraryItems = items.filter((item) => item.item_type === "library");
+      const artistsById = new Map<string, ViewerLibraryArtistItem>();
+
+      libraryItems.forEach((item) => {
+        const artist = item.entity?.artist;
+
+        if (artist && !artistsById.has(artist.id)) {
+          artistsById.set(artist.id, {
+            saved_at: item.saved_at,
+            artist,
+          });
+        }
+      });
+
       return {
-        tracks: items.filter((item) => item.item_type === "library"),
+        tracks: libraryItems.filter((item) => item.entity?.type === "track"),
+        albums: libraryItems.filter((item) => item.entity?.type === "album"),
+        artists: [...artistsById.values()],
       };
     },
     { userId },

@@ -2,9 +2,9 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowLeft } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
 import { OnboardingProgressBar } from "@/components/auth/onboarding-progress-bar";
+import { KocteauChevronLeftSmallIcon } from "@/components/kocteau-icons";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -148,7 +148,7 @@ export default function OnboardingStepFrame({
               aria-label="Go back"
               className="size-10 rounded-full bg-foreground/[0.04] text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-foreground/[0.08] hover:text-foreground active:scale-[0.96]"
             >
-              <ArrowLeft className="size-4" />
+              <KocteauChevronLeftSmallIcon className="size-4" />
             </Button>
           ) : (
             <div className="size-10" aria-hidden="true" />

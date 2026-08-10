@@ -1,17 +1,23 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, ExternalLink, MoreHorizontal, Share2 } from "@/components/ui/icons";
+import { ExternalLink, Share2 } from "@/components/ui/icons";
+import {
+  KocteauChevronLeftMediumIcon,
+  KocteauMoreIcon,
+} from "@/components/kocteau-icons";
 import { useRouteHeader } from "@/components/route-header-context";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { shareUrl } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -54,6 +60,7 @@ export default function Header({
   const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const { detailHeader } = useRouteHeader();
   const isMobileReviewRoute = /^\/review\/[^/]+$/.test(pathname) || /^\/reviews\/[^/]+\/[^/]+$/.test(pathname);
   const isTrackDetailRoute =
@@ -167,7 +174,7 @@ export default function Header({
             variant="ghost"
             size="icon-lg"
             onClick={toggleSidebar}
-            className="mobile-liquid-button pointer-events-auto size-10 rounded-full text-muted-foreground hover:text-foreground md:hidden"
+            className="pointer-events-auto size-11 rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:scale-[0.96] md:hidden"
             aria-label="Toggle navigation"
           >
             <HamburgerIcon className="size-[1.15rem]" />
@@ -186,9 +193,9 @@ export default function Header({
           {profile ? null : (
             <Link href="/login">
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
-                className="pointer-events-auto h-10 rounded-full border-foreground bg-foreground px-4 text-background shadow-[0_10px_28px_rgba(0,0,0,0.28)] transition-[background-color,border-color,color,transform,box-shadow] duration-150 ease-out hover:border-foreground/90 hover:bg-foreground/90 hover:text-background active:scale-[0.96] md:h-8 md:rounded-[0.62rem] md:px-3 md:text-xs"
+                className="pointer-events-auto h-8 rounded-full border-0 px-2.5 text-[12px] font-medium shadow-none transition-[background-color,transform] duration-150 ease-out active:scale-[0.96] sm:px-3 sm:text-[13px]"
               >
                 Log in
               </Button>
@@ -209,55 +216,66 @@ export default function Header({
           />
 
           <div className="relative z-10 flex h-11 items-center justify-between gap-3">
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="icon-lg"
               onClick={handleDetailBack}
-              className="mobile-liquid-button pointer-events-auto relative z-10 size-10 rounded-full text-foreground"
+              className="pointer-events-auto relative z-10 flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 text-foreground transition-[transform,color] duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
               aria-label="Go back"
             >
-              <ChevronLeft className="size-[1.1rem]" />
-            </Button>
+              <KocteauChevronLeftMediumIcon className="size-5" />
+            </button>
 
-            <div className="pointer-events-auto relative z-10 inline-flex items-center rounded-full">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
+            <div className="pointer-events-auto relative z-10 inline-flex items-center">
+              <Drawer open={mobileActionsOpen} onOpenChange={setMobileActionsOpen}>
+                <DrawerTrigger asChild>
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="icon-lg"
-                    className="mobile-liquid-button size-10 rounded-full text-muted-foreground hover:text-foreground"
+                    className="flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground transition-[transform,color] duration-150 hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                     aria-label={isProfileDetailRoute ? "Profile actions" : isMobileReviewRoute ? "Review actions" : "Track actions"}
                   >
-                    <MoreHorizontal className="size-[1.1rem]" />
-                  </Button>
-                </DropdownMenuTrigger>
+                    <KocteauMoreIcon className="size-5" />
+                  </button>
+                </DrawerTrigger>
 
-                <DropdownMenuContent
-                  align="end"
-                  className="w-48 rounded-2xl border-border/30 bg-popover/96 p-1.5 shadow-none backdrop-blur-md"
-                >
-                  <DropdownMenuItem onSelect={() => void handleShareDetail()}>
-                    <Share2 className="size-4" />
-                    {isProfileDetailRoute ? "Share profile" : isMobileReviewRoute ? "Share review" : "Share track"}
-                  </DropdownMenuItem>
+                <DrawerContent className="p-0 text-foreground before:inset-0 before:rounded-t-[1.35rem] before:border-x before:border-b-0 before:border-t before:border-border/36 before:bg-background">
+                  <DrawerHeader className="px-4 pb-3 pt-4 text-left">
+                    <DrawerTitle>
+                      {isProfileDetailRoute ? "Profile actions" : isMobileReviewRoute ? "Review actions" : "Track actions"}
+                    </DrawerTitle>
+                    <DrawerDescription className="sr-only">
+                      Share this page or open it in another service.
+                    </DrawerDescription>
+                  </DrawerHeader>
 
-                  {(detailHeader?.externalLinks ?? []).map((link) => (
-                    <DropdownMenuItem
-                      key={link.label}
-                      onSelect={() => {
-                        if (typeof window !== "undefined") {
-                          window.open(link.url, "_blank", "noopener,noreferrer");
-                        }
+                  <div className="space-y-2 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileActionsOpen(false);
+                        void handleShareDetail();
                       }}
+                      className="flex min-h-11 w-full items-center gap-3 rounded-full bg-white/[0.08] px-4 text-sm font-medium text-foreground transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                     >
-                      <ExternalLink className="size-4" />
-                      {link.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      <Share2 className="size-4" />
+                      {isProfileDetailRoute ? "Share profile" : isMobileReviewRoute ? "Share review" : "Share track"}
+                    </button>
+
+                    {(detailHeader?.externalLinks ?? []).map((link) => (
+                      <a
+                        key={link.label}
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setMobileActionsOpen(false)}
+                        className="flex min-h-11 w-full items-center gap-3 rounded-full bg-white/[0.08] px-4 text-sm font-medium text-foreground transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                      >
+                        <ExternalLink className="size-4" />
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </DrawerContent>
+              </Drawer>
             </div>
           </div>
         </header>

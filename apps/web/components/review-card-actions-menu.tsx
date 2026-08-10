@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Bookmark, Flag, MoreHorizontal, Music2, PencilLine, TextQuote, Trash2 } from "@/components/ui/icons";
+import { Flag, Music2, PencilLine, TextQuote, Trash2 } from "@/components/ui/icons";
 import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
+import { KocteauBookmarkIcon, KocteauMoreIcon } from "@/components/kocteau-icons";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import {
@@ -94,7 +95,7 @@ export default function ReviewCardActionsMenu({
               className="size-7 rounded-md border border-transparent bg-transparent text-muted-foreground/82 hover:bg-foreground/[0.055] hover:text-foreground"
               aria-label="Review actions"
             >
-              <MoreHorizontal className="size-4" />
+              <KocteauMoreIcon className="size-4" />
             </Button>
           )}
         </DropdownMenuTrigger>
@@ -131,7 +132,10 @@ export default function ReviewCardActionsMenu({
               void handleBookmarkToggle();
             }}
           >
-            <Bookmark className="size-4" />
+            <KocteauBookmarkIcon
+              className="size-4"
+              weight={bookmarkState.bookmarked ? "fill" : "regular"}
+            />
             {bookmarkState.bookmarked ? "Saved" : "Save"}
           </DropdownMenuItem>
 

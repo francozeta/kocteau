@@ -3,8 +3,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronLeft } from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
+import { KocteauChevronLeftSmallIcon } from "@/components/kocteau-icons";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
@@ -84,7 +84,7 @@ export default function AuthFormShell({
         href="/"
         className="absolute left-4 top-4 z-10 inline-flex h-9 items-center gap-1.5 rounded-[0.45rem] px-2.5 text-xs font-medium text-muted-foreground transition-[background-color,color,transform] duration-150 ease-out hover:bg-white/[0.055] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 sm:left-6 sm:top-6"
       >
-        <ChevronLeft className="size-3.5" />
+        <KocteauChevronLeftSmallIcon className="size-3.5" />
         Home
       </Link>
 

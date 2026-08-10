@@ -6,6 +6,7 @@ import { trackAnalyticsEvent } from "@/lib/analytics/client";
 
 type ReviewPageHeaderBridgeProps = {
   reviewId: string;
+  commentsCount?: number;
   entityId?: string | null;
   isAuthenticated?: boolean;
   sharePath?: string;
@@ -16,6 +17,7 @@ type ReviewPageHeaderBridgeProps = {
 
 export default function ReviewPageHeaderBridge({
   reviewId,
+  commentsCount = 0,
   entityId,
   isAuthenticated = false,
   sharePath,
@@ -37,13 +39,15 @@ export default function ReviewPageHeaderBridge({
       title,
       shareLabel: title.trim() || trackLabel,
       sharePath: sharePath ?? `/review/${reviewId}`,
+      reviewId,
+      commentsCount,
       externalLinks: [],
     });
 
     return () => {
       setDetailHeader(null);
     };
-  }, [artistName, entityTitle, reviewId, setDetailHeader, sharePath, title]);
+  }, [artistName, commentsCount, entityTitle, reviewId, setDetailHeader, sharePath, title]);
 
   useEffect(() => {
     if (!isAuthenticated) {

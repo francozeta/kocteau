@@ -15,6 +15,8 @@ export type DetailHeaderState = {
   title: string;
   shareLabel: string;
   sharePath: string;
+  reviewId?: string;
+  commentsCount?: number;
   externalLinks: Array<{
     label: string;
     url: string;

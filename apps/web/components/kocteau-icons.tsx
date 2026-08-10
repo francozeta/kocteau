@@ -391,3 +391,189 @@ export const KocteauActivityIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   },
 );
 KocteauActivityIcon.displayName = "KocteauActivityIcon";
+
+export const KocteauReviewsIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const isFilled = weight === "fill";
+
+    return (
+      <svg
+        ref={ref}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        className={cn("icon size-5 shrink-0", className)}
+        fill="none"
+        {...props}
+      >
+        <path
+          d="M11.3151 2.17969C11.5904 1.60677 12.4096 1.60677 12.6849 2.17969L15.0534 7.10966C15.1643 7.34032 15.3847 7.49956 15.6393 7.5329L21.0889 8.24637C21.7226 8.32933 21.976 9.1071 21.5119 9.54462L17.5278 13.3009C17.3409 13.4772 17.2564 13.7357 17.3034 13.9877L18.3039 19.3544C18.4204 19.9793 17.7574 20.4596 17.1961 20.157L12.3614 17.5509C12.1359 17.4294 11.8641 17.4294 11.6386 17.5509L6.80393 20.157C6.24257 20.4596 5.57955 19.9793 5.69605 19.3544L6.69661 13.9877C6.7436 13.7357 6.65911 13.4772 6.47218 13.3009L2.48806 9.54462C2.024 9.1071 2.27743 8.32933 2.91107 8.24637L8.36069 7.5329C8.61531 7.49956 8.83574 7.34032 8.94656 7.10966L11.3151 2.17969Z"
+          fill={isFilled ? "currentColor" : "none"}
+          stroke={isFilled ? "none" : "currentColor"}
+          strokeWidth={isFilled ? undefined : strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+);
+KocteauReviewsIcon.displayName = "KocteauReviewsIcon";
+
+export const KocteauChevronLeftSmallIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path
+          d="M13.5858 16L10.2929 12.7071C9.90237 12.3166 9.90237 11.6834 10.2929 11.2929L13.5858 8"
+          stroke="currentColor"
+          strokeWidth={strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+);
+KocteauChevronLeftSmallIcon.displayName = "KocteauChevronLeftSmallIcon";
+
+export const KocteauChevronLeftMediumIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path
+          d="M14.5 18.25L8.25 12L14.5 5.75"
+          stroke="currentColor"
+          strokeWidth={strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+);
+KocteauChevronLeftMediumIcon.displayName = "KocteauChevronLeftMediumIcon";
+
+export const KocteauMoreIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <rect x="3" y="10" width="4" height="4" rx="2" fill="currentColor" />
+        <rect x="10" y="10" width="4" height="4" rx="2" fill="currentColor" />
+        <rect x="17" y="10" width="4" height="4" rx="2" fill="currentColor" />
+      </svg>
+    );
+  },
+);
+KocteauMoreIcon.displayName = "KocteauMoreIcon";
+
+export const KocteauLikeIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const isFilled = weight === "fill";
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path
+          d={isFilled
+            ? "M12.367 21.404C21.0867 16.5047 23.0858 10.7671 21.517 6.84578C20.7498 4.92821 19.1421 3.55922 17.2522 3.1368C15.5338 2.75271 13.6394 3.16312 11.9995 4.54956C10.3596 3.16312 8.46525 2.75271 6.74682 3.13681C4.85695 3.55922 3.24924 4.92822 2.48209 6.8458C0.913293 10.7672 2.91243 16.5047 11.6322 21.404C11.8603 21.5322 12.1388 21.5322 12.367 21.404Z"
+            : "M12 5.57193C18.3331 -0.86765 29.1898 11.0916 12 20.75C-5.18982 11.0916 5.66687 -0.867651 12 5.57193Z"}
+          fill={isFilled ? "currentColor" : "none"}
+          stroke={isFilled ? "none" : "currentColor"}
+          strokeWidth={isFilled ? undefined : strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+);
+KocteauLikeIcon.displayName = "KocteauLikeIcon";
+
+export const KocteauCommentIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path
+          d="M15.25 9H8.75M15.25 13H8.75M9.29422 18.4836L11.3593 20.2147C11.7292 20.5248 12.2679 20.5263 12.6397 20.2183L14.738 18.4799C14.9173 18.3313 15.143 18.25 15.3759 18.25H18.25C19.3546 18.25 20.25 17.3546 20.25 16.25V5.75C20.25 4.64543 19.3546 3.75 18.25 3.75H5.75C4.64543 3.75 3.75 4.64543 3.75 5.75V16.25C3.75 17.3546 4.64543 18.25 5.75 18.25H8.65182C8.88675 18.25 9.11418 18.3327 9.29422 18.4836Z"
+          stroke="currentColor"
+          strokeWidth={strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+);
+KocteauCommentIcon.displayName = "KocteauCommentIcon";
+
+export const KocteauBookmarkIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const isFilled = weight === "fill";
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path
+          d={isFilled
+            ? "M6.75 2C5.23122 2 4 3.23122 4 4.75V20.2515C4 21.6527 5.56475 22.4857 6.72719 21.7032L11.302 18.6239C11.724 18.3399 12.276 18.3399 12.698 18.6239L17.2728 21.7032C18.4353 22.4857 20 21.6527 20 20.2515V4.75C20 3.23122 18.7688 2 17.25 2H6.75Z"
+            : "M19.25 20.2515V4.75C19.25 3.64543 18.3546 2.75 17.25 2.75H6.75C5.64543 2.75 4.75 3.64543 4.75 4.75V20.2515C4.75 21.0522 5.64414 21.5281 6.30839 21.081L10.8832 18.0017C11.5584 17.5473 12.4416 17.5473 13.1168 18.0017L17.6916 21.081C18.3559 21.5282 19.25 21.0522 19.25 20.2515Z"}
+          fill={isFilled ? "currentColor" : "none"}
+          stroke={isFilled ? "none" : "currentColor"}
+          strokeWidth={isFilled ? undefined : strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+);
+KocteauBookmarkIcon.displayName = "KocteauBookmarkIcon";
+
+export const KocteauArtistIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path d="M14.7509 13.25L6.41008 20.6494C5.61848 21.3517 4.41712 21.3157 3.66886 20.5674L3.43351 20.332C2.68526 19.5838 2.64923 18.3824 3.35148 17.5908L10.7509 9.25L14.7509 13.25Z" fill="currentColor" />
+        <path d="M16.5009 2.5C19.2623 2.50006 21.5009 4.73861 21.5009 7.5C21.5009 10.2614 19.2623 12.4999 16.5009 12.5C16.3014 12.5 16.1045 12.4885 15.9111 12.4658L11.5351 8.08984C11.5123 7.8964 11.5009 7.69956 11.5009 7.5C11.5009 4.73858 13.7395 2.5 16.5009 2.5Z" fill="currentColor" />
+      </svg>
+    );
+  },
+);
+KocteauArtistIcon.displayName = "KocteauArtistIcon";
+
+export const KocteauAlbumIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path fillRule="evenodd" clipRule="evenodd" d="M11 5.78887C11 4.00963 12.664 2.69875 14.3938 3.1153L18.8938 4.19894C20.1293 4.49645 21 5.60173 21 6.87251V17.1277C21 18.3984 20.1293 19.5037 18.8938 19.8012L14.3938 20.8849C12.664 21.3014 11 19.9905 11 18.2113V5.78887ZM7.75 4.00008C8.16421 4.00008 8.5 4.33587 8.5 4.75008V19.2501C8.5 19.6643 8.16421 20.0001 7.75 20.0001C7.33579 20.0001 7 19.6643 7 19.2501V4.75008C7 4.33587 7.33579 4.00008 7.75 4.00008ZM3.75 5.00008C4.16421 5.00008 4.5 5.33587 4.5 5.75008V18.2501C4.5 18.6643 4.16421 19.0001 3.75 19.0001C3.33579 19.0001 3 18.6643 3 18.2501V5.75008C3 5.33587 3.33579 5.00008 3.75 5.00008Z" fill="currentColor" />
+      </svg>
+    );
+  },
+);
+KocteauAlbumIcon.displayName = "KocteauAlbumIcon";
+
+export const KocteauSongIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM17.96 13.0303C17.5638 12.9099 17.145 13.1332 17.0244 13.5293C16.5175 15.1971 15.2005 16.5153 13.5332 17.0234C13.1371 17.1443 12.9134 17.5638 13.0342 17.96C13.1552 18.3557 13.5748 18.5786 13.9707 18.458C16.1161 17.804 17.8066 16.1119 18.459 13.9658C18.5794 13.5696 18.3561 13.1508 17.96 13.0303ZM12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10ZM10.9648 6.04199C10.844 5.64579 10.4245 5.42214 10.0283 5.54297C7.88255 6.19746 6.19168 7.89105 5.54004 10.0381C5.42026 10.4342 5.64393 10.8534 6.04004 10.9736C6.43611 11.0937 6.85507 10.8695 6.97559 10.4736C7.48194 8.8053 8.79848 7.4872 10.4658 6.97852C10.8618 6.85774 11.0853 6.43804 10.9648 6.04199Z" fill="currentColor" />
+      </svg>
+    );
+  },
+);
+KocteauSongIcon.displayName = "KocteauSongIcon";

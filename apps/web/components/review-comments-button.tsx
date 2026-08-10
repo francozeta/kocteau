@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle } from "@/components/ui/icons";
+import { KocteauCommentIcon } from "@/components/kocteau-icons";
 import {
   Drawer,
   DrawerContent,
@@ -114,7 +114,7 @@ export default function ReviewCommentsButton({
         open && "text-foreground",
       )}
     >
-      <MessageCircle className="size-4" />
+      <KocteauCommentIcon className="size-4" />
       {commentsCount > 0 ? <span>{commentsCount}</span> : null}
     </button>
   );

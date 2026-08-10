@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
-import { Bookmark } from "@/components/ui/icons";
+import { KocteauBookmarkIcon } from "@/components/kocteau-icons";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
@@ -87,10 +87,11 @@ export default function ReviewBookmarkButton({
         isPending && "opacity-80",
       )}
     >
-      <Bookmark
+      <KocteauBookmarkIcon
+        weight={state.bookmarked ? "fill" : "regular"}
         className={cn(
           "size-4 transition-colors duration-150",
-          state.bookmarked ? "fill-current text-foreground" : "text-muted-foreground",
+          state.bookmarked ? "text-foreground" : "text-muted-foreground",
           animatePulse && "kocteau-save-pop",
           isPending && "scale-110",
         )}

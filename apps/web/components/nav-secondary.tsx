@@ -44,7 +44,7 @@ export function NavSecondary({
                 className={sidebarNavButtonClassName}
               >
                 <Link href={item.url} onClick={onNavigate}>
-                  <item.icon weight={item.isActive ? "fill" : "regular"} />
+                  <item.icon weight="fill" />
                   <span className="kocteau-sidebar-label">{item.title}</span>
                 </Link>
               </SidebarMenuButton>

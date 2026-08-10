@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Ref } from "react";
-import { Heart } from "@/components/ui/icons";
+import { KocteauLikeIcon } from "@/components/kocteau-icons";
 import { useReviewLike } from "@/hooks/use-review-like";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
@@ -92,10 +92,11 @@ export default function ReviewLikeButton({
           isPending && "opacity-80",
         )}
       >
-        <Heart
+        <KocteauLikeIcon
+          weight={state.liked ? "fill" : "regular"}
           className={cn(
             "size-4 transition-colors duration-150",
-            state.liked ? "fill-current text-foreground" : "text-muted-foreground",
+            state.liked ? "text-foreground" : "text-muted-foreground",
             animatePulse && "kocteau-like-pop",
             isPending && "scale-110",
           )}

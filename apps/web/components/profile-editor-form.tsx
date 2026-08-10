@@ -3,10 +3,10 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowLeftIcon,
   ArrowRightIcon,
   SpinnerGapIcon,
 } from "@/components/ui/icons";
+import { KocteauChevronLeftSmallIcon } from "@/components/kocteau-icons";
 import AvatarUploadTrigger from "@/components/avatar-upload-trigger";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import AvatarCropDialog from "@/components/avatar-crop-dialog";
@@ -719,7 +719,7 @@ export default function ProfileEditorForm({
               disabled={saving}
               className="gap-2"
             >
-              <ArrowLeftIcon className="size-4" weight="bold" />
+              <KocteauChevronLeftSmallIcon className="size-4" />
               Back
             </Button>
           ) : null}

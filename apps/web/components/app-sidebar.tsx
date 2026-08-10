@@ -12,6 +12,7 @@ import {
   KocteauHealthIcon,
   KocteauHomeIcon,
   KocteauLibraryIcon,
+  KocteauReviewsIcon,
   KocteauSearchIcon,
   KocteauStarterIcon,
   ReviewGlyphIcon,
@@ -172,6 +173,12 @@ export default function AppSidebar({
       url: "/search",
       icon: MagnifyingGlassIcon,
       isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
+    },
+    {
+      title: "Reviews",
+      url: "/reviews",
+      icon: KocteauReviewsIcon,
+      isActive: pathname.startsWith("/reviews") || pathname.startsWith("/review/"),
     },
   ];
 

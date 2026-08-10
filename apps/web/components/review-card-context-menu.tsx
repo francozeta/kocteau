@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, Flag, Music2, PencilLine, TextQuote, Trash2 } from "@/components/ui/icons";
+import { Flag, Music2, PencilLine, TextQuote, Trash2 } from "@/components/ui/icons";
 import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
+import { KocteauBookmarkIcon } from "@/components/kocteau-icons";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
 import {
@@ -101,7 +102,10 @@ export default function ReviewCardContextMenu({
             void handleBookmarkToggle();
           }}
         >
-          <Bookmark className="size-4" />
+          <KocteauBookmarkIcon
+            className="size-4"
+            weight={bookmarkState.bookmarked ? "fill" : "regular"}
+          />
           {bookmarkState.bookmarked ? "Saved" : "Save"}
         </ContextMenuItem>
 

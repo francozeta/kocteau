@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Flag, MoreHorizontal, Send, Trash2 } from "@/components/ui/icons";
+import { Flag, Send, Trash2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
+import { KocteauMoreIcon } from "@/components/kocteau-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -242,7 +243,7 @@ export default function ReviewCommentsPanel({
                     className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:pointer-events-none disabled:opacity-50 md:hover:bg-muted"
                       aria-label="Comment options"
                     >
-                      <MoreHorizontal className="size-3.5" />
+                      <KocteauMoreIcon className="size-3.5" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -390,7 +391,7 @@ export default function ReviewCommentsPanel({
         aria-label="Review replies"
         className="space-y-3 px-1"
       >
-        {!hideForm ? form : null}
+        {!hideForm ? <div className="hidden md:block">{form}</div> : null}
         {commentsList}
       </section>
     );

@@ -3,9 +3,8 @@
 import Link from "next/link";
 import {
   CheckIcon,
-  ChatCircleTextIcon,
-  HeartIcon,
 } from "@/components/ui/icons";
+import { KocteauCommentIcon, KocteauLikeIcon } from "@/components/kocteau-icons";
 import {
   groupNotifications,
   notificationHref,
@@ -156,9 +155,12 @@ export default function NotificationList({
                       {actorLabel}
                     </span>
                     {notification.type === "review_liked" ? (
-                      <HeartIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                      <KocteauLikeIcon
+                        className="size-3.5 shrink-0 text-muted-foreground"
+                        weight="fill"
+                      />
                     ) : (
-                      <ChatCircleTextIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                      <KocteauCommentIcon className="size-3.5 shrink-0 text-muted-foreground" />
                     )}
                   </div>
                   <p className="line-clamp-2 text-[12.5px] leading-5 text-foreground/72">

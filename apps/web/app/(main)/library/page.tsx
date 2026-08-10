@@ -1,26 +1,19 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { Suspense } from "react";
-import { Bookmark, ChevronRight } from "@/components/ui/icons";
 import { redirect } from "next/navigation";
-import PrefetchLink from "@/components/prefetch-link";
-import SavedReviewsList from "@/components/saved-reviews-list";
-import TrackTile from "@/components/track-tile";
-import { buttonVariants } from "@/components/ui/button";
-import { CardContent } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
-import { createPageMetadata } from "@/lib/metadata";
 import {
-  getViewerEntityLibraryItems,
-  type ViewerEntityLibraryItem,
-} from "@/lib/queries/entity-library";
+  KocteauAlbumIcon,
+  KocteauArtistIcon,
+  KocteauBookmarkIcon,
+  KocteauSongIcon,
+} from "@/components/kocteau-icons";
+import { getCurrentUserId } from "@/lib/auth/server";
+import { createPageMetadata } from "@/lib/metadata";
+import { getViewerEntityLibraryItems } from "@/lib/queries/entity-library";
 import { getViewerSavedReviewsBundle } from "@/lib/queries/viewer";
-import { cn } from "@/lib/utils";
 
 export const metadata = createPageMetadata({
   title: "Library",
-  description: "Private track library and saved reviews on Kocteau.",
+  description: "Your private music library on Kocteau.",
   path: "/library",
   noIndex: true,
 });
@@ -29,185 +22,79 @@ export default async function LibraryPage() {
   const userId = await getCurrentUserId();
 
   if (!userId) {
-    redirect("/login");
+    redirect("/login?next=%2Flibrary");
   }
 
-  const [{ reviews: savedReviews }, libraryItems] = await Promise.all([
-    getViewerSavedReviewsBundle(userId),
+  const [libraryItems, { reviews }] = await Promise.all([
     getViewerEntityLibraryItems(userId),
+    getViewerSavedReviewsBundle(userId),
   ]);
-  const libraryCount = savedReviews.length + libraryItems.tracks.length;
+  const destinations = [
+    {
+      href: "/library/songs",
+      label: "Songs",
+      description: "Tracks you kept close.",
+      count: libraryItems.tracks.length,
+      icon: KocteauSongIcon,
+    },
+    {
+      href: "/library/albums",
+      label: "Albums",
+      description: "Records saved as a whole.",
+      count: libraryItems.albums.length,
+      icon: KocteauAlbumIcon,
+    },
+    {
+      href: "/library/artists",
+      label: "Artists",
+      description: "Artists present in your library.",
+      count: libraryItems.artists.length,
+      icon: KocteauArtistIcon,
+    },
+    {
+      href: "/library/bookmarked",
+      label: "Bookmarked",
+      description: "Reviews worth returning to.",
+      count: reviews.length,
+      icon: KocteauBookmarkIcon,
+    },
+  ];
 
   return (
-    <section className="w-full max-w-5xl space-y-7 sm:space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-1.5">
-          <h1 className="font-heading text-[2rem] font-medium tracking-tight text-foreground sm:text-[2.35rem]">
-            Library
-          </h1>
-          <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-            Tracks you want to keep close, and writing worth coming back to.
-          </p>
-          <p className="text-xs font-medium text-muted-foreground/80">
-            {libraryCount} {libraryCount === 1 ? "item" : "items"}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2.5">
-          <Suspense fallback={null}>
-            <LibraryProfileAction userId={userId} />
-          </Suspense>
-          <Link
-            href="/search"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "rounded-full border-border/24 bg-card/18 hover:border-border/40 hover:bg-card/26",
-            )}
-          >
-            Explore
-          </Link>
-        </div>
-      </div>
-
-      <LibraryTrackShelf
-        title="Tracks"
-        description="Music you added to your Kocteau library."
-        items={libraryItems.tracks}
-        emptyTitle="No tracks in your library yet"
-        emptyDescription="Add a track to your library when it feels worth keeping close."
-        emptyIcon={<Bookmark className="size-4" />}
-      />
-
-      <section className="space-y-3.5">
-        <div className="flex items-baseline justify-between gap-3">
-          <div className="space-y-1">
-            <h2 className="text-sm font-semibold text-foreground">
-              Saved reviews
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Reviews you want to revisit.
-            </p>
-          </div>
-          <p className="text-xs tabular-nums text-muted-foreground">
-            {savedReviews.length}
-          </p>
-        </div>
-
-        <SavedReviewsList
-          initialReviews={savedReviews}
-          userId={userId}
-          isAuthenticated
-          emptyState={
-            <Empty className="rounded-[1.35rem] border-border/22 bg-card/14 px-6 py-8">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Bookmark className="size-4" />
-                </EmptyMedia>
-                <EmptyTitle>No saved reviews yet</EmptyTitle>
-                <EmptyDescription>Save reviews you want to revisit.</EmptyDescription>
-              </EmptyHeader>
-              <CardContent className="p-0 pt-2">
-                <PrefetchLink
-                  href="/feed"
-                  queryWarmup={{ kind: "feed" }}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-foreground"
-                >
-                  Go to the feed
-                  <ChevronRight className="size-4" />
-                </PrefetchLink>
-              </CardContent>
-            </Empty>
-          }
-        />
-      </section>
-    </section>
-  );
-}
-
-function LibraryTrackShelf({
-  title,
-  description,
-  items,
-  emptyTitle,
-  emptyDescription,
-  emptyIcon,
-}: {
-  title: string;
-  description: string;
-  items: ViewerEntityLibraryItem[];
-  emptyTitle: string;
-  emptyDescription: string;
-  emptyIcon: ReactNode;
-}) {
-  const visibleItems = items.filter((item) => item.entity);
-
-  return (
-    <section className="space-y-3.5">
-      <div className="flex items-baseline justify-between gap-3">
-        <div className="space-y-1">
-          <h2 className="text-sm font-semibold text-foreground">
-            {title}
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            {description}
-          </p>
-        </div>
-        <p className="text-xs tabular-nums text-muted-foreground">
-          {visibleItems.length}
+    <section className="w-full max-w-3xl space-y-7 sm:space-y-8">
+      <header className="space-y-1.5">
+        <h1 className="font-heading text-[2rem] font-medium tracking-tight text-foreground sm:text-[2.35rem]">
+          Library
+        </h1>
+        <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+          Your music, separated into quiet collections.
         </p>
-      </div>
+      </header>
 
-      {visibleItems.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {visibleItems.map((item) => {
-            if (!item.entity) {
-              return null;
-            }
+      <nav aria-label="Library categories" className="grid gap-3 sm:grid-cols-2">
+        {destinations.map((destination) => {
+          const Icon = destination.icon;
 
-            return (
-              <TrackTile
-                key={`${item.item_type}-${item.entity.id}`}
-                href={item.entity.href}
-                title={item.entity.title}
-                artistName={item.entity.artist_name}
-                coverUrl={item.entity.cover_url}
-                sizes="(min-width: 1024px) 156px, (min-width: 640px) 28vw, 46vw"
-                quality={86}
-              />
-            );
-          })}
-        </div>
-      ) : (
-        <Empty className="rounded-[1.35rem] border-border/22 bg-card/14 px-6 py-8">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              {emptyIcon}
-            </EmptyMedia>
-            <EmptyTitle>{emptyTitle}</EmptyTitle>
-            <EmptyDescription>{emptyDescription}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      )}
+          return (
+            <Link
+              key={destination.href}
+              href={destination.href}
+              className="group flex min-h-16 items-center gap-3 rounded-full bg-white/[0.08] p-2 pe-4 transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            >
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white/[0.14] text-foreground">
+                <Icon className="size-5" weight="fill" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-foreground">{destination.label}</span>
+                <span className="block truncate text-xs text-muted-foreground">{destination.description}</span>
+              </span>
+              <span className="text-xs font-medium tabular-nums text-muted-foreground">
+                {destination.count}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </section>
-  );
-}
-
-async function LibraryProfileAction({ userId }: { userId: string }) {
-  const profile = await getCurrentViewerProfile();
-
-  if (!profile?.username || profile.id !== userId) {
-    return null;
-  }
-
-  return (
-    <PrefetchLink
-      href={`/u/${profile.username}`}
-      className={cn(
-        buttonVariants({ variant: "ghost", size: "sm" }),
-        "rounded-full bg-card/12 hover:bg-card/22",
-      )}
-    >
-      Profile
-    </PrefetchLink>
   );
 }
