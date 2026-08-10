@@ -83,7 +83,7 @@ function getFeedLoginRedirect(request: NextRequest, response?: NextResponse) {
 }
 
 export async function proxy(request: NextRequest) {
-  const response = NextResponse.next({ request });
+  let response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
   if (isMetadataRequest(pathname)) {
@@ -123,6 +123,12 @@ export async function proxy(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+
+          response = NextResponse.next({ request });
+
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });

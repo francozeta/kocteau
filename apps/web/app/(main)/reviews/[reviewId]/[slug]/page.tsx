@@ -178,7 +178,6 @@ export default async function ReviewPage({
         replyTarget={author?.username ?? null}
         anchorId="review-replies"
         composerId="review-reply-composer"
-        autoFocusComposer
       />
     </section>
   );
