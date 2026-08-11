@@ -1060,6 +1060,16 @@
     background: rgba(255, 255, 255, 0.08);
   }
 
+  @media (min-width: 768px) {
+    .kocteau-liquid-bar,
+    .dark .kocteau-liquid-bar {
+      border-color: transparent;
+      background: var(--kocteau-surface-control);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
   @media (min-width: 1024px) {
     .kocteau-app-frame {
       border: 1px solid var(--kocteau-line);
