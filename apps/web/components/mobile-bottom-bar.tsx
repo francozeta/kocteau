@@ -162,7 +162,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
         className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
       >
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full bg-white/[0.08] p-1 backdrop-blur-2xl backdrop-saturate-150">
+          <div className="flex h-11 items-center gap-1 rounded-full bg-white/[0.08] backdrop-blur-2xl backdrop-saturate-150">
             {navItems.map((item) => (
               <NavTab key={item.href} item={item} pathname={pathname} />
             ))}

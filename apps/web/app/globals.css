@@ -1047,6 +1047,19 @@
     scale: 0.96;
   }
 
+  .kocteau-liquid-bar {
+    border: 1px solid var(--kocteau-line);
+    background: color-mix(in oklch, var(--foreground) 7%, transparent);
+    box-shadow: none;
+    backdrop-filter: blur(14px) saturate(108%);
+    -webkit-backdrop-filter: blur(14px) saturate(108%);
+  }
+
+  .dark .kocteau-liquid-bar {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
   @media (min-width: 1024px) {
     .kocteau-app-frame {
       border: 1px solid var(--kocteau-line);
@@ -1087,15 +1100,6 @@
       transform: scale(0.96);
     }
 
-    .mobile-liquid-bar {
-      @apply backdrop-blur-md backdrop-saturate-100;
-      border: 1px solid var(--kocteau-line) !important;
-      background: color-mix(in oklch, var(--background) 84%, transparent) !important;
-      box-shadow: none !important;
-      backdrop-filter: blur(14px) saturate(108%) !important;
-      -webkit-backdrop-filter: blur(14px) saturate(108%) !important;
-    }
-
     .mobile-liquid-panel {
       @apply backdrop-blur-md backdrop-saturate-100;
       border: 1px solid var(--kocteau-line-soft) !important;
@@ -1118,12 +1122,6 @@
 
     .dark .mobile-liquid-button:hover {
       background: rgba(20, 20, 23, 0.92) !important;
-    }
-
-    .dark .mobile-liquid-bar {
-      border-color: rgba(255, 255, 255, 0.1) !important;
-      background: rgba(10, 10, 12, 0.88) !important;
-      box-shadow: none !important;
     }
 
     .dark .mobile-liquid-panel {
