@@ -16,12 +16,14 @@ import DiscoveryOrbit, {
 } from "@/components/discovery-orbit";
 import DiscoverySeedActions from "@/components/discovery-seed-actions";
 import EntityCoverImage from "@/components/entity-cover-image";
+import { KocteauSearchIcon } from "@/components/kocteau-icons";
 import { Input } from "@/components/ui/input";
-import { Search, XIcon } from "@/components/ui/icons";
+import { XIcon } from "@/components/ui/icons";
 import {
   useKocteauSearch,
   type KocteauSearchResult,
 } from "@/hooks/use-kocteau-search";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
 import type {
   TrackRecommendationCandidate,
@@ -65,6 +67,10 @@ function getMobileSearchDockSnapshot() {
 
 function getMobileSearchDockServerSnapshot() {
   return null;
+}
+
+function getSearchPortalTargetSnapshot() {
+  return document.querySelector<HTMLElement>("[data-kocteau-scroll-boundary]");
 }
 
 function mapStarterTrackToSeed(track: StarterTrack): DiscoverySeed {
@@ -324,6 +330,12 @@ function DiscoverySearch({
 }: DiscoverySearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const isMobileViewport = useIsMobile();
+  const portalTarget = useSyncExternalStore(
+    subscribeToMobileSearchDock,
+    getSearchPortalTargetSnapshot,
+    getMobileSearchDockServerSnapshot,
+  );
   const hasQuery = query.trim().length >= 2;
   const resultListId = mobile
     ? "mobile-discovery-seed-results"
@@ -333,73 +345,74 @@ function DiscoverySearch({
     : "discovery-seed-search";
 
   const chooseResult = (result: KocteauSearchResult) => {
-    if (mobile) {
-      inputRef.current?.blur();
-      setIsFocused(false);
-    }
+    inputRef.current?.blur();
+    setIsFocused(false);
 
     onChooseResult(result);
   };
 
-  const resultList = hasQuery && (!mobile || isFocused) ? (
+  const resultList =
+    mobile === isMobileViewport && hasQuery && (!mobile || isFocused) ? (
     <div
-      id={resultListId}
-      className={cn(
-        "absolute inset-x-0 z-40 overflow-hidden bg-[var(--kocteau-surface-raised)] p-1.5",
-        mobile
-          ? "bottom-[calc(100%+0.5rem)] max-h-[min(23rem,calc(100dvh-9rem))] overflow-y-auto rounded-[0.9rem]"
-          : "top-[calc(100%+0.35rem)] rounded-[0.75rem] shadow-[var(--kocteau-shadow-card)]",
-      )}
+      className="fixed inset-0 z-[100000] overflow-y-auto bg-[var(--kocteau-landing-canvas)] px-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-[calc(env(safe-area-inset-top)+4.5rem)] sm:px-6 md:pb-8 md:pl-[calc(var(--sidebar-width)+0.625rem)] md:pt-[9.5rem]"
     >
-      {results.length > 0 ? (
-        <div className="grid gap-0.5">
-          {results.map((result) => (
-            <button
-              key={`${result.provider}:${result.type}:${result.provider_id}`}
-              type="button"
-              onPointerDown={(event) => {
-                if (mobile) event.preventDefault();
-              }}
-              onClick={() => chooseResult(result)}
-              className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2.5 rounded-[0.6rem] p-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.045] focus-visible:ring-2 focus-visible:ring-ring/40"
-            >
-              <EntityCoverImage
-                src={result.cover_url}
-                alt=""
-                sizes="44px"
-                quality={70}
-                variant="thumbnail"
-                className={cn(
-                  "size-11 bg-muted/30",
-                  result.type === "artist"
-                    ? "rounded-full"
-                    : "rounded-[0.5rem]",
-                )}
-                iconClassName="size-3.5"
-              />
-              <span className="min-w-0">
-                <span className="block truncate font-pixel text-[12px] font-medium text-foreground/88">
-                  {result.title}
+      <div
+        id={resultListId}
+        className="mx-auto w-full max-w-2xl"
+      >
+        {results.length > 0 ? (
+          <div className="grid gap-1">
+            {results.map((result) => (
+              <button
+                key={`${result.provider}:${result.type}:${result.provider_id}`}
+                type="button"
+                onPointerDown={(event) => {
+                  if (mobile) event.preventDefault();
+                }}
+                onClick={() => chooseResult(result)}
+                className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
+              >
+                <EntityCoverImage
+                  src={result.cover_url}
+                  alt=""
+                  sizes="52px"
+                  quality={70}
+                  variant="thumbnail"
+                  className={cn(
+                    "size-[3.25rem] bg-muted/30",
+                    result.type === "artist"
+                      ? "rounded-full"
+                      : "rounded-[0.6rem]",
+                  )}
+                  iconClassName="size-3.5"
+                />
+                <span className="min-w-0">
+                  <span className="block truncate font-pixel text-[12px] font-medium text-foreground/92">
+                    {result.title}
+                  </span>
+                  <span className="mt-1 block truncate text-[11px] text-muted-foreground/62">
+                    {result.type === "artist"
+                      ? "Artist"
+                      : result.artist_name || "Unknown artist"}
+                  </span>
                 </span>
-                <span className="block truncate text-[11px] text-muted-foreground/56">
-                  {result.type === "artist"
-                    ? "Artist"
-                    : result.artist_name || "Unknown artist"}
+                <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/48">
+                  {getResultTypeLabel(result)}
                 </span>
-              </span>
-              <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/42">
-                {getResultTypeLabel(result)}
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        <p className="px-3 py-4 text-[11px] text-muted-foreground/58">
-          {isSearching ? "Searching the catalog…" : "No matches. Try another name."}
-        </p>
-      )}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="px-3 py-4 text-[11px] text-muted-foreground/58">
+            {isSearching ? "Searching the catalog…" : "No matches. Try another name."}
+          </p>
+        )}
+      </div>
     </div>
-  ) : null;
+    ) : null;
+  const portaledResultList = resultList && portalTarget
+    ? createPortal(resultList, portalTarget)
+    : null;
 
   if (mobile) {
     return (
@@ -425,7 +438,7 @@ function DiscoverySearch({
           <label htmlFor={inputId} className="sr-only">
             Search a song, album, or artist to start
           </label>
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.08rem] -translate-y-1/2 text-muted-foreground/62" />
+          <KocteauSearchIcon className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.08rem] -translate-y-1/2 text-muted-foreground/62" />
           <Input
             ref={inputRef}
             id={inputId}
@@ -448,20 +461,9 @@ function DiscoverySearch({
             maxLength={80}
             aria-expanded={Boolean(isFocused && hasQuery)}
             aria-controls={resultListId}
-            className="h-11 rounded-full border-transparent bg-white/[0.08] pl-10 pr-11 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70"
+            className="h-11 rounded-full border-transparent bg-white/[0.08] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70"
           />
-          {query ? (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={() => onQueryChange("")}
-              className="absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/[0.14] text-muted-foreground/72 transition-[transform,color,background-color] duration-150 hover:bg-white/[0.2] hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-            >
-              <XIcon className="size-3.5" />
-            </button>
-          ) : null}
-          {resultList}
+          {portaledResultList}
         </form>
 
         <div className="overflow-hidden">
@@ -472,6 +474,7 @@ function DiscoverySearch({
             tabIndex={isFocused ? 0 : -1}
             onPointerDown={(event) => event.preventDefault()}
             onClick={() => {
+              onQueryChange("");
               inputRef.current?.blur();
               setIsFocused(false);
             }}
@@ -492,25 +495,38 @@ function DiscoverySearch({
       className="relative min-w-0 flex-1"
       onSubmit={(event) => {
         event.preventDefault();
-        onSubmit();
+        if (onSubmit()) {
+          inputRef.current?.blur();
+          setIsFocused(false);
+        }
       }}
       role="search"
     >
       <label htmlFor={inputId} className="sr-only">
         Search a song, album, or artist to start
       </label>
-      <Search className="pointer-events-none absolute left-3.5 top-[1.35rem] z-10 size-4 -translate-y-1/2 text-muted-foreground/62" />
+      <KocteauSearchIcon className="pointer-events-none absolute left-3.5 top-[1.35rem] z-10 size-4 -translate-y-1/2 text-muted-foreground/62" />
       <Input
+        ref={inputRef}
         id={inputId}
         data-global-search-input="true"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+          if (event.key !== "Escape") return;
+
+          event.preventDefault();
+          onQueryChange("");
+          inputRef.current?.blur();
+          setIsFocused(false);
+        }}
         placeholder="Search a song, album, or artist…"
         autoComplete="off"
         maxLength={80}
         aria-expanded={results.length > 0}
         aria-controls={resultListId}
-        className="h-11 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-12 text-base shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/58 sm:text-[13px]"
+        className="h-11 rounded-full border-transparent bg-white/[0.08] pl-10 pr-12 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 sm:text-[13px]"
       />
       {isExpanding ? (
         <span
@@ -518,7 +534,25 @@ function DiscoverySearch({
           aria-hidden="true"
         />
       ) : null}
-      {resultList}
+      <button
+        type="button"
+        aria-label="Close search"
+        aria-hidden={!isFocused}
+        tabIndex={isFocused ? 0 : -1}
+        onPointerDown={(event) => event.preventDefault()}
+        onClick={() => {
+          onQueryChange("");
+          inputRef.current?.blur();
+          setIsFocused(false);
+        }}
+        className={cn(
+          "absolute left-[calc(100%+0.75rem)] top-0 flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
+          isFocused ? "opacity-100 scale-100" : "pointer-events-none opacity-0 scale-95",
+        )}
+      >
+        <XIcon className="size-5" />
+      </button>
+      {portaledResultList}
     </form>
   );
 }
@@ -700,9 +734,10 @@ export default function DiscoveryMap({
 
   return (
     <section
-      className="relative h-[calc(100svh-10.5rem)] min-h-0 overflow-hidden bg-transparent lg:h-full"
+      className="relative h-svh min-h-0 overflow-hidden bg-transparent lg:h-full"
       aria-labelledby="discovery-map-title"
       data-kocteau-full-width
+      data-kocteau-search-surface
     >
       <h2 id="discovery-map-title" className="sr-only">
         Music discovery map
@@ -715,7 +750,7 @@ export default function DiscoveryMap({
 
       <div
         className={cn(
-          "absolute inset-x-0 z-40 mx-auto hidden w-full max-w-2xl items-start px-4 transition-[top,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:flex md:px-6 lg:px-0",
+          "absolute inset-x-0 z-[100001] mx-auto hidden w-full max-w-2xl items-start px-4 transition-[top,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:flex md:px-6 lg:px-0",
           hasExplorationIntent
             ? "top-4 sm:top-5 lg:top-6"
             : "top-1/2 -translate-y-1/2",

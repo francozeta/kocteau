@@ -63,8 +63,7 @@ ReviewGlyphIcon.displayName = "ReviewGlyphIcon";
 export const KocteauSearchIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   (iconProps, ref) => {
     const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
-    void strokeWidth;
-    void weight;
+    const isFilled = weight === "fill";
 
     return (
       <svg
@@ -77,8 +76,16 @@ export const KocteauSearchIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
         {...props}
       >
         <path
-          d="M3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11C19 12.9388 18.3096 14.7174 17.1624 16.1018L20.5303 19.4697C20.8232 19.7626 20.8232 20.2374 20.5303 20.5303C20.2374 20.8232 19.7625 20.8232 19.4696 20.5303L16.1017 17.1624C14.7174 18.3096 12.9388 19 11 19C6.58172 19 3 15.4183 3 11Z"
-          fill="currentColor"
+          d={
+            isFilled
+              ? "M3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11C19 12.9388 18.3096 14.7174 17.1624 16.1018L20.5303 19.4697C20.8232 19.7626 20.8232 20.2374 20.5303 20.5303C20.2374 20.8232 19.7625 20.8232 19.4696 20.5303L16.1017 17.1624C14.7174 18.3096 12.9388 19 11 19C6.58172 19 3 15.4183 3 11Z"
+              : "M20 20L16.1265 16.1265M16.1265 16.1265C17.4385 14.8145 18.25 13.002 18.25 11C18.25 6.99594 15.0041 3.75 11 3.75C6.99594 3.75 3.75 6.99594 3.75 11C3.75 15.0041 6.99594 18.25 11 18.25C13.002 18.25 14.8145 17.4385 16.1265 16.1265Z"
+          }
+          fill={isFilled ? "currentColor" : "none"}
+          stroke={isFilled ? "none" : "currentColor"}
+          strokeWidth={isFilled ? undefined : strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     );
@@ -118,8 +125,7 @@ KocteauHomeIcon.displayName = "KocteauHomeIcon";
 export const KocteauLibraryIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   (iconProps, ref) => {
     const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
-    void strokeWidth;
-    void weight;
+    const isFilled = weight === "fill";
 
     return (
       <svg
@@ -131,22 +137,39 @@ export const KocteauLibraryIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
         fill="none"
         {...props}
       >
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M14.2324 8.35396C13.966 7.4249 14.5031 6.45579 15.4322 6.18939L16.8741 5.77593C17.8032 5.50953 18.7723 6.04672 19.0387 6.97577L22.2085 18.0303C22.4749 18.9593 21.9377 19.9285 21.0087 20.1949L19.5668 20.6083C18.6377 20.8747 17.6686 20.3375 17.4022 19.4085L14.2324 8.35396Z"
-          fill="currentColor"
-        />
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M8.75 3C7.7835 3 7 3.7835 7 4.75V19.25C7 20.2165 7.7835 21 8.75 21H12.25C13.2165 21 14 20.2165 14 19.25V4.75C14 3.7835 13.2165 3 12.25 3H8.75ZM8.5 7.75C8.5 7.33579 8.83579 7 9.25 7H11.75C12.1642 7 12.5 7.33579 12.5 7.75C12.5 8.16421 12.1642 8.5 11.75 8.5H9.25C8.83579 8.5 8.5 8.16421 8.5 7.75ZM12.5 16.25C12.5 15.8358 12.1642 15.5 11.75 15.5H9.25C8.83579 15.5 8.5 15.8358 8.5 16.25C8.5 16.6642 8.83579 17 9.25 17H11.75C12.1642 17 12.5 16.6642 12.5 16.25Z"
-          fill="currentColor"
-        />
-        <path
-          d="M3.75 5C2.7835 5 2 5.7835 2 6.75V19.25C2 20.2165 2.7835 21 3.75 21H4.25C5.2165 21 6 20.2165 6 19.25V6.75C6 5.7835 5.2165 5 4.25 5H3.75Z"
-          fill="currentColor"
-        />
+        {isFilled ? (
+          <>
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M14.2324 8.35396C13.966 7.4249 14.5031 6.45579 15.4322 6.18939L16.8741 5.77593C17.8032 5.50953 18.7723 6.04672 19.0387 6.97577L22.2085 18.0303C22.4749 18.9593 21.9377 19.9285 21.0087 20.1949L19.5668 20.6083C18.6377 20.8747 17.6686 20.3375 17.4022 19.4085L14.2324 8.35396Z"
+              fill="currentColor"
+            />
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M8.75 3C7.7835 3 7 3.7835 7 4.75V19.25C7 20.2165 7.7835 21 8.75 21H12.25C13.2165 21 14 20.2165 14 19.25V4.75C14 3.7835 13.2165 3 12.25 3H8.75ZM8.5 7.75C8.5 7.33579 8.83579 7 9.25 7H11.75C12.1642 7 12.5 7.33579 12.5 7.75C12.5 8.16421 12.1642 8.5 11.75 8.5H9.25C8.83579 8.5 8.5 8.16421 8.5 7.75ZM12.5 16.25C12.5 15.8358 12.1642 15.5 11.75 15.5H9.25C8.83579 15.5 8.5 15.8358 8.5 16.25C8.5 16.6642 8.83579 17 9.25 17H11.75C12.1642 17 12.5 16.6642 12.5 16.25Z"
+              fill="currentColor"
+            />
+            <path
+              d="M3.75 5C2.7835 5 2 5.7835 2 6.75V19.25C2 20.2165 2.7835 21 3.75 21H4.25C5.2165 21 6 20.2165 6 19.25V6.75C6 5.7835 5.2165 5 4.25 5H3.75Z"
+              fill="currentColor"
+            />
+          </>
+        ) : (
+          <g
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={strokeWidthForWeight(weight, strokeWidth)}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8.75 6.75H15.25" />
+            <path d="M19.25 16V3.75C19.25 3.19772 18.8023 2.75 18.25 2.75H7.75C6.09315 2.75 4.75 4.09315 4.75 5.75V19.75" />
+            <path d="M19.25 15.25H6.25C5.42157 15.25 4.75 15.9216 4.75 16.75C4.75 17.5784 5.42157 18.25 6.25 18.25H19.25V15.25Z" />
+            <path d="M19.25 18.25H6.25C5.42157 18.25 4.75 18.9216 4.75 19.75C4.75 20.5784 5.42157 21.25 6.25 21.25H19.25V18.25Z" />
+          </g>
+        )}
       </svg>
     );
   },

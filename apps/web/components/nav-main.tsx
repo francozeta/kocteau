@@ -47,12 +47,12 @@ export function NavMain({
               >
                 {item.external ? (
                   <a href={item.url} target="_blank" rel="noreferrer" onClick={onNavigate}>
-                    <item.icon weight="fill" />
+                    <item.icon weight={item.isActive ? "fill" : "regular"} />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </a>
                 ) : (
                   <Link href={item.url} onClick={onNavigate}>
-                    <item.icon weight="fill" />
+                    <item.icon weight={item.isActive ? "fill" : "regular"} />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </Link>
                 )}
