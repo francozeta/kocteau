@@ -73,7 +73,7 @@ function NavTab({
       <span className="relative z-[1] flex items-center gap-1.5">
         <Icon
           className={cn("size-[1.04rem] shrink-0", active && "text-foreground")}
-          weight="fill"
+          weight={active ? "fill" : "regular"}
         />
         {active ? (
           <span aria-hidden="true" className="whitespace-nowrap text-[12px] font-medium leading-none">

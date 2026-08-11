@@ -1,10 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Music2 } from "@/components/ui/icons";
+import { ExternalLink } from "@/components/ui/icons";
 import { openTrackReviewComposer } from "@/hooks/use-global-shortcuts";
 import type { DiscoverySeed } from "@/lib/discovery/seed";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
@@ -34,11 +35,21 @@ function getSupportingLabel(seed: DiscoverySeed) {
   return seed.artist_name || (seed.type === "album" ? "Album" : "Unknown artist");
 }
 
+function getProviderHref(seed: DiscoverySeed) {
+  return `https://www.deezer.com/${seed.type}/${seed.provider_id}`;
+}
+
+function getOpenLabel(seed: DiscoverySeed) {
+  if (seed.type === "artist") return "Open artist";
+  if (seed.type === "album") return "Open album";
+  return "Open track";
+}
+
 export default function DiscoverySeedActions({ seed }: DiscoverySeedActionsProps) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="pointer-events-none absolute inset-x-3 bottom-3 z-40 flex justify-center sm:bottom-5 lg:justify-end lg:px-6">
+    <div className="pointer-events-none absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] z-40 flex justify-center md:bottom-5 lg:justify-end lg:px-6">
       <AnimatePresence initial={false} mode="popLayout">
         {seed ? (
           <motion.div
@@ -58,15 +69,23 @@ export default function DiscoverySeedActions({ seed }: DiscoverySeedActionsProps
               duration: shouldReduceMotion ? 0 : 0.25,
               ease: smoothOut,
             }}
-            className="mobile-liquid-bar pointer-events-auto flex w-full max-w-[24rem] items-center gap-1 rounded-full p-1 sm:w-auto sm:min-w-[18rem]"
+            className="mobile-liquid-bar pointer-events-auto flex w-full max-w-[28rem] items-center gap-1 rounded-full p-1 sm:w-auto sm:min-w-[23rem]"
             aria-live="polite"
           >
             <PrefetchLink
               href={getEntityHref(seed)}
               aria-label={`Open ${seed.title}`}
-              className="group flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-foreground/10 bg-foreground/10 px-3 text-left text-foreground outline-none transition-[transform,background-color,border-color] duration-150 ease-out hover:border-foreground/14 hover:bg-foreground/[0.14] focus-visible:ring-2 focus-visible:ring-ring/40 active:scale-[0.98]"
+              className="group flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full px-1.5 text-left text-foreground outline-none transition-[opacity,transform] duration-150 ease-out hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/55 active:scale-[0.98]"
             >
-              <Music2 className="size-4 shrink-0" />
+              <EntityCoverImage
+                src={seed.cover_url}
+                alt=""
+                sizes="40px"
+                quality={72}
+                variant="thumbnail"
+                className={seed.type === "artist" ? "size-10 rounded-full" : "size-10 rounded-[0.55rem]"}
+                iconClassName="size-3.5"
+              />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-pixel text-[10px] leading-tight text-foreground/92">
                   {seed.title}
@@ -75,13 +94,11 @@ export default function DiscoverySeedActions({ seed }: DiscoverySeedActionsProps
                   {getSupportingLabel(seed)}
                 </span>
               </span>
-              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground/62 transition-colors duration-150 group-hover:text-foreground/86" />
             </PrefetchLink>
 
             {seed.type === "track" ? (
               <Button
                 type="button"
-                size="icon-lg"
                 aria-label={`Review ${seed.title}`}
                 onClick={() =>
                   openTrackReviewComposer({
@@ -95,12 +112,24 @@ export default function DiscoverySeedActions({ seed }: DiscoverySeedActionsProps
                     entity_id: seed.entityId,
                   })
                 }
-                className="size-10 shrink-0 rounded-full border-foreground shadow-[0_10px_28px_rgba(0,0,0,0.32)] active:scale-[0.96]"
+                variant="ghost"
+                className="h-10 shrink-0 gap-1.5 rounded-full bg-foreground/10 px-3 text-[11px] text-foreground hover:bg-foreground/[0.16] active:scale-[0.96]"
               >
-                <ReviewGlyphIcon className="size-[1.05rem]" />
-                <span className="sr-only">Review</span>
+                <ReviewGlyphIcon className="size-4" weight="fill" />
+                <span>Review</span>
               </Button>
             ) : null}
+
+            <a
+              href={getProviderHref(seed)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${getOpenLabel(seed)} on Deezer`}
+              className="flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground/72 outline-none transition-[transform,color,background-color] duration-150 hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/55 active:scale-[0.96] sm:w-auto sm:gap-1.5 sm:px-3"
+            >
+              <ExternalLink className="size-4" />
+              <span className="hidden text-[11px] sm:inline">{getOpenLabel(seed)}</span>
+            </a>
           </motion.div>
         ) : null}
       </AnimatePresence>

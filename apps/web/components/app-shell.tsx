@@ -65,7 +65,7 @@ export default async function AppShell({
       >
         <Header profile={safeProfile} />
         <DesktopScrollBridge />
-        <div className="kocteau-content-frame mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-7 lg:py-6 xl:px-8">
+        <div className="kocteau-content-frame mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] has-[[data-kocteau-search-surface]]:!max-w-none has-[[data-kocteau-search-surface]]:!p-0 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-7 lg:py-6 xl:px-8">
           {isStudio ? (
             <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 lg:h-full">
               <main
