@@ -1,6 +1,6 @@
 # Contributing to Kocteau
 
-Kocteau is a music review and taste discovery app. The public contribution path is web-first for now: the production surface is `apps/web`, while `apps/mobile` is intentionally future-facing.
+Kocteau is a music review and taste discovery app. The public contribution path is web-first: `apps/web` is the production surface. A native mobile app is deferred until the web core proves the product loop, so it is not part of the current workspace.
 
 The best early contributions are small, focused, and easy to review.
 

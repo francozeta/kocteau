@@ -4,7 +4,7 @@
 
 This backlog turns the roadmap into work that maintainers and contributors can pick up.
 
-It is web-first. `apps/web` is the production surface. `apps/mobile` stays future-facing unless a maintainer explicitly opens mobile work.
+It is web-first. `apps/web` is the production surface. A native mobile app remains deferred and outside the current workspace unless a maintainer explicitly opens that phase.
 
 For discovery, curation, recommendation, and analytics work, start with `docs/discovery-curation.md`. That document defines the product philosophy, signal contract, and phased direction for the hybrid recommendation system.
 
@@ -72,6 +72,7 @@ These are the next useful moves after enabling public contribution.
 | P1 | Explore a compact feed view for scanning more reviews without replacing the editorial default. | needs design ([#91](https://github.com/francozeta/kocteau/issues/91)) | `feature`, `area:web`, `area:ui` |
 | P1 | Emit real review read-depth analytics from the For You feed. | done | `fix`, `area:web`, `area:analytics`, `area:recommendations` |
 | P1 | Add a top-rated feed index for `rating DESC, created_at DESC, id DESC`. | done | `chore`, `area:supabase`, `area:performance` |
+| P1 | Profile cold development compilation and reduce the public-home queries reported by `server_task_slow`. | ready | `chore`, `area:web`, `area:performance` |
 | P1 | Remove generated orphan components from `apps/web/components`. | done | `chore`, `area:web`, `area:maintenance` |
 | P2 | Expand Kocteau-first search to artists, albums, users, and categories. | needs design ([#88](https://github.com/francozeta/kocteau/issues/88)) | `feature`, `area:web`, `area:search`, `area:recommendations` |
 | P2 | Tune recommendation reason precedence so social follows are not hidden by weak entity taste matches. | needs baseline | `feature`, `area:supabase`, `area:recommendations`, `area:analytics` |

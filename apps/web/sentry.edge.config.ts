@@ -10,9 +10,10 @@ const isProduction = process.env.NODE_ENV === "production";
 Sentry.init({
   dsn: "https://93063a824f0328fb310fa6c9cd744780@o4508104492711936.ingest.us.sentry.io/4511130278100992",
 
-  tracesSampleRate: isProduction ? 0.01 : 1,
+  enabled: isProduction,
+  tracesSampleRate: isProduction ? 0.01 : 0,
 
-  enableLogs: !isProduction,
+  enableLogs: false,
 
   sendDefaultPii: false,
 });
