@@ -3,9 +3,6 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import {
-  MagnifyingGlassIcon,
-} from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
 import {
   KocteauActivityIcon,
@@ -55,6 +52,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
   unreadCount?: number;
   canAccessStudio?: boolean;
+  canManageCurators?: boolean;
 };
 
 function SidebarHeaderAction({
@@ -123,6 +121,7 @@ export default function AppSidebar({
   profile,
   unreadCount: initialUnreadCount = 0,
   canAccessStudio = false,
+  canManageCurators = false,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname();
@@ -171,7 +170,7 @@ export default function AppSidebar({
     {
       title: "Search",
       url: "/search",
-      icon: MagnifyingGlassIcon,
+      icon: KocteauSearchIcon,
       isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
     },
     {
@@ -213,6 +212,16 @@ export default function AppSidebar({
           icon: KocteauHealthIcon,
           isActive: pathname.startsWith("/studio/health"),
         },
+        ...(canManageCurators
+          ? [
+              {
+                title: "Curators",
+                url: "/studio/curators",
+                icon: KocteauStarterIcon,
+                isActive: pathname.startsWith("/studio/curators"),
+              },
+            ]
+          : []),
       ]
     : [];
 

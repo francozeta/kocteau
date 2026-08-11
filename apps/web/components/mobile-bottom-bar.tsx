@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type Icon, MagnifyingGlassIcon } from "@/components/ui/icons";
+import type { Icon } from "@/components/ui/icons";
 import {
   KocteauHomeIcon,
   KocteauLibraryIcon,
+  KocteauSearchIcon,
 } from "@/components/kocteau-icons";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewCommentDock from "@/components/review-comment-dock";
@@ -136,7 +137,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
     {
       href: "/search",
       label: "Search",
-      icon: MagnifyingGlassIcon,
+      icon: KocteauSearchIcon,
       active: (current) => current.startsWith("/search") || current.startsWith("/track"),
     },
     ...(profile

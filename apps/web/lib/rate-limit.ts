@@ -26,6 +26,11 @@ export const rateLimits = {
     limit: 10,
     windowMs: 10 * 60_000,
   },
+  createCuratorApplication: {
+    name: "curator-application:create",
+    limit: 3,
+    windowMs: 24 * 60 * 60_000,
+  },
   updateReview: {
     name: "review:update",
     limit: 30,
