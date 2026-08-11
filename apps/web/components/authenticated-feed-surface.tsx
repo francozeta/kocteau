@@ -59,7 +59,7 @@ export default function AuthenticatedFeedSurface({
   );
 
   return (
-    <section className="w-full max-w-5xl space-y-5 sm:space-y-6 lg:max-w-none lg:space-y-4">
+    <section className="w-full max-w-5xl space-y-5 sm:space-y-6 lg:max-w-none lg:space-y-5">
       <div className="lg:hidden">
         <FeedViewTabs
           activeView={activeView}
@@ -67,7 +67,7 @@ export default function AuthenticatedFeedSurface({
           onViewChange={handleViewChange}
         />
       </div>
-      <div className="hidden justify-start lg:flex">
+      <div className="hidden max-w-[44rem] justify-start lg:flex">
         <FeedViewTabs
           activeView={activeView}
           onViewChange={handleViewChange}
@@ -76,7 +76,7 @@ export default function AuthenticatedFeedSurface({
       {activeView === "for-you" ? (
         <FeedInRotationShelf tracks={starterTracks} />
       ) : null}
-      <div className="space-y-4">
+      <div className="max-w-[44rem] space-y-4">
         <FeedReviewList
           view={activeView}
           initialPage={activeView === initialView ? initialPage : undefined}
