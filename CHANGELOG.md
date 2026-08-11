@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.3.12](https://github.com/francozeta/kocteau/compare/v0.3.11...v0.3.12) (2026-08-11)
+
+
+### Features
+
+* **curators:** add editorial application program ([844f90e](https://github.com/francozeta/kocteau/commit/844f90e623726e3773f97c4b6f7576ddb24cde4a))
+* **curators:** add editorial application program ([e738a55](https://github.com/francozeta/kocteau/commit/e738a5578f586b3ab02a43b031a5b97198dd356f))
+* **search:** add mobile search dock and controls in mobile bottom bar ([926705a](https://github.com/francozeta/kocteau/commit/926705aa6aa1fc104171be2a0cca0c711568b1b2))
+* **search:** refine immersive discovery routes ([39248c9](https://github.com/francozeta/kocteau/commit/39248c9372a4ab712562d5054f1f212863aedbc0))
+* **search:** refine immersive discovery routes ([6d492ed](https://github.com/francozeta/kocteau/commit/6d492ed8486f224524088e43ac20205ce72e9fe3))
+* **ui:** update search and library icons ([115b7a5](https://github.com/francozeta/kocteau/commit/115b7a5a83a49a5d282704fb5ebb7c014fb1d793))
+* **web:** refine navigation and library icon system ([f577690](https://github.com/francozeta/kocteau/commit/f5776908e5da1c17c281039e3e9cc039441d02cf))
+
+
+### Bug Fixes
+
+* **proxy:** update cookie handling in proxy response ([45676ce](https://github.com/francozeta/kocteau/commit/45676ce77e24ec88a0c1da858085b4fb0efe8547))
+* **search:** align discovery action docks ([#173](https://github.com/francozeta/kocteau/issues/173)) ([7a7966a](https://github.com/francozeta/kocteau/commit/7a7966a793a54d95328f63c07ca749f140b146ae))
+* **search:** use solid desktop action surface ([#174](https://github.com/francozeta/kocteau/issues/174)) ([f417a96](https://github.com/francozeta/kocteau/commit/f417a966f68309fdf9a25932094e3febb435f6be))
+* **ui:** refine search and feed layout ([dbac9c8](https://github.com/francozeta/kocteau/commit/dbac9c8f082fe9dd0ce986299985c39bea8edef9))
+* **ui:** refine search and feed layout ([ed46da4](https://github.com/francozeta/kocteau/commit/ed46da4c1a3c63a574e904bb400b64bdb87932db))
+
+
+### Performance
+
+* **web:** reduce development workspace overhead ([72376df](https://github.com/francozeta/kocteau/commit/72376df7a9a5fc77873894ed0eccf882c2f3230c))
+* **web:** reduce development workspace overhead ([d5df906](https://github.com/francozeta/kocteau/commit/d5df906cb6b17dd94ce9ccd09564df6b340fb34f))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.11 ([1a5621d](https://github.com/francozeta/kocteau/commit/1a5621d3d310ec9c329500ffee5a441450fcd148))
+* **web:** draft public changelog for v0.3.11 ([08b42d7](https://github.com/francozeta/kocteau/commit/08b42d703f0c1965e9a2be80978e81119f3751a9))
+
 ## [0.3.11](https://github.com/francozeta/kocteau/compare/v0.3.10...v0.3.11) (2026-08-04)
 
 
