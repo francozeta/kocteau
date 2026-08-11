@@ -49,7 +49,7 @@ export default function DiscoverySeedActions({ seed }: DiscoverySeedActionsProps
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="pointer-events-none absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] z-40 flex justify-center md:bottom-5 lg:justify-end lg:px-6">
+    <div className="pointer-events-none absolute inset-x-4 top-[calc(50%+7rem)] z-40 flex justify-center md:px-6">
       <AnimatePresence initial={false} mode="popLayout">
         {seed ? (
           <motion.div
@@ -69,21 +69,25 @@ export default function DiscoverySeedActions({ seed }: DiscoverySeedActionsProps
               duration: shouldReduceMotion ? 0 : 0.25,
               ease: smoothOut,
             }}
-            className="mobile-liquid-bar pointer-events-auto flex w-full max-w-[28rem] items-center gap-1 rounded-full p-1 sm:w-auto sm:min-w-[23rem]"
+            className="kocteau-liquid-bar pointer-events-auto flex h-11 w-full max-w-[28rem] items-center gap-0.5 rounded-full p-0.5"
             aria-live="polite"
           >
             <PrefetchLink
               href={getEntityHref(seed)}
               aria-label={`Open ${seed.title}`}
-              className="group flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full px-1.5 text-left text-foreground outline-none transition-[opacity,transform] duration-150 ease-out hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/55 active:scale-[0.98]"
+              className="group flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-1 text-left text-foreground outline-none transition-[opacity,transform] duration-150 ease-out hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/55 active:scale-[0.98]"
             >
               <EntityCoverImage
                 src={seed.cover_url}
                 alt=""
-                sizes="40px"
+                sizes="36px"
                 quality={72}
                 variant="thumbnail"
-                className={seed.type === "artist" ? "size-10 rounded-full" : "size-10 rounded-[0.55rem]"}
+                className={
+                  seed.type === "artist"
+                    ? "size-9 rounded-full outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10"
+                    : "size-9 rounded-[0.45rem] outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10"
+                }
                 iconClassName="size-3.5"
               />
               <span className="min-w-0 flex-1">
