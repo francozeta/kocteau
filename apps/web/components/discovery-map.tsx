@@ -19,6 +19,7 @@ import EntityCoverImage from "@/components/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/kocteau-icons";
 import { Input } from "@/components/ui/input";
 import { XIcon } from "@/components/ui/icons";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useKocteauSearch,
   type KocteauSearchResult,
@@ -71,6 +72,10 @@ function getMobileSearchDockServerSnapshot() {
 
 function getSearchPortalTargetSnapshot() {
   return document.querySelector<HTMLElement>("[data-kocteau-scroll-boundary]");
+}
+
+function getDesktopSearchPortalTargetSnapshot() {
+  return document.querySelector<HTMLElement>("[data-kocteau-search-surface]");
 }
 
 function mapStarterTrackToSeed(track: StarterTrack): DiscoverySeed {
@@ -333,7 +338,9 @@ function DiscoverySearch({
   const isMobileViewport = useIsMobile();
   const portalTarget = useSyncExternalStore(
     subscribeToMobileSearchDock,
-    getSearchPortalTargetSnapshot,
+    mobile
+      ? getSearchPortalTargetSnapshot
+      : getDesktopSearchPortalTargetSnapshot,
     getMobileSearchDockServerSnapshot,
   );
   const hasQuery = query.trim().length >= 2;
@@ -353,62 +360,85 @@ function DiscoverySearch({
 
   const resultList =
     mobile === isMobileViewport && hasQuery && (!mobile || isFocused) ? (
-    <div
-      className="fixed inset-0 z-[100000] overflow-y-auto bg-[var(--kocteau-landing-canvas)] px-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-[calc(env(safe-area-inset-top)+4.5rem)] sm:px-6 md:pb-8 md:pl-[calc(var(--sidebar-width)+0.625rem)] md:pt-[9.5rem]"
-    >
       <div
-        id={resultListId}
-        className="mx-auto w-full max-w-2xl"
-      >
-        {results.length > 0 ? (
-          <div className="grid gap-1">
-            {results.map((result) => (
-              <button
-                key={`${result.provider}:${result.type}:${result.provider_id}`}
-                type="button"
-                onPointerDown={(event) => {
-                  if (mobile) event.preventDefault();
-                }}
-                onClick={() => chooseResult(result)}
-                className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
-              >
-                <EntityCoverImage
-                  src={result.cover_url}
-                  alt=""
-                  sizes="52px"
-                  quality={70}
-                  variant="thumbnail"
-                  className={cn(
-                    "size-[3.25rem] bg-muted/30",
-                    result.type === "artist"
-                      ? "rounded-full"
-                      : "rounded-[0.6rem]",
-                  )}
-                  iconClassName="size-3.5"
-                />
-                <span className="min-w-0">
-                  <span className="block truncate font-pixel text-[12px] font-medium text-foreground/92">
-                    {result.title}
-                  </span>
-                  <span className="mt-1 block truncate text-[11px] text-muted-foreground/62">
-                    {result.type === "artist"
-                      ? "Artist"
-                      : result.artist_name || "Unknown artist"}
-                  </span>
-                </span>
-                <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/48">
-                  {getResultTypeLabel(result)}
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="px-3 py-4 text-[11px] text-muted-foreground/58">
-            {isSearching ? "Searching the catalog…" : "No matches. Try another name."}
-          </p>
+        className={cn(
+          "z-[100000] overflow-y-auto bg-background",
+          mobile
+            ? "fixed inset-0 px-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-[calc(env(safe-area-inset-top)+4.5rem)] sm:px-6"
+            : "absolute inset-0 px-6 pb-8 pt-20",
         )}
+      >
+        <div id={resultListId} className="mx-auto w-full max-w-2xl">
+          {isSearching ? (
+            <div
+              aria-busy="true"
+              aria-label="Searching the catalog"
+              className="grid gap-1"
+            >
+              {Array.from({ length: 6 }, (_, index) => (
+                <div
+                  key={index}
+                  aria-hidden="true"
+                  className="grid min-h-16 grid-cols-[3.25rem_minmax(0,1fr)_3rem] items-center gap-3 px-2 py-1.5"
+                >
+                  <Skeleton className="size-[3.25rem] rounded-[0.6rem] bg-muted-foreground/[0.1]" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-[min(14rem,62%)] rounded-full bg-muted-foreground/[0.12]" />
+                    <Skeleton className="h-2.5 w-[min(9rem,42%)] rounded-full bg-muted-foreground/[0.08]" />
+                  </div>
+                  <Skeleton className="h-2 w-10 justify-self-end rounded-full bg-muted-foreground/[0.08]" />
+                </div>
+              ))}
+            </div>
+          ) : results.length > 0 ? (
+            <div className="grid gap-1">
+              {results.map((result) => (
+                <button
+                  key={`${result.provider}:${result.type}:${result.provider_id}`}
+                  type="button"
+                  onPointerDown={(event) => {
+                    if (mobile) event.preventDefault();
+                  }}
+                  onClick={() => chooseResult(result)}
+                  className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
+                >
+                  <EntityCoverImage
+                    src={result.cover_url}
+                    alt=""
+                    sizes="52px"
+                    quality={70}
+                    variant="thumbnail"
+                    className={cn(
+                      "size-[3.25rem] bg-muted/30",
+                      result.type === "artist"
+                        ? "rounded-full"
+                        : "rounded-[0.6rem]",
+                    )}
+                    iconClassName="size-3.5"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate font-pixel text-[12px] font-medium text-foreground/92">
+                      {result.title}
+                    </span>
+                    <span className="mt-1 block truncate text-[11px] text-muted-foreground/62">
+                      {result.type === "artist"
+                        ? "Artist"
+                        : result.artist_name || "Unknown artist"}
+                    </span>
+                  </span>
+                  <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/48">
+                    {getResultTypeLabel(result)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="px-3 py-4 text-[11px] text-muted-foreground/58">
+              No matches. Try another name.
+            </p>
+          )}
+        </div>
       </div>
-    </div>
     ) : null;
   const portaledResultList = resultList && portalTarget
     ? createPortal(resultList, portalTarget)
@@ -461,7 +491,7 @@ function DiscoverySearch({
             maxLength={80}
             aria-expanded={Boolean(isFocused && hasQuery)}
             aria-controls={resultListId}
-            className="h-11 rounded-full border-transparent bg-white/[0.08] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70"
+            className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70"
           />
           {portaledResultList}
         </form>
@@ -479,7 +509,7 @@ function DiscoverySearch({
               setIsFocused(false);
             }}
             className={cn(
-              "flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
+              "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
               isFocused ? "opacity-100 scale-100" : "pointer-events-none opacity-0 scale-95",
             )}
           >
@@ -526,7 +556,7 @@ function DiscoverySearch({
         maxLength={80}
         aria-expanded={results.length > 0}
         aria-controls={resultListId}
-        className="h-11 rounded-full border-transparent bg-white/[0.08] pl-10 pr-12 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 sm:text-[13px]"
+        className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-12 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 sm:text-[13px]"
       />
       {isExpanding ? (
         <span
@@ -546,7 +576,7 @@ function DiscoverySearch({
           setIsFocused(false);
         }}
         className={cn(
-          "absolute left-[calc(100%+0.75rem)] top-0 flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
+          "absolute left-[calc(100%+0.75rem)] top-0 flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
           isFocused ? "opacity-100 scale-100" : "pointer-events-none opacity-0 scale-95",
         )}
       >

@@ -4,12 +4,10 @@ import ReactQueryProvider from "@/app/providers/react-query-provider";
 import AppSidebar from "@/components/app-sidebar";
 import DeferredToaster from "@/components/deferred-toaster";
 import DesktopScrollBridge from "@/components/desktop-scroll-bridge";
-import EditorialDiscoveryRail from "@/components/editorial-discovery-rail";
 import GlobalShortcuts from "@/components/global-shortcuts";
 import Header from "@/components/header";
 import MobileBottomBar from "@/components/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/route-header-context";
-import { SecondaryRailProvider } from "@/components/secondary-rail-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
   getCurrentOnboardingState,
@@ -78,22 +76,18 @@ export default async function AppShell({
           ) : (
             <div
               className={cn(
-                "kocteau-main-grid mx-auto grid min-h-0 w-full max-w-[76rem] flex-1 gap-5 lg:h-full lg:items-stretch lg:justify-center lg:has-[[data-kocteau-full-width]]:!max-w-none lg:has-[[data-kocteau-full-width]]:!grid-cols-[minmax(0,1fr)] lg:has-[[data-kocteau-full-width]]:[&>aside]:!hidden xl:gap-6",
+                "kocteau-main-grid mx-auto grid min-h-0 w-full flex-1 gap-5 lg:h-full lg:items-stretch lg:justify-center lg:grid-cols-[minmax(0,1fr)] lg:has-[[data-kocteau-full-width]]:!max-w-none xl:gap-6",
                 safeProfile
-                  ? "lg:grid-cols-[minmax(0,44rem)_16rem]"
+                  ? "lg:max-w-[64rem]"
                   : "lg:max-w-none lg:grid-cols-[minmax(0,1fr)]",
               )}
             >
               <main
                 data-kocteau-scroll-main
-                className={cn(
-                  "no-scrollbar min-w-0 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto",
-                  safeProfile && "lg:pr-1",
-                )}
+                className="no-scrollbar min-w-0 lg:min-h-0 lg:overflow-x-hidden lg:overflow-y-auto"
               >
                 {children}
               </main>
-              {safeProfile ? <EditorialDiscoveryRail /> : null}
             </div>
           )}
         </div>
@@ -129,9 +123,7 @@ export default async function AppShell({
               : "bg-[var(--kocteau-shell)] lg:bg-[var(--kocteau-canvas)]",
           )}
         >
-          <RouteHeaderProvider>
-            {isStudio ? content : <SecondaryRailProvider>{content}</SecondaryRailProvider>}
-          </RouteHeaderProvider>
+          <RouteHeaderProvider>{content}</RouteHeaderProvider>
         </SidebarInset>
       </SidebarProvider>
     </ReactQueryProvider>

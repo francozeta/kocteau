@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import EntityCoverImage from "@/components/entity-cover-image";
-import PrefetchLink from "@/components/prefetch-link";
 import SectionLinkHeading from "@/components/section-link-heading";
+import StarterRouteCard from "@/components/starter-route-card";
 import TrackCarousel from "@/components/track-carousel";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
-import { getDiscoverySeedPath } from "@/lib/discovery/seed";
 import type { StarterTrack } from "@/lib/starter";
 import { cn } from "@/lib/utils";
 
@@ -16,52 +14,6 @@ type FeedStarterShelfProps = {
   variant?: "editorial" | "personalized";
   className?: string;
 };
-
-function getStarterTrackHref(track: StarterTrack) {
-  return getDiscoverySeedPath({
-    provider_id: track.provider_id,
-    title: track.title,
-    type: "track",
-  });
-}
-
-function StarterRouteCard({
-  track,
-  priority,
-}: {
-  track: StarterTrack;
-  priority: boolean;
-}) {
-  return (
-    <PrefetchLink
-      href={getStarterTrackHref(track)}
-      className="group block overflow-hidden rounded-[0.9rem] bg-[var(--kocteau-surface-control)] outline-none transition-[opacity,transform] duration-150 hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/60 active:scale-[0.985]"
-      aria-label={`Start a discovery route from ${track.title} by ${track.artist_name ?? "Unknown artist"}`}
-    >
-      <div className="relative aspect-[4/5] overflow-hidden">
-        <EntityCoverImage
-          src={track.cover_url}
-          alt=""
-          sizes="(max-width: 640px) 82vw, 19rem"
-          quality={84}
-          variant="card"
-          priority={priority}
-          className="absolute inset-0 h-full w-full"
-          imageClassName="transition-transform duration-300 ease-out group-hover:scale-[1.015] motion-reduce:transition-none"
-          iconClassName="size-8"
-        />
-        <div className="absolute inset-x-2 bottom-2 rounded-[0.68rem] bg-black/72 px-3 py-2.5 backdrop-blur-md">
-          <p className="truncate font-pixel text-[12px] leading-tight text-white/94">
-            {track.title}
-          </p>
-          <p className="mt-1 truncate text-[11px] leading-tight text-white/66">
-            {track.artist_name ?? "Unknown artist"}
-          </p>
-        </div>
-      </div>
-    </PrefetchLink>
-  );
-}
 
 export default function FeedStarterShelf({
   tracks,
