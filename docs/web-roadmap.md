@@ -12,7 +12,7 @@ This roadmap is for the web app only.
   - `packages/types`
   - `packages/ui`
 - Out of scope for now:
-  - `apps/mobile`
+  - a native mobile app, which is not included in the current workspace
   - major platform expansion
   - broad feature experiments that do not improve the core web product loop
 

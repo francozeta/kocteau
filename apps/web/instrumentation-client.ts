@@ -4,11 +4,14 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 Sentry.init({
   dsn: "https://93063a824f0328fb310fa6c9cd744780@o4508104492711936.ingest.us.sentry.io/4511130278100992",
 
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.01 : 1,
-  enableLogs: process.env.NODE_ENV !== "production",
+  enabled: isProduction,
+  tracesSampleRate: isProduction ? 0.01 : 0,
+  enableLogs: false,
 
   sendDefaultPii: false,
 });
