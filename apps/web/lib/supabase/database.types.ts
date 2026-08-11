@@ -173,6 +173,66 @@ export type Database = {
         }
         Relationships: []
       }
+      curator_applications: {
+        Row: {
+          availability: string
+          decision_note: string | null
+          id: string
+          motivation: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sample_links: string[]
+          status: string
+          submitted_at: string
+          taste_focus: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability: string
+          decision_note?: string | null
+          id?: string
+          motivation: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sample_links?: string[]
+          status?: string
+          submitted_at?: string
+          taste_focus: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability?: string
+          decision_note?: string | null
+          id?: string
+          motivation?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sample_links?: string[]
+          status?: string
+          submitted_at?: string
+          taste_focus?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curator_applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curator_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_candidates: {
         Row: {
           artist_name: string | null
@@ -1431,6 +1491,33 @@ export type Database = {
           review_id: string
         }[]
       }
+      decide_curator_application: {
+        Args: {
+          p_application_id: string
+          p_decision_note?: string
+          p_status: string
+        }
+        Returns: {
+          availability: string
+          decision_note: string | null
+          id: string
+          motivation: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sample_links: string[]
+          status: string
+          submitted_at: string
+          taste_focus: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "curator_applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       enqueue_catalog_enrichment_target: {
         Args: { p_target_id: string; p_target_type: string }
         Returns: undefined
@@ -1515,6 +1602,7 @@ export type Database = {
         Args: { p_entity_id: string; p_signal_weight?: number }
         Returns: number
       }
+      is_kocteau_admin: { Args: never; Returns: boolean }
       is_starter_curator: { Args: never; Returns: boolean }
       notification_channel_topic: {
         Args: { recipient_id: string }

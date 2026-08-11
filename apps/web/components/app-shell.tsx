@@ -16,7 +16,10 @@ import {
   getCurrentUserId,
   getCurrentViewerProfile,
 } from "@/lib/auth/server";
-import { getStarterCuratorAccess } from "@/lib/queries/curation";
+import {
+  getKocteauAdminAccess,
+  getStarterCuratorAccess,
+} from "@/lib/queries/curation";
 import { cn } from "@/lib/utils";
 
 type AppShellVariant = "feed" | "studio";
@@ -45,7 +48,12 @@ export default async function AppShell({
     redirect("/onboarding/taste");
   }
 
-  const canAccessStudio = userId ? await getStarterCuratorAccess() : false;
+  const [canAccessStudio, canManageCurators] = userId
+    ? await Promise.all([
+        getStarterCuratorAccess(),
+        getKocteauAdminAccess(),
+      ])
+    : [false, false];
   const isStudio = variant === "studio";
 
   const content = (
@@ -111,6 +119,7 @@ export default async function AppShell({
           profile={safeProfile}
           unreadCount={initialUnreadCount}
           canAccessStudio={canAccessStudio}
+          canManageCurators={canManageCurators}
         />
         <SidebarInset
           className={cn(

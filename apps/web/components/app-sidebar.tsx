@@ -55,6 +55,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   profile: AppSidebarProfile | null;
   unreadCount?: number;
   canAccessStudio?: boolean;
+  canManageCurators?: boolean;
 };
 
 function SidebarHeaderAction({
@@ -123,6 +124,7 @@ export default function AppSidebar({
   profile,
   unreadCount: initialUnreadCount = 0,
   canAccessStudio = false,
+  canManageCurators = false,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname();
@@ -213,6 +215,16 @@ export default function AppSidebar({
           icon: KocteauHealthIcon,
           isActive: pathname.startsWith("/studio/health"),
         },
+        ...(canManageCurators
+          ? [
+              {
+                title: "Curators",
+                url: "/studio/curators",
+                icon: KocteauStarterIcon,
+                isActive: pathname.startsWith("/studio/curators"),
+              },
+            ]
+          : []),
       ]
     : [];
 

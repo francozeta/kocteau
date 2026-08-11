@@ -17,3 +17,19 @@ export async function getStarterCuratorAccess() {
 
   return Boolean(data);
 }
+
+export async function getKocteauAdminAccess() {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc("is_kocteau_admin");
+
+  if (error) {
+    console.error("[curation.getKocteauAdminAccess] failed", {
+      code: error.code ?? null,
+      message: error.message ?? null,
+    });
+
+    return false;
+  }
+
+  return Boolean(data);
+}

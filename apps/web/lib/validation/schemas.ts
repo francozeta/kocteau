@@ -6,6 +6,10 @@ import {
 } from "@/lib/analytics/events";
 import { searchableEntityTypes, searchScopes } from "@/lib/search-types";
 import { editorialCandidateStatuses } from "@/lib/starter/candidate-queue";
+import {
+  curatorAvailabilityValues,
+  curatorDecisionStatuses,
+} from "@/lib/curators";
 import { tasteOnboardingMaxTags, tasteOnboardingMinTags } from "@/lib/taste";
 import { entityLibraryItemTypes } from "@/lib/library/entity-library";
 
@@ -135,7 +139,13 @@ export const editorialCandidateUpsertSchema = z.object({
   artist_name: optionalTrimmedString(160),
   cover_url: z.string().trim().url("Cover URL must be valid.").nullable().optional().transform((value) => value ?? null),
   deezer_url: z.string().trim().url("Deezer URL must be valid.").nullable().optional().transform((value) => value ?? null),
-  source: z.enum(["related-seed", "deep-cut", "manual", "system-signal"]),
+  source: z.enum([
+    "related-seed",
+    "deep-cut",
+    "manual",
+    "system-signal",
+    "external-source",
+  ]),
   source_label: z.string().trim().min(2).max(48),
   seed_label: optionalTrimmedString(120),
   tier: z.enum(["emerging", "undercovered", "familiar", "deep-cut", "obvious"]),
@@ -149,6 +159,40 @@ export const editorialCandidateDecisionSchema = z.object({
   status: z.enum(editorialCandidateStatuses),
   decision_note: optionalTrimmedString(240),
   starter_track_id: z.string().uuid("Invalid starter track id.").nullable().optional().transform((value) => value ?? null),
+});
+
+export const curatorApplicationSchema = z.object({
+  taste_focus: z
+    .string()
+    .trim()
+    .min(20, "Tell us a little more about the music you follow.")
+    .max(600, "Keep your taste focus to 600 characters or fewer."),
+  motivation: z
+    .string()
+    .trim()
+    .min(40, "Tell us a little more about the perspective you would bring.")
+    .max(1200, "Keep your note to 1,200 characters or fewer."),
+  sample_links: z
+    .array(
+      z
+        .string()
+        .trim()
+        .max(500, "Links must be 500 characters or fewer.")
+        .url("Use a complete, valid URL.")
+        .refine(
+          (value) => ["http:", "https:"].includes(new URL(value).protocol),
+          "Use an http or https URL.",
+        ),
+    )
+    .max(3, "Add up to three links.")
+    .transform((links) => Array.from(new Set(links))),
+  availability: z.enum(curatorAvailabilityValues),
+});
+
+export const curatorApplicationDecisionSchema = z.object({
+  id: z.string().uuid("Invalid curator application id."),
+  status: z.enum(curatorDecisionStatuses),
+  decision_note: optionalTrimmedString(600),
 });
 
 export const loginSchema = z.object({

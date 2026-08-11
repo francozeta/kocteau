@@ -21,6 +21,7 @@ const footerGroups = [
     title: "Community",
     links: [
       { label: "Join Kocteau", href: "/signup" },
+      { label: "Apply to curate", href: "/curators" },
       { label: "GitHub", href: "https://github.com/francozeta/kocteau" },
       { label: "Discord", href: "https://discord.gg/FgrNjkPa8" },
     ],
