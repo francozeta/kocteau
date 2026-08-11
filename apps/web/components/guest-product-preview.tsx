@@ -22,7 +22,6 @@ import {
   Bookmark,
   ChatCircleTextIcon,
   Heart,
-  MagnifyingGlassIcon,
   MessageCircle,
   MoreHorizontal,
 } from "@/components/ui/icons";
@@ -84,7 +83,7 @@ const mockWriters = [
 
 const browseItems = [
   { label: "Feed", icon: KocteauHomeIcon, active: true },
-  { label: "Explore", icon: MagnifyingGlassIcon },
+  { label: "Explore", icon: KocteauSearchIcon },
   { label: "Atlas", icon: KocteauStarterIcon },
   { label: "Feedback", icon: ChatCircleTextIcon },
 ] as const;

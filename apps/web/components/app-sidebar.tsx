@@ -3,9 +3,6 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import {
-  MagnifyingGlassIcon,
-} from "@/components/ui/icons";
 import BrandLogo from "@/components/brand-logo";
 import {
   KocteauActivityIcon,
@@ -173,7 +170,7 @@ export default function AppSidebar({
     {
       title: "Search",
       url: "/search",
-      icon: MagnifyingGlassIcon,
+      icon: KocteauSearchIcon,
       isActive: pathname.startsWith("/search") || pathname.startsWith("/track"),
     },
     {
