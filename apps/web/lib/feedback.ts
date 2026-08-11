@@ -62,7 +62,7 @@ export function toastAuthRequired(action: AuthPromptAction) {
       label: "Log in",
       onClick: () => {
         if (typeof window !== "undefined") {
-          window.location.assign("/login");
+          window.location.assign(new URL("/login", window.location.origin));
         }
       },
     },

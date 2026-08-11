@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -53,6 +54,18 @@ const routeOrder: TrackRecommendationGroup["id"][] = [
   "nearby",
   "deep-cut",
 ];
+
+function subscribeToMobileSearchDock() {
+  return () => {};
+}
+
+function getMobileSearchDockSnapshot() {
+  return document.getElementById("mobile-search-dock");
+}
+
+function getMobileSearchDockServerSnapshot() {
+  return null;
+}
 
 function mapStarterTrackToSeed(track: StarterTrack): DiscoverySeed {
   return {
@@ -527,8 +540,11 @@ export default function DiscoveryMap({
     initialSeed,
   );
   const [seedQuery, setSeedQuery] = useState(initialQuery);
-  const [mobileSearchDock, setMobileSearchDock] =
-    useState<HTMLElement | null>(null);
+  const mobileSearchDock = useSyncExternalStore(
+    subscribeToMobileSearchDock,
+    getMobileSearchDockSnapshot,
+    getMobileSearchDockServerSnapshot,
+  );
   const seedSearch = useKocteauSearch({
     query: seedQuery,
     type: "all",
@@ -609,10 +625,6 @@ export default function DiscoveryMap({
     selectedSeed && mapQuery.isError && expandedMapQuery.isError,
   );
   const hasExplorationIntent = Boolean(selectedSeed || seedQuery.trim());
-
-  useEffect(() => {
-    setMobileSearchDock(document.getElementById("mobile-search-dock"));
-  }, []);
 
   useEffect(() => {
     const currentState = (window.history.state ?? {}) as DiscoveryHistoryState;

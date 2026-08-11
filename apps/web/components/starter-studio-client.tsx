@@ -502,10 +502,6 @@ export default function StarterStudioClient() {
     () => starterTracksQuery.data?.pages[0]?.tags ?? [],
     [starterTracksQuery.data],
   );
-  const tagById = useMemo(
-    () => new Map(availableTags.map((tag) => [tag.id, tag])),
-    [availableTags],
-  );
   const existingProviderIds = useMemo(
     () => new Set(starterTracks.map((track) => track.provider_id)),
     [starterTracks],
