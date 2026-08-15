@@ -10,7 +10,7 @@
   "bugs": {
     "url": "https://github.com/francozeta/kocteau/issues"
   },
-  "packageManager": "pnpm@9.15.3",
+  "packageManager": "pnpm@11.21.0",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -48,19 +48,10 @@
     "check": "pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.3.0",
     "supabase": "^2.109.1",
     "tsx": "^4.22.4",
     "turbo": "2.9.16"
-  },
-  "pnpm": {
-    "overrides": {
-      "brace-expansion@<1.1.13": "1.1.13",
-      "brace-expansion@>=4.0.0 <5.0.5": "5.0.5",
-      "picomatch@<2.3.2": "2.3.2",
-      "picomatch@>=4.0.0 <4.0.4": "4.0.4",
-      "tar": "7.5.11",
-      "@types/react": "19.2.14",
-      "@types/react-dom": "19.2.3"
-    }
   }
 }
