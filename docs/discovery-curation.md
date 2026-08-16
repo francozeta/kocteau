@@ -175,7 +175,7 @@ These examples use placeholder IDs and include only the fields needed to support
   "metadata": {
     "review_id": "review_example_01",
     "entity_id": "track_example_01",
-    "reason": "taste_affinity",
+    "reason": "taste_match",
     "position": 3
   }
 }
@@ -212,7 +212,7 @@ These examples use placeholder IDs and include only the fields needed to support
   "metadata": {
     "review_id": "review_example_02",
     "entity_id": "track_example_02",
-    "reason": "editorial_affinity"
+    "reason": "author_affinity"
   }
 }
 ```
