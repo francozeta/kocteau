@@ -162,6 +162,65 @@ Use only fields that help answer a product question:
 | `starter_review_cta` | `starter_track_id`, `provider_id` | Which starter picks invite reviews? |
 | `starter_review_published` | `starter_track_id`, `provider_id` | Which starter picks convert into reviews? |
 
+### Example Payloads
+
+These examples use placeholder IDs and include only the fields needed to support a product decision. The required envelope fields are `event_type`, `source`, and `metadata`.
+
+#### For You Review Impression
+
+```json
+{
+  "event_type": "review_impression",
+  "source": "feed:for-you",
+  "metadata": {
+    "review_id": "review_example_01",
+    "entity_id": "track_example_01",
+    "reason": "taste_match",
+    "position": 3
+  }
+}
+```
+
+- Required metadata: `review_id`, `entity_id`, and `reason`.
+- Optional metadata: `position` when the review appears in an ordered surface.
+- Product decision: compare impressions with opens and actions by recommendation reason before tuning For You ranking.
+
+#### Starter Pick Pass
+
+```json
+{
+  "event_type": "starter_pass",
+  "source": "feed:starter",
+  "metadata": {
+    "starter_track_id": "starter_example_01",
+    "provider_id": "provider_track_example_01",
+    "matched_tag_count": 2
+  }
+}
+```
+
+- Required metadata: `starter_track_id` and `provider_id`.
+- Optional metadata: `matched_tag_count` when the pick was selected from taste-tag matches.
+- Product decision: identify starter picks that should be downranked, reframed, or replaced after repeated passes.
+
+#### Review Read Depth
+
+```json
+{
+  "event_type": "review_read_90",
+  "source": "feed:for-you",
+  "metadata": {
+    "review_id": "review_example_02",
+    "entity_id": "track_example_02",
+    "reason": "author_affinity"
+  }
+}
+```
+
+- Required metadata: `review_id`, `entity_id`, and `reason`.
+- Optional metadata: none for the minimal event; do not attach raw review text or granular scroll traces.
+- Product decision: find recommendation reasons that lead to sustained reading rather than impressions alone.
+
 ### Signal Rules
 
 - One event should answer one question.
