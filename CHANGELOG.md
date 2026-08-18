@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.3.13](https://github.com/francozeta/kocteau/compare/v0.3.12...v0.3.13) (2026-08-18)
+
+
+### Features
+
+* settings-public-discovery ([9315468](https://github.com/francozeta/kocteau/commit/9315468eb46bf54c269e49e583e8f2d8b632629f))
+
+
+### Bug Fixes
+
+* **dev:** complete pnpm 11 migration ([785ab10](https://github.com/francozeta/kocteau/commit/785ab107a97155e9fd0895ddd85cde8d7929aba3))
+* **dev:** complete pnpm 11 migration ([#178](https://github.com/francozeta/kocteau/issues/178)) ([7b2df92](https://github.com/francozeta/kocteau/commit/7b2df92775017f5b0fc94300a6e8a0795c3aa5a1))
+* **settings:** refine routed profile editor ([2f8aecc](https://github.com/francozeta/kocteau/commit/2f8aecc74ee3902a208731029ebd64ed8b3bc3f8))
+
+
+### Documentation
+
+* add discovery signal payload examples ([#180](https://github.com/francozeta/kocteau/issues/180)) ([4671c60](https://github.com/francozeta/kocteau/commit/4671c6042dc11740f32413bc02032a3532c5f2f6))
+* **web:** draft public changelog for v0.3.12 ([#175](https://github.com/francozeta/kocteau/issues/175)) ([cdd9324](https://github.com/francozeta/kocteau/commit/cdd9324e917cdc2dc5417a0d8738184e9265c0ef))
+
+
+### Refactors
+
+* **ui:** refine review actions and app shell ([1dfdbc5](https://github.com/francozeta/kocteau/commit/1dfdbc5ce6db8f66bf12ecc4d0a1094dcc6ddd31))
+
 ## [0.3.12](https://github.com/francozeta/kocteau/compare/v0.3.11...v0.3.12) (2026-08-11)
 
 
