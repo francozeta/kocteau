@@ -1,8 +1,8 @@
 "use client";
 
+import type { ComponentType, SVGProps } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Icon } from "@/components/ui/icons";
 import {
   KocteauHomeIcon,
   KocteauLibraryIcon,
@@ -31,7 +31,7 @@ type MobileBottomBarProps = {
 type NavItem = {
   href: string;
   label: string;
-  icon: Icon;
+  icon: ComponentType<SVGProps<SVGSVGElement> & { weight?: "fill" | "regular" }>;
   active: (pathname: string) => boolean;
 };
 
@@ -40,7 +40,7 @@ function BottomFade({ elevated = false }: { elevated?: boolean }) {
     <div
       aria-hidden="true"
       className={cn(
-        "pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_top,var(--kocteau-landing-canvas)_0%,color-mix(in_oklch,var(--kocteau-landing-canvas)_72%,transparent)_52%,transparent_100%)] md:hidden",
+        "pointer-events-none fixed inset-x-0 bottom-0 h-28 bg-[linear-gradient(to_top,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)] md:hidden",
         elevated ? "z-[100000]" : "z-40",
       )}
     />

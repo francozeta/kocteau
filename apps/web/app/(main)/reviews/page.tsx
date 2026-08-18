@@ -18,6 +18,7 @@ export default async function ReviewsPage() {
     view: "latest",
     viewerId: userId,
     includeActiveUsers: false,
+    publicOnly: true,
     limit: 14,
   });
   const viewerState =

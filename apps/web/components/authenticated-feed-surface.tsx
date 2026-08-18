@@ -76,7 +76,7 @@ export default function AuthenticatedFeedSurface({
       {activeView === "for-you" ? (
         <FeedInRotationShelf tracks={starterTracks} />
       ) : null}
-      <div className="max-w-[44rem] space-y-4">
+      <div className="w-full space-y-4">
         <FeedReviewList
           view={activeView}
           initialPage={activeView === initialView ? initialPage : undefined}

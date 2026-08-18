@@ -2,9 +2,9 @@
 
 import { FaDeezer } from "react-icons/fa";
 
-import { Share2 } from "@/components/ui/icons";
 import EditReviewDialog from "@/components/edit-review-dialog";
 import EntityCoverImage from "@/components/entity-cover-image";
+import { KocteauShareIcon } from "@/components/kocteau-icons";
 import EntityLibraryActions from "@/components/entity-library-actions";
 import NewReviewDialog from "@/components/new-review-dialog";
 import PrefetchLink from "@/components/prefetch-link";
@@ -202,7 +202,7 @@ export default function TrackPageHero({
               className={sideActionClassName}
               aria-label="Share track"
             >
-              <Share2 className="size-4" />
+              <KocteauShareIcon className="size-4" />
             </Button>
 
             {viewerReview && editSelection ? (

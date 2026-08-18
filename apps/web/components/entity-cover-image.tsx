@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Music2 } from "@/components/ui/icons";
+import { KocteauSongIcon } from "@/components/kocteau-icons";
 import { cn } from "@/lib/utils";
 
 type EntityCoverVariant = "thumbnail" | "card" | "hero";
@@ -94,7 +94,7 @@ export default function EntityCoverImage({
           className={cn("object-cover", imageClassName)}
         />
       ) : (
-        <Music2 className={cn("text-muted-foreground", iconClassName)} />
+        <KocteauSongIcon className={cn("text-muted-foreground", iconClassName)} />
       )}
     </div>
   );

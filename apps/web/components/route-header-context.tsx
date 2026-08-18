@@ -9,6 +9,18 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
+import type { EditReviewDialogSeed } from "@/components/edit-review-dialog";
+
+export type DetailReviewActions = {
+  reviewTitle: string | null;
+  entityTitle: string | null;
+  entityId: string | null;
+  entityPath: string | null;
+  canManage: boolean;
+  editSeed: EditReviewDialogSeed | null;
+  initialBookmarked: boolean;
+  isAuthenticated: boolean;
+};
 
 export type DetailHeaderState = {
   kind: "track" | "profile" | "review";
@@ -17,6 +29,7 @@ export type DetailHeaderState = {
   sharePath: string;
   reviewId?: string;
   commentsCount?: number;
+  reviewActions?: DetailReviewActions;
   externalLinks: Array<{
     label: string;
     url: string;

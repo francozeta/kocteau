@@ -29,11 +29,6 @@ type SitemapReview = {
   entities: SitemapEntity | SitemapEntity[] | null;
 };
 
-type SitemapPreferenceTag = {
-  slug: string;
-  created_at: string;
-};
-
 type SitemapArtist = {
   id: string;
   provider: string;
@@ -47,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const metadataBase = getMetadataBase();
   const supabase = supabasePublic();
   const now = new Date();
-  const [profilesResult, reviewsResult, atlasTagsResult, albumsResult, artistsResult] = await Promise.all([
+  const [profilesResult, reviewsResult, albumsResult, artistsResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("username, created_at, updated_at")
@@ -75,10 +70,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .order("updated_at", { ascending: false })
       .limit(5000),
     supabase
-      .from("preference_tags")
-      .select("slug, created_at")
-      .order("sort_order", { ascending: true }),
-    supabase
       .from("entities")
       .select("id, provider, provider_id, created_at, updated_at, type, title, artist_name")
       .eq("type", "album")
@@ -93,7 +84,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const profiles = (profilesResult.data ?? []) as SitemapProfile[];
   const reviews = (reviewsResult.data ?? []) as SitemapReview[];
-  const atlasTags = (atlasTagsResult.data ?? []) as SitemapPreferenceTag[];
   const albums = (albumsResult.data ?? []) as SitemapEntity[];
   const artists = (artistsResult.data ?? []) as SitemapArtist[];
   const reviewedTracks = new Map<
@@ -151,12 +141,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.65,
     },
-    {
-      url: new URL("/atlas", metadataBase).toString(),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.62,
-    },
     ...helpRoutes.map((route) => ({
       url: new URL(route.href, metadataBase).toString(),
       lastModified: now,
@@ -196,13 +180,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const atlasRoutes: MetadataRoute.Sitemap = atlasTags.map((tag) => ({
-    url: new URL(`/atlas/${tag.slug}`, metadataBase).toString(),
-    lastModified: new Date(tag.created_at),
-    changeFrequency: "weekly",
-    priority: 0.54,
-  }));
-
   const albumRoutes: MetadataRoute.Sitemap = albums.map((album) => ({
     url: new URL(buildEntityCanonicalPath(album), metadataBase).toString(),
     lastModified: new Date(album.updated_at ?? album.created_at),
@@ -233,6 +210,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...albumRoutes,
     ...artistRoutes,
     ...profileRoutes,
-    ...atlasRoutes,
   ];
 }

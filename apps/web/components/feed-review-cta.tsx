@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Search } from "@/components/ui/icons";
+import { KocteauSearchIcon } from "@/components/kocteau-icons";
 import NewReviewDialog from "@/components/new-review-dialog";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { cn } from "@/lib/utils";
@@ -86,7 +86,7 @@ export default function FeedReviewCta({
             href="/search"
             className="inline-flex h-9 items-center justify-center gap-2 rounded-[0.56rem] bg-foreground/[0.07] px-3 text-[13px] font-medium text-foreground/86 transition-[background-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/[0.11] hover:text-foreground active:scale-[0.96]"
           >
-            <Search className="size-3.5" />
+            <KocteauSearchIcon className="size-3.5" />
             <span>Explore</span>
           </Link>
         </div>

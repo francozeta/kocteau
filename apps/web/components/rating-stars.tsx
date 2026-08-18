@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star } from "@/components/ui/icons";
+import { KocteauReviewsIcon } from "@/components/kocteau-icons";
 import { cn } from "@/lib/utils";
 
 type RatingStarsProps = {
@@ -109,20 +109,18 @@ export default function RatingStars({
               aria-checked={value === starNumber || value === starNumber - 0.5}
               aria-label={`${starNumber} estrellas`}
             >
-              <Star
+              <KocteauReviewsIcon
                 className="absolute inset-0 h-8 w-8 text-muted-foreground/34 transition-colors"
-                fill="none"
-                stroke="currentColor"
+                weight="regular"
               />
 
               <div
                 className="absolute inset-y-0 left-0 overflow-hidden"
                 style={{ width: `${fillPercent}%` }}
               >
-                <Star
+                <KocteauReviewsIcon
                   className="h-8 w-8 text-foreground drop-shadow-[0_0_10px_color-mix(in_oklch,var(--foreground)_22%,transparent)]"
-                  fill="currentColor"
-                  stroke="currentColor"
+                  weight="fill"
                 />
               </div>
             </button>

@@ -77,8 +77,10 @@ function dedupeByProviderId<T extends { provider_id: string }>(rows: T[]) {
   const byProviderId = new Map<string, T>();
 
   for (const row of rows) {
-    if (!byProviderId.has(row.provider_id)) {
-      byProviderId.set(row.provider_id, row);
+    const providerId = row.provider_id.trim().toLowerCase();
+
+    if (!byProviderId.has(providerId)) {
+      byProviderId.set(providerId, row);
     }
   }
 
@@ -205,7 +207,7 @@ function mapDeezerArtistCandidate(
     provider: "deezer",
     provider_id: artist.id,
     type: "artist",
-    title: artist.name,
+    title: artist.name.trim(),
     artist_name: null,
     cover_url: artist.picture_url,
     deezer_url: artist.deezer_url,

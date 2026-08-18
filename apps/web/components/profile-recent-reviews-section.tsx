@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "@/components/ui/icons";
+import { KocteauReviewsIcon } from "@/components/kocteau-icons";
 import TrackCarousel from "@/components/track-carousel";
 import TrackTile from "@/components/track-tile";
 import type { ReviewCardData, ReviewCardEntity } from "@/components/review-card";
@@ -30,7 +30,7 @@ function RecentReviewTile({ review }: { review: ProfileRecentReview }) {
       sizes="(min-width: 1280px) 148px, (min-width: 768px) 22vw, 45vw"
       badge={
         <>
-          <Star className="size-3 fill-amber-400 text-amber-400" />
+          <KocteauReviewsIcon className="size-3 text-amber-400" weight="fill" />
           {review.rating.toFixed(1)}
         </>
       }

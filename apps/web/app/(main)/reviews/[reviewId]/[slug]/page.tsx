@@ -3,7 +3,10 @@ import { notFound, permanentRedirect } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import ReviewCommentsPanel from "@/components/review-comments-panel";
 import ReviewPageHeaderBridge from "@/components/review-page-header-bridge";
-import { ReviewPageCard } from "@/components/review-route-cards-server";
+import {
+  createReviewEditSeed,
+  ReviewPageCard,
+} from "@/components/review-route-cards-server";
 import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata, createReviewDescription } from "@/lib/metadata";
 import {
@@ -11,7 +14,11 @@ import {
   getReviewViewerState,
   type ReviewPageReview,
 } from "@/lib/queries/reviews";
-import { buildReviewCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
+import {
+  buildEntityCanonicalPath,
+  buildReviewCanonicalPath,
+  isSeoRouteId,
+} from "@/lib/seo-routes";
 import { buildReviewPageJsonLd } from "@/lib/structured-data";
 
 function getAuthorLabel(review: ReviewPageReview) {
@@ -138,6 +145,7 @@ export default async function ReviewPage({
   const author = review.author;
   const canManage = Boolean(userId && author?.id === userId);
   const headerTitle = getTrackLabel(review);
+  const editSeed = createReviewEditSeed(review, entity, canManage);
 
   return (
     <section className="w-full max-w-3xl space-y-3 pb-4 sm:space-y-4">
@@ -151,6 +159,11 @@ export default async function ReviewPage({
         entityTitle={entity?.title}
         artistName={entity?.artist_name}
         sharePath={canonicalPath}
+        reviewTitle={review.title}
+        entityPath={entity ? buildEntityCanonicalPath(entity) : null}
+        canManage={canManage}
+        editSeed={editSeed}
+        initialBookmarked={viewerState.bookmarked}
       />
 
       <ReviewPageCard

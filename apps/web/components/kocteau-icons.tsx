@@ -452,6 +452,25 @@ export const KocteauChevronLeftSmallIcon = forwardRef<SVGSVGElement, KocteauIcon
 );
 KocteauChevronLeftSmallIcon.displayName = "KocteauChevronLeftSmallIcon";
 
+export const KocteauChevronRightSmallIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path
+          d="M10.4142 8L13.7071 11.2929C14.0976 11.6834 14.0976 12.3166 13.7071 12.7071L10.4142 16"
+          stroke="currentColor"
+          strokeWidth={strokeWidthForWeight(weight, strokeWidth)}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  },
+);
+KocteauChevronRightSmallIcon.displayName = "KocteauChevronRightSmallIcon";
+
 export const KocteauChevronLeftMediumIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   (iconProps, ref) => {
     const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
@@ -485,6 +504,94 @@ export const KocteauMoreIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   },
 );
 KocteauMoreIcon.displayName = "KocteauMoreIcon";
+
+export const KocteauCopyIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <rect x="8.25" y="8.25" width="11" height="11" rx="2" stroke="currentColor" strokeWidth={resolvedStrokeWidth} />
+        <path d="M15.75 8.25V6.75C15.75 5.64543 14.8546 4.75 13.75 4.75H6.75C5.64543 4.75 4.75 5.64543 4.75 6.75V13.75C4.75 14.8546 5.64543 15.75 6.75 15.75H8.25" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" />
+      </svg>
+    );
+  },
+);
+KocteauCopyIcon.displayName = "KocteauCopyIcon";
+
+export const KocteauExternalIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path d="M13.25 4.75H19.25V10.75M19 5L11.75 12.25" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.25 6.75H6.75C5.64543 6.75 4.75 7.64543 4.75 8.75V17.25C4.75 18.3546 5.64543 19.25 6.75 19.25H15.25C16.3546 19.25 17.25 18.3546 17.25 17.25V13.75" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  },
+);
+KocteauExternalIcon.displayName = "KocteauExternalIcon";
+
+export const KocteauShareIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path d="M12 15.25V3.75M12 3.75L7.75 8M12 3.75L16.25 8" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M7.75 11.75H6.75C5.64543 11.75 4.75 12.6454 4.75 13.75V18.25C4.75 19.3546 5.64543 20.25 6.75 20.25H17.25C18.3546 20.25 19.25 19.3546 19.25 18.25V13.75C19.25 12.6454 18.3546 11.75 17.25 11.75H16.25" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" />
+      </svg>
+    );
+  },
+);
+KocteauShareIcon.displayName = "KocteauShareIcon";
+
+export const KocteauEditIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path d="M13.75 5.75L18.25 10.25M5.25 18.75L6.05411 14.3274C6.09104 14.1242 6.18998 13.9374 6.33717 13.7923L15.2825 4.97643C16.0744 4.19597 17.3478 4.20058 18.1341 4.98683L19.0132 5.86591C19.7994 6.65216 19.804 7.92563 19.0236 8.71749L10.2077 17.6628C10.0626 17.81 9.87579 17.909 9.67261 17.9459L5.25 18.75Z" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  },
+);
+KocteauEditIcon.displayName = "KocteauEditIcon";
+
+export const KocteauTrashIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path d="M4.75 7.25H19.25M9.25 3.75H14.75C15.3023 3.75 15.75 4.19772 15.75 4.75V7.25H8.25V4.75C8.25 4.19772 8.69772 3.75 9.25 3.75Z" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6.75 7.25L7.43109 18.1474C7.49701 19.202 8.37184 20.0238 9.4285 20.0238H14.5715C15.6282 20.0238 16.503 19.202 16.5689 18.1474L17.25 7.25M10 10.75V16.75M14 10.75V16.75" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" />
+      </svg>
+    );
+  },
+);
+KocteauTrashIcon.displayName = "KocteauTrashIcon";
+
+export const KocteauFlagIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
+
+    return (
+      <svg ref={ref} viewBox="0 0 24 24" aria-hidden="true" className={cn("icon size-5 shrink-0", className)} fill="none" {...props}>
+        <path d="M5.25 20.25V4.75M5.25 5.25C8.27837 2.87564 11.2379 7.50042 14.25 5.25C16.535 3.54322 18.2671 5.08622 19.25 6.25V14.25C17.6605 12.5691 15.8038 11.7654 13.25 13.25C10.6515 14.7606 8.49695 11.7791 5.25 13.75" stroke="currentColor" strokeWidth={resolvedStrokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  },
+);
+KocteauFlagIcon.displayName = "KocteauFlagIcon";
 
 export const KocteauLikeIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   (iconProps, ref) => {

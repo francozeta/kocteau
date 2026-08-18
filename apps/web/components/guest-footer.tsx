@@ -6,7 +6,6 @@ const footerGroups = [
     links: [
       { label: "Recent reviews", href: "/reviews" },
       { label: "Explore music", href: "/search" },
-      { label: "Atlas", href: "/atlas" },
     ],
   },
   {

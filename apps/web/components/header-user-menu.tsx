@@ -30,7 +30,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 type HeaderUserMenuProps = {
@@ -50,7 +49,6 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
   const supabase = supabaseBrowser();
   const router = useRouter();
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const username = profile.username;
   const displayName = profile.display_name ?? `@${username}`;
@@ -104,9 +102,9 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
             <KocteauActivityIcon className="size-4" />
             Notifications
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
+          <DropdownMenuItem onSelect={() => router.push("/settings")}>
             <KocteauEditProfileIcon className="size-4" />
-            Edit profile
+            Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setLogoutOpen(true)}>
@@ -115,12 +113,6 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <ProfileSettingsDialog
-        profile={profile}
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-      />
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent size="sm">

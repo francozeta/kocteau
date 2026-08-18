@@ -1,19 +1,36 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Flag, Music2, PencilLine, TextQuote, Trash2 } from "@/components/ui/icons";
 import EditReviewDialog, { type EditReviewDialogSeed } from "@/components/edit-review-dialog";
-import { KocteauBookmarkIcon, KocteauMoreIcon } from "@/components/kocteau-icons";
+import {
+  KocteauBookmarkIcon,
+  KocteauCopyIcon,
+  KocteauEditIcon,
+  KocteauFlagIcon,
+  KocteauMoreIcon,
+  KocteauSongIcon,
+  KocteauTrashIcon,
+} from "@/components/kocteau-icons";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewBookmark } from "@/hooks/use-review-bookmark";
 import { toastActionError, toastAuthRequired } from "@/lib/feedback";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   ReviewDeleteDialog,
   type ReviewActionTarget,
@@ -28,6 +45,9 @@ type ReviewCardActionsMenuProps = ReviewActionTarget & {
   isAuthenticated?: boolean;
 };
 
+const actionClassName =
+  "flex min-h-11 w-full items-center gap-3 rounded-[0.72rem] px-3 text-left text-sm font-medium text-foreground/88 transition-[color,background-color,transform] duration-150 hover:bg-foreground/[0.055] hover:text-foreground active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65 disabled:pointer-events-none disabled:opacity-45 md:min-h-10";
+
 export default function ReviewCardActionsMenu({
   reviewId,
   reviewTitle,
@@ -41,6 +61,7 @@ export default function ReviewCardActionsMenu({
   initialBookmarked = false,
   isAuthenticated = false,
 }: ReviewCardActionsMenuProps) {
+  const isMobile = useIsMobile();
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const { state: bookmarkState, toggleBookmark, isPending: isBookmarkPending } =
@@ -71,6 +92,7 @@ export default function ReviewCardActionsMenu({
 
   async function handleBookmarkToggle() {
     if (!isAuthenticated) {
+      setMenuOpen(false);
       toastAuthRequired("bookmark");
       return;
     }
@@ -83,104 +105,134 @@ export default function ReviewCardActionsMenu({
     }
   }
 
-  return (
-    <>
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownMenuTrigger asChild>
-          {trigger ?? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7 rounded-md border border-transparent bg-transparent text-muted-foreground/82 hover:bg-foreground/[0.055] hover:text-foreground"
-              aria-label="Review actions"
-            >
-              <KocteauMoreIcon className="size-4" />
-            </Button>
-          )}
-        </DropdownMenuTrigger>
+  const actionTrigger = trigger ?? (
+    <button
+      type="button"
+      className="flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground/82 transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65 md:size-10"
+      aria-label="Review actions"
+    >
+      <KocteauMoreIcon className="size-[1.1rem]" />
+    </button>
+  );
 
-        <DropdownMenuContent
-          align="end"
-          className="w-44 min-w-44 rounded-xl border-border/42 bg-popover/98 p-1.5 shadow-none md:border-border/30 md:bg-popover/96"
-          sideOffset={8}
+  const actionList = (
+    <div className="space-y-1">
+      <button
+        type="button"
+        className={actionClassName}
+        onClick={() => {
+          setMenuOpen(false);
+          void copyReviewLink();
+        }}
+      >
+        <KocteauCopyIcon className="size-[1.05rem]" />
+        Copy review link
+      </button>
+
+      {canOpenTrack ? (
+        <button
+          type="button"
+          className={actionClassName}
+          onClick={() => {
+            setMenuOpen(false);
+            openTrack();
+          }}
         >
-          <DropdownMenuItem
-            onSelect={() => {
-              void copyReviewLink();
-            }}
-          >
-            <TextQuote className="size-4" />
-            Copy review link
-          </DropdownMenuItem>
+          <KocteauSongIcon className="size-[1.05rem]" />
+          Open track
+        </button>
+      ) : null}
 
-          {canOpenTrack ? (
-            <DropdownMenuItem
-              onSelect={() => {
-                openTrack();
+      <button
+        type="button"
+        disabled={isBookmarkPending}
+        className={actionClassName}
+        onClick={() => void handleBookmarkToggle()}
+      >
+        <KocteauBookmarkIcon
+          className="size-[1.05rem]"
+          weight={bookmarkState.bookmarked ? "fill" : "regular"}
+        />
+        {bookmarkState.bookmarked ? "Saved" : "Save"}
+      </button>
+
+      <div role="separator" className="mx-2 my-1.5 h-px bg-border/24" />
+
+      {canManage ? (
+        <>
+          {editSeed ? (
+            <button
+              type="button"
+              className={actionClassName}
+              onClick={() => {
+                setMenuOpen(false);
+                setEditOpen(true);
               }}
             >
-              <Music2 className="size-4" />
-              Open track
-            </DropdownMenuItem>
+              <KocteauEditIcon className="size-[1.05rem]" />
+              Edit review
+            </button>
           ) : null}
-
-          <DropdownMenuItem
-            disabled={isBookmarkPending}
-            onSelect={(event) => {
-              event.preventDefault();
-              void handleBookmarkToggle();
+          <button
+            type="button"
+            className={cn(actionClassName, "text-destructive hover:bg-destructive/[0.08] hover:text-destructive")}
+            onClick={() => {
+              setMenuOpen(false);
+              requestDeleteReview();
             }}
           >
-            <KocteauBookmarkIcon
-              className="size-4"
-              weight={bookmarkState.bookmarked ? "fill" : "regular"}
-            />
-            {bookmarkState.bookmarked ? "Saved" : "Save"}
-          </DropdownMenuItem>
+            <KocteauTrashIcon className="size-[1.05rem]" />
+            Delete review
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          className={actionClassName}
+          onClick={() => {
+            setMenuOpen(false);
+            void reportReview();
+          }}
+        >
+          <KocteauFlagIcon className="size-[1.05rem]" />
+          Report
+        </button>
+      )}
+    </div>
+  );
 
-          {canManage ? (
-            <>
-              <DropdownMenuSeparator />
-              {editSeed ? (
-                <DropdownMenuItem
-                  onSelect={(event) => {
-                    event.preventDefault();
-                    setMenuOpen(false);
-                    setEditOpen(true);
-                  }}
-                >
-                  <PencilLine className="size-4" />
-                  Edit review
-                </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={(event) => {
-                  event.preventDefault();
-                  setMenuOpen(false);
-                  requestDeleteReview();
-                }}
-              >
-                <Trash2 className="size-4" />
-                Delete review
-              </DropdownMenuItem>
-            </>
-          ) : (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => {
-                  void reportReview();
-                }}
-              >
-                <Flag className="size-4" />
-                Report
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+  return (
+    <>
+      {isMobile ? (
+        <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
+          <DrawerTrigger asChild>{actionTrigger}</DrawerTrigger>
+          <DrawerContent className="p-0 text-foreground before:inset-0 before:rounded-t-[1.35rem] before:border-x before:border-b-0 before:border-t before:border-border/30 before:bg-background">
+            <DrawerHeader className="px-5 pb-2 pt-4 text-left">
+              <DrawerTitle>Review actions</DrawerTitle>
+              <DrawerDescription className="sr-only">
+                Save, share, edit, or report this review.
+              </DrawerDescription>
+            </DrawerHeader>
+            <div className="px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">{actionList}</div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
+          <DialogTrigger asChild>{actionTrigger}</DialogTrigger>
+          <DialogContent
+            showCloseButton={false}
+            className="w-[22rem] max-w-[calc(100%_-_2rem)] gap-0 rounded-[1.2rem] border-border/28 bg-background p-2 shadow-none"
+          >
+            <DialogHeader className="px-3 pb-2 pt-2">
+              <DialogTitle>Review actions</DialogTitle>
+              <DialogDescription className="sr-only">
+                Save, share, edit, or report this review.
+              </DialogDescription>
+            </DialogHeader>
+            {actionList}
+          </DialogContent>
+        </Dialog>
+      )}
 
       <ReviewDeleteDialog
         open={confirmOpen}

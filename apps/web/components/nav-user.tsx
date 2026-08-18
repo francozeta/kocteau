@@ -15,7 +15,6 @@ import {
   KocteauProfileIcon,
 } from "@/components/kocteau-icons";
 import NotificationsButton from "@/components/notifications-button";
-import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,7 +67,6 @@ export function NavUser({
   const supabase = supabaseBrowser();
   const router = useRouter();
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   if (!profile) {
     return (
@@ -166,10 +164,15 @@ export function NavUser({
                   <KocteauActivityIcon className="size-4" />
                   Activity
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
-                  <KocteauEditProfileIcon className="size-4" />
-                  Edit profile
-                </DropdownMenuItem>
+                 <DropdownMenuItem
+                   onSelect={() => {
+                     onNavigate?.();
+                     router.push("/settings");
+                   }}
+                 >
+                   <KocteauEditProfileIcon className="size-4" />
+                   Settings
+                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {
                     onNavigate?.();
@@ -200,12 +203,6 @@ export function NavUser({
           </div>
         </SidebarMenuItem>
       </SidebarMenu>
-
-      <ProfileSettingsDialog
-        profile={profile}
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-      />
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent size="sm">
