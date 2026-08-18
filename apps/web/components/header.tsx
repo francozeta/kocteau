@@ -142,6 +142,15 @@ export default function Header({
     );
   }, [isMobileReviewRoute, isProfileDetailRoute, profile, router]);
 
+  const handleSettingsBack = useCallback(() => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push(profile?.username ? `/u/${profile.username}` : "/feed");
+  }, [profile, router]);
+
   const handleShareDetail = useCallback(async () => {
     if (typeof window === "undefined") {
       return;
@@ -175,13 +184,15 @@ export default function Header({
       <div className="relative z-10 flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
         <div className="relative z-10 flex items-center gap-2">
           {isSettingsRoute ? (
-            <Link
-              href={profile ? "/feed" : "/"}
+            <button
+              type="button"
+              onClick={handleSettingsBack}
               className="pointer-events-auto inline-flex h-11 items-center gap-1.5 rounded-full px-2 text-sm text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+              aria-label="Go back"
             >
               <KocteauChevronLeftMediumIcon className="size-5" />
               <span>Back</span>
-            </Link>
+            </button>
           ) : (
             <Button
               type="button"

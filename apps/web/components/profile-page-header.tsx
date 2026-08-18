@@ -236,7 +236,7 @@ function ProfilePageHeaderState({
               href="/settings"
               className={cn(buttonVariants({ variant: "outline", size: "default" }), actionButtonClassName)}
             >
-              Settings
+              Edit profile
             </Link>
           ) : (
             <FollowProfileButton

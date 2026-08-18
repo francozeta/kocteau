@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { toastActionSuccess } from "@/lib/feedback";
 import { getFirstFieldError } from "@/lib/validation/errors";
 import { profileEditorSchema } from "@/lib/validation/schemas";
 import { cn } from "@/lib/utils";
@@ -354,7 +353,6 @@ export default function ProfileEditorForm({
 
       if (mode === "settings") {
         setSuccessMessage("Changes saved.");
-        toastActionSuccess("Profile updated.");
       }
     } catch (error) {
       const profileError = error as Error & { code?: string };
@@ -416,37 +414,30 @@ export default function ProfileEditorForm({
 
   function renderPageSettingsFields() {
     const fieldClassName =
-      "h-10 rounded-[0.62rem] border-border/22 bg-transparent px-3 text-sm shadow-none placeholder:text-muted-foreground/42 focus-visible:border-border/50 focus-visible:ring-2 focus-visible:ring-ring/24";
+      "h-10 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] px-3 text-sm shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/48 hover:bg-[var(--kocteau-surface-control-hover)] focus-visible:border-border/48 focus-visible:ring-2 focus-visible:ring-ring/28";
     const textareaClassName =
-      "min-h-28 resize-none rounded-[0.62rem] border-border/22 bg-transparent px-3 py-2.5 text-sm leading-5 shadow-none placeholder:text-muted-foreground/42 focus-visible:border-border/50 focus-visible:ring-2 focus-visible:ring-ring/24";
-    const labelClassName = "text-sm font-medium text-foreground/88";
+      "min-h-28 resize-none rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] px-3 py-2.5 text-sm leading-5 shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/48 hover:bg-[var(--kocteau-surface-control-hover)] focus-visible:border-border/48 focus-visible:ring-2 focus-visible:ring-ring/28";
+    const labelClassName = "text-[13px] font-medium text-foreground/88";
     const rowClassName =
-      "grid gap-3 py-5 first:pt-0 sm:grid-cols-[minmax(9rem,0.42fr)_minmax(0,1fr)] sm:items-start sm:gap-8";
+      "grid gap-2.5 py-3.5 first:pt-0 sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:items-start sm:gap-6 sm:py-4";
 
     return (
-      <div className="space-y-10">
+      <div className="space-y-8">
         <section
           id="profile-settings-section-profile"
           aria-labelledby="profile-settings-heading"
-          className="space-y-5 border-b border-border/24 pb-10"
+          className="space-y-4 border-b border-border/20 pb-8"
         >
           <div className="space-y-1">
-            <h2 id="profile-settings-heading" className="text-base font-medium text-foreground">
+            <h2 id="profile-settings-heading" className="text-sm font-semibold text-foreground/94">
               Profile
             </h2>
-            <p className="text-sm leading-5 text-muted-foreground">
-              The identity people see across Kocteau.
-            </p>
+            <p className="text-[13px] leading-5 text-muted-foreground">Your public identity and byline.</p>
           </div>
 
-          <div className="divide-y divide-border/20">
+          <div>
             <div className={rowClassName}>
-              <div className="space-y-1">
-                <Label className={labelClassName}>Avatar</Label>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Your dither avatar stays until you add a photo.
-                </p>
-              </div>
+              <Label className={labelClassName}>Avatar</Label>
               <div className="flex items-center gap-4">
                 <AvatarUploadTrigger
                   alt="Profile image"
@@ -461,9 +452,12 @@ export default function ProfileEditorForm({
                   onDrop={handleAvatarDrop}
                 />
                 <div className="min-w-0 space-y-1">
-                  <p className="text-sm text-foreground/82">
-                    {avatarUpload ? "Photo ready to save" : "Choose a square photo"}
+                  <p className="text-[13px] text-foreground/82">
+                    {avatarUpload ? "Photo ready to save" : "Change photo"}
                   </p>
+                  {!avatarUpload ? (
+                    <p className="text-xs leading-4 text-muted-foreground">Your dither avatar remains the fallback.</p>
+                  ) : null}
                   {avatarUploadErrors[0] ? (
                     <p role="alert" className="text-xs text-destructive">
                       {avatarUploadErrors[0]}
@@ -474,12 +468,9 @@ export default function ProfileEditorForm({
             </div>
 
             <div className={rowClassName}>
-              <div className="space-y-1">
-                <Label htmlFor="display-name" className={labelClassName}>
-                  Display name
-                </Label>
-                <p className="text-xs leading-5 text-muted-foreground">Shown next to your reviews.</p>
-              </div>
+              <Label htmlFor="display-name" className={labelClassName}>
+                Display name
+              </Label>
               <div className="space-y-2">
                 <Input
                   id="display-name"
@@ -500,12 +491,9 @@ export default function ProfileEditorForm({
             </div>
 
             <div className={rowClassName}>
-              <div className="space-y-1">
-                <Label htmlFor="username" className={labelClassName}>
-                  Username
-                </Label>
-                <p className="text-xs leading-5 text-muted-foreground">Your public Kocteau address.</p>
-              </div>
+              <Label htmlFor="username" className={labelClassName}>
+                Username
+              </Label>
               <div className="space-y-2">
                 <Input
                   id="username"
@@ -526,12 +514,9 @@ export default function ProfileEditorForm({
             </div>
 
             <div className={rowClassName}>
-              <div className="space-y-1">
-                <Label htmlFor="bio" className={labelClassName}>
-                  Bio
-                </Label>
-                <p className="text-xs leading-5 text-muted-foreground">A short note about your taste.</p>
-              </div>
+              <Label htmlFor="bio" className={labelClassName}>
+                Bio
+              </Label>
               <div className="space-y-2">
                 <Textarea
                   id="bio"
@@ -557,23 +542,20 @@ export default function ProfileEditorForm({
         <section
           id="profile-settings-section-links"
           aria-labelledby="music-links-settings-heading"
-          className="space-y-5 border-b border-border/24 pb-10"
+          className="space-y-4 border-b border-border/20 pb-8"
         >
           <div className="space-y-1">
-            <h2 id="music-links-settings-heading" className="text-base font-medium text-foreground">
+            <h2 id="music-links-settings-heading" className="text-sm font-semibold text-foreground/94">
               Music links
             </h2>
-            <p className="text-sm leading-5 text-muted-foreground">
-              Places where people can keep listening.
-            </p>
+            <p className="text-[13px] leading-5 text-muted-foreground">Optional links shown on your profile.</p>
           </div>
 
-          <div className="divide-y divide-border/20">
+          <div>
             {[
               {
                 id: "spotify-url",
                 label: "Spotify",
-                description: "Your Spotify profile or playlist.",
                 value: spotifyUrl,
                 error: fieldErrors.spotify_url,
                 onChange: setSpotifyUrl,
@@ -583,7 +565,6 @@ export default function ProfileEditorForm({
               {
                 id: "apple-music-url",
                 label: "Apple Music",
-                description: "Your Apple Music profile or playlist.",
                 value: appleMusicUrl,
                 error: fieldErrors.apple_music_url,
                 onChange: setAppleMusicUrl,
@@ -593,7 +574,6 @@ export default function ProfileEditorForm({
               {
                 id: "deezer-url",
                 label: "Deezer",
-                description: "Your Deezer profile or playlist.",
                 value: deezerUrl,
                 error: fieldErrors.deezer_url,
                 onChange: setDeezerUrl,
@@ -602,12 +582,9 @@ export default function ProfileEditorForm({
               },
             ].map((link) => (
               <div key={link.id} className={rowClassName}>
-                <div className="space-y-1">
-                  <Label htmlFor={link.id} className={labelClassName}>
-                    {link.label}
-                  </Label>
-                  <p className="text-xs leading-5 text-muted-foreground">{link.description}</p>
-                </div>
+                <Label htmlFor={link.id} className={labelClassName}>
+                  {link.label}
+                </Label>
                 <div className="space-y-2">
                   <Input
                     id={link.id}
@@ -631,12 +608,12 @@ export default function ProfileEditorForm({
           </div>
         </section>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-h-8 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div aria-live="polite" className="min-h-5 text-sm text-muted-foreground">
             {successMessage}
           </div>
           {hasUnsavedChanges ? (
-            <Button type="button" onClick={onSubmit} disabled={saving} className="sm:shrink-0">
+            <Button type="button" onClick={onSubmit} disabled={saving} className="h-8 px-3 sm:shrink-0">
               {saving ? (
                 <>
                   <SpinnerGapIcon className="size-4 animate-spin" />
