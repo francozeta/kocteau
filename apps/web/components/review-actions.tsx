@@ -3,7 +3,7 @@
 import { startTransition, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "@/components/ui/icons";
+import { KocteauTrashIcon } from "@/components/kocteau-icons";
 import { toastActionError, toastActionSuccess } from "@/lib/feedback";
 import { createApiError } from "@/lib/validation/errors";
 import {
@@ -212,7 +212,7 @@ export function ReviewDeleteDialog({
       <AlertDialogContent size="sm" className="rounded-[1.4rem] border border-border/25 bg-background/98">
         <AlertDialogHeader>
           <AlertDialogMedia className="bg-destructive/14 text-destructive">
-            <Trash2 className="size-4" />
+            <KocteauTrashIcon className="size-4" />
           </AlertDialogMedia>
           <AlertDialogTitle>Delete review?</AlertDialogTitle>
           <AlertDialogDescription>

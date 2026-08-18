@@ -1,7 +1,7 @@
 "use client";
 
+import type { ComponentType, SVGProps } from "react";
 import Link from "next/link";
-import type { Icon } from "@/components/ui/icons";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -16,7 +16,7 @@ import { sidebarPrimaryNavButtonClassName } from "@/components/sidebar-nav-style
 type NavMainItem = {
   title: string;
   url: string;
-  icon: Icon;
+  icon: ComponentType<SVGProps<SVGSVGElement> & { weight?: "fill" | "regular" }>;
   isActive?: boolean;
   badge?: number | null;
   external?: boolean;

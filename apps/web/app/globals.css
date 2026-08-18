@@ -185,6 +185,82 @@
   --scroll-mask-fade-from-r: --value([length], [percentage]);
 }
 
+@property --scroll-fade-t {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-b {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes scroll-fade-reveal-t {
+  from {
+    --scroll-fade-t: 0px;
+  }
+
+  to {
+    --scroll-fade-t: var(
+      --_scroll-fade-size-t,
+      var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+    );
+  }
+}
+
+@keyframes scroll-fade-reveal-b {
+  from {
+    --scroll-fade-b: var(
+      --_scroll-fade-size-b,
+      var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+    );
+  }
+
+  to {
+    --scroll-fade-b: 0px;
+  }
+}
+
+@utility scroll-fade-y {
+  --_scroll-fade-size-t: var(
+    --scroll-fade-t-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --_scroll-fade-size-b: var(
+    --scroll-fade-b-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-block: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-t, 0px),
+    #000 calc(100% - var(--scroll-fade-b, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-block);
+  mask-image: var(--scroll-fade-block);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation:
+      scroll-fade-reveal-t 1ms ease-in-out,
+      scroll-fade-reveal-b 1ms ease-in-out;
+    animation-timeline: scroll(self y), scroll(self y);
+    animation-range:
+      0 var(--scroll-fade-reveal, calc(var(--spacing) * 24)),
+      calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-t: var(--_scroll-fade-size-t);
+    --scroll-fade-b: var(--_scroll-fade-size-b);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -842,24 +918,20 @@
   }
 
   .kocteau-review-card-editorial + .kocteau-review-card-editorial,
-  .kocteau-review-card-frame + .kocteau-review-card-frame,
   .kocteau-review-card-list-item + .kocteau-review-card-list-item {
     margin-top: 1.25rem !important;
   }
 
-  .kocteau-review-card-frame,
   .kocteau-review-card-list-item {
     position: relative;
   }
 
   .kocteau-review-card-editorial + .kocteau-review-card-editorial,
-  .kocteau-review-card-frame + .kocteau-review-card-frame .kocteau-review-card-editorial,
   .kocteau-review-card-list-item + .kocteau-review-card-list-item .kocteau-review-card-editorial {
     padding-top: 2rem;
   }
 
   .kocteau-review-card-editorial + .kocteau-review-card-editorial::before,
-  .kocteau-review-card-frame + .kocteau-review-card-frame .kocteau-review-card-editorial::before,
   .kocteau-review-card-list-item + .kocteau-review-card-list-item .kocteau-review-card-editorial::before {
     content: "";
     position: absolute;
@@ -1072,9 +1144,9 @@
 
   @media (min-width: 1024px) {
     .kocteau-app-frame {
-      border: 1px solid var(--kocteau-line);
+      border: 1px solid var(--kocteau-line-soft);
       background: var(--kocteau-shell);
-      box-shadow: inset 0 1px 0 var(--kocteau-topline);
+      box-shadow: none;
     }
 
     .kocteau-main-grid:has([data-kocteau-full-width]) {

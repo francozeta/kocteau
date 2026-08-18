@@ -11,7 +11,6 @@ import ReviewCard, {
   type ReviewCardEntity,
 } from "@/components/review-card";
 import ReviewActionsMenu from "@/components/review-actions-menu";
-import ReviewCardContextMenuFrame from "@/components/review-card-context-menu-frame";
 import ReviewCardInteractionBar from "@/components/review-card-interaction-bar";
 import { getCurrentViewerProfile } from "@/lib/auth/server";
 import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
@@ -19,7 +18,6 @@ import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-ro
 export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
   showInteractionBar?: boolean;
-  showContextMenu?: boolean;
   openReviewLink?: boolean;
   commentInlineTarget?: {
     targetId: string;
@@ -111,7 +109,7 @@ function LinkedAuthorName({ author }: { author: ReviewCardAuthor | null | undefi
   );
 }
 
-function createEditSeed(
+export function createReviewEditSeed(
   review: ReviewCardData,
   entity: ReviewCardEntity | null,
   canManage: boolean,
@@ -213,7 +211,6 @@ async function RoutedReviewCardServer({
   const {
     showHeaderActions = canUseReviewMenus,
     showInteractionBar = true,
-    showContextMenu = canUseReviewMenus,
     openReviewLink = true,
     commentInlineTarget = null,
   } = behavior ?? {};
@@ -221,7 +218,7 @@ async function RoutedReviewCardServer({
     isAuthenticated && showInteractionBar
       ? await getCurrentViewerProfile()
       : null;
-  const editSeed = createEditSeed(review, entity, canManage);
+  const editSeed = createReviewEditSeed(review, entity, canManage);
   const rootProps: ComponentPropsWithoutRef<"article"> = {
     id: `review-${review.id}`,
   };
@@ -288,26 +285,7 @@ async function RoutedReviewCardServer({
     />
   );
 
-  if (!showContextMenu) {
-    return card;
-  }
-
-  return (
-    <ReviewCardContextMenuFrame
-      reviewId={review.id}
-      reviewTitle={review.title}
-      entityTitle={entity?.title ?? null}
-      entityId={entity?.id ?? null}
-      reviewPath={reviewPath}
-      entityPath={entityPath}
-      canManage={canManage}
-      editSeed={editSeed}
-      initialBookmarked={initialBookmarked}
-      isAuthenticated={isAuthenticated}
-    >
-      {card}
-    </ReviewCardContextMenuFrame>
-  );
+  return card;
 }
 
 export async function FeedReviewCard({
@@ -382,6 +360,7 @@ export async function ReviewPageCard({
       author={author}
       display={buildReviewPageCardDisplay()}
       behavior={{
+        showHeaderActions: false,
         openReviewLink: false,
         commentInlineTarget: {
           targetId: "review-replies",

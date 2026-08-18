@@ -12,16 +12,13 @@ import ReviewCard, {
   type ReviewCardEntity,
 } from "@/components/review-card";
 import ReviewActionsMenu from "@/components/review-actions-menu";
-import ReviewCardContextMenu from "@/components/review-card-context-menu";
 import ReviewCardInteractionBar from "@/components/review-card-interaction-bar";
 import PrefetchLink from "@/components/prefetch-link";
-import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
 
 export type ReviewCardBehaviorOptions = {
   showHeaderActions?: boolean;
   showInteractionBar?: boolean;
-  showContextMenu?: boolean;
   openReviewLink?: boolean;
   commentInlineTarget?: {
     targetId: string;
@@ -215,7 +212,6 @@ function RoutedReviewCard({
   const {
     showHeaderActions = true,
     showInteractionBar = true,
-    showContextMenu = true,
     openReviewLink = true,
     commentInlineTarget = null,
   } = behavior ?? {};
@@ -301,29 +297,7 @@ function RoutedReviewCard({
     />
   );
 
-  if (!showContextMenu) {
-    return card;
-  }
-
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <div className="kocteau-review-card-frame h-full">{card}</div>
-      </ContextMenuTrigger>
-      <ReviewCardContextMenu
-        reviewId={review.id}
-        reviewTitle={review.title}
-        entityTitle={entity?.title ?? null}
-        entityId={entity?.id ?? null}
-        reviewPath={reviewPath}
-        entityPath={entityPath}
-        canManage={canManage}
-        editSeed={editSeed}
-        initialBookmarked={initialBookmarked}
-        isAuthenticated={isAuthenticated}
-      />
-    </ContextMenu>
-  );
+  return card;
 }
 
 export function FeedReviewCard({
@@ -429,6 +403,7 @@ export function ReviewPageCard({
       author={author}
       display={buildReviewPageCardDisplay()}
       behavior={{
+        showHeaderActions: false,
         openReviewLink: false,
         commentInlineTarget: {
           targetId: "review-replies",

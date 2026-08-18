@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import type { EditReviewDialogSeed } from "@/components/edit-review-dialog";
 import { useRouteHeader } from "@/components/route-header-context";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 
@@ -13,6 +14,11 @@ type ReviewPageHeaderBridgeProps = {
   title: string;
   entityTitle?: string | null;
   artistName?: string | null;
+  reviewTitle?: string | null;
+  entityPath?: string | null;
+  canManage?: boolean;
+  editSeed?: EditReviewDialogSeed | null;
+  initialBookmarked?: boolean;
 };
 
 export default function ReviewPageHeaderBridge({
@@ -24,6 +30,11 @@ export default function ReviewPageHeaderBridge({
   title,
   entityTitle,
   artistName,
+  reviewTitle = null,
+  entityPath = null,
+  canManage = false,
+  editSeed = null,
+  initialBookmarked = false,
 }: ReviewPageHeaderBridgeProps) {
   const { setDetailHeader } = useRouteHeader();
 
@@ -41,13 +52,38 @@ export default function ReviewPageHeaderBridge({
       sharePath: sharePath ?? `/review/${reviewId}`,
       reviewId,
       commentsCount,
+      reviewActions: {
+        reviewTitle,
+        entityTitle: entityTitle ?? null,
+        entityId: entityId ?? null,
+        entityPath,
+        canManage,
+        editSeed,
+        initialBookmarked,
+        isAuthenticated,
+      },
       externalLinks: [],
     });
 
     return () => {
       setDetailHeader(null);
     };
-  }, [artistName, commentsCount, entityTitle, reviewId, setDetailHeader, sharePath, title]);
+  }, [
+    artistName,
+    canManage,
+    commentsCount,
+    editSeed,
+    entityId,
+    entityPath,
+    entityTitle,
+    initialBookmarked,
+    isAuthenticated,
+    reviewId,
+    reviewTitle,
+    setDetailHeader,
+    sharePath,
+    title,
+  ]);
 
   useEffect(() => {
     if (!isAuthenticated) {

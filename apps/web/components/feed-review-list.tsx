@@ -7,7 +7,11 @@ import FeedReviewCta from "@/components/feed-review-cta";
 import FeedStarterLayer from "@/components/feed-starter-layer";
 import FeedStarterShelf from "@/components/feed-starter-shelf";
 import { FeedReviewStackSkeleton } from "@/components/feed-loading-skeletons";
-import { Music2, Sparkles, UsersRound } from "@/components/ui/icons";
+import {
+  KocteauProfileIcon,
+  KocteauReviewsIcon,
+  KocteauSongIcon,
+} from "@/components/kocteau-icons";
 import { FeedReviewCard } from "@/components/review-route-cards";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
@@ -80,7 +84,7 @@ function FeedEmptyState({
       <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <Sparkles className="size-4" />
+            <KocteauReviewsIcon className="size-4" />
           </EmptyMedia>
           <EmptyTitle>{isAuthenticated ? "No picks yet" : "Log in to tune For You"}</EmptyTitle>
           <EmptyDescription>
@@ -106,7 +110,7 @@ function FeedEmptyState({
       <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <UsersRound className="size-4" />
+            <KocteauProfileIcon className="size-4" />
           </EmptyMedia>
           <EmptyTitle>{isAuthenticated ? "No following reviews yet" : "Log in to see Following"}</EmptyTitle>
           <EmptyDescription>
@@ -131,7 +135,7 @@ function FeedEmptyState({
     <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <Music2 className="size-4" />
+          <KocteauSongIcon className="size-4" />
         </EmptyMedia>
         <EmptyTitle>No reviews yet</EmptyTitle>
         <EmptyDescription>Start with a review.</EmptyDescription>

@@ -3,13 +3,23 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ExternalLink, Share2 } from "@/components/ui/icons";
 import {
   KocteauChevronLeftMediumIcon,
+  KocteauExternalIcon,
   KocteauMoreIcon,
+  KocteauShareIcon,
 } from "@/components/kocteau-icons";
+import ReviewActionsMenu from "@/components/review-actions-menu";
 import { useRouteHeader } from "@/components/route-header-context";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -60,7 +70,7 @@ export default function Header({
   const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const [detailActionsOpen, setDetailActionsOpen] = useState(false);
   const { detailHeader } = useRouteHeader();
   const isMobileReviewRoute = /^\/review\/[^/]+$/.test(pathname) || /^\/reviews\/[^/]+\/[^/]+$/.test(pathname);
   const isTrackDetailRoute =
@@ -177,7 +187,7 @@ export default function Header({
       shouldUseContextualHeader && "max-md:hidden",
     )}>
       <div
-        className="pointer-events-none absolute left-1/2 top-0 h-20 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-landing-canvas)_0%,color-mix(in_oklch,var(--kocteau-landing-canvas)_72%,transparent)_52%,transparent_100%)] md:hidden"
+        className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)] md:hidden"
         aria-hidden="true"
       />
 
@@ -215,7 +225,82 @@ export default function Header({
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-2">
+        <div className="relative z-10 flex items-center gap-1.5">
+          {shouldUseContextualHeader ? (
+            <div className="hidden items-center gap-1 md:flex">
+              <button
+                type="button"
+                onClick={() => void handleShareDetail()}
+                className="flex size-10 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65"
+                aria-label={isProfileDetailRoute ? "Share profile" : isMobileReviewRoute ? "Share review" : "Share track"}
+              >
+                <KocteauShareIcon className="size-[1.05rem]" />
+              </button>
+
+              {detailHeader?.kind === "review" && detailHeader.reviewId && detailHeader.reviewActions ? (
+                <ReviewActionsMenu
+                  reviewId={detailHeader.reviewId}
+                  reviewTitle={detailHeader.reviewActions.reviewTitle}
+                  entityTitle={detailHeader.reviewActions.entityTitle}
+                  entityId={detailHeader.reviewActions.entityId}
+                  reviewPath={detailHeader.sharePath}
+                  entityPath={detailHeader.reviewActions.entityPath}
+                  canManage={detailHeader.reviewActions.canManage}
+                  editSeed={detailHeader.reviewActions.editSeed}
+                  initialBookmarked={detailHeader.reviewActions.initialBookmarked}
+                  isAuthenticated={detailHeader.reviewActions.isAuthenticated}
+                  trigger={(
+                    <button
+                      type="button"
+                      className="flex size-10 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65"
+                      aria-label="Review actions"
+                    >
+                      <KocteauMoreIcon className="size-[1.05rem]" />
+                    </button>
+                  )}
+                />
+              ) : (detailHeader?.externalLinks.length ?? 0) > 0 ? (
+                <Dialog open={detailActionsOpen} onOpenChange={setDetailActionsOpen}>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex size-10 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65"
+                      aria-label={isProfileDetailRoute ? "Profile actions" : "Track actions"}
+                    >
+                      <KocteauMoreIcon className="size-[1.05rem]" />
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent
+                    showCloseButton={false}
+                    className="w-[22rem] max-w-[calc(100%_-_2rem)] gap-0 rounded-[1.2rem] border-border/28 bg-background p-2 shadow-none"
+                  >
+                    <DialogHeader className="px-3 pb-2 pt-2">
+                      <DialogTitle>Open in</DialogTitle>
+                      <DialogDescription className="sr-only">
+                        Open this page in another music service.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-1">
+                      {detailHeader?.externalLinks.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={() => setDetailActionsOpen(false)}
+                          className="flex min-h-10 w-full items-center gap-3 rounded-[0.72rem] px-3 text-sm font-medium text-foreground/88 transition-colors hover:bg-foreground/[0.055] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/65"
+                        >
+                          <KocteauExternalIcon className="size-[1.05rem]" />
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              ) : null}
+            </div>
+          ) : null}
+
           {profile ? null : (
             <Link href="/login">
               <Button
@@ -237,7 +322,7 @@ export default function Header({
       <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
           <div
-            className="pointer-events-none absolute left-1/2 top-0 h-20 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-landing-canvas)_0%,color-mix(in_oklch,var(--kocteau-landing-canvas)_72%,transparent)_52%,transparent_100%)]"
+            className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)]"
             aria-hidden="true"
           />
 
@@ -251,13 +336,42 @@ export default function Header({
               <KocteauChevronLeftMediumIcon className="size-5" />
             </button>
 
+            <div className="pointer-events-none absolute inset-x-14 top-1/2 -translate-y-1/2 text-center">
+              <span className="block truncate font-pixel text-[0.76rem] font-medium tracking-[-0.01em] text-foreground/90">
+                {detailHeader?.title ?? standardHeaderTitle}
+              </span>
+            </div>
+
             <div className="pointer-events-auto relative z-10 inline-flex items-center">
-              <Drawer open={mobileActionsOpen} onOpenChange={setMobileActionsOpen}>
+              {detailHeader?.kind === "review" && detailHeader.reviewId && detailHeader.reviewActions ? (
+                <ReviewActionsMenu
+                  reviewId={detailHeader.reviewId}
+                  reviewTitle={detailHeader.reviewActions.reviewTitle}
+                  entityTitle={detailHeader.reviewActions.entityTitle}
+                  entityId={detailHeader.reviewActions.entityId}
+                  reviewPath={detailHeader.sharePath}
+                  entityPath={detailHeader.reviewActions.entityPath}
+                  canManage={detailHeader.reviewActions.canManage}
+                  editSeed={detailHeader.reviewActions.editSeed}
+                  initialBookmarked={detailHeader.reviewActions.initialBookmarked}
+                  isAuthenticated={detailHeader.reviewActions.isAuthenticated}
+                  trigger={(
+                    <button
+                      type="button"
+                      className="flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground transition-[transform,color] duration-150 hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                      aria-label="Review actions"
+                    >
+                      <KocteauMoreIcon className="size-5" />
+                    </button>
+                  )}
+                />
+              ) : (
+                <Drawer open={detailActionsOpen} onOpenChange={setDetailActionsOpen}>
                 <DrawerTrigger asChild>
                   <button
                     type="button"
                     className="flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground transition-[transform,color] duration-150 hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-                    aria-label={isProfileDetailRoute ? "Profile actions" : isMobileReviewRoute ? "Review actions" : "Track actions"}
+                    aria-label={isProfileDetailRoute ? "Profile actions" : "Track actions"}
                   >
                     <KocteauMoreIcon className="size-5" />
                   </button>
@@ -266,7 +380,7 @@ export default function Header({
                 <DrawerContent className="p-0 text-foreground before:inset-0 before:rounded-t-[1.35rem] before:border-x before:border-b-0 before:border-t before:border-border/36 before:bg-background">
                   <DrawerHeader className="px-4 pb-3 pt-4 text-left">
                     <DrawerTitle>
-                      {isProfileDetailRoute ? "Profile actions" : isMobileReviewRoute ? "Review actions" : "Track actions"}
+                      {isProfileDetailRoute ? "Profile actions" : "Track actions"}
                     </DrawerTitle>
                     <DrawerDescription className="sr-only">
                       Share this page or open it in another service.
@@ -277,13 +391,13 @@ export default function Header({
                     <button
                       type="button"
                       onClick={() => {
-                        setMobileActionsOpen(false);
+                        setDetailActionsOpen(false);
                         void handleShareDetail();
                       }}
                       className="flex min-h-11 w-full items-center gap-3 rounded-full bg-white/[0.08] px-4 text-sm font-medium text-foreground transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                     >
-                      <Share2 className="size-4" />
-                      {isProfileDetailRoute ? "Share profile" : isMobileReviewRoute ? "Share review" : "Share track"}
+                      <KocteauShareIcon className="size-4" />
+                      {isProfileDetailRoute ? "Share profile" : "Share track"}
                     </button>
 
                     {(detailHeader?.externalLinks ?? []).map((link) => (
@@ -292,16 +406,17 @@ export default function Header({
                         href={link.url}
                         target="_blank"
                         rel="noreferrer"
-                        onClick={() => setMobileActionsOpen(false)}
+                        onClick={() => setDetailActionsOpen(false)}
                         className="flex min-h-11 w-full items-center gap-3 rounded-full bg-white/[0.08] px-4 text-sm font-medium text-foreground transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                       >
-                        <ExternalLink className="size-4" />
+                        <KocteauExternalIcon className="size-4" />
                         {link.label}
                       </a>
                     ))}
                   </div>
                 </DrawerContent>
-              </Drawer>
+                </Drawer>
+              )}
             </div>
           </div>
         </header>

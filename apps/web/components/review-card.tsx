@@ -1,8 +1,8 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Star } from "@/components/ui/icons";
 import EntityCoverImage from "@/components/entity-cover-image";
+import { KocteauReviewsIcon } from "@/components/kocteau-icons";
 import ReviewCardBody from "@/components/review-card-body";
 import UserAvatar from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
@@ -248,19 +248,17 @@ function ReviewRatingStars({ rating, className }: { rating: number; className?: 
 
           return (
             <span key={starNumber} className="relative block size-2.5 overflow-hidden sm:size-3 md:size-3.5">
-              <Star
+              <KocteauReviewsIcon
                 className="absolute inset-0 size-full text-muted-foreground/30"
-                fill="none"
-                stroke="currentColor"
+                weight="regular"
               />
               <span
                 className="absolute inset-y-0 left-0 overflow-hidden"
                 style={{ width: `${fillPercent}%` }}
               >
-                <Star
+                <KocteauReviewsIcon
                   className="size-2.5 text-foreground sm:size-3 md:size-3.5"
-                  fill="currentColor"
-                  stroke="currentColor"
+                  weight="fill"
                 />
               </span>
             </span>
@@ -321,7 +319,7 @@ export default function ReviewCard({
         />
       ) : null}
 
-      <div className="space-y-3.5 p-3.5 sm:p-4">
+      <div className="space-y-3.5 py-3.5 sm:py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
             {eyebrow ? (

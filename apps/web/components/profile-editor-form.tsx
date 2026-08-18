@@ -419,14 +419,14 @@ export default function ProfileEditorForm({
       "min-h-28 resize-none rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] px-3 py-2.5 text-sm leading-5 shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/48 hover:bg-[var(--kocteau-surface-control-hover)] focus-visible:border-border/48 focus-visible:ring-2 focus-visible:ring-ring/28";
     const labelClassName = "text-[13px] font-medium text-foreground/88";
     const rowClassName =
-      "grid gap-2.5 py-3.5 first:pt-0 sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:items-start sm:gap-6 sm:py-4";
+      "grid gap-2.5 border-t border-border/16 py-4 sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:items-start sm:gap-6";
 
     return (
       <div className="space-y-8">
         <section
           id="profile-settings-section-profile"
           aria-labelledby="profile-settings-heading"
-          className="space-y-4 border-b border-border/20 pb-8"
+          className="scroll-mt-24 space-y-4 border-b border-border/20 pb-8"
         >
           <div className="space-y-1">
             <h2 id="profile-settings-heading" className="text-sm font-semibold text-foreground/94">
@@ -542,7 +542,7 @@ export default function ProfileEditorForm({
         <section
           id="profile-settings-section-links"
           aria-labelledby="music-links-settings-heading"
-          className="space-y-4 border-b border-border/20 pb-8"
+          className="scroll-mt-24 space-y-4 border-b border-border/20 pb-8"
         >
           <div className="space-y-1">
             <h2 id="music-links-settings-heading" className="text-sm font-semibold text-foreground/94">
