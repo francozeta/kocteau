@@ -34,6 +34,7 @@ export default async function HomePage() {
           view: "latest",
           limit: 3,
           includeActiveUsers: false,
+          publicOnly: true,
           revalidateSeconds: 5 * 60,
         }),
         getPublicStarterTracks({ limit: 6, contextKey: "home" }),

@@ -307,9 +307,23 @@ function getSeedHref(seed: DiscoverySeed) {
 }
 
 function getResultTypeLabel(result: KocteauSearchResult) {
-  if (result.type === "artist") return "Artist";
-  if (result.type === "album") return "Album";
+  if (result.type === "artist") return result.artist_type || "Artist";
+  if (result.type === "album") return result.album_record_type || "Album";
   return "Song";
+}
+
+function getResultMetadataLabel(result: KocteauSearchResult) {
+  if (result.type === "artist") {
+    return result.disambiguation || "Artist";
+  }
+
+  if (result.type === "album") {
+    return [result.artist_name, result.album_record_type || "Album"]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  return result.artist_name || "Unknown artist";
 }
 
 type DiscoverySearchProps = {
@@ -421,9 +435,7 @@ function DiscoverySearch({
                       {result.title}
                     </span>
                     <span className="mt-1 block truncate text-[11px] text-muted-foreground/62">
-                      {result.type === "artist"
-                        ? "Artist"
-                        : result.artist_name || "Unknown artist"}
+                      {getResultMetadataLabel(result)}
                     </span>
                   </span>
                   <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/48">

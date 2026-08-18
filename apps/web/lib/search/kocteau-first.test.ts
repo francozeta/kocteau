@@ -75,6 +75,30 @@ describe("kocteau-first search ranking", () => {
     assert.equal(results[0]?.source_label, "Kocteau");
   });
 
+  it("merges local and remote artist records with the same metadata", () => {
+    const results = rankKocteauTrackSearchResults({
+      query: "Radiohead",
+      candidates: [
+        candidate("artist-local", {
+          type: "artist",
+          title: "Radiohead",
+          artist_name: null,
+          entity_id: "local-artist",
+          source: "local",
+        }),
+        candidate("artist-deezer", {
+          type: "artist",
+          title: " radiohead ",
+          artist_name: null,
+          source: "deezer",
+        }),
+      ],
+    });
+
+    assert.equal(results.length, 1);
+    assert.equal(results[0]?.entity_id, "local-artist");
+  });
+
   it("detects exact and partial artist intent without matching loose substrings", () => {
     assert.equal(isStrongArtistSearchMatch("The Cure", "The Cure"), true);
     assert.equal(isStrongArtistSearchMatch("cocteau tw", "Cocteau Twins"), true);

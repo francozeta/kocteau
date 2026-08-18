@@ -86,7 +86,19 @@ function getSourcePriority(source: KocteauSearchSource) {
 }
 
 function getCandidateIdentity(candidate: KocteauTrackSearchCandidate) {
-  return `${candidate.provider}:${candidate.type}:${candidate.provider_id}`;
+  const provider = candidate.provider.trim().toLowerCase();
+  const providerId = candidate.provider_id.trim().toLowerCase();
+
+  if (candidate.type === "artist") {
+    return [
+      provider,
+      candidate.type,
+      normalizeSearchText(candidate.title),
+      normalizeSearchText(candidate.disambiguation),
+    ].join(":");
+  }
+
+  return `${provider}:${candidate.type}:${providerId}`;
 }
 
 function mergeDuplicateCandidate(

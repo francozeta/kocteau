@@ -18,6 +18,7 @@ import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { trackServerAnalyticsEvent } from "@/lib/analytics/server";
 import { measureServerTask } from "@/lib/perf";
+import { isPublicReviewDisplayable } from "@/lib/reviews/public-content";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -62,6 +63,7 @@ type FeedPageOptions = {
   cursor?: string | null;
   limit?: number;
   includeActiveUsers?: boolean;
+  publicOnly?: boolean;
   revalidateSeconds?: number;
 };
 
@@ -144,12 +146,14 @@ async function queryFeedPage({
   cursor,
   limit,
   includeActiveUsers,
+  publicOnly,
   authorIds,
 }: {
   view: FeedView;
   cursor: string | null | undefined;
   limit: number;
   includeActiveUsers: boolean;
+  publicOnly: boolean;
   authorIds?: string[];
 }): Promise<FeedPageData> {
   if (authorIds && authorIds.length === 0) {
@@ -176,7 +180,7 @@ async function queryFeedPage({
             includeEntity: true,
           }),
         )
-        .limit(pageLimit + 1);
+        .limit((publicOnly ? pageLimit * 2 : pageLimit) + 1);
 
       if (authorIds?.length) {
         query = query.in("author_id", authorIds);
@@ -197,7 +201,9 @@ async function queryFeedPage({
     }),
     includeActiveUsers ? getRecentlyActiveProfiles(4) : Promise.resolve([]),
   ]);
-  const normalizedFeed = feed.map(normalizeFeedReview);
+  const normalizedFeed = feed
+    .map(normalizeFeedReview)
+    .filter((review) => !publicOnly || isPublicReviewDisplayable(review));
   const pageFeed = normalizedFeed.slice(0, pageLimit);
   const lastReview = pageFeed.at(-1) ?? null;
 
@@ -324,6 +330,7 @@ async function queryRecommendedFeedPage({
       cursor,
       limit,
       includeActiveUsers,
+      publicOnly: false,
     });
 
     return {
@@ -415,6 +422,7 @@ export async function getFeedPage({
   cursor = null,
   limit = FEED_PAGE_SIZE,
   includeActiveUsers = false,
+  publicOnly = false,
   revalidateSeconds = 60,
 }: FeedPageOptions = {}) {
   if (view === "for-you") {
@@ -445,6 +453,7 @@ export async function getFeedPage({
           cursor,
           limit,
           includeActiveUsers,
+          publicOnly,
           authorIds: followingIds,
         }),
       {
@@ -465,6 +474,7 @@ export async function getFeedPage({
       cursor ?? "first",
       limit,
       includeActiveUsers,
+      publicOnly,
       cacheTtlSeconds,
     ],
     () =>
@@ -478,8 +488,9 @@ export async function getFeedPage({
                 cursor,
                 limit,
                 includeActiveUsers,
+                publicOnly,
               }),
-            { view, cursor: Boolean(cursor), limit, includeActiveUsers },
+            { view, cursor: Boolean(cursor), limit, includeActiveUsers, publicOnly },
           ),
         [
           "feed-page",
@@ -487,6 +498,7 @@ export async function getFeedPage({
           cursor ?? "first",
           String(limit),
           String(includeActiveUsers),
+          String(publicOnly),
           String(cacheTtlSeconds),
         ],
         {
@@ -500,6 +512,7 @@ export async function getFeedPage({
 export async function getFeedPublicBundle(view: FeedView = "latest") {
   return getFeedPage({
     view: view === "following" || view === "for-you" ? "latest" : view,
+    publicOnly: true,
   });
 }
 

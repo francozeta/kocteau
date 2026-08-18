@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo } from "react";
 import type { IconType } from "react-icons";
 import { BsAppleMusic } from "react-icons/bs";
 import { FaDeezer, FaSpotify } from "react-icons/fa";
@@ -8,7 +9,6 @@ import { ExternalLink } from "@/components/ui/icons";
 import CreatorPerksCard from "@/components/creator-perks-card";
 import FollowProfileButton from "@/components/follow-profile-button";
 import ProfileHeroAvatar from "@/components/profile-hero-avatar";
-import ProfileSettingsDialog from "@/components/profile-settings-dialog";
 import { useRouteHeader } from "@/components/route-header-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { shareUrl } from "@/lib/share";
@@ -93,7 +93,7 @@ function ProfilePageHeaderState({
   isAuthenticated,
   creatorPerk = null,
 }: ProfilePageHeaderProps) {
-  const [localProfile, setLocalProfile] = useState(profile);
+  const localProfile = profile;
   const { setDetailHeader } = useRouteHeader();
   const name = localProfile.display_name ?? `@${localProfile.username}`;
   const usernameLabel = `@${localProfile.username}`;
@@ -232,23 +232,12 @@ function ProfilePageHeaderState({
 
         <div className={actionGridClassName}>
           {isOwnProfile ? (
-            <ProfileSettingsDialog
-              profile={localProfile}
-              onProfileUpdate={(updatedProfile) => {
-                setLocalProfile((current) => ({
-                  ...current,
-                  ...updatedProfile,
-                }));
-              }}
-              trigger={
-                <button
-                  type="button"
-                  className={cn(buttonVariants({ variant: "outline", size: "default" }), actionButtonClassName)}
-                >
-                  Edit profile
-                </button>
-              }
-            />
+            <Link
+              href="/settings"
+              className={cn(buttonVariants({ variant: "outline", size: "default" }), actionButtonClassName)}
+            >
+              Settings
+            </Link>
           ) : (
             <FollowProfileButton
               profileId={localProfile.id}

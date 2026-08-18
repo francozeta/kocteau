@@ -39,11 +39,33 @@ type SavedProfileDraft = ProfileDraft & {
   username: string;
 };
 
+type EditableProfileValues = {
+  username: string;
+  display_name: string;
+  bio: string;
+  spotify_url: string;
+  apple_music_url: string;
+  deezer_url: string;
+  avatar_url: string | null;
+};
+
+function getEditableProfileValues(profile?: Partial<ProfileDraft>): EditableProfileValues {
+  return {
+    username: profile?.username ?? "",
+    display_name: profile?.display_name ?? "",
+    bio: profile?.bio ?? "",
+    spotify_url: profile?.spotify_url ?? "",
+    apple_music_url: profile?.apple_music_url ?? "",
+    deezer_url: profile?.deezer_url ?? "",
+    avatar_url: profile?.avatar_url ?? null,
+  };
+}
+
 type ProfileEditorFormProps = {
   mode: "onboarding" | "settings";
   initialProfile?: Partial<ProfileDraft>;
   onSaved?: (profile: SavedProfileDraft) => void;
-  settingsLayout?: "default" | "panel";
+  settingsLayout?: "default" | "panel" | "page";
   settingsSection?: "profile" | "avatar" | "links" | "all";
 };
 
@@ -67,6 +89,7 @@ export default function ProfileEditorForm({
   const [avatarUpload, setAvatarUpload] = useState<PreparedAvatarUpload | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
   const [message, setMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     username?: string;
     display_name?: string;
@@ -78,6 +101,35 @@ export default function ProfileEditorForm({
   const [saving, setSaving] = useState(false);
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const [isAvatarCropDialogOpen, setIsAvatarCropDialogOpen] = useState(false);
+  const [savedValues, setSavedValues] = useState<EditableProfileValues>(() =>
+    getEditableProfileValues(initialProfile),
+  );
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (mode !== "settings") {
+      return false;
+    }
+
+    return (
+      avatarUpload !== null ||
+      username !== savedValues.username ||
+      displayName !== savedValues.display_name ||
+      bio !== savedValues.bio ||
+      spotifyUrl !== savedValues.spotify_url ||
+      appleMusicUrl !== savedValues.apple_music_url ||
+      deezerUrl !== savedValues.deezer_url
+    );
+  }, [
+    appleMusicUrl,
+    avatarUpload,
+    bio,
+    deezerUrl,
+    displayName,
+    mode,
+    savedValues,
+    spotifyUrl,
+    username,
+  ]);
 
   const [
     { errors: avatarUploadErrors, isDragging: isAvatarDragging },
@@ -111,10 +163,10 @@ export default function ProfileEditorForm({
       return URL.createObjectURL(avatarUpload.master.file);
     }
 
-    return isLegacyPresetAvatarUrl(initialProfile?.avatar_url)
+    return isLegacyPresetAvatarUrl(savedValues.avatar_url)
       ? null
-      : initialProfile?.avatar_url ?? null;
-  }, [avatarUpload, initialProfile?.avatar_url]);
+      : savedValues.avatar_url ?? null;
+  }, [avatarUpload, savedValues.avatar_url]);
 
   useEffect(() => {
     if (!avatarUpload || !avatarPreview) {
@@ -168,6 +220,7 @@ export default function ProfileEditorForm({
 
   function handleAvatarCropConfirm(upload: PreparedAvatarUpload) {
     setAvatarUpload(upload);
+    setSuccessMessage(null);
     setPendingAvatarFile(null);
     setIsAvatarCropDialogOpen(false);
     clearAvatarUploadErrors();
@@ -192,6 +245,7 @@ export default function ProfileEditorForm({
 
   async function onSubmit() {
     setMessage(null);
+    setSuccessMessage(null);
     const parsed = profileEditorSchema.safeParse({
       username,
       display_name: displayName,
@@ -259,6 +313,16 @@ export default function ProfileEditorForm({
 
       await revalidateProfileViews(previousUsername, normalizedProfile.username);
       onSaved?.(profilePayload);
+      setSavedValues({
+        username: normalizedProfile.username,
+        display_name: normalizedProfile.display_name ?? "",
+        bio: normalizedProfile.bio ?? "",
+        avatar_url: avatarUrl ?? null,
+        spotify_url: normalizedProfile.spotify_url ?? "",
+        apple_music_url: normalizedProfile.apple_music_url ?? "",
+        deezer_url: normalizedProfile.deezer_url ?? "",
+      });
+      setAvatarUpload(null);
 
       if (mode === "onboarding") {
         startTransition(() => {
@@ -289,6 +353,7 @@ export default function ProfileEditorForm({
       }
 
       if (mode === "settings") {
+        setSuccessMessage("Changes saved.");
         toastActionSuccess("Profile updated.");
       }
     } catch (error) {
@@ -344,6 +409,244 @@ export default function ProfileEditorForm({
             Next
             <ArrowRightIcon className="size-4" weight="bold" />
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  function renderPageSettingsFields() {
+    const fieldClassName =
+      "h-10 rounded-[0.62rem] border-border/22 bg-transparent px-3 text-sm shadow-none placeholder:text-muted-foreground/42 focus-visible:border-border/50 focus-visible:ring-2 focus-visible:ring-ring/24";
+    const textareaClassName =
+      "min-h-28 resize-none rounded-[0.62rem] border-border/22 bg-transparent px-3 py-2.5 text-sm leading-5 shadow-none placeholder:text-muted-foreground/42 focus-visible:border-border/50 focus-visible:ring-2 focus-visible:ring-ring/24";
+    const labelClassName = "text-sm font-medium text-foreground/88";
+    const rowClassName =
+      "grid gap-3 py-5 first:pt-0 sm:grid-cols-[minmax(9rem,0.42fr)_minmax(0,1fr)] sm:items-start sm:gap-8";
+
+    return (
+      <div className="space-y-10">
+        <section
+          id="profile-settings-section-profile"
+          aria-labelledby="profile-settings-heading"
+          className="space-y-5 border-b border-border/24 pb-10"
+        >
+          <div className="space-y-1">
+            <h2 id="profile-settings-heading" className="text-base font-medium text-foreground">
+              Profile
+            </h2>
+            <p className="text-sm leading-5 text-muted-foreground">
+              The identity people see across Kocteau.
+            </p>
+          </div>
+
+          <div className="divide-y divide-border/20">
+            <div className={rowClassName}>
+              <div className="space-y-1">
+                <Label className={labelClassName}>Avatar</Label>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Your dither avatar stays until you add a photo.
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <AvatarUploadTrigger
+                  alt="Profile image"
+                  previewUrl={avatarPreview}
+                  generatedSeed={username || displayName || "kocteau-user"}
+                  size="md"
+                  isDragging={isAvatarDragging}
+                  onClick={openAvatarPicker}
+                  onDragEnter={handleAvatarDragEnter}
+                  onDragLeave={handleAvatarDragLeave}
+                  onDragOver={handleAvatarDragOver}
+                  onDrop={handleAvatarDrop}
+                />
+                <div className="min-w-0 space-y-1">
+                  <p className="text-sm text-foreground/82">
+                    {avatarUpload ? "Photo ready to save" : "Choose a square photo"}
+                  </p>
+                  {avatarUploadErrors[0] ? (
+                    <p role="alert" className="text-xs text-destructive">
+                      {avatarUploadErrors[0]}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className={rowClassName}>
+              <div className="space-y-1">
+                <Label htmlFor="display-name" className={labelClassName}>
+                  Display name
+                </Label>
+                <p className="text-xs leading-5 text-muted-foreground">Shown next to your reviews.</p>
+              </div>
+              <div className="space-y-2">
+                <Input
+                  id="display-name"
+                  value={displayName}
+                  onChange={(event) => {
+                    setDisplayName(event.target.value);
+                    setSuccessMessage(null);
+                    setFieldErrors((current) => ({ ...current, display_name: undefined }));
+                  }}
+                  placeholder="Fran Cocteau"
+                  disabled={saving}
+                  aria-invalid={Boolean(fieldErrors.display_name)}
+                  aria-describedby={fieldErrors.display_name ? "display-name-error" : undefined}
+                  className={fieldClassName}
+                />
+                <FieldError id="display-name-error">{fieldErrors.display_name}</FieldError>
+              </div>
+            </div>
+
+            <div className={rowClassName}>
+              <div className="space-y-1">
+                <Label htmlFor="username" className={labelClassName}>
+                  Username
+                </Label>
+                <p className="text-xs leading-5 text-muted-foreground">Your public Kocteau address.</p>
+              </div>
+              <div className="space-y-2">
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(event) => {
+                    setUsername(event.target.value);
+                    setSuccessMessage(null);
+                    setFieldErrors((current) => ({ ...current, username: undefined }));
+                  }}
+                  placeholder="fran_cocteau"
+                  disabled={saving}
+                  aria-invalid={Boolean(fieldErrors.username)}
+                  aria-describedby={fieldErrors.username ? "username-error" : undefined}
+                  className={fieldClassName}
+                />
+                <FieldError id="username-error">{fieldErrors.username}</FieldError>
+              </div>
+            </div>
+
+            <div className={rowClassName}>
+              <div className="space-y-1">
+                <Label htmlFor="bio" className={labelClassName}>
+                  Bio
+                </Label>
+                <p className="text-xs leading-5 text-muted-foreground">A short note about your taste.</p>
+              </div>
+              <div className="space-y-2">
+                <Textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(event) => {
+                    setBio(event.target.value);
+                    setSuccessMessage(null);
+                    setFieldErrors((current) => ({ ...current, bio: undefined }));
+                  }}
+                  placeholder="Taste, mood, records in rotation."
+                  disabled={saving}
+                  maxLength={280}
+                  aria-invalid={Boolean(fieldErrors.bio)}
+                  aria-describedby={fieldErrors.bio ? "bio-error" : undefined}
+                  className={textareaClassName}
+                />
+                <FieldError id="bio-error">{fieldErrors.bio}</FieldError>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="profile-settings-section-links"
+          aria-labelledby="music-links-settings-heading"
+          className="space-y-5 border-b border-border/24 pb-10"
+        >
+          <div className="space-y-1">
+            <h2 id="music-links-settings-heading" className="text-base font-medium text-foreground">
+              Music links
+            </h2>
+            <p className="text-sm leading-5 text-muted-foreground">
+              Places where people can keep listening.
+            </p>
+          </div>
+
+          <div className="divide-y divide-border/20">
+            {[
+              {
+                id: "spotify-url",
+                label: "Spotify",
+                description: "Your Spotify profile or playlist.",
+                value: spotifyUrl,
+                error: fieldErrors.spotify_url,
+                onChange: setSpotifyUrl,
+                errorKey: "spotify_url" as const,
+                placeholder: "open.spotify.com/...",
+              },
+              {
+                id: "apple-music-url",
+                label: "Apple Music",
+                description: "Your Apple Music profile or playlist.",
+                value: appleMusicUrl,
+                error: fieldErrors.apple_music_url,
+                onChange: setAppleMusicUrl,
+                errorKey: "apple_music_url" as const,
+                placeholder: "music.apple.com/...",
+              },
+              {
+                id: "deezer-url",
+                label: "Deezer",
+                description: "Your Deezer profile or playlist.",
+                value: deezerUrl,
+                error: fieldErrors.deezer_url,
+                onChange: setDeezerUrl,
+                errorKey: "deezer_url" as const,
+                placeholder: "deezer.com/...",
+              },
+            ].map((link) => (
+              <div key={link.id} className={rowClassName}>
+                <div className="space-y-1">
+                  <Label htmlFor={link.id} className={labelClassName}>
+                    {link.label}
+                  </Label>
+                  <p className="text-xs leading-5 text-muted-foreground">{link.description}</p>
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    id={link.id}
+                    type="url"
+                    value={link.value}
+                    onChange={(event) => {
+                      link.onChange(event.target.value);
+                      setSuccessMessage(null);
+                      setFieldErrors((current) => ({ ...current, [link.errorKey]: undefined }));
+                    }}
+                    placeholder={link.placeholder}
+                    disabled={saving}
+                    aria-invalid={Boolean(link.error)}
+                    aria-describedby={link.error ? `${link.id}-error` : undefined}
+                    className={fieldClassName}
+                  />
+                  <FieldError id={`${link.id}-error`}>{link.error}</FieldError>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div aria-live="polite" className="min-h-5 text-sm text-muted-foreground">
+            {successMessage}
+          </div>
+          {hasUnsavedChanges ? (
+            <Button type="button" onClick={onSubmit} disabled={saving} className="sm:shrink-0">
+              {saving ? (
+                <>
+                  <SpinnerGapIcon className="size-4 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save changes"
+              )}
+            </Button>
+          ) : null}
         </div>
       </div>
     );
@@ -759,10 +1062,16 @@ export default function ProfileEditorForm({
       />
 
       {message ? (
-        <Alert variant="destructive">
-          <AlertTitle>We could not save your profile</AlertTitle>
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
+        settingsLayout === "page" ? (
+          <p role="alert" className="border-y border-destructive/24 py-3 text-sm text-destructive">
+            {message}
+          </p>
+        ) : (
+          <Alert variant="destructive">
+            <AlertTitle>We could not save your profile</AlertTitle>
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
+        )
       ) : null}
 
       {isOnboarding ? (
@@ -784,6 +1093,8 @@ export default function ProfileEditorForm({
           </div>
           {step === 1 ? renderAvatarSelection() : renderIdentityFields()}
         </>
+      ) : settingsLayout === "page" ? (
+        renderPageSettingsFields()
       ) : (
         renderSettingsFields()
       )}
