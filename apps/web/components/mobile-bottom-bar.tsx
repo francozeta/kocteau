@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentType, SVGProps } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,12 +9,20 @@ import {
   KocteauLibraryIcon,
   KocteauSearchIcon,
 } from "@/components/kocteau-icons";
-import NewReviewDialog from "@/components/new-review-dialog";
-import ReviewCommentDock from "@/components/review-comment-dock";
 import ReviewGlyphIcon from "@/components/review-glyph-icon";
 import { useRouteHeader } from "@/components/route-header-context";
 import UserAvatar from "@/components/user-avatar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { OPEN_NEW_REVIEW_SHORTCUT_EVENT } from "@/hooks/use-global-shortcuts";
 import { cn } from "@/lib/utils";
+
+const ReviewCommentDock = dynamic(
+  () => import("@/components/review-comment-dock"),
+  {
+    ssr: false,
+    loading: () => <div className="h-11 w-full rounded-full bg-white/[0.08]" />,
+  },
+);
 
 type MobileBottomBarProps = {
   profile: {
@@ -89,6 +98,11 @@ function NavTab({
 export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
   const { detailHeader } = useRouteHeader();
+  const isMobile = useIsMobile();
+
+  if (!isMobile) {
+    return null;
+  }
 
   if (pathname.startsWith("/search")) {
     return (
@@ -198,20 +212,16 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
             ) : null}
           </div>
 
-          <NewReviewDialog
-            isAuthenticated={Boolean(profile)}
-            intent="review"
-            trigger={
-              <button
-                type="button"
-                aria-label={reviewEntryLabel}
-                className="flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground backdrop-blur-2xl backdrop-saturate-150 transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-              >
-                <ReviewGlyphIcon className="size-[1.12rem]" weight="fill" />
-              </button>
-            }
-            triggerLabelClassName="sr-only"
-          />
+          <button
+            type="button"
+            aria-label={reviewEntryLabel}
+            className="flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground backdrop-blur-2xl backdrop-saturate-150 transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent(OPEN_NEW_REVIEW_SHORTCUT_EVENT));
+            }}
+          >
+            <ReviewGlyphIcon className="size-[1.12rem]" weight="fill" />
+          </button>
         </div>
       </nav>
     </>

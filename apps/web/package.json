@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "analyze": "next experimental-analyze --output",
     "email:dev": "email dev --dir emails --port 3001",
     "email:export": "email export --dir emails --outDir emails/out",
     "start": "next start",
