@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isPublicReviewDisplayable } from "./public-content.ts";
+import {
+  isPublicReviewDisplayable,
+  isPublicReviewIndexable,
+} from "./public-content.ts";
 
 describe("public review content curation", () => {
   it("hides reviews containing executable or embedded markup", () => {
@@ -27,6 +30,20 @@ describe("public review content curation", () => {
       isPublicReviewDisplayable({
         title: "A quiet record for late nights",
         body: "The guitars keep opening up after the second chorus.",
+      }),
+      true,
+    );
+  });
+
+  it("only marks substantial public notes as indexable", () => {
+    assert.equal(
+      isPublicReviewIndexable({ title: "Nice", body: "A good song." }),
+      false,
+    );
+    assert.equal(
+      isPublicReviewIndexable({
+        title: "A quiet record for late nights",
+        body: "The guitars keep opening up after the second chorus, while the vocal stays close and unguarded. It rewards another listen.",
       }),
       true,
     );

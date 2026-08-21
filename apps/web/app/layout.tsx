@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     template: "%s | Kocteau",
   },
   description: "Music reviews by real listeners.",
+  manifest: "/manifest.webmanifest",
   openGraph: {
     siteName: "Kocteau",
     type: "website",

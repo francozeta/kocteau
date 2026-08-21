@@ -14,6 +14,7 @@ import {
   getReviewViewerState,
   type ReviewPageReview,
 } from "@/lib/queries/reviews";
+import { isPublicReviewIndexable } from "@/lib/reviews/public-content";
 import {
   buildEntityCanonicalPath,
   buildReviewCanonicalPath,
@@ -70,22 +71,13 @@ export async function generateMetadata({
   const { reviewId } = await params;
 
   if (!isSeoRouteId(reviewId)) {
-    return createPageMetadata({
-      title: "Review",
-      description: "A public music review on Kocteau.",
-      path: `/reviews/${reviewId}`,
-      noIndex: true,
-    });
+    notFound();
   }
 
   const review = await getPublicReviewByRouteId(reviewId);
 
   if (!review?.entities) {
-    return createPageMetadata({
-      title: "Review",
-      description: "A public music review on Kocteau.",
-      path: `/reviews/${reviewId}`,
-    });
+    notFound();
   }
 
   const authorLabel = getAuthorLabel(review);
@@ -102,6 +94,7 @@ export async function generateMetadata({
     }),
     path: canonicalPath,
     image: `/api/og/track/${review.entities.id}`,
+    noIndex: !isPublicReviewIndexable(review),
   });
 }
 

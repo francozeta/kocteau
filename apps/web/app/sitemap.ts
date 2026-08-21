@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
-import { helpRoutes } from "@/lib/help";
+import { HELP_LAST_UPDATED, helpRoutes } from "@/lib/help";
 import { getMetadataBase } from "@/lib/metadata";
+import { isPublicReviewIndexable } from "@/lib/reviews/public-content";
 import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
 import { supabasePublic } from "@/lib/supabase/public";
 
 type SitemapProfile = {
+  id: string;
   username: string;
   created_at: string;
   updated_at: string;
@@ -23,7 +25,10 @@ type SitemapEntity = {
 
 type SitemapReview = {
   id: string;
+  author_id: string;
   entity_id: string;
+  title: string | null;
+  body: string | null;
   created_at: string;
   updated_at: string;
   entities: SitemapEntity | SitemapEntity[] | null;
@@ -41,19 +46,23 @@ type SitemapArtist = {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const metadataBase = getMetadataBase();
   const supabase = supabasePublic();
-  const now = new Date();
+  const helpLastModified = new Date(HELP_LAST_UPDATED);
   const [profilesResult, reviewsResult, albumsResult, artistsResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, created_at, updated_at")
+      .select("id, username, created_at, updated_at")
       .eq("onboarded", true)
       .not("username", "is", null)
-      .order("updated_at", { ascending: false }),
+      .order("updated_at", { ascending: false })
+      .limit(5000),
     supabase
       .from("reviews")
       .select(`
         id,
+        author_id,
         entity_id,
+        title,
+        body,
         created_at,
         updated_at,
         entities (
@@ -86,6 +95,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const reviews = (reviewsResult.data ?? []) as SitemapReview[];
   const albums = (albumsResult.data ?? []) as SitemapEntity[];
   const artists = (artistsResult.data ?? []) as SitemapArtist[];
+  const indexableReviews = reviews.filter((review) => {
+    const entity = Array.isArray(review.entities)
+      ? review.entities[0] ?? null
+      : review.entities;
+
+    return Boolean(entity?.id) && isPublicReviewIndexable(review);
+  });
+  const indexableAuthorIds = new Set(
+    indexableReviews.map((review) => review.author_id),
+  );
   const reviewedTracks = new Map<
     string,
     {
@@ -94,7 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   >();
 
-  for (const review of reviews) {
+  for (const review of indexableReviews) {
     const entity = Array.isArray(review.entities)
       ? review.entities[0] ?? null
       : review.entities;
@@ -119,38 +138,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: new URL("/", metadataBase).toString(),
-      lastModified: now,
       changeFrequency: "hourly",
       priority: 1,
     },
     {
       url: new URL("/reviews", metadataBase).toString(),
-      lastModified: now,
       changeFrequency: "hourly",
       priority: 0.9,
     },
     {
       url: new URL("/track", metadataBase).toString(),
-      lastModified: now,
       changeFrequency: "daily",
       priority: 0.7,
     },
     {
-      url: new URL("/search", metadataBase).toString(),
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.65,
+      url: new URL("/curators", metadataBase).toString(),
+      changeFrequency: "monthly",
+      priority: 0.5,
     },
     ...helpRoutes.map((route) => ({
       url: new URL(route.href, metadataBase).toString(),
-      lastModified: now,
+      lastModified: helpLastModified,
       changeFrequency: "monthly" as const,
       priority: route.href === "/help" ? 0.45 : 0.35,
     })),
   ];
 
   const profileRoutes: MetadataRoute.Sitemap = profiles
-    .filter((profile) => Boolean(profile.username))
+    .filter(
+      (profile) => Boolean(profile.username) && indexableAuthorIds.has(profile.id),
+    )
     .map((profile) => ({
       url: new URL(`/u/${profile.username}`, metadataBase).toString(),
       lastModified: new Date(profile.updated_at ?? profile.created_at),
@@ -158,7 +175,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  const reviewRoutes: MetadataRoute.Sitemap = reviews.map((review) => ({
+  const reviewRoutes: MetadataRoute.Sitemap = indexableReviews.map((review) => ({
     url: new URL(
       buildReviewCanonicalPath({
         id: review.id,
@@ -180,28 +197,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const albumRoutes: MetadataRoute.Sitemap = albums.map((album) => ({
-    url: new URL(buildEntityCanonicalPath(album), metadataBase).toString(),
-    lastModified: new Date(album.updated_at ?? album.created_at),
-    changeFrequency: "weekly",
-    priority: 0.68,
-  }));
+  const albumRoutes: MetadataRoute.Sitemap = albums
+    .filter((album) => Boolean(album.provider && album.provider_id && album.title))
+    .map((album) => ({
+      url: new URL(buildEntityCanonicalPath(album), metadataBase).toString(),
+      lastModified: new Date(album.updated_at ?? album.created_at),
+      changeFrequency: "weekly",
+      priority: 0.68,
+    }));
 
-  const artistRoutes: MetadataRoute.Sitemap = artists.map((artist) => ({
-    url: new URL(
-      buildEntityCanonicalPath({
-        id: artist.id,
-        provider: artist.provider,
-        provider_id: artist.provider_id,
-        type: "artist",
-        title: artist.name,
-      }),
-      metadataBase,
-    ).toString(),
-    lastModified: new Date(artist.updated_at ?? artist.created_at),
-    changeFrequency: "weekly",
-    priority: 0.68,
-  }));
+  const artistRoutes: MetadataRoute.Sitemap = artists
+    .filter((artist) => Boolean(artist.provider && artist.provider_id && artist.name))
+    .map((artist) => ({
+      url: new URL(
+        buildEntityCanonicalPath({
+          id: artist.id,
+          provider: artist.provider,
+          provider_id: artist.provider_id,
+          type: "artist",
+          title: artist.name,
+        }),
+        metadataBase,
+      ).toString(),
+      lastModified: new Date(artist.updated_at ?? artist.created_at),
+      changeFrequency: "weekly",
+      priority: 0.68,
+    }));
 
   return [
     ...staticRoutes,

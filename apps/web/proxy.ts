@@ -1,7 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { isFeedView } from "@/lib/feed-view";
-import { getShortRouteId, isFullUuid } from "@/lib/seo-routes";
+import {
+  getShortRouteId,
+  isFullUuid,
+  isSeoRouteId,
+} from "@/lib/seo-routes";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
 
 function isMetadataRequest(pathname: string) {
@@ -34,6 +38,121 @@ function getResolverRejectionResponse() {
       "X-Robots-Tag": "noindex, nofollow, noarchive",
     },
   });
+}
+
+function getPublicRouteNotFoundResponse() {
+  return new NextResponse(null, {
+    status: 404,
+    headers: {
+      "Cache-Control": "public, max-age=60, s-maxage=300",
+      "X-Robots-Tag": "noindex, nofollow, noarchive",
+    },
+  });
+}
+
+type PublicRouteLookup = {
+  table: "artists" | "entities" | "profiles" | "reviews";
+  column: "id" | "short_id" | "username";
+  value: string;
+  prefix?: boolean;
+  entityType?: "album" | "track";
+};
+
+function decodeRoutePart(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
+}
+
+function getPublicRouteLookup(pathname: string): PublicRouteLookup | null | false {
+  const reviewMatch = pathname.match(/^\/reviews\/([^/]+)\/[^/]+\/?$/);
+  if (reviewMatch?.[1]) {
+    const routeId = decodeRoutePart(reviewMatch[1]);
+    if (!routeId || !isSeoRouteId(routeId)) return false;
+
+    return {
+      table: "reviews",
+      column: isFullUuid(routeId) ? "id" : "short_id",
+      value: routeId.toLowerCase(),
+      prefix: routeId.length === 8,
+    };
+  }
+
+  const entityMatch = pathname.match(/^\/(tracks|albums)\/[^/]+\/([^/]+)\/?$/);
+  if (entityMatch?.[1] && entityMatch[2]) {
+    const routeId = decodeRoutePart(entityMatch[2]);
+    if (!routeId || !isSeoRouteId(routeId)) return false;
+
+    return {
+      table: "entities",
+      column: isFullUuid(routeId) ? "id" : "short_id",
+      value: routeId.toLowerCase(),
+      prefix: routeId.length === 8,
+      entityType: entityMatch[1] === "albums" ? "album" : "track",
+    };
+  }
+
+  const artistMatch = pathname.match(/^\/artists\/[^/]+\/([^/]+)\/?$/);
+  if (artistMatch?.[1]) {
+    const routeId = decodeRoutePart(artistMatch[1]);
+    if (!routeId || !isSeoRouteId(routeId)) return false;
+
+    return {
+      table: "artists",
+      column: isFullUuid(routeId) ? "id" : "short_id",
+      value: routeId.toLowerCase(),
+      prefix: routeId.length === 8,
+    };
+  }
+
+  const profileMatch = pathname.match(/^\/u\/([^/]+)\/?$/);
+  if (profileMatch?.[1]) {
+    const username = decodeRoutePart(profileMatch[1]);
+    if (!username || !/^[a-z0-9_]{3,20}$/.test(username)) return false;
+
+    return {
+      table: "profiles",
+      column: "username",
+      value: username,
+    };
+  }
+
+  return null;
+}
+
+async function publicRouteExists(lookup: PublicRouteLookup) {
+  const url = new URL(`/rest/v1/${lookup.table}`, getSupabaseUrl());
+  const filter = lookup.prefix ? `like.${lookup.value}*` : `eq.${lookup.value}`;
+  const publishableKey = getSupabasePublishableKey();
+
+  url.searchParams.set("select", "id");
+  url.searchParams.set(lookup.column, filter);
+  url.searchParams.set("limit", "2");
+
+  if (lookup.entityType) {
+    url.searchParams.set("type", `eq.${lookup.entityType}`);
+  }
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${publishableKey}`,
+      },
+      next: { revalidate: 300 },
+    });
+
+    if (!response.ok) {
+      return true;
+    }
+
+    const rows = (await response.json()) as Array<{ id: string }>;
+    return rows.length === 1;
+  } catch {
+    return true;
+  }
 }
 
 function canReceiveAuthCallback(pathname: string) {
@@ -96,6 +215,19 @@ export async function proxy(request: NextRequest) {
     if (!/^[1-9]\d{0,19}$/.test(providerId) || isKnownCrawler(request)) {
       return getResolverRejectionResponse();
     }
+  }
+
+  const publicRouteLookup = getPublicRouteLookup(pathname);
+  if (publicRouteLookup === false) {
+    return getPublicRouteNotFoundResponse();
+  }
+
+  if (
+    publicRouteLookup &&
+    (request.method === "HEAD" || isKnownCrawler(request)) &&
+    !(await publicRouteExists(publicRouteLookup))
+  ) {
+    return getPublicRouteNotFoundResponse();
   }
 
   const shortIdRedirectPath = getShortIdRedirectPath(pathname);

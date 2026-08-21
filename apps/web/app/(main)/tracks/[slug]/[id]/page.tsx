@@ -44,33 +44,25 @@ export async function generateMetadata({
   const routeParams = await params;
 
   if (!isSeoRouteId(routeParams.id)) {
-    return createPageMetadata({
-      title: "Track",
-      description: "Track reviews and notes on Kocteau.",
-      path: getRoutePath(routeParams),
-      noIndex: true,
-    });
+    notFound();
   }
 
   const entity = await getEntityPageByRouteId(routeParams.id);
 
   if (!entity) {
-    return createPageMetadata({
-      title: "Track",
-      description: "Track reviews and notes on Kocteau.",
-      path: getRoutePath(routeParams),
-      noIndex: true,
-    });
+    notFound();
   }
 
   const title = entity.artist_name ? `${entity.title} — ${entity.artist_name}` : entity.title;
   const canonicalPath = buildEntityCanonicalPath(entity);
+  const publicBundle = await getTrackPublicBundle(entity.id);
 
   return createPageMetadata({
     title,
     description: createTrackDescription(entity.title, entity.artist_name),
     path: canonicalPath,
     image: `/api/og/track/${entity.id}`,
+    noIndex: !publicBundle || publicBundle.reviews.length === 0,
   });
 }
 

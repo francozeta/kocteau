@@ -12,8 +12,14 @@ export default function robots(): MetadataRoute.Robots {
     "/library",
     "/notifications",
     "/saved",
+    "/settings",
+    "/studio",
+    "/auth/",
+    "/toast-preview",
     "/api/",
     "/track/deezer/",
+    "/album/deezer/",
+    "/artist/deezer/",
     "/*opengraph-image*",
     "/*twitter-image*",
   ];
@@ -37,11 +43,6 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "*",
-        allow: publicAllow,
-        disallow: privateDisallow,
-      },
-      {
-        userAgent: "Googlebot",
         allow: publicAllow,
         disallow: privateDisallow,
       },

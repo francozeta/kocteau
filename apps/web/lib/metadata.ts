@@ -5,18 +5,20 @@ const DEFAULT_DESCRIPTION =
   "Kocteau is a music review and taste discovery app for public listening notes, ratings, and profiles.";
 const DEFAULT_OPEN_GRAPH_IMAGE = "/og/kocteau.webp";
 const DEFAULT_TWITTER_IMAGE = "/og/kocteau.webp";
+const CANONICAL_SITE_URL = "https://kocteau.com";
 
 function resolveSiteUrl() {
-  const envUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-    process.env.VERCEL_URL;
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-  if (!envUrl) {
-    return "http://localhost:3000";
+  if (process.env.NODE_ENV !== "production") {
+    if (!envUrl) {
+      return "http://localhost:3000";
+    }
+
+    return envUrl.startsWith("http") ? envUrl : `https://${envUrl}`;
   }
 
-  return envUrl.startsWith("http") ? envUrl : `https://${envUrl}`;
+  return CANONICAL_SITE_URL;
 }
 
 export function getMetadataBase() {
@@ -122,7 +124,7 @@ export function createPageMetadata({
     robots: noIndex
       ? {
           index: false,
-          follow: false,
+          follow: true,
         }
       : undefined,
   };

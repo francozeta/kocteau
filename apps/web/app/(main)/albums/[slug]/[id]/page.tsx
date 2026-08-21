@@ -23,12 +23,7 @@ export async function generateMetadata({
     : null;
 
   if (!entity || entity.type !== "album") {
-    return createPageMetadata({
-      title: "Album",
-      description: "Album context and listening notes on Kocteau.",
-      path: routePath(routeParams),
-      noIndex: true,
-    });
+    notFound();
   }
 
   return createPageMetadata({

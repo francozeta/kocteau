@@ -37,12 +37,7 @@ export async function generateMetadata({
     : null;
 
   if (!artist) {
-    return createPageMetadata({
-      title: "Artist",
-      description: "Artist context and music discovery on Kocteau.",
-      path: routePath(routeParams),
-      noIndex: true,
-    });
+    notFound();
   }
 
   return createPageMetadata({

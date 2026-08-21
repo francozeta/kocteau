@@ -19,13 +19,14 @@ export async function generateMetadata({
       description:
         "Search songs, albums, and artists, then discover music through real reviews on Kocteau.",
       path: "/search",
+      noIndex: true,
     });
   }
 
   return createPageMetadata({
     title: `Search: ${query}`,
     description: `Music results for ${query} on Kocteau.`,
-    path: `/search?q=${encodeURIComponent(query)}`,
+    path: "/search",
     noIndex: true,
   });
 }

@@ -71,6 +71,12 @@ const sentryOptions = {
   // deployment-only diagnostics.
   widenClientFileUpload: false,
 
+  // Local production builds should verify the app without uploading deployment
+  // artifacts. Vercel CI still generates and uploads source maps.
+  sourcemaps: {
+    disable: !process.env.CI,
+  },
+
   webpack: {
     // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
     // See the following for more information:
