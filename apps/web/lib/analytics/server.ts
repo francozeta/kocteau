@@ -26,33 +26,36 @@ export async function trackServerAnalyticsEvents(
     return;
   }
 
-  const { error } = await supabase.from("analytics_events").insert(
-    events.map(({ eventType, source, metadata }) => ({
-      user_id: userId,
-      event_type: eventType,
-      source,
-      metadata: metadata as Json,
-    })),
-  );
+  const rows = events.map(({ eventType, source, metadata }) => ({
+    user_id: userId,
+    event_type: eventType,
+    source,
+    metadata: metadata as Json,
+  }));
 
-  if (error) {
-    console.warn("[analytics.trackServerAnalyticsEvents] skipped", {
-      eventCount: events.length,
-      code: error.code ?? null,
-      message: error.message ?? null,
-    });
-  }
-
-  after(() =>
-    Promise.allSettled(
-      events.map((event) =>
-        track(
-          event.eventType,
-          buildVercelAnalyticsProperties(event),
+  after(async () => {
+    try {
+      const [supabaseResult, vercelResults] = await Promise.all([
+        supabase.from("analytics_events").insert(rows),
+        Promise.allSettled(
+          events.map((event) =>
+            track(
+              event.eventType,
+              buildVercelAnalyticsProperties(event),
+            ),
+          ),
         ),
-      ),
-    ).then((results) => {
-      const rejectedCount = results.filter(
+      ]);
+
+      if (supabaseResult.error) {
+        console.warn("[analytics.trackServerAnalyticsEvents] skipped", {
+          eventCount: events.length,
+          code: supabaseResult.error.code ?? null,
+          message: supabaseResult.error.message ?? null,
+        });
+      }
+
+      const rejectedCount = vercelResults.filter(
         (result) => result.status === "rejected",
       ).length;
 
@@ -62,8 +65,13 @@ export async function trackServerAnalyticsEvents(
           rejectedCount,
         });
       }
-    }),
-  );
+    } catch (error) {
+      console.warn("[analytics.trackServerAnalyticsEvents] failed", {
+        eventCount: events.length,
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 }
 
 export async function trackServerAnalyticsEvent(

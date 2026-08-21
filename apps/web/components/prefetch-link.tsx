@@ -1,8 +1,7 @@
 "use client";
 
 import Link, { type LinkProps } from "next/link";
-import { useRouter } from "next/navigation";
-import { forwardRef, startTransition } from "react";
+import { forwardRef } from "react";
 import type { AnchorHTMLAttributes } from "react";
 
 export type QueryWarmupDescriptor =
@@ -20,15 +19,8 @@ export type QueryWarmupDescriptor =
 
 type PrefetchLinkProps = LinkProps &
   Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & {
-    warmOnHover?: boolean;
-    warmOnFocus?: boolean;
-    warmOnTouch?: boolean;
     queryWarmup?: QueryWarmupDescriptor | QueryWarmupDescriptor[];
   };
-
-function canWarmHref(href: LinkProps["href"]): href is string {
-  return typeof href === "string" && href.startsWith("/");
-}
 
 function isDeferredResolverHref(href: LinkProps["href"]) {
   return typeof href === "string" && href.startsWith("/track/deezer/");
@@ -41,53 +33,25 @@ const PrefetchLink = forwardRef<HTMLAnchorElement, PrefetchLinkProps>(
       onMouseEnter,
       onFocus,
       onTouchStart,
-      warmOnHover = true,
-      warmOnFocus = true,
-      warmOnTouch = true,
       queryWarmup: _queryWarmup,
-      prefetch = true,
+      prefetch,
       ...props
     },
     ref,
   ) => {
-    const router = useRouter();
     const canPrefetchRoute = !isDeferredResolverHref(href);
-    // Route prefetch already carries the server-rendered query state for these pages.
+    // Keep the descriptor for call-site compatibility. Next's native scheduler now
+    // owns viewport and intent prefetching for these routes.
     void _queryWarmup;
-
-    function warmRoute() {
-      if (!canPrefetchRoute || !canWarmHref(href)) {
-        return;
-      }
-
-      startTransition(() => {
-        router.prefetch(href);
-      });
-    }
 
     return (
       <Link
         ref={ref}
         href={href}
         prefetch={canPrefetchRoute ? prefetch : false}
-        onMouseEnter={(event) => {
-          onMouseEnter?.(event);
-          if (warmOnHover) {
-            warmRoute();
-          }
-        }}
-        onFocus={(event) => {
-          onFocus?.(event);
-          if (warmOnFocus) {
-            warmRoute();
-          }
-        }}
-        onTouchStart={(event) => {
-          onTouchStart?.(event);
-          if (warmOnTouch) {
-            warmRoute();
-          }
-        }}
+        onMouseEnter={onMouseEnter}
+        onFocus={onFocus}
+        onTouchStart={onTouchStart}
         {...props}
       />
     );

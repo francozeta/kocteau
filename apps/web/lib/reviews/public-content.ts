@@ -19,3 +19,21 @@ export function isPublicReviewDisplayable(review: {
     .filter((value): value is string => Boolean(value))
     .some((value) => disallowedPublicReviewMarkup.test(value));
 }
+
+function normalizePublicReviewText(value: string | null | undefined) {
+  return (value ?? "").replace(/\s+/g, " ").trim();
+}
+
+export function isPublicReviewIndexable(review: {
+  title?: string | null;
+  body?: string | null;
+}) {
+  if (!isPublicReviewDisplayable(review)) {
+    return false;
+  }
+
+  const title = normalizePublicReviewText(review.title);
+  const body = normalizePublicReviewText(review.body);
+
+  return body.length >= 80 || (title.length >= 12 && body.length >= 48);
+}

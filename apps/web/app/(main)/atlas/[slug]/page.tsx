@@ -31,12 +31,7 @@ export async function generateMetadata({
   const atlasPage = await getAtlasTagPage(slug);
 
   if (!atlasPage) {
-    return createPageMetadata({
-      title: "Atlas",
-      description: "Explore Kocteau's taste signals.",
-      path: `/atlas/${slug}`,
-      noIndex: true,
-    });
+    notFound();
   }
 
   const description =
@@ -47,6 +42,7 @@ export async function generateMetadata({
     title: `${atlasPage.tag.label} Atlas`,
     description,
     path: `/atlas/${atlasPage.tag.slug}`,
+    noIndex: true,
   });
 }
 

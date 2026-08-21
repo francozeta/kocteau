@@ -13,10 +13,10 @@ import { getPublicCreatorPerk } from "@/lib/queries/creator-perks";
 import {
   getProfilePublicBundle,
   getProfileViewerState,
-  getPublicProfileByUsername,
   type ProfileReview,
 } from "@/lib/queries/profiles";
 import { getViewerFollowsProfile } from "@/lib/queries/profile-follows";
+import { isPublicReviewIndexable } from "@/lib/reviews/public-content";
 import { buildProfilePageJsonLd } from "@/lib/structured-data";
 
 function applyViewerStateToReview(
@@ -37,19 +37,20 @@ export async function generateMetadata({
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const { username } = await params;
-  const profile = await getPublicProfileByUsername(username);
+  const publicBundle = await getProfilePublicBundle(username);
 
-  if (!profile) {
-    return createPageMetadata({
-      title: `@${username}`,
-      description: `Profile for @${username} on Kocteau.`,
-      path: `/u/${username}`,
-    });
+  if (!publicBundle) {
+    notFound();
   }
 
+  const profile = publicBundle.profile;
   const title = profile.display_name
     ? `${profile.display_name} (@${profile.username})`
     : `@${profile.username}`;
+  const hasIndexableReview = [
+    ...(publicBundle.pinnedReview ? [publicBundle.pinnedReview] : []),
+    ...publicBundle.reviews,
+  ].some(isPublicReviewIndexable);
 
   return createPageMetadata({
     title,
@@ -60,6 +61,7 @@ export async function generateMetadata({
     ),
     path: `/u/${profile.username}`,
     image: `/api/og/profile/${profile.username}`,
+    noIndex: !hasIndexableReview,
   });
 }
 

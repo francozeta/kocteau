@@ -18,6 +18,7 @@ export const metadata: Metadata = createPageMetadata({
   description:
     "Explore Kocteau music taste vocabulary through genres, moods, scenes, styles, eras, and formats.",
   path: "/atlas",
+  noIndex: true,
 });
 
 function AtlasTagLink({ tag }: { tag: AtlasTag }) {

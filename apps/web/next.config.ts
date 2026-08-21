@@ -10,11 +10,14 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
+  experimental: {
+    optimizePackageImports: ["radix-ui", "@hugeicons/core-free-icons"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     imageSizes: [24, 32, 40, 44, 48, 56, 64, 80, 96, 112, 128, 160, 192, 256],
     minimumCacheTTL: 60 * 60 * 24 * 7,
-    qualities: [56, 64, 70, 75, 78, 82, 84, 86, 88, 90],
+    qualities: [56, 58, 64, 70, 75, 78, 82, 84, 86, 88, 90],
     remotePatterns: [
       {
         protocol: "https",
@@ -67,6 +70,12 @@ const sentryOptions = {
   // Keep source-map uploads focused so CI spends less time and bandwidth on
   // deployment-only diagnostics.
   widenClientFileUpload: false,
+
+  // Local production builds should verify the app without uploading deployment
+  // artifacts. Vercel CI still generates and uploads source maps.
+  sourcemaps: {
+    disable: !process.env.CI,
+  },
 
   webpack: {
     // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)

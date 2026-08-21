@@ -1,8 +1,8 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import NewReviewDialog from "@/components/new-review-dialog";
 import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
 import {
   OPEN_NEW_REVIEW_SHORTCUT_EVENT,
@@ -10,12 +10,17 @@ import {
   type ReviewComposerSelection,
 } from "@/hooks/use-global-shortcuts";
 
+const NewReviewDialog = dynamic(() => import("@/components/new-review-dialog"), {
+  ssr: false,
+});
+
 export default function GlobalShortcuts({
   isAuthenticated = false,
 }: {
   isAuthenticated?: boolean;
 }) {
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewComposerMounted, setReviewComposerMounted] = useState(false);
   const [reviewSelection, setReviewSelection] =
     useState<ReviewComposerSelection | null>(null);
   const router = useRouter();
@@ -26,6 +31,7 @@ export default function GlobalShortcuts({
       setReviewSelection(
         event instanceof CustomEvent && event.detail ? event.detail : null,
       );
+      setReviewComposerMounted(true);
       setReviewOpen(true);
     }
 
@@ -42,7 +48,7 @@ export default function GlobalShortcuts({
     };
   }, [router]);
 
-  return (
+  return reviewComposerMounted ? (
     <>
       <NewReviewDialog
         isAuthenticated={isAuthenticated}
@@ -52,5 +58,5 @@ export default function GlobalShortcuts({
         initialSelection={reviewSelection}
       />
     </>
-  );
+  ) : null;
 }

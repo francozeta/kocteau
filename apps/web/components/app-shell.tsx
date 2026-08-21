@@ -31,10 +31,24 @@ export default async function AppShell({
   children,
   variant = "feed",
 }: AppShellProps) {
-  const [userId, safeProfile, onboardingState] = await Promise.all([
-    getCurrentUserId(),
+  const userIdPromise = getCurrentUserId();
+  const curationAccessPromise: Promise<[boolean, boolean]> = userIdPromise.then(
+    async (userId) => {
+      if (!userId) {
+        return [false, false];
+      }
+
+      return Promise.all([
+        getStarterCuratorAccess(),
+        getKocteauAdminAccess(),
+      ]);
+    },
+  );
+  const [userId, safeProfile, onboardingState, curationAccess] = await Promise.all([
+    userIdPromise,
     getCurrentViewerProfile(),
     getCurrentOnboardingState(),
+    curationAccessPromise,
   ]);
   const initialUnreadCount = 0;
 
@@ -46,12 +60,7 @@ export default async function AppShell({
     redirect("/onboarding/taste");
   }
 
-  const [canAccessStudio, canManageCurators] = userId
-    ? await Promise.all([
-        getStarterCuratorAccess(),
-        getKocteauAdminAccess(),
-      ])
-    : [false, false];
+  const [canAccessStudio, canManageCurators] = curationAccess;
   const isStudio = variant === "studio";
 
   const content = (

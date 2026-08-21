@@ -20,21 +20,20 @@ export async function generateMetadata({
     !isSearchEntityType(route.type) ||
     !isDeezerProviderId(route.providerId)
   ) {
-    return createPageMetadata({
-      title: "Search",
-      path: "/search",
-      noIndex: true,
-    });
+    notFound();
   }
 
   const seed = await getDiscoverySeed(route.type, route.providerId);
 
+  if (!seed) {
+    notFound();
+  }
+
   return createPageMetadata({
-    title: seed ? `Discover from ${seed.title}` : "Search",
-    description: seed
-      ? `Explore music connected to ${seed.title} on Kocteau.`
-      : "Explore connected music on Kocteau.",
+    title: `Discover from ${seed.title}`,
+    description: `Explore music connected to ${seed.title} on Kocteau.`,
     path: `/search/${route.type}/${route.slug}/${route.providerId}`,
+    noIndex: true,
   });
 }
 
