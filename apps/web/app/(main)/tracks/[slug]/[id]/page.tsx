@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { Suspense } from "react";
 import { Music2 } from "@/components/ui/icons";
 import { notFound, permanentRedirect } from "next/navigation";
 import JsonLd from "@/components/json-ld";
 import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
 import TrackPageHero from "@/components/track-page-hero";
-import TrackMoreToHear from "@/components/track-more-to-hear";
+import TrackMoreToHear, {
+  TrackMoreToHearSkeleton,
+} from "@/components/track-more-to-hear";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { TrackReviewCard } from "@/components/review-route-cards-server";
 import { getCurrentUserId } from "@/lib/auth/server";
@@ -22,10 +24,8 @@ import {
   getViewerEntityLibraryState,
 } from "@/lib/queries/entity-library";
 import { getTrackRecommendations } from "@/lib/queries/track-recommendations";
-import { createServerQueryClient } from "@/lib/react-query/server";
 import { buildEntityCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
 import { buildTrackPageJsonLd } from "@/lib/structured-data";
-import { trackKeys } from "@/queries/tracks";
 
 type TrackRouteParams = {
   slug: string;
@@ -34,6 +34,16 @@ type TrackRouteParams = {
 
 function getRoutePath({ slug, id }: TrackRouteParams) {
   return `/tracks/${slug}/${id}`;
+}
+
+async function TrackRecommendations({
+  recommendationsPromise,
+}: {
+  recommendationsPromise: ReturnType<typeof getTrackRecommendations>;
+}) {
+  const recommendations = await recommendationsPromise;
+
+  return <TrackMoreToHear groups={recommendations} />;
 }
 
 export async function generateMetadata({
@@ -73,14 +83,16 @@ export default async function TrackPage({
   params: Promise<TrackRouteParams>;
   searchParams: Promise<{ editReview?: string }>;
 }) {
-  const routeParams = await params;
-  const query = await searchParams;
+  const [routeParams, query] = await Promise.all([params, searchParams]);
 
   if (!isSeoRouteId(routeParams.id)) {
     notFound();
   }
 
-  const entityPage = await getEntityPageByRouteId(routeParams.id);
+  const [entityPage, userId] = await Promise.all([
+    getEntityPageByRouteId(routeParams.id),
+    getCurrentUserId(),
+  ]);
 
   if (!entityPage) {
     notFound();
@@ -92,10 +104,8 @@ export default async function TrackPage({
     permanentRedirect(canonicalPath);
   }
 
-  const userIdPromise = getCurrentUserId();
   const publicBundlePromise = getTrackPublicBundle(entityPage.id);
-  const [userId, bundle, artist, album] = await Promise.all([
-    userIdPromise,
+  const [bundle, artist, album] = await Promise.all([
     publicBundlePromise,
     entityPage.artist_id ? getArtistPageById(entityPage.artist_id) : Promise.resolve(null),
     entityPage.parent_album_id
@@ -104,6 +114,15 @@ export default async function TrackPage({
   ]);
 
   if (!bundle) notFound();
+
+  const recommendationsPromise = getTrackRecommendations({
+    currentEntityId: bundle.entity.id,
+    currentProviderId: bundle.entity.provider_id,
+    title: bundle.entity.title,
+    artistName: bundle.entity.artist_name,
+    tags: bundle.tags,
+    limit: 18,
+  });
 
   const emptyViewerState = {
     likedReviewIds: new Set<string>(),
@@ -123,7 +142,6 @@ export default async function TrackPage({
     entityPage.id,
   );
 
-  const queryClient = createServerQueryClient();
   const trackData = {
     entity: bundle.entity,
     tags: bundle.tags,
@@ -135,17 +153,7 @@ export default async function TrackPage({
     })),
   };
 
-  queryClient.setQueryData(trackKeys.detail(entityPage.id), trackData);
-
   const { entity, reviews: trackReviews } = trackData;
-  const recommendations = await getTrackRecommendations({
-    currentEntityId: entity.id,
-    currentProviderId: entity.provider_id,
-    title: entity.title,
-    artistName: entity.artist_name,
-    tags: trackData.tags,
-    limit: 18,
-  });
   const { viewerReviewId } = trackData;
   const viewerReview =
     viewerReviewId
@@ -162,7 +170,7 @@ export default async function TrackPage({
       : null;
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <>
       <JsonLd
         data={buildTrackPageJsonLd({
           entity,
@@ -244,7 +252,11 @@ export default async function TrackPage({
           shouldOpenViewerEditor={shouldOpenViewerEditor}
         />
 
-        <TrackMoreToHear groups={recommendations} />
+        <Suspense fallback={<TrackMoreToHearSkeleton />}>
+          <TrackRecommendations
+            recommendationsPromise={recommendationsPromise}
+          />
+        </Suspense>
 
         <div className="space-y-4">
           {trackReviews.length > 0 ? (
@@ -277,6 +289,6 @@ export default async function TrackPage({
           )}
         </div>
       </section>
-    </HydrationBoundary>
+    </>
   );
 }

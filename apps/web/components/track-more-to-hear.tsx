@@ -11,6 +11,32 @@ type TrackMoreToHearProps = {
   className?: string;
 };
 
+export function TrackMoreToHearSkeleton() {
+  return (
+    <section
+      className="space-y-4 border-b border-border/24 pb-5"
+      aria-label="Loading recommendations"
+      aria-busy="true"
+    >
+      <div className="space-y-2 px-0.5">
+        <div className="h-2.5 w-14 rounded-full bg-foreground/[0.045]" />
+        <div className="h-4 w-28 rounded-full bg-foreground/[0.065]" />
+      </div>
+      <div className="grid gap-x-6 sm:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, groupIndex) => (
+          <div
+            key={groupIndex}
+            className="space-y-3 border-t border-border/14 py-3"
+          >
+            <div className="h-2.5 w-20 rounded-full bg-foreground/[0.05]" />
+            <div className="h-[10.75rem] rounded-[0.7rem] bg-foreground/[0.025]" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function RecommendationRow({
   recommendation,
 }: {

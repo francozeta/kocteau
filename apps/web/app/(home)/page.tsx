@@ -1,6 +1,3 @@
-import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-
-import ReactQueryProvider from "@/app/providers/react-query-provider";
 import { circular, redaction } from "@/app/landing-fonts";
 import GuestHeader from "@/components/guest-header";
 import GuestHome from "@/components/guest-home";
@@ -9,12 +6,10 @@ import { createPageMetadata } from "@/lib/metadata";
 import { measureServerTask } from "@/lib/perf";
 import { getFeedPage } from "@/lib/queries/feed";
 import { getPublicStarterTracks } from "@/lib/queries/starter";
-import { createServerQueryClient } from "@/lib/react-query/server";
 import {
   buildFeedPageJsonLd,
   buildHomePageJsonLd,
 } from "@/lib/structured-data";
-import { feedKeys, type FeedInfiniteQueryData } from "@/queries/feed";
 
 export const revalidate = 300;
 
@@ -48,14 +43,6 @@ export default async function HomePage() {
     nextCursor: null,
     requiresAuth: false,
   };
-  const queryClient = createServerQueryClient();
-
-  queryClient.setQueryData(feedKeys.bundle("latest"), recentPage);
-  queryClient.setQueryData<FeedInfiniteQueryData>(feedKeys.infinite("latest"), {
-    pages: [recentPage],
-    pageParams: [null],
-  });
-
   const feedStructuredData = buildFeedPageJsonLd(
     recentPage.feed.flatMap((review) => {
       const entity = review.entities;
@@ -90,19 +77,18 @@ export default async function HomePage() {
   );
 
   return (
-    <ReactQueryProvider>
-      <div
-        className={`${circular.variable} ${redaction.variable} kocteau-guest-typography kocteau-guest-grain min-h-svh overflow-x-clip bg-[var(--kocteau-landing-canvas)] text-foreground`}
-      >
-        <GuestHeader />
-        <main className="pt-15 sm:pt-16">
-          <HydrationBoundary state={dehydrate(queryClient)}>
-            <JsonLd data={buildHomePageJsonLd()} id="home-page-structured-data" />
-            <JsonLd data={feedStructuredData} id="home-structured-data" />
-            <GuestHome recentPage={recentPage} starterTracks={starterTracks} />
-          </HydrationBoundary>
-        </main>
-      </div>
-    </ReactQueryProvider>
+    <div
+      className={`${circular.variable} ${redaction.variable} kocteau-guest-typography kocteau-guest-grain min-h-svh overflow-x-clip bg-[var(--kocteau-landing-canvas)] text-foreground`}
+    >
+      <GuestHeader />
+      <main className="pt-15 sm:pt-16">
+        <JsonLd data={buildHomePageJsonLd()} id="home-page-structured-data" />
+        <JsonLd data={feedStructuredData} id="home-structured-data" />
+        <GuestHome
+          recentReviews={recentPage.feed}
+          starterTracks={starterTracks}
+        />
+      </main>
+    </div>
   );
 }
