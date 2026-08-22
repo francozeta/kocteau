@@ -14,10 +14,10 @@ import GuestTestimonials from "@/components/guest-testimonials";
 import { SpotlightLogo } from "@/components/spotlight-logo";
 import { ArrowRight, Search, Star } from "@/components/ui/icons";
 import type { StarterTrack } from "@/lib/starter";
-import type { FeedBundleQueryData } from "@/queries/feed";
+import type { FeedBundleReview } from "@/queries/feed";
 
 type GuestHomeProps = {
-  recentPage: FeedBundleQueryData;
+  recentReviews: FeedBundleReview[];
   starterTracks: StarterTrack[];
 };
 
@@ -285,7 +285,7 @@ function GuestClosingCta() {
 }
 
 export default function GuestHome({
-  recentPage,
+  recentReviews,
   starterTracks,
 }: GuestHomeProps) {
   return (
@@ -312,7 +312,7 @@ export default function GuestHome({
         <GuestTestimonials />
 
         <div className="space-y-16 pt-16 sm:space-y-20 sm:pt-20 lg:space-y-24 lg:pt-24">
-          {recentPage.feed.length > 0 ? (
+          {recentReviews.length > 0 ? (
             <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="mx-auto w-full max-w-[80rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10">
               <div className="flex items-end justify-between gap-4 px-0.5">
                 <h2 id="recent-reviews-title" className="font-serif text-[1.35rem] font-semibold text-foreground">
@@ -322,7 +322,7 @@ export default function GuestHome({
                   Explore more
                 </Link>
               </div>
-              <GuestReviewList reviews={recentPage.feed} />
+              <GuestReviewList reviews={recentReviews} />
             </section>
           ) : null}
 

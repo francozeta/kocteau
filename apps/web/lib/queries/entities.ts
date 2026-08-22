@@ -422,7 +422,9 @@ export async function getEntityTasteTags(entityId: string) {
   )();
 }
 
-export async function getTrackPublicBundle(entityId: string) {
+export const getTrackPublicBundle = cache(async function getTrackPublicBundle(
+  entityId: string,
+) {
   const [entity, reviews, tags] = await measureServerTask(
     "getTrackPublicBundle",
     async () =>
@@ -443,7 +445,7 @@ export async function getTrackPublicBundle(entityId: string) {
     tags,
     reviews,
   } satisfies TrackPagePublicBundle;
-}
+});
 
 export async function getTrackViewerState(
   viewerId: string | null | undefined,
