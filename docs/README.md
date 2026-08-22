@@ -5,6 +5,7 @@
 ## Product Direction
 
 - [MVP baseline](./mvp.md): current product loop, scope, and out-of-scope guardrails.
+- [v0.4.0 scope board](./v0.4-release-scope.md): release thesis, prioritized lanes, success gates, and model orchestration policy.
 - [Web roadmap](./web-roadmap.md): phased web product direction and execution order.
 - [Discovery and curation](./discovery-curation.md): hybrid recommendation philosophy, signal contract, starter curation, and future RFC lanes.
 - [Knowledge Layer and Search](./knowledge-layer.md): source policy, taste taxonomy, and explainable discovery direction.
