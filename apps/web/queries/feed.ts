@@ -1,5 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
-import { infiniteQueryOptions, queryOptions, type InfiniteData } from "@tanstack/react-query";
+import { infiniteQueryOptions, type InfiniteData } from "@tanstack/react-query";
 import type {
   ReviewCardAuthor,
   ReviewCardData,
@@ -46,8 +45,6 @@ function getFeedUrl(view: FeedView, cursor?: string | null) {
 
 export const feedKeys = {
   all: ["feed"] as const,
-  bundlePrefix: () => ["feed", "bundle"] as const,
-  bundle: (view: FeedView = "latest") => ["feed", "bundle", view] as const,
   infinitePrefix: () => ["feed", "infinite"] as const,
   infinite: (view: FeedView = "latest") => ["feed", "infinite", view] as const,
 };
@@ -64,17 +61,6 @@ function shouldRetryFeedRequest(failureCount: number, error: unknown) {
   return failureCount < 1 && isRetryableFetchJsonError(error);
 }
 
-export function feedBundleQueryOptions(view: FeedView = "latest") {
-  return queryOptions({
-    queryKey: feedKeys.bundle(view),
-    queryFn: () => fetchJson<FeedBundleQueryData>(getFeedUrl(view)),
-    staleTime: getFeedStaleTime(view),
-    gcTime: feedCacheTimeMs,
-    retry: shouldRetryFeedRequest,
-    refetchOnReconnect: false,
-  });
-}
-
 export function feedInfiniteQueryOptions(view: FeedView = "latest") {
   return infiniteQueryOptions({
     queryKey: feedKeys.infinite(view),
@@ -87,8 +73,4 @@ export function feedInfiniteQueryOptions(view: FeedView = "latest") {
     retry: shouldRetryFeedRequest,
     refetchOnReconnect: false,
   });
-}
-
-export function prefetchFeedBundle(queryClient: QueryClient, view: FeedView = "latest") {
-  return queryClient.prefetchQuery(feedBundleQueryOptions(view));
 }

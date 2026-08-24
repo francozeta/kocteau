@@ -13,6 +13,20 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["radix-ui", "@hugeicons/core-free-icons"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/atlas",
+        destination: "/search",
+        permanent: true,
+      },
+      {
+        source: "/atlas/:path*",
+        destination: "/search",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     imageSizes: [24, 32, 40, 44, 48, 56, 64, 80, 96, 112, 128, 160, 192, 256],

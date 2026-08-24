@@ -58,10 +58,6 @@ export const reviewCommentParamsSchema = reviewIdParamsSchema.extend({
   commentId: z.string().uuid("Invalid comment id."),
 });
 
-export const entityIdParamsSchema = z.object({
-  id: z.string().uuid("Invalid entity id."),
-});
-
 export const profileIdParamsSchema = z.object({
   profileId: z.string().uuid("Invalid profile id."),
 });

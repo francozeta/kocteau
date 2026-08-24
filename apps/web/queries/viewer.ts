@@ -3,12 +3,10 @@ import { queryOptions } from "@tanstack/react-query";
 import type {
   ReviewCardData,
 } from "@/components/review-card";
-import type { FeedBundleQueryData, FeedInfiniteQueryData } from "@/queries/feed";
+import type { FeedBundleReview, FeedInfiniteQueryData } from "@/queries/feed";
 import { feedKeys } from "@/queries/feed";
 import type { ReviewBundleQueryData } from "@/queries/reviews";
 import { reviewKeys } from "@/queries/reviews";
-import type { TrackBundleQueryData } from "@/queries/tracks";
-import { trackKeys } from "@/queries/tracks";
 import { fetchJson } from "@/queries/http";
 
 export type ReviewLikeState = {
@@ -30,9 +28,7 @@ export type ReviewContentPatch = Pick<
 type ReviewCacheSnapshotEntry<TData> = [QueryKey, TData | undefined];
 
 export type ReviewCacheSnapshot = {
-  feedBundles: ReviewCacheSnapshotEntry<FeedBundleQueryData>[];
   feedInfinite: ReviewCacheSnapshotEntry<FeedInfiniteQueryData>[];
-  trackDetails: ReviewCacheSnapshotEntry<TrackBundleQueryData>[];
   reviewDetails: ReviewCacheSnapshotEntry<ReviewBundleQueryData>[];
   savedReviews: ViewerSavedReview[] | undefined;
 };
@@ -143,19 +139,8 @@ function removeSavedReviewFromCollection(
 function patchFeedCollections(
   queryClient: QueryClient,
   reviewId: string,
-  patch: Partial<FeedBundleQueryData["feed"][number]>,
+  patch: Partial<FeedBundleReview>,
 ) {
-  queryClient.setQueriesData<FeedBundleQueryData>(
-    { queryKey: feedKeys.bundlePrefix() },
-    (current) =>
-      current
-        ? {
-            ...current,
-            feed: current.feed.map((review) => patchReviewRecord(review, reviewId, patch)),
-          }
-        : current,
-  );
-
   queryClient.setQueriesData<FeedInfiniteQueryData>(
     { queryKey: feedKeys.infinitePrefix() },
     (current) =>
@@ -166,23 +151,6 @@ function patchFeedCollections(
               ...page,
               feed: page.feed.map((review) => patchReviewRecord(review, reviewId, patch)),
             })),
-          }
-        : current,
-  );
-}
-
-function patchTrackCollections(
-  queryClient: QueryClient,
-  reviewId: string,
-  patch: Partial<TrackBundleQueryData["reviews"][number]>,
-) {
-  queryClient.setQueriesData<TrackBundleQueryData>(
-    { queryKey: trackKeys.detailPrefix() },
-    (current) =>
-      current
-        ? {
-            ...current,
-            reviews: current.reviews.map((review) => patchReviewRecord(review, reviewId, patch)),
           }
         : current,
   );
@@ -212,14 +180,8 @@ export function getReviewCacheSnapshot(
   queryClient: QueryClient,
 ): ReviewCacheSnapshot {
   return {
-    feedBundles: queryClient.getQueriesData<FeedBundleQueryData>({
-      queryKey: feedKeys.bundlePrefix(),
-    }),
     feedInfinite: queryClient.getQueriesData<FeedInfiniteQueryData>({
       queryKey: feedKeys.infinitePrefix(),
-    }),
-    trackDetails: queryClient.getQueriesData<TrackBundleQueryData>({
-      queryKey: trackKeys.detailPrefix(),
     }),
     reviewDetails: queryClient.getQueriesData<ReviewBundleQueryData>({
       queryKey: reviewKeys.detailPrefix(),
@@ -234,13 +196,7 @@ export function restoreReviewCacheSnapshot(
   queryClient: QueryClient,
   snapshot: ReviewCacheSnapshot,
 ) {
-  snapshot.feedBundles.forEach(([queryKey, data]) => {
-    queryClient.setQueryData(queryKey, data);
-  });
   snapshot.feedInfinite.forEach(([queryKey, data]) => {
-    queryClient.setQueryData(queryKey, data);
-  });
-  snapshot.trackDetails.forEach(([queryKey, data]) => {
     queryClient.setQueryData(queryKey, data);
   });
   snapshot.reviewDetails.forEach(([queryKey, data]) => {
@@ -255,7 +211,6 @@ export function syncReviewContent(
   patch: ReviewContentPatch,
 ) {
   patchFeedCollections(queryClient, reviewId, patch);
-  patchTrackCollections(queryClient, reviewId, patch);
   patchReviewDetail(queryClient, reviewId, patch);
   queryClient.setQueryData<ViewerSavedReview[] | undefined>(
     viewerKeys.savedReviews(),
@@ -267,17 +222,6 @@ export function removeReviewFromCollections(
   queryClient: QueryClient,
   reviewId: string,
 ) {
-  queryClient.setQueriesData<FeedBundleQueryData>(
-    { queryKey: feedKeys.bundlePrefix() },
-    (current) =>
-      current
-        ? {
-            ...current,
-            feed: current.feed.filter((review) => review.id !== reviewId),
-          }
-        : current,
-  );
-
   queryClient.setQueriesData<FeedInfiniteQueryData>(
     { queryKey: feedKeys.infinitePrefix() },
     (current) =>
@@ -288,19 +232,6 @@ export function removeReviewFromCollections(
               ...page,
               feed: page.feed.filter((review) => review.id !== reviewId),
             })),
-          }
-        : current,
-  );
-
-  queryClient.setQueriesData<TrackBundleQueryData>(
-    { queryKey: trackKeys.detailPrefix() },
-    (current) =>
-      current
-        ? {
-            ...current,
-            reviews: current.reviews.filter((review) => review.id !== reviewId),
-            viewerReviewId:
-              current.viewerReviewId === reviewId ? null : current.viewerReviewId,
           }
         : current,
   );
@@ -326,10 +257,6 @@ export function syncReviewLikeState(
     viewer_has_liked: nextState.liked,
     likes_count: nextState.count,
   });
-  patchTrackCollections(queryClient, reviewId, {
-    viewer_has_liked: nextState.liked,
-    likes_count: nextState.count,
-  });
   patchReviewDetail(queryClient, reviewId, {
     viewer_has_liked: nextState.liked,
     likes_count: nextState.count,
@@ -351,9 +278,6 @@ export function syncReviewBookmarkState(
 ) {
   queryClient.setQueryData(viewerKeys.reviewBookmark(reviewId), nextState);
   patchFeedCollections(queryClient, reviewId, {
-    viewer_has_bookmarked: nextState.bookmarked,
-  });
-  patchTrackCollections(queryClient, reviewId, {
     viewer_has_bookmarked: nextState.bookmarked,
   });
   patchReviewDetail(queryClient, reviewId, {
@@ -385,9 +309,6 @@ export function syncReviewCommentsCount(
 ) {
   queryClient.setQueryData(reviewKeys.commentsCount(reviewId), nextCount);
   patchFeedCollections(queryClient, reviewId, {
-    comments_count: nextCount,
-  });
-  patchTrackCollections(queryClient, reviewId, {
     comments_count: nextCount,
   });
   patchReviewDetail(queryClient, reviewId, {
