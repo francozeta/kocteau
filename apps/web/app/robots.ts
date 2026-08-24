@@ -15,7 +15,6 @@ export default function robots(): MetadataRoute.Robots {
     "/settings",
     "/studio",
     "/auth/",
-    "/toast-preview",
     "/api/",
     "/track/deezer/",
     "/album/deezer/",
