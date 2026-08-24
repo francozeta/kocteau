@@ -1,48 +1,7 @@
-import type { QueryClient } from "@tanstack/react-query";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
-import type { ReviewCardAuthor, ReviewCardData } from "@/components/review-card";
 import type { DiscoveryTrack } from "@/lib/types/discovery";
 import type { SearchEntityType, SearchScope } from "@/lib/search-types";
 import { fetchJson, isRetryableFetchJsonError } from "@/queries/http";
-
-export type TrackEntity = {
-  id: string;
-  provider: string;
-  provider_id: string;
-  title: string;
-  artist_name: string | null;
-  artist_provider_id?: string | null;
-  artist_picture_url?: string | null;
-  album_provider_id?: string | null;
-  album_title?: string | null;
-  album_deezer_url?: string | null;
-  album_record_type?: string | null;
-  release_date?: string | null;
-  cover_url: string | null;
-  deezer_url: string | null;
-  type: "track" | "album";
-};
-
-export type TrackBundleReview = ReviewCardData & {
-  is_pinned?: boolean;
-  author: ReviewCardAuthor | null;
-};
-
-export type TrackTasteTag = {
-  id: string;
-  kind: "genre" | "mood" | "scene" | "style" | "era" | "format";
-  slug: string;
-  label: string;
-  source: string;
-  weight: number;
-};
-
-export type TrackBundleQueryData = {
-  entity: TrackEntity;
-  tags: TrackTasteTag[];
-  reviews: TrackBundleReview[];
-  viewerReviewId: string | null;
-};
 
 export type DeezerSearchResult = {
   provider: "deezer";
@@ -76,9 +35,7 @@ export type KocteauSearchResult = Omit<DeezerSearchResult, "type"> & {
 
 export const trackKeys = {
   all: ["tracks"] as const,
-  detailPrefix: () => ["tracks", "detail"] as const,
   recent: (limit: number) => ["tracks", "recent", limit] as const,
-  detail: (trackId: string) => ["tracks", "detail", trackId] as const,
   search: (type: SearchEntityType, query: string) =>
     ["tracks", "search", type, query] as const,
   kocteauSearch: (type: SearchScope, query: string) =>
@@ -90,16 +47,6 @@ export function recentTracksQueryOptions(limit = 12) {
     queryKey: trackKeys.recent(limit),
     queryFn: () =>
       fetchJson<DiscoveryTrack[]>(`/api/tracks/recent?limit=${limit}`),
-    staleTime: 60_000,
-    gcTime: 10 * 60_000,
-  });
-}
-
-export function trackBundleQueryOptions(trackId: string) {
-  return queryOptions({
-    queryKey: trackKeys.detail(trackId),
-    queryFn: () =>
-      fetchJson<TrackBundleQueryData>(`/api/tracks/${trackId}/bundle`),
     staleTime: 60_000,
     gcTime: 10 * 60_000,
   });
@@ -155,8 +102,4 @@ export function kocteauTrackSearchQueryOptions(
     retry: (failureCount, error) =>
       failureCount < 1 && isRetryableFetchJsonError(error),
   });
-}
-
-export function prefetchTrackBundle(queryClient: QueryClient, trackId: string) {
-  return queryClient.prefetchQuery(trackBundleQueryOptions(trackId));
 }

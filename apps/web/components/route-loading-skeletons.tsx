@@ -96,15 +96,6 @@ export function LibraryPageLoadingSkeleton() {
   );
 }
 
-export function AtlasPageLoadingSkeleton() {
-  return (
-    <LoadingSection label="Loading Atlas" className="max-w-5xl">
-      <PageHeadingSkeleton />
-      <ListRowsSkeleton />
-    </LoadingSection>
-  );
-}
-
 export function ReviewsPageLoadingSkeleton() {
   return (
     <LoadingSection label="Loading reviews" className="max-w-3xl gap-6">
