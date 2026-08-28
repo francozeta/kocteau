@@ -398,6 +398,22 @@ async function getEntityIdsByProviderId(providerIds: string[]) {
   return new Map(((data ?? []) as EntityLinkRow[]).map((row) => [row.provider_id, row.id]));
 }
 
+async function attachLocalEntityIds(candidates: KocteauTrackSearchCandidate[]) {
+  const entityIdsByProviderId = await getEntityIdsByProviderId(
+    candidates.flatMap((candidate) =>
+      candidate.entity_id ? [] : [candidate.provider_id],
+    ),
+  );
+
+  return candidates.map((candidate) => ({
+    ...candidate,
+    entity_id:
+      candidate.entity_id ??
+      entityIdsByProviderId.get(candidate.provider_id) ??
+      null,
+  }));
+}
+
 async function getDeezerCandidates(query: string) {
   const candidates: KocteauTrackSearchCandidate[] = [];
   const errors: unknown[] = [];
@@ -542,16 +558,7 @@ async function getAllCatalogCandidates(query: string) {
       ? remoteArtistsResult.value.map(mapDeezerArtistCandidate)
       : [];
   const trackCandidates = [...localTracks, ...starterTracks, ...remoteTracks];
-  const entityIdsByProviderId = await getEntityIdsByProviderId(
-    trackCandidates.map((candidate) => candidate.provider_id),
-  );
-  const linkedTrackCandidates = trackCandidates.map((candidate) => ({
-    ...candidate,
-    entity_id:
-      candidate.entity_id ??
-      entityIdsByProviderId.get(candidate.provider_id) ??
-      null,
-  }));
+  const linkedTrackCandidates = await attachLocalEntityIds(trackCandidates);
   const artists = rankKocteauTrackSearchResults({
     query,
     candidates: [...localArtists, ...remoteArtists],
@@ -632,13 +639,7 @@ export async function GET(req: Request) {
     ...starterCandidates,
     ...deezerCandidatesResult.candidates,
   ];
-  const entityIdsByProviderId = await getEntityIdsByProviderId(
-    candidates.map((candidate) => candidate.provider_id),
-  );
-  const linkedCandidates = candidates.map((candidate) => ({
-    ...candidate,
-    entity_id: candidate.entity_id ?? entityIdsByProviderId.get(candidate.provider_id) ?? null,
-  }));
+  const linkedCandidates = await attachLocalEntityIds(candidates);
   const results = rankKocteauTrackSearchResults({
     query: q,
     candidates: linkedCandidates,

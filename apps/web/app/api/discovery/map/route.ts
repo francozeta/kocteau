@@ -17,6 +17,7 @@ const discoveryMapQuerySchema = z.object({
   artistName: z.string().trim().max(200).optional(),
   artistProviderId: z.string().trim().refine(isDeezerProviderId).optional(),
   entityId: z.string().uuid().optional(),
+  lane: z.enum(["fast", "deep", "full"]).optional(),
   expanded: z.enum(["true", "false"]).optional(),
 });
 
@@ -94,6 +95,7 @@ export async function GET(request: Request) {
     artistName: searchParams.get("artistName") ?? undefined,
     artistProviderId: searchParams.get("artistProviderId") ?? undefined,
     entityId: searchParams.get("entityId") ?? undefined,
+    lane: searchParams.get("lane") ?? undefined,
     expanded: searchParams.get("expanded") ?? undefined,
   });
 
@@ -101,7 +103,8 @@ export async function GET(request: Request) {
     return validationErrorResponse(parsed.error, "Discovery seed is invalid.");
   }
 
-  const expanded = parsed.data.expanded === "true";
+  const lane =
+    parsed.data.lane ?? (parsed.data.expanded === "true" ? "full" : "fast");
   const recommendationSeed = await resolveRecommendationSeed(parsed.data);
 
   if (!recommendationSeed) {
@@ -117,12 +120,12 @@ export async function GET(request: Request) {
     currentProviderId: recommendationSeed.providerId,
     title: recommendationSeed.title,
     artistName: recommendationSeed.artistName,
-    limit: expanded ? 18 : 10,
+    limit: lane === "fast" ? 10 : 18,
     includeLocalSignals: false,
-    includeRelatedCandidates: !expanded,
+    includeRelatedCandidates: lane !== "deep",
     resolveLocalLinks: false,
-    includeDeepCuts: expanded,
-    resolveCatalogContext: expanded,
+    includeDeepCuts: lane !== "fast",
+    resolveCatalogContext: lane !== "fast",
   });
 
   return NextResponse.json(

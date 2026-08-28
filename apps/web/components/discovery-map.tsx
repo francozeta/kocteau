@@ -264,7 +264,7 @@ function buildRecommendationOrbitItems(
 
 async function fetchDiscoveryMap(
   seed: DiscoverySeed,
-  { expanded = false }: { expanded?: boolean } = {},
+  { lane = "fast" }: { lane?: "fast" | "deep" } = {},
 ) {
   const params = new URLSearchParams({
     providerId: seed.provider_id,
@@ -284,8 +284,8 @@ async function fetchDiscoveryMap(
     params.set("entityId", seed.entityId);
   }
 
-  if (expanded) {
-    params.set("expanded", "true");
+  if (lane !== "fast") {
+    params.set("lane", lane);
   }
 
   const response = await fetch(`/api/discovery/map?${params.toString()}`);
@@ -644,7 +644,7 @@ export default function DiscoveryMap({
   const expandedMapQuery = useQuery({
     queryKey: ["discovery-map-expanded", seedIdentity],
     queryFn: () =>
-      fetchDiscoveryMap(selectedSeed as DiscoverySeed, { expanded: true }),
+      fetchDiscoveryMap(selectedSeed as DiscoverySeed, { lane: "deep" }),
     enabled: Boolean(selectedSeed),
     staleTime: 10 * 60 * 1000,
     retry: 0,
