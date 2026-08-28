@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.14](https://github.com/francozeta/kocteau/compare/v0.3.13...v0.3.14) (2026-08-24)
+
+
+### Bug Fixes
+
+* **seo:** consolidate canonical domain and indexing ([2a9b775](https://github.com/francozeta/kocteau/commit/2a9b775304d1e90ba29d63bfa70b44b9a14cd589))
+
+
+### Performance
+
+* **core:** optimize Next.js shell and loading ([868eda7](https://github.com/francozeta/kocteau/commit/868eda75ad46c3d98fa57464ae763053e0832f57))
+* **web:** reduce RSC payload and stream track discovery ([#186](https://github.com/francozeta/kocteau/issues/186)) ([88201a1](https://github.com/francozeta/kocteau/commit/88201a171beb382b3ea4f0e040ab07ac3b75caaa))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.13 ([#184](https://github.com/francozeta/kocteau/issues/184)) ([2c9801d](https://github.com/francozeta/kocteau/commit/2c9801d0ca50722fb0b0dae30eda843b778696d9))
+
+
+### Refactors
+
+* **core:** reduce discovery and preview surfaces ([#187](https://github.com/francozeta/kocteau/issues/187)) ([2b5034a](https://github.com/francozeta/kocteau/commit/2b5034aa80351a7fcc0a4091b947f1620f297178))
+
 ## [0.3.13](https://github.com/francozeta/kocteau/compare/v0.3.12...v0.3.13) (2026-08-18)
 
 
