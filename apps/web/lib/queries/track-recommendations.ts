@@ -62,6 +62,7 @@ type TrackRecommendationOptions = {
   tags?: EntityTasteTag[];
   limit?: number;
   includeLocalSignals?: boolean;
+  includeRelatedCandidates?: boolean;
   resolveLocalLinks?: boolean;
   includeDeepCuts?: boolean;
   resolveCatalogContext?: boolean;
@@ -472,6 +473,7 @@ export async function getTrackRecommendations({
   tags = [],
   limit = defaultRecommendationLimit,
   includeLocalSignals = true,
+  includeRelatedCandidates = true,
   resolveLocalLinks = true,
   includeDeepCuts = true,
   resolveCatalogContext = true,
@@ -506,19 +508,24 @@ export async function getTrackRecommendations({
         artistName: contextArtist?.name ?? artistName,
       });
       const [relatedCandidates, deepCutCandidates] = await Promise.all([
-        getDeezerCandidateRecommendations({
-          currentProviderId,
-          query: queryLabel,
-          limit: requestedLimit,
-          contextArtist,
-        }).catch((error) => {
-          console.warn("[track-recommendations.deezer] skipped related candidates", {
-            currentProviderId,
-            ...getDeezerErrorDetails(error),
-          });
+        includeRelatedCandidates
+          ? getDeezerCandidateRecommendations({
+              currentProviderId,
+              query: queryLabel,
+              limit: requestedLimit,
+              contextArtist,
+            }).catch((error) => {
+              console.warn(
+                "[track-recommendations.deezer] skipped related candidates",
+                {
+                  currentProviderId,
+                  ...getDeezerErrorDetails(error),
+                },
+              );
 
-          return [];
-        }),
+              return [];
+            })
+          : Promise.resolve([]),
         includeDeepCuts
           ? getDeezerDeepCutRecommendations({
               currentProviderId,
@@ -552,6 +559,7 @@ export async function getTrackRecommendations({
       tagCount: tags.length,
       limit,
       includeLocalSignals,
+      includeRelatedCandidates,
       resolveLocalLinks,
       includeDeepCuts,
       resolveCatalogContext,

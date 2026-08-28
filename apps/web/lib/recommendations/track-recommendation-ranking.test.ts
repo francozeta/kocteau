@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   getTrackRecommendationQueryLabel,
+  mergeTrackRecommendationGroups,
   selectTrackRecommendationGroups,
   type TrackRecommendationCandidate,
 } from "./track-recommendation-ranking.ts";
@@ -119,5 +120,38 @@ describe("track recommendation ranking", () => {
       groups.find((group) => group.id === "nearby")?.recommendations[0]?.provider_id,
       "nearby",
     );
+  });
+
+  it("merges progressive recommendation lanes without duplicating candidates", () => {
+    const nearby = selectTrackRecommendationGroups({
+      currentProviderId: "current",
+      relatedCandidates: [
+        candidate("nearby", "deezer-related"),
+        candidate("shared", "deezer-related"),
+      ],
+      localSignalCandidates: [],
+      perGroupLimit: 1,
+    });
+    const deeper = selectTrackRecommendationGroups({
+      currentProviderId: "current",
+      relatedCandidates: [],
+      localSignalCandidates: [],
+      deepCutCandidates: [
+        candidate("deep", "deezer-deep-cut", undefined, "Deep Artist", 100),
+        candidate("shared", "deezer-deep-cut", undefined, "Shared Artist", 1),
+      ],
+      perGroupLimit: 1,
+    });
+
+    const merged = mergeTrackRecommendationGroups(nearby, deeper);
+    const providerIds = merged.flatMap((group) =>
+      group.recommendations.map((track) => track.provider_id),
+    );
+
+    assert.equal(merged[0]?.id, "nearby");
+    assert.ok(merged.some((group) => group.id === "deep-cut"));
+    assert.equal(new Set(providerIds).size, providerIds.length);
+    assert.ok(providerIds.includes("nearby"));
+    assert.ok(providerIds.includes("deep"));
   });
 });
