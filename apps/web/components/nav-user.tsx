@@ -167,7 +167,7 @@ export function NavUser({
                  <DropdownMenuItem
                    onSelect={() => {
                      onNavigate?.();
-                     router.push("/settings");
+                     router.push("/settings/profile");
                    }}
                  >
                    <KocteauEditProfileIcon className="size-4" />

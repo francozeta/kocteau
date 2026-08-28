@@ -414,31 +414,31 @@ export default function ProfileEditorForm({
 
   function renderPageSettingsFields() {
     const fieldClassName =
-      "h-10 rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] px-3 text-sm shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/48 hover:bg-[var(--kocteau-surface-control-hover)] focus-visible:border-border/48 focus-visible:ring-2 focus-visible:ring-ring/28";
+      "h-9 rounded-[0.62rem] border border-border/20 bg-[var(--kocteau-canvas)] px-3 text-[13px] shadow-none placeholder:text-muted-foreground/44 transition-[border-color,background-color] hover:border-border/30 hover:bg-foreground/[0.025] focus-visible:border-border/48 focus-visible:ring-2 focus-visible:ring-ring/28";
     const textareaClassName =
-      "min-h-28 resize-none rounded-[var(--kocteau-radius-control)] border-transparent bg-[var(--kocteau-surface-control)] px-3 py-2.5 text-sm leading-5 shadow-[var(--kocteau-shadow-control)] placeholder:text-muted-foreground/48 hover:bg-[var(--kocteau-surface-control-hover)] focus-visible:border-border/48 focus-visible:ring-2 focus-visible:ring-ring/28";
+      "min-h-24 resize-none rounded-[0.62rem] border border-border/20 bg-[var(--kocteau-canvas)] px-3 py-2.5 text-[13px] leading-5 shadow-none placeholder:text-muted-foreground/44 transition-[border-color,background-color] hover:border-border/30 hover:bg-foreground/[0.025] focus-visible:border-border/48 focus-visible:ring-2 focus-visible:ring-ring/28";
     const labelClassName = "text-[13px] font-medium text-foreground/88";
     const rowClassName =
-      "grid gap-2.5 border-t border-border/16 py-4 sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:items-start sm:gap-6";
+      "grid gap-2.5 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(15rem,22rem)] sm:items-center sm:gap-8 sm:px-5 [&+&]:border-t [&+&]:border-border/14";
+    const sectionSurfaceClassName =
+      "overflow-hidden rounded-[0.9rem] border border-border/18 bg-[var(--kocteau-surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.018)]";
 
     return (
-      <div className="space-y-8">
-        <section
-          id="profile-settings-section-profile"
-          aria-labelledby="profile-settings-heading"
-          className="scroll-mt-24 space-y-4 border-b border-border/20 pb-8"
-        >
-          <div className="space-y-1">
-            <h2 id="profile-settings-heading" className="text-sm font-semibold text-foreground/94">
-              Profile
+      <div className="space-y-6">
+        {showProfileSettingsSection ? (
+          <section
+            id="profile-settings-section-profile"
+            aria-labelledby="profile-settings-heading"
+            className="scroll-mt-24 space-y-3"
+          >
+            <h2 id="profile-settings-heading" className="text-[13px] font-semibold text-foreground/92">
+              Identity
             </h2>
-            <p className="text-[13px] leading-5 text-muted-foreground">Your public identity and byline.</p>
-          </div>
 
-          <div>
+            <div className={sectionSurfaceClassName}>
             <div className={rowClassName}>
               <Label className={labelClassName}>Avatar</Label>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:justify-self-end">
                 <AvatarUploadTrigger
                   alt="Profile image"
                   previewUrl={avatarPreview}
@@ -452,11 +452,13 @@ export default function ProfileEditorForm({
                   onDrop={handleAvatarDrop}
                 />
                 <div className="min-w-0 space-y-1">
-                  <p className="text-[13px] text-foreground/82">
+                  <p className="text-[13px] font-medium text-foreground/84">
                     {avatarUpload ? "Photo ready to save" : "Change photo"}
                   </p>
                   {!avatarUpload ? (
-                    <p className="text-xs leading-4 text-muted-foreground">Your dither avatar remains the fallback.</p>
+                    <p className="max-w-52 text-xs leading-4 text-muted-foreground">
+                      Your dither avatar remains the fallback.
+                    </p>
                   ) : null}
                   {avatarUploadErrors[0] ? (
                     <p role="alert" className="text-xs text-destructive">
@@ -471,7 +473,7 @@ export default function ProfileEditorForm({
               <Label htmlFor="display-name" className={labelClassName}>
                 Display name
               </Label>
-              <div className="space-y-2">
+              <div className="space-y-2 sm:w-full sm:justify-self-end">
                 <Input
                   id="display-name"
                   value={displayName}
@@ -494,7 +496,7 @@ export default function ProfileEditorForm({
               <Label htmlFor="username" className={labelClassName}>
                 Username
               </Label>
-              <div className="space-y-2">
+              <div className="space-y-2 sm:w-full sm:justify-self-end">
                 <Input
                   id="username"
                   value={username}
@@ -513,11 +515,11 @@ export default function ProfileEditorForm({
               </div>
             </div>
 
-            <div className={rowClassName}>
+            <div className={cn(rowClassName, "sm:items-start")}>
               <Label htmlFor="bio" className={labelClassName}>
                 Bio
               </Label>
-              <div className="space-y-2">
+              <div className="space-y-2 sm:w-full sm:justify-self-end">
                 <Textarea
                   id="bio"
                   value={bio}
@@ -537,21 +539,20 @@ export default function ProfileEditorForm({
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        ) : null}
 
-        <section
-          id="profile-settings-section-links"
-          aria-labelledby="music-links-settings-heading"
-          className="scroll-mt-24 space-y-4 border-b border-border/20 pb-8"
-        >
-          <div className="space-y-1">
-            <h2 id="music-links-settings-heading" className="text-sm font-semibold text-foreground/94">
-              Music links
+        {showLinksSettingsSection ? (
+          <section
+            id="profile-settings-section-links"
+            aria-labelledby="music-links-settings-heading"
+            className="scroll-mt-24 space-y-3"
+          >
+            <h2 id="music-links-settings-heading" className="text-[13px] font-semibold text-foreground/92">
+              Services
             </h2>
-            <p className="text-[13px] leading-5 text-muted-foreground">Optional links shown on your profile.</p>
-          </div>
 
-          <div>
+            <div className={sectionSurfaceClassName}>
             {[
               {
                 id: "spotify-url",
@@ -585,7 +586,7 @@ export default function ProfileEditorForm({
                 <Label htmlFor={link.id} className={labelClassName}>
                   {link.label}
                 </Label>
-                <div className="space-y-2">
+                <div className="space-y-2 sm:w-full sm:justify-self-end">
                   <Input
                     id={link.id}
                     type="url"
@@ -606,14 +607,20 @@ export default function ProfileEditorForm({
               </div>
             ))}
           </div>
-        </section>
+          </section>
+        ) : null}
 
-        <div className="flex min-h-8 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div aria-live="polite" className="min-h-5 text-sm text-muted-foreground">
+        <div className="flex min-h-8 flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+          <div aria-live="polite" className="min-h-5 text-[13px] text-muted-foreground">
             {successMessage}
           </div>
           {hasUnsavedChanges ? (
-            <Button type="button" onClick={onSubmit} disabled={saving} className="h-8 px-3 sm:shrink-0">
+            <Button
+              type="button"
+              onClick={onSubmit}
+              disabled={saving}
+              className="h-8 rounded-full px-3 text-[13px] sm:shrink-0"
+            >
               {saving ? (
                 <>
                   <SpinnerGapIcon className="size-4 animate-spin" />

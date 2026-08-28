@@ -102,7 +102,7 @@ export default function HeaderUserMenu({ profile }: HeaderUserMenuProps) {
             <KocteauActivityIcon className="size-4" />
             Notifications
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => router.push("/settings")}>
+          <DropdownMenuItem onSelect={() => router.push("/settings/profile")}>
             <KocteauEditProfileIcon className="size-4" />
             Settings
           </DropdownMenuItem>
