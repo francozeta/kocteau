@@ -130,7 +130,7 @@ describe("track recommendation ranking", () => {
         candidate("shared", "deezer-related"),
       ],
       localSignalCandidates: [],
-      perGroupLimit: 1,
+      perGroupLimit: 2,
     });
     const deeper = selectTrackRecommendationGroups({
       currentProviderId: "current",
@@ -140,12 +140,18 @@ describe("track recommendation ranking", () => {
         candidate("deep", "deezer-deep-cut", undefined, "Deep Artist", 100),
         candidate("shared", "deezer-deep-cut", undefined, "Shared Artist", 1),
       ],
-      perGroupLimit: 1,
+      perGroupLimit: 2,
     });
 
     const merged = mergeTrackRecommendationGroups(nearby, deeper);
     const providerIds = merged.flatMap((group) =>
       group.recommendations.map((track) => track.provider_id),
+    );
+    const sharedGroup = merged.find((group) =>
+      group.recommendations.some((track) => track.provider_id === "shared"),
+    );
+    const sharedCandidate = sharedGroup?.recommendations.find(
+      (track) => track.provider_id === "shared",
     );
 
     assert.equal(merged[0]?.id, "nearby");
@@ -153,5 +159,7 @@ describe("track recommendation ranking", () => {
     assert.equal(new Set(providerIds).size, providerIds.length);
     assert.ok(providerIds.includes("nearby"));
     assert.ok(providerIds.includes("deep"));
+    assert.equal(sharedGroup?.id, "deep-cut");
+    assert.equal(sharedCandidate?.source, "deezer-deep-cut");
   });
 });

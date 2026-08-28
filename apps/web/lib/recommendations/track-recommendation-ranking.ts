@@ -75,46 +75,58 @@ function getCandidateKey(candidate: TrackRecommendationCandidate) {
 export function mergeTrackRecommendationGroups(
   ...groupSets: Array<readonly TrackRecommendationGroup[] | null | undefined>
 ): TrackRecommendationGroup[] {
-  const mergedById = new Map<
-    TrackRecommendationGroup["id"],
-    TrackRecommendationGroup
+  const groups = groupSets.flatMap((groupSet) => groupSet ?? []);
+  const winnerByCandidateKey = new Map<
+    string,
+    {
+      groupId: TrackRecommendationGroup["id"];
+      candidate: TrackRecommendationCandidate;
+    }
   >();
 
-  for (const groups of groupSets) {
-    for (const group of groups ?? []) {
-      const existing = mergedById.get(group.id);
+  for (const group of groups) {
+    for (const candidate of group.recommendations) {
+      const key = getCandidateKey(candidate);
+      const existing = winnerByCandidateKey.get(key);
 
-      if (!existing) {
-        mergedById.set(group.id, {
-          ...group,
-          recommendations: [...group.recommendations],
-        });
-        continue;
+      if (
+        !existing ||
+        sourcePriority[candidate.source] >
+          sourcePriority[existing.candidate.source] ||
+        (candidate.source === existing.candidate.source &&
+          candidate.score > existing.candidate.score)
+      ) {
+        winnerByCandidateKey.set(key, { groupId: group.id, candidate });
       }
-
-      existing.recommendations.push(...group.recommendations);
     }
   }
 
-  const seenCandidateKeys = new Set<string>();
+  const emittedCandidateKeys = new Set<string>();
 
   return recommendationGroupOrder.flatMap((id) => {
-    const group = mergedById.get(id);
+    const group = groups.find((candidateGroup) => candidateGroup.id === id);
 
     if (!group) {
       return [];
     }
 
-    const recommendations = group.recommendations.filter((candidate) => {
-      const key = getCandidateKey(candidate);
+    const recommendations = groups
+      .filter((candidateGroup) => candidateGroup.id === id)
+      .flatMap((candidateGroup) => candidateGroup.recommendations)
+      .flatMap((candidate) => {
+        const key = getCandidateKey(candidate);
+        const winner = winnerByCandidateKey.get(key);
 
-      if (seenCandidateKeys.has(key)) {
-        return false;
-      }
+        if (
+          winner?.groupId !== id ||
+          emittedCandidateKeys.has(key)
+        ) {
+          return [];
+        }
 
-      seenCandidateKeys.add(key);
-      return true;
-    });
+        emittedCandidateKeys.add(key);
+        return [winner.candidate];
+      });
 
     return recommendations.length > 0 ? [{ ...group, recommendations }] : [];
   });
