@@ -233,7 +233,7 @@ function ProfilePageHeaderState({
         <div className={actionGridClassName}>
           {isOwnProfile ? (
             <Link
-              href="/settings"
+              href="/settings/profile"
               className={cn(buttonVariants({ variant: "outline", size: "default" }), actionButtonClassName)}
             >
               Edit profile

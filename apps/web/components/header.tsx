@@ -80,7 +80,6 @@ export default function Header({
   const isProfileDetailRoute = /^\/u\/[^/]+$/.test(pathname);
   const shouldUseContextualHeader = isTrackDetailRoute || isProfileDetailRoute || isMobileReviewRoute;
   const isSearchRoute = pathname.startsWith("/search");
-  const isSettingsRoute = pathname === "/settings";
 
   const standardHeaderTitle = (() => {
     if (isTrackDetailRoute) {
@@ -97,10 +96,6 @@ export default function Header({
 
     if (pathname === "/feed") {
       return "Feed";
-    }
-
-    if (isSettingsRoute) {
-      return "Settings";
     }
 
     if (isSearchRoute) {
@@ -152,15 +147,6 @@ export default function Header({
     );
   }, [isMobileReviewRoute, isProfileDetailRoute, profile, router]);
 
-  const handleSettingsBack = useCallback(() => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
-    }
-
-    router.push(profile?.username ? `/u/${profile.username}` : "/feed");
-  }, [profile, router]);
-
   const handleShareDetail = useCallback(async () => {
     if (typeof window === "undefined") {
       return;
@@ -193,28 +179,16 @@ export default function Header({
 
       <div className="relative z-10 flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
         <div className="relative z-10 flex items-center gap-2">
-          {isSettingsRoute ? (
-            <button
-              type="button"
-              onClick={handleSettingsBack}
-              className="pointer-events-auto inline-flex h-11 items-center gap-1.5 rounded-full px-2 text-sm text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-              aria-label="Go back"
-            >
-              <KocteauChevronLeftMediumIcon className="size-5" />
-              <span>Back</span>
-            </button>
-          ) : (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              onClick={toggleSidebar}
-              className="pointer-events-auto size-11 rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:scale-[0.96] md:hidden"
-              aria-label="Toggle navigation"
-            >
-              <HamburgerIcon className="size-[1.15rem]" />
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            onClick={toggleSidebar}
+            className="pointer-events-auto size-11 rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:scale-[0.96] md:hidden"
+            aria-label="Toggle navigation"
+          >
+            <HamburgerIcon className="size-[1.15rem]" />
+          </Button>
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:block md:px-7 xl:px-8">

@@ -266,6 +266,7 @@ KocteauHealthIcon.displayName = "KocteauHealthIcon";
 export const KocteauProfileIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   (iconProps, ref) => {
     const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const isFilled = weight === "fill";
     const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
 
     return (
@@ -280,16 +281,18 @@ export const KocteauProfileIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
       >
         <path
           d="M6.5 20.25C5.39543 20.25 4.47594 19.3452 4.69524 18.2626C5.37179 14.9227 7.80671 12.25 12 12.25C16.1924 12.25 18.4514 14.9215 19.0718 18.2605C19.2736 19.3464 18.3546 20.25 17.25 20.25H6.5Z"
-          stroke="currentColor"
-          strokeWidth={resolvedStrokeWidth}
+          fill={isFilled ? "currentColor" : "none"}
+          stroke={isFilled ? "none" : "currentColor"}
+          strokeWidth={isFilled ? undefined : resolvedStrokeWidth}
           strokeLinejoin="round"
         />
         <circle
           cx="12"
           cy="7.75"
           r="4.5"
-          stroke="currentColor"
-          strokeWidth={resolvedStrokeWidth}
+          fill={isFilled ? "currentColor" : "none"}
+          stroke={isFilled ? "none" : "currentColor"}
+          strokeWidth={isFilled ? undefined : resolvedStrokeWidth}
           strokeLinejoin="round"
         />
       </svg>
@@ -297,6 +300,44 @@ export const KocteauProfileIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   },
 );
 KocteauProfileIcon.displayName = "KocteauProfileIcon";
+
+export const KocteauMusicLinksIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
+  (iconProps, ref) => {
+    const { className, strokeWidth, weight, ...props } = splitIconProps(iconProps);
+    const isFilled = weight === "fill";
+    const resolvedStrokeWidth = strokeWidthForWeight(weight, strokeWidth);
+
+    return (
+      <svg
+        ref={ref}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        className={cn("icon size-5 shrink-0", className)}
+        fill="none"
+        {...props}
+      >
+        {isFilled ? (
+          <path
+            d="M8.75 7.25A4.75 4.75 0 0 0 4 12a4.75 4.75 0 0 0 4.75 4.75h2.5a.75.75 0 0 0 0-1.5h-2.5a3.25 3.25 0 0 1 0-6.5h2.5a.75.75 0 0 0 0-1.5h-2.5Zm4 0a.75.75 0 0 0 0 1.5h2.5a3.25 3.25 0 0 1 0 6.5h-2.5a.75.75 0 0 0 0 1.5h2.5A4.75 4.75 0 0 0 20 12a4.75 4.75 0 0 0-4.75-4.75h-2.5Zm-3 4a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"
+            fill="currentColor"
+          />
+        ) : (
+          <>
+            <path
+              d="M10.25 7.75H8.75A4.25 4.25 0 0 0 4.5 12v0a4.25 4.25 0 0 0 4.25 4.25h1.5M13.75 7.75h1.5A4.25 4.25 0 0 1 19.5 12v0a4.25 4.25 0 0 1-4.25 4.25h-1.5M9.75 12h4.5"
+              stroke="currentColor"
+              strokeWidth={resolvedStrokeWidth}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </>
+        )}
+      </svg>
+    );
+  },
+);
+KocteauMusicLinksIcon.displayName = "KocteauMusicLinksIcon";
 
 export const KocteauLogoutIcon = forwardRef<SVGSVGElement, KocteauIconProps>(
   (iconProps, ref) => {
