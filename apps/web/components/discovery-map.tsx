@@ -26,9 +26,10 @@ import {
 } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
-import type {
-  TrackRecommendationCandidate,
-  TrackRecommendationGroup,
+import {
+  mergeTrackRecommendationGroups,
+  type TrackRecommendationCandidate,
+  type TrackRecommendationGroup,
 } from "@/lib/recommendations/track-recommendation-ranking";
 import type { StarterTrack } from "@/lib/starter";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,6 @@ type DiscoveryHistoryState = {
   kocteauDiscoverySeed?: DiscoverySeed | null;
 };
 
-const EMPTY_GROUPS: TrackRecommendationGroup[] = [];
 const ORBIT_LIMIT = 23;
 const routeOrder: TrackRecommendationGroup["id"][] = [
   "left-field",
@@ -662,12 +662,24 @@ export default function DiscoveryMap({
     mapQuery.data.seed.provider_id === selectedSeed.provider_id
       ? mapQuery.data
       : null;
-  const resolvedMap =
-    currentExpandedMap ??
-    currentFastMap ??
-    expandedMapQuery.data ??
-    mapQuery.data;
-  const groups = resolvedMap?.groups ?? EMPTY_GROUPS;
+  const groups = useMemo(() => {
+    if (currentFastMap || currentExpandedMap) {
+      return mergeTrackRecommendationGroups(
+        currentFastMap?.groups,
+        currentExpandedMap?.groups,
+      );
+    }
+
+    return mergeTrackRecommendationGroups(
+      mapQuery.data?.groups,
+      expandedMapQuery.data?.groups,
+    );
+  }, [
+    currentExpandedMap,
+    currentFastMap,
+    expandedMapQuery.data?.groups,
+    mapQuery.data?.groups,
+  ]);
   const recommendationOrbitItems = useMemo(
     () => buildRecommendationOrbitItems(groups, selectedSeed),
     [groups, selectedSeed],

@@ -49,6 +49,13 @@ const sourceScoreBonus: Record<TrackRecommendationSource, number> = {
   "deezer-related": 10,
 };
 
+const recommendationGroupOrder: TrackRecommendationGroup["id"][] = [
+  "nearby",
+  "deep-cut",
+  "left-field",
+  "serendipity",
+];
+
 export function getTrackRecommendationQueryLabel({
   title,
   artistName,
@@ -63,6 +70,54 @@ export function getTrackRecommendationQueryLabel({
 
 function getCandidateKey(candidate: TrackRecommendationCandidate) {
   return `${candidate.provider}:${candidate.type}:${candidate.provider_id}`;
+}
+
+export function mergeTrackRecommendationGroups(
+  ...groupSets: Array<readonly TrackRecommendationGroup[] | null | undefined>
+): TrackRecommendationGroup[] {
+  const mergedById = new Map<
+    TrackRecommendationGroup["id"],
+    TrackRecommendationGroup
+  >();
+
+  for (const groups of groupSets) {
+    for (const group of groups ?? []) {
+      const existing = mergedById.get(group.id);
+
+      if (!existing) {
+        mergedById.set(group.id, {
+          ...group,
+          recommendations: [...group.recommendations],
+        });
+        continue;
+      }
+
+      existing.recommendations.push(...group.recommendations);
+    }
+  }
+
+  const seenCandidateKeys = new Set<string>();
+
+  return recommendationGroupOrder.flatMap((id) => {
+    const group = mergedById.get(id);
+
+    if (!group) {
+      return [];
+    }
+
+    const recommendations = group.recommendations.filter((candidate) => {
+      const key = getCandidateKey(candidate);
+
+      if (seenCandidateKeys.has(key)) {
+        return false;
+      }
+
+      seenCandidateKeys.add(key);
+      return true;
+    });
+
+    return recommendations.length > 0 ? [{ ...group, recommendations }] : [];
+  });
 }
 
 function getArtistKey(candidate: TrackRecommendationCandidate) {

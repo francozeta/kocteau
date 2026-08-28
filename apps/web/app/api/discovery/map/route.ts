@@ -119,10 +119,18 @@ export async function GET(request: Request) {
     artistName: recommendationSeed.artistName,
     limit: expanded ? 18 : 10,
     includeLocalSignals: false,
+    includeRelatedCandidates: !expanded,
     resolveLocalLinks: false,
     includeDeepCuts: expanded,
     resolveCatalogContext: expanded,
   });
 
-  return NextResponse.json({ groups });
+  return NextResponse.json(
+    { groups },
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+      },
+    },
+  );
 }
