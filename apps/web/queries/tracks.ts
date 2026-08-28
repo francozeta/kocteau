@@ -63,9 +63,10 @@ export function deezerTrackSearchQueryOptions(
 
   return queryOptions({
     queryKey: trackKeys.search(type, query),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const payload = await fetchJson<DeezerSearchResult[]>(
         `/api/deezer/search?${params.toString()}`,
+        { signal },
       );
 
       return Array.isArray(payload) ? payload : [];
@@ -89,9 +90,10 @@ export function kocteauTrackSearchQueryOptions(
 
   return queryOptions({
     queryKey: trackKeys.kocteauSearch(type, query),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const payload = await fetchJson<KocteauSearchResult[]>(
         `/api/search?${params.toString()}`,
+        { signal },
       );
 
       return Array.isArray(payload) ? payload : [];
