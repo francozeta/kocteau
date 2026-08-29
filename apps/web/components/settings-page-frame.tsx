@@ -10,7 +10,7 @@ export default function SettingsPageFrame({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto w-full max-w-[42rem] px-4 pb-16 pt-7 sm:px-6 md:px-8 md:pb-20 md:pt-14 lg:px-0">
+    <div className="w-full pb-16 pt-7 md:pb-20 md:pt-10">
       <header className="mb-8 space-y-1.5">
         <h1 className="text-balance font-pixel text-[1.45rem] font-medium tracking-[-0.025em] text-foreground">
           {title}
