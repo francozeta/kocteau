@@ -20,6 +20,7 @@ type NavMainItem = {
   isActive?: boolean;
   badge?: number | null;
   external?: boolean;
+  onClick?: () => void;
 };
 
 export function NavMain({
@@ -46,12 +47,26 @@ export function NavMain({
                 className={sidebarPrimaryNavButtonClassName}
               >
                 {item.external ? (
-                  <a href={item.url} target="_blank" rel="noreferrer" onClick={onNavigate}>
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => {
+                      item.onClick?.();
+                      onNavigate?.();
+                    }}
+                  >
                     <item.icon weight={item.isActive ? "fill" : "regular"} />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </a>
                 ) : (
-                  <Link href={item.url} onClick={onNavigate}>
+                  <Link
+                    href={item.url}
+                    onClick={() => {
+                      item.onClick?.();
+                      onNavigate?.();
+                    }}
+                  >
                     <item.icon weight={item.isActive ? "fill" : "regular"} />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </Link>

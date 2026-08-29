@@ -4,11 +4,15 @@ import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import BrandLogo from "@/components/brand-logo";
+import { setAppRouteTransitionDirection } from "@/components/app-route-transition";
 import {
   KocteauActivityIcon,
+  KocteauChevronLeftSmallIcon,
   KocteauHealthIcon,
   KocteauHomeIcon,
   KocteauLibraryIcon,
+  KocteauMusicLinksIcon,
+  KocteauProfileIcon,
   KocteauReviewsIcon,
   KocteauSearchIcon,
   KocteauStarterIcon,
@@ -26,6 +30,9 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -36,6 +43,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { sidebarPrimaryNavButtonClassName } from "@/components/sidebar-nav-styles";
 
 type AppSidebarProfile = {
   id: string;
@@ -125,6 +133,7 @@ export default function AppSidebar({
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const isSettingsRoute = pathname.startsWith("/settings");
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const previousPathnameRef = useRef(pathname);
   const { data: unreadCount = initialUnreadCount } = useQuery<number>({
@@ -224,6 +233,26 @@ export default function AppSidebar({
           : []),
       ]
     : [];
+  const settingsItems = [
+    {
+      title: "Profile",
+      url: "/settings/profile",
+      icon: KocteauProfileIcon,
+      isActive: pathname === "/settings/profile",
+      onClick: () => {
+        setAppRouteTransitionDirection(
+          pathname === "/settings/music-links" ? -1 : 1,
+        );
+      },
+    },
+    {
+      title: "Music links",
+      url: "/settings/music-links",
+      icon: KocteauMusicLinksIcon,
+      isActive: pathname === "/settings/music-links",
+      onClick: () => setAppRouteTransitionDirection(1),
+    },
+  ];
 
   return (
     <TooltipProvider delayDuration={80}>
@@ -234,54 +263,88 @@ export default function AppSidebar({
         {...props}
       >
         <SidebarHeader className="gap-2 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
-          <div className="flex min-h-10 items-center justify-between gap-2 px-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0">
-            <PrefetchLink
-              href={profile ? "/feed" : "/"}
-              onClick={closeMobileSidebar}
-              queryWarmup={{ kind: "feed" }}
-              aria-label="Kocteau home"
-              className="flex size-9 shrink-0 items-center justify-start rounded-full transition-transform duration-[180ms] ease-[var(--kocteau-ease)] active:scale-[0.96] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:justify-center"
-            >
-              <BrandLogo priority iconClassName="h-5 w-5" />
-            </PrefetchLink>
-
-            <div className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
-              <SidebarHeaderAction
-                label="Search"
-                shortcut="/"
-                href="/search"
+          {isSettingsRoute ? (
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Back to app"
+                  size="lg"
+                  className={sidebarPrimaryNavButtonClassName}
+                >
+                  <PrefetchLink
+                    href="/feed"
+                    onClick={() => {
+                      setAppRouteTransitionDirection(-1);
+                      closeMobileSidebar();
+                    }}
+                  >
+                    <KocteauChevronLeftSmallIcon />
+                    <span className="kocteau-sidebar-label">Back to app</span>
+                  </PrefetchLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          ) : (
+            <div className="flex min-h-10 items-center justify-between gap-2 px-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0">
+              <PrefetchLink
+                href={profile ? "/feed" : "/"}
                 onClick={closeMobileSidebar}
+                queryWarmup={{ kind: "feed" }}
+                aria-label="Kocteau home"
+                className="flex size-9 shrink-0 items-center justify-start rounded-full transition-transform duration-[180ms] ease-[var(--kocteau-ease)] active:scale-[0.96] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:justify-center"
               >
-                <KocteauSearchIcon className="size-4" />
-              </SidebarHeaderAction>
-              <SidebarHeaderAction
-                label="Create new review"
-                shortcut="C"
-                emphasis
-                onClick={openNewReview}
-              >
-                <ReviewGlyphIcon className="size-4" />
-              </SidebarHeaderAction>
+                <BrandLogo priority iconClassName="h-5 w-5" />
+              </PrefetchLink>
+
+              <div className="flex items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
+                <SidebarHeaderAction
+                  label="Search"
+                  shortcut="/"
+                  href="/search"
+                  onClick={closeMobileSidebar}
+                >
+                  <KocteauSearchIcon className="size-4" />
+                </SidebarHeaderAction>
+                <SidebarHeaderAction
+                  label="Create new review"
+                  shortcut="C"
+                  emphasis
+                  onClick={openNewReview}
+                >
+                  <ReviewGlyphIcon className="size-4" />
+                </SidebarHeaderAction>
+              </div>
             </div>
-          </div>
+          )}
         </SidebarHeader>
 
         <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
-          <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
-          {secondaryItems.length > 0 ? (
-            <NavSecondary
-              items={secondaryItems}
-              label="Yours"
+          {isSettingsRoute ? (
+            <NavMain
+              items={settingsItems}
+              label="Settings"
               onNavigate={closeMobileSidebar}
             />
-          ) : null}
-          {studioItems.length > 0 ? (
-            <NavSecondary
-              items={studioItems}
-              label="Studio"
-              onNavigate={closeMobileSidebar}
-            />
-          ) : null}
+          ) : (
+            <>
+              <NavMain items={mainItems} onNavigate={closeMobileSidebar} />
+              {secondaryItems.length > 0 ? (
+                <NavSecondary
+                  items={secondaryItems}
+                  label="Yours"
+                  onNavigate={closeMobileSidebar}
+                />
+              ) : null}
+              {studioItems.length > 0 ? (
+                <NavSecondary
+                  items={studioItems}
+                  label="Studio"
+                  onNavigate={closeMobileSidebar}
+                />
+              ) : null}
+            </>
+          )}
         </SidebarContent>
 
         <SidebarFooter className="px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">

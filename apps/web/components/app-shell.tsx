@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
 import ReactQueryProvider from "@/app/providers/react-query-provider";
+import AppRouteTransition from "@/components/app-route-transition";
 import AppSidebar from "@/components/app-sidebar";
 import DeferredToaster from "@/components/deferred-toaster";
 import DesktopScrollBridge from "@/components/desktop-scroll-bridge";
@@ -95,7 +96,7 @@ export default async function AppShell({
                 data-kocteau-scroll-main
                 className="no-scrollbar min-w-0 lg:min-h-0 lg:scroll-fade-y lg:overflow-x-hidden lg:overflow-y-auto lg:[--scroll-fade-reveal:4rem] lg:[--scroll-fade-size:1.5rem]"
               >
-                {children}
+                <AppRouteTransition>{children}</AppRouteTransition>
               </main>
             </div>
           )}
