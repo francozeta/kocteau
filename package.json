@@ -44,8 +44,9 @@
     "perf:load:smoke": "k6 run -e K6_PROFILE=smoke apps/web/tests/load/kocteau.js",
     "perf:load:baseline": "k6 run -e K6_PROFILE=baseline apps/web/tests/load/kocteau.js",
     "build": "turbo run build",
+    "test": "pnpm --filter web test",
     "lint": "turbo run lint",
-    "check": "pnpm lint && pnpm --filter web build"
+    "check": "pnpm test && pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
     "eslint": "9.39.4",

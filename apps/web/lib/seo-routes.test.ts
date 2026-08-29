@@ -67,7 +67,7 @@ describe("seo route helpers", () => {
     assert.equal(isSeoRouteId("not-a-track"), false);
   });
 
-  it("keeps unsupported entity types on live discovery URLs", () => {
+  it("builds canonical routes for first-class album entities", () => {
     assert.equal(
       buildEntityCanonicalPath({
         id: "e9cfe82b-5a2b-4324-9e85-a861fdbbddf4",
@@ -75,7 +75,7 @@ describe("seo route helpers", () => {
         title: "Blue Bell Knoll",
         artist_name: "Cocteau Twins",
       }),
-      "/search?q=Blue%20Bell%20Knoll%20Cocteau%20Twins",
+      "/albums/blue-bell-knoll-cocteau-twins/e9cfe82b5a2b",
     );
   });
 
