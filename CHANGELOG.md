@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.15](https://github.com/francozeta/kocteau/compare/v0.3.14...v0.3.15) (2026-09-03)
+
+
+### Features
+
+* **settings:** add contextual settings shell ([#194](https://github.com/francozeta/kocteau/issues/194)) ([c8716ed](https://github.com/francozeta/kocteau/commit/c8716ed6bc4f2a6739a95dfc21533fd3cd677384))
+* **settings:** reuse feed shell navigation ([#196](https://github.com/francozeta/kocteau/issues/196)) ([a025701](https://github.com/francozeta/kocteau/commit/a02570129174355a7dfba9df44c673d35aa3a9e5))
+
+
+### Performance
+
+* **discovery:** split progressive recommendation lanes ([#191](https://github.com/francozeta/kocteau/issues/191)) ([44e82a9](https://github.com/francozeta/kocteau/commit/44e82a9780420e9b745b1cb2d67c3b7db1fe62b7))
+* **search:** cancel stale work and preserve discovery lanes ([#193](https://github.com/francozeta/kocteau/issues/193)) ([740d5a1](https://github.com/francozeta/kocteau/commit/740d5a14c438cdd6d138f8aec73b62afce9d383a))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.14 ([#190](https://github.com/francozeta/kocteau/issues/190)) ([970b54a](https://github.com/francozeta/kocteau/commit/970b54aad69c5a63adf4c65df5a32ea3758158af))
+
 ## [0.3.14](https://github.com/francozeta/kocteau/compare/v0.3.13...v0.3.14) (2026-08-24)
 
 
