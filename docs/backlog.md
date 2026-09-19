@@ -1,6 +1,6 @@
 # Kocteau Public Backlog
 
-[Docs index](./README.md) | [MVP baseline](./mvp.md) | [Web roadmap](./web-roadmap.md) | [Discovery and curation](./discovery-curation.md) | [Contributing](../CONTRIBUTING.md)
+[Docs index](./README.md) | [Product contract](../PRODUCT.md) | [Web roadmap](./web-roadmap.md) | [Discovery and curation](./discovery-curation.md) | [Contributing](../CONTRIBUTING.md)
 
 This backlog turns the roadmap into work that maintainers and contributors can pick up.
 

@@ -40,6 +40,9 @@ Kocteau is an open-source music review and taste discovery app. The current prod
 | If you want to... | Go here |
 | --- | --- |
 | Try the app | [kocteau.com](https://kocteau.com) |
+| See what is being worked on now | [CURRENT.md](./CURRENT.md) |
+| Understand the product contract | [PRODUCT.md](./PRODUCT.md) |
+| Understand the interface direction | [DESIGN.md](./DESIGN.md) |
 | Make a first contribution | [Good first issues](https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22) |
 | Understand the product direction | [docs/web-roadmap.md](./docs/web-roadmap.md) |
 | Read the contributor guide | [CONTRIBUTING.md](./CONTRIBUTING.md) |
@@ -278,7 +281,8 @@ The documentation hub is [docs/README.md](./docs/README.md). Start there when yo
 
 Core docs:
 
-- Product baseline: [docs/mvp.md](./docs/mvp.md)
+- Product contract: [PRODUCT.md](./PRODUCT.md)
+- Design contract: [DESIGN.md](./DESIGN.md)
 - Web roadmap: [docs/web-roadmap.md](./docs/web-roadmap.md)
 - Discovery, curation, and analytics strategy: [docs/discovery-curation.md](./docs/discovery-curation.md)
 - Public backlog and future RFCs: [docs/backlog.md](./docs/backlog.md)
@@ -294,8 +298,6 @@ Maintainer and craft docs:
 
 - Release automation: [docs/maintainers/release.md](./docs/maintainers/release.md)
 - GitHub rules: [docs/maintainers/github-rules.md](./docs/maintainers/github-rules.md)
-- Interface craft rules: [docs/ai/interface-craft-rules.md](./docs/ai/interface-craft-rules.md)
-- Motion rules: [docs/ai/motion-rules.md](./docs/ai/motion-rules.md)
 - Email templates: [apps/web/emails/README.md](./apps/web/emails/README.md)
 
 ## Contributing

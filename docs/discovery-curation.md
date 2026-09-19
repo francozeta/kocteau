@@ -1,6 +1,6 @@
 # Kocteau Discovery And Curation Strategy
 
-[Docs index](./README.md) | [MVP baseline](./mvp.md) | [Web roadmap](./web-roadmap.md) | [Backlog](./backlog.md) | [Operations](./operations.md)
+[Docs index](./README.md) | [Product contract](../PRODUCT.md) | [Web roadmap](./web-roadmap.md) | [Backlog](./backlog.md) | [Operations](./operations.md)
 
 Kocteau should help people discover music through human taste first, with lightweight systems that route that taste to the right listeners.
 

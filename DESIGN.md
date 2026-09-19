@@ -1,10 +1,8 @@
-# Kocteau Interface Craft Rules
+# Kocteau Design
 
-[Docs index](../README.md) | [Motion rules](./motion-rules.md) | [Web roadmap](../web-roadmap.md) | [Backlog](../backlog.md)
+[Repository README](./README.md) | [Current state](./CURRENT.md) | [Product](./PRODUCT.md) | [Web roadmap](./docs/web-roadmap.md)
 
-These notes distill the interface and animation direction from the Kocteau
-design reading notes. Use them together with `AGENTS.md` and
-`docs/ai/motion-rules.md`.
+This is the canonical visual, interaction, and motion contract for Kocteau. Use it with `AGENTS.md`; specialized implementation details may remain under `docs/`, but they must not override this document.
 
 Kocteau should not feel like a generic generated app. Shipping a working screen
 is not enough. The interface should feel considered through many small details:
@@ -94,6 +92,38 @@ Prefer:
 - Exit motion should be subtle, often a small fixed `y` offset plus opacity,
   rather than a large dramatic movement.
 - Respect `prefers-reduced-motion`.
+
+### Motion Contract
+
+- CSS interaction transitions: `150ms` to `240ms` using `var(--kocteau-ease)` or `cubic-bezier(0.2, 0, 0, 1)`.
+- Motion springs: `type: "spring"`, `duration: 0.18` to `0.32`, and normally `bounce: 0`.
+- Press feedback: `scale(0.96)` only when it makes a control feel tactile.
+- Enter motion: `y: 6` to `12`, opacity from `0`, and at most a subtle `blur(4px)`.
+- Exit motion: smaller and quieter than entry, usually `y: -8` to `-12` with opacity.
+- Contextual icon swaps: opacity, scale from `0.25` to `1`, and optional blur from `4px` to `0`.
+- Use `AnimatePresence initial={false}` for controls that already have a stable page-load state.
+
+Use CSS transitions for interruptible state changes. Use `motion/react` only for shared layout, gestures, springs, or staged state changes that make continuity clearer.
+
+### Motion Patterns
+
+Good uses:
+
+- search or review launcher open and close
+- active tab indicators
+- dialog and drawer transitions
+- like, save, bookmark, and publish feedback
+- selected track or composer expansion from an existing surface
+- contextual icon and text-state swaps
+
+Avoid motion on:
+
+- loading skeletons
+- entire feed columns
+- full-page backgrounds
+- static navigation icons
+- large decorative rail modules
+- any interaction that makes the user wait to understand state
 
 ## Gesture Rules
 

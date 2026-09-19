@@ -1,6 +1,6 @@
 # Kocteau Core Architecture
 
-[Docs index](./README.md) | [MVP baseline](./mvp.md) | [Discovery and curation](./discovery-curation.md)
+[Docs index](./README.md) | [Product contract](../PRODUCT.md) | [Discovery and curation](./discovery-curation.md)
 
 ## Decision
 

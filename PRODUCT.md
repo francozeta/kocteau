@@ -1,6 +1,8 @@
-# Kocteau MVP
+# Kocteau Product
 
-[Docs index](./README.md) | [Web roadmap](./web-roadmap.md) | [Discovery and curation](./discovery-curation.md) | [Backlog](./backlog.md) | [Operations](./operations.md)
+[Repository README](./README.md) | [Current state](./CURRENT.md) | [Design](./DESIGN.md) | [Web roadmap](./docs/web-roadmap.md) | [Discovery and curation](./docs/discovery-curation.md)
+
+This is the canonical product contract for Kocteau. It records the product loop, present scope, and explicit boundaries; detailed execution notes live in the specialized documents under `docs/`.
 
 ## Vision
 

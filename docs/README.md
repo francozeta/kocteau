@@ -4,7 +4,9 @@
 
 ## Product Direction
 
-- [MVP baseline](./mvp.md): current product loop, scope, and out-of-scope guardrails.
+- [Current project state](../CURRENT.md): active phase, decisions, known gaps, and next priority.
+- [Product contract](../PRODUCT.md): current product loop, scope, and out-of-scope guardrails.
+- [Design contract](../DESIGN.md): visual, interaction, and motion direction.
 - [Core architecture](./core-architecture.md): minimal product boundaries, reduction rules, and the future Go extraction path.
 - [Web roadmap](./web-roadmap.md): phased web product direction and execution order.
 - [Discovery and curation](./discovery-curation.md): hybrid recommendation philosophy, signal contract, starter curation, and future RFC lanes.
@@ -25,11 +27,6 @@
 - [Supabase maintainer workflow](./maintainers/supabase-workflow.md): versioned Supabase Cloud migration flow for maintainers.
 - [GitHub rules](./maintainers/github-rules.md): repository settings, branch protection, labels, and Actions permissions.
 
-## Interface Craft
-
-- [Interface craft rules](./ai/interface-craft-rules.md): visual and interaction direction for Kocteau UI work.
-- [Motion rules](./ai/motion-rules.md): when and how to use motion in the web app.
-
 ## Historical Specs
 
 - [Public maintainer automation design](./superpowers/specs/2026-05-05-public-maintainer-automation-design.md): prior design spec for public maintainer automation.
@@ -37,6 +34,6 @@
 ## Where To Start
 
 - New contributor: read [CONTRIBUTING.md](../CONTRIBUTING.md), then [local development](./setup/local-development.md), then [public backlog](./backlog.md).
-- Product/design contributor: read [MVP baseline](./mvp.md), [web roadmap](./web-roadmap.md), and [interface craft rules](./ai/interface-craft-rules.md).
+- Product/design contributor: read the [product contract](../PRODUCT.md), [design contract](../DESIGN.md), and [web roadmap](./web-roadmap.md).
 - Recommendation or analytics contributor: read [discovery and curation](./discovery-curation.md), [operations](./operations.md), and the sensitive-system notes in [public backlog](./backlog.md).
-- Maintainer: read [operations](./operations.md), [Supabase maintainer workflow](./maintainers/supabase-workflow.md), [release automation](./maintainers/release.md), and [GitHub rules](./maintainers/github-rules.md).
+- Maintainer: read [current project state](../CURRENT.md), [operations](./operations.md), [Supabase maintainer workflow](./maintainers/supabase-workflow.md), [release automation](./maintainers/release.md), and [GitHub rules](./maintainers/github-rules.md).

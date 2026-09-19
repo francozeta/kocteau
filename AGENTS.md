@@ -6,6 +6,77 @@ Kocteau should feel closer to Letterboxd, Apple Music editorial, and a quiet mus
 
 ---
 
+## Repository Operating Contract
+
+### Source Of Truth
+
+Use this order when gathering context:
+
+1. `AGENTS.md` defines how repository work must be performed.
+2. `PRODUCT.md` defines the product loop, current scope, and out-of-scope guardrails.
+3. `DESIGN.md` defines visual, interaction, and motion decisions.
+4. `CURRENT.md` records the current phase, active work, decisions, blockers, and next priority.
+5. `README.md` and `docs/README.md` route setup and specialized documentation.
+
+Before repository work, read `AGENTS.md` and `CURRENT.md` completely. Read `PRODUCT.md`, `DESIGN.md`, and specialized documents when the task touches their domain. Inspect the current branch, worktree status, and recent commits before changing files. Reconcile written status with repository evidence rather than trusting stale prose blindly.
+
+### Ownership And Authorship
+
+- Franco Zeta is the repository owner, product author, and public author of Kocteau.
+- Assistants and automation are implementation tools. They must not present themselves as authors or become part of the repository's public identity.
+- Preserve the Git identity configured by the maintainer. Never change `user.name`, `user.email`, signing settings, or authorship metadata.
+- Do not add assistant co-authors, `Co-authored-by` trailers, generated-by notices, bot signatures, model names, vendor names, or AI disclosures to commits, pull requests, release notes, documentation, source comments, or product copy.
+- Do not mention the tool used to produce a change unless the maintainer explicitly asks for that information.
+
+### Session Continuity
+
+- `CURRENT.md` is the concise public handoff between maintainers, contributors, and work sessions. It is a current-state document, not a diary or changelog.
+- Update `CURRENT.md` automatically whenever work changes the active phase, in-review status, a decision, a blocker, a verification or deployment caveat, or the next priority. The maintainer should not need to request this separately.
+- Do not manufacture an update for a trivial edit that changes none of those fields.
+- Keep `CURRENT.md` short, evidence-based, and safe for an open-source repository.
+- Do not place chat transcripts, assistant names, secrets, environment values, private links, personal data, speculative shipped claims, or long historical narratives in `CURRENT.md`.
+- Do not duplicate stable product, design, or implementation rules in `CURRENT.md`; link to their canonical document instead.
+- At the end of meaningful work, ensure `CURRENT.md` reflects what is actually committed, in review, blocked, or next. A local experiment is not shipped work.
+
+### Working Notes And Plans
+
+- Plans, scratch notes, and implementation checklists are working memory, not public documentation by default.
+- Keep short plans in the active session. If a persistent local file is genuinely useful, store it under the path returned by `git rev-parse --git-path agent-plans` so it remains local in normal clones and linked worktrees.
+- Do not add generated plans or specs to `docs/` unless the maintainer explicitly asks for a public RFC, design record, or long-lived contributor document.
+- Promote only durable outcomes: update `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `CURRENT.md`, a relevant specialized document, or the implementation itself.
+- Remove obsolete local planning notes when the task is complete. Do not make contributors navigate process artifacts to understand the product.
+
+### Branches, Commits, And Pull Requests
+
+Every new task branch must use:
+
+```text
+<type>/<short-kebab-description>
+```
+
+Allowed types are `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `chore`, `build`, `ci`, and `revert`.
+
+Examples:
+
+```text
+feat/search-discovery-canvas
+fix/search-mobile-selection
+docs/repository-continuity
+```
+
+- Never use assistant, model, vendor, automation, personal, or generated prefixes. Disallowed examples include `codex/`, `copilot/`, `claude/`, `chatgpt/`, `ai/`, `agent/`, and `bot/`.
+- If the active branch violates this convention, create a correctly named task branch before implementation. Do not rename or delete a shared branch without explicit maintainer direction.
+- Keep `main` releasable. Do not commit directly to `main` unless the maintainer explicitly requests it.
+- An approved request to implement, fix, refactor, document, or optimize authorizes creating a focused local task branch and making focused local commits after proportional verification.
+- Use Conventional Commits for every new commit and pull-request title: `<type>(optional-scope): <imperative summary>`.
+- Keep commits cohesive and exclude unrelated user changes, secrets, logs, verification-only screenshots, and generated test output.
+- Inspect the final diff before every commit. Preserve existing user changes and do not rewrite unrelated files.
+- Local implementation and commits do not authorize publishing. Push, pull-request creation or updates, merge, release, force-push, amendment of published commits, and shared-history rewrites require explicit maintainer direction.
+- When the maintainer says the work is ready for a pull request, push the task branch and open or update the PR with the product outcome, important implementation decisions, and verification performed.
+- Never merge a pull request unless the maintainer explicitly requests the merge.
+
+---
+
 ## 1. Product Truths
 
 - Kocteau is a music review and taste discovery product.
@@ -69,8 +140,7 @@ Use the existing stack and patterns:
 
 Prefer existing project conventions over new abstractions.
 
-For motion-specific decisions, use [docs/ai/motion-rules.md](./docs/ai/motion-rules.md).
-For interface craft, visual polish, color, typography, and gesture decisions, use [docs/ai/interface-craft-rules.md](./docs/ai/interface-craft-rules.md).
+For interface craft, visual polish, color, typography, gesture, and motion decisions, use [DESIGN.md](./DESIGN.md).
 
 ---
 
