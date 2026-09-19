@@ -1,6 +1,6 @@
 # Kocteau Web Roadmap
 
-[Docs index](./README.md) | [MVP baseline](./mvp.md) | [Discovery and curation](./discovery-curation.md) | [Backlog](./backlog.md) | [Operations](./operations.md)
+[Docs index](./README.md) | [Product contract](../PRODUCT.md) | [Discovery and curation](./discovery-curation.md) | [Backlog](./backlog.md) | [Operations](./operations.md)
 
 ## Scope
 
@@ -88,7 +88,7 @@ Mostly shipped. The primary product direction is now OTP-first auth, taste onboa
 
 ### Likely Files
 
-- `docs/mvp.md`
+- `PRODUCT.md`
 - `docs/web-roadmap.md`
 - `apps/web/app/(main)/layout.tsx`
 - `apps/web/components/app-sidebar.tsx`
