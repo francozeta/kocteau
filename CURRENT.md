@@ -13,8 +13,8 @@ The immediate product goal is to make discovery feel distinctive and to create a
 
 ## Active Work
 
-- Repository continuity rules and canonical root documents are being finalized locally on `docs/repository-continuity`.
-- The branch has not been pushed and no pull request exists yet.
+- Repository continuity rules and canonical root documents are published from `docs/repository-continuity`.
+- Pull request [#198](https://github.com/francozeta/kocteau/pull/198) is under review for integration into `main`.
 - `/search` is the next product surface scheduled for focused UI/UX research and design before implementation.
 
 ## Decisions In Force
