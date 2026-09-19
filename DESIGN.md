@@ -95,8 +95,8 @@ Prefer:
 
 ### Motion Contract
 
-- CSS interaction transitions: `160ms` to `220ms` using `var(--kocteau-ease)` or `cubic-bezier(0.2, 0, 0, 1)`.
-- Motion springs: `type: "spring"`, `duration: 0.3`, and `bounce: 0`.
+- CSS interaction transitions: `150ms` to `240ms` using `var(--kocteau-ease)` or `cubic-bezier(0.2, 0, 0, 1)`.
+- Motion springs: `type: "spring"`, `duration: 0.18` to `0.32`, and normally `bounce: 0`.
 - Press feedback: `scale(0.96)` only when it makes a control feel tactile.
 - Enter motion: `y: 6` to `12`, opacity from `0`, and at most a subtle `blur(4px)`.
 - Exit motion: smaller and quieter than entry, usually `y: -8` to `-12` with opacity.

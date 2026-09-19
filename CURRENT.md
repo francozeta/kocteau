@@ -23,7 +23,7 @@ The immediate product goal is to make discovery feel distinctive and to create a
 - Search remains available for signed-out browsing where possible; authentication begins when an action requires an account.
 - The route must preserve progressive result lanes and cancellation of stale search work.
 - Search should lead toward stable canonical Kocteau entity routes rather than provider-shaped duplicate destinations.
-- Editorial starter picks may support cold-start density. Fake users, reviews, ratings, and engagement remain forbidden.
+- Editorial starter picks may support cold-start density, subject to the integrity guardrails in `AGENTS.md` and `PRODUCT.md`.
 - Desktop and mobile may use different compositions, but they must preserve the same discovery model and navigation outcome.
 - Search polish must keep the dark, editorial, minimal direction while allowing album artwork and intentional spatial disorder to carry personality.
 - Task plans and scratch specs stay local by default; only durable decisions belong in the public documentation set.
