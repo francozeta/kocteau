@@ -36,6 +36,16 @@ export default function GlobalShortcuts({
     }
 
     function handleOpenSearch() {
+      const input = document.querySelector<HTMLInputElement>("[data-global-search-input]");
+      if (input) {
+        input.focus();
+        return;
+      }
+      const trigger = document.querySelector<HTMLButtonElement>("[data-global-search-trigger]");
+      if (trigger) {
+        trigger.click();
+        return;
+      }
       router.push("/search");
     }
 

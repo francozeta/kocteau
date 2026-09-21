@@ -1,7 +1,7 @@
 # Current Project State
 
 Last verified: 2026-09-21
-Base: `origin/main` at `0037d42`
+Base: `origin/main` at `085e14d` (discovery canvas and navigation merged in #199)
 
 Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
 
@@ -13,15 +13,20 @@ and floating-cover visual direction.
 
 ## Active Work
 
-- Implementation on `feat/search-discovery-canvas`; publication requested for
-  product review, without merging into `main`.
+- Review branch: `feat/search-contextual-actions`; contextual actions are not
+  merged into `main`.
 - Compact responsive navigation distinguishes song, album, and artist seeds.
   Scope controls filter seed search, not the current canvas. Candidate generation
   still returns tracks; mixed-type curation is not implemented yet.
 - Current music identity and back navigation share one quiet context area.
   Secondary actions use the existing desktop dialog / mobile drawer primitives.
-- Desktop Search uses the existing header; mobile keeps its bottom dock. The
-  floating Review/Open-track bar is removed; the entity page is a secondary link.
+- Desktop Search uses the existing header; mobile keeps its bottom dock.
+  Selecting music reveals contextual actions without a duplicate cover card.
+  Tracks reuse sharing, the global composer, and the library mutation; albums
+  and artists offer sharing and their existing page. Search is always recoverable.
+- Canvas saving is an idempotent add, not a library toggle with assumed state.
+  Library writes retain existing authentication; saves do not yet feed the local
+  canvas evaluator. Canonical pages remain secondary destinations and share URLs.
 - Search results and covers open branches in place. Fast/deep catalog lanes share
   a query cache; stale work is cancelled and late responses cannot change another branch.
 - Back/forward and reload restore bounded session snapshots. Resolved branches
@@ -47,7 +52,11 @@ and floating-cover visual direction.
 - Browser checks passed for signed-out desktop (1440×900), mobile (390×844),
   seed selection, branch expansion, back/reload, keyboard activation, reduced
   motion preference, failed requests/retry, and horizontal overflow.
-- Signed-in visual verification and cross-device behavior are not verified.
+- Production-browser checks cover type scopes, 320px layout, contextual actions,
+  drawer layering, search recovery/shortcut, composer opening, guest save guard,
+  and canonical share payload (native share stubbed). Memory reset and new-canvas
+  persistence were checked separately.
+- Signed-in saving/publishing and cross-device behavior are not verified.
 - Build completed with existing slow upstream-data diagnostics; lint emitted
   existing JSX parser notices without failing.
 

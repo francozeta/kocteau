@@ -1,6 +1,7 @@
 "use client";
 import {
   type KeyboardEvent,
+  type ReactNode,
   useRef,
   useState,
   useSyncExternalStore,
@@ -64,6 +65,7 @@ function getResultMetadataLabel(result: KocteauSearchResult) {
 }
 
 type DiscoverySearchProps = {
+  actions?: ReactNode;
   scope: SearchScope;
   query: string;
   results: KocteauSearchResult[];
@@ -77,6 +79,7 @@ type DiscoverySearchProps = {
 };
 
 export default function DiscoverySearch({
+  actions,
   scope,
   query,
   results,
@@ -120,6 +123,11 @@ export default function DiscoverySearch({
     onQueryChange("");
     inputRef.current?.blur();
     setIsFocused(false);
+    requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLButtonElement>("[data-global-search-trigger]")
+        ?.focus(),
+    );
   };
 
   const submitSearch = () => {
@@ -309,10 +317,37 @@ export default function DiscoverySearch({
     </form>
   );
 
+  const showActions = Boolean(actions) && !isFocused && !query;
+  const dock =
+    mobile && showActions ? (
+      <div className="flex items-center gap-2">
+        {actions}
+        <button
+          type="button"
+          aria-label="Search music"
+          data-global-search-trigger
+          onClick={() => {
+            setIsFocused(true);
+            requestAnimationFrame(() => inputRef.current?.focus());
+          }}
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <KocteauSearchIcon className="size-4" />
+        </button>
+      </div>
+    ) : (
+      searchForm
+    );
+
   return (
     <>
-      {createPortal(searchForm, inputPortalTarget)}
+      {createPortal(dock, inputPortalTarget)}
       {portaledResultList}
+      {!mobile && showActions ? (
+        <div className="absolute bottom-5 left-1/2 z-20 flex w-72 -translate-x-1/2">
+          {actions}
+        </div>
+      ) : null}
     </>
   );
 }

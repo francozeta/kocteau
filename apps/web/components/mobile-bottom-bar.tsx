@@ -44,14 +44,11 @@ type NavItem = {
   active: (pathname: string) => boolean;
 };
 
-function BottomFade({ elevated = false }: { elevated?: boolean }) {
+function BottomFade() {
   return (
     <div
       aria-hidden="true"
-      className={cn(
-        "pointer-events-none fixed inset-x-0 bottom-0 h-28 bg-[linear-gradient(to_top,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)] md:hidden",
-        elevated ? "z-[100000]" : "z-40",
-      )}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-28 bg-[linear-gradient(to_top,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)] md:hidden"
     />
   );
 }
@@ -107,10 +104,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   if (pathname.startsWith("/search")) {
     return (
       <>
-        <BottomFade elevated />
+        <BottomFade />
         <nav
           aria-label="Search controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-[100001] w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-40 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
         >
           <div id="mobile-search-dock" />
         </nav>

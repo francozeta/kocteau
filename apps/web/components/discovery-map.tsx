@@ -6,6 +6,8 @@ import DiscoveryOrbit, {
 } from "@/components/discovery-orbit";
 import DiscoverySearch from "@/components/discovery-search";
 import DiscoveryNavigation from "@/components/discovery-navigation";
+import DiscoveryActions from "@/components/discovery-actions";
+import { OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT } from "@/hooks/use-global-shortcuts";
 import type { SearchScope } from "@/lib/search-types";
 import { useDiscoveryCanvas } from "@/hooks/use-discovery-canvas";
 import {
@@ -37,7 +39,7 @@ function toOrbitItem(
     providerId: seed.provider_id,
     entityId: seed.entityId,
     artistProviderId: seed.artist_provider_id,
-    routeLabel: "Explore",
+    routeLabel: "Find similar music",
     reason,
     href: getDiscoveryEntityPath({
       entityId: seed.entityId,
@@ -153,7 +155,7 @@ export default function DiscoveryMap({
 
       {[false, true].map((mobile) => (
         <DiscoverySearch
-          key={String(mobile)}
+          key={`${mobile}:${orbitSeed?.id ?? "root"}`}
           mobile={mobile}
           scope={searchScope}
           query={seedQuery}
@@ -164,6 +166,16 @@ export default function DiscoveryMap({
           onQueryChange={setSeedQuery}
           onSelect={chooseResult}
           onSubmit={chooseFirst}
+          actions={
+            selectedSeed && orbitSeed ? (
+              <DiscoveryActions
+                key={`${viewerId}:${seedKey(selectedSeed)}`}
+                seed={selectedSeed}
+                href={orbitSeed.href}
+                viewerId={viewerId}
+              />
+            ) : null
+          }
         />
       ))}
 
@@ -171,9 +183,9 @@ export default function DiscoveryMap({
         scope={searchScope}
         onScopeChange={(scope) => {
           setSearchScope(scope);
-          document
-            .querySelector<HTMLInputElement>("[data-global-search-input]")
-            ?.focus();
+          window.dispatchEvent(
+            new CustomEvent(OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT),
+          );
         }}
         seed={selectedSeed}
         href={orbitSeed?.href}

@@ -139,7 +139,9 @@ The official `@kocteau` profile can manage these picks from `/studio/starter` us
 Search finds a starting point; the canvas is the discovery experience. A search
 result, starter pick, or shared discovery route opens a seed. Selecting another
 cover focuses it and expands the same space, preserving a path back. Canonical
-music pages and review creation remain available as secondary destinations.
+music pages remain secondary destinations. A selected track offers sharing,
+review creation, and saving without leaving Search. Album and artist seeds keep
+their existing page actions; this does not introduce new review types.
 
 The first version reuses the existing catalog candidate lanes. A small,
 deterministic evaluator balances artist familiarity, unseen tracks, and lateral

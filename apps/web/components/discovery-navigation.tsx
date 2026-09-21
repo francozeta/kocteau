@@ -131,7 +131,7 @@ export default function DiscoveryNavigation({
             tabIndex={-1}
             className="px-1 text-sm font-medium text-foreground"
           >
-            Explore
+            Search
           </h2>
         )}
         <span role="status" className="ms-1 shrink-0">
