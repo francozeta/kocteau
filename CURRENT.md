@@ -1,56 +1,51 @@
 # Current Project State
 
-Last verified: 2026-09-19
-Base: `origin/main` at `c8716ed`
+Last verified: 2026-09-20
+Base: `origin/main` at `0037d42`
 
-This file is Kocteau's concise public handoff. Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
+Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
 
 ## Current Phase
 
-Kocteau is refining the visible web core after the contextual Settings shell and progressive Search/discovery performance work landed on `origin/main`.
-
-The immediate product goal is to make discovery feel distinctive and to create a clearer path from Search to a canonical track page and review intent. Avoid another infrastructure-only phase unless it directly removes a measured blocker.
+Make Search a personal discovery canvas: choose a seed, explore a cover, expand
+the same space, and return along the path. Preserve the existing dark Feed shell
+and floating-cover visual direction.
 
 ## Active Work
 
-- Repository continuity rules and canonical root documents are published from `docs/repository-continuity`.
-- Pull request [#198](https://github.com/francozeta/kocteau/pull/198) is under review for integration into `main`.
-- `/search` is the next product surface scheduled for focused UI/UX research and design before implementation.
+- Local implementation on `feat/search-discovery-canvas`; not published or merged.
+- Desktop Search uses the existing header; mobile keeps its bottom dock. The
+  floating Review/Open-track bar is removed; the entity page is a secondary link.
+- Search results and covers open branches in place. Fast/deep catalog lanes share
+  a query cache; stale work is cancelled and late responses cannot change another branch.
+- Back/forward and reload restore bounded session snapshots. Resolved branches
+  are not re-ranked when revisited.
+- The deterministic evaluator balances artist familiarity, unseen tracks, and
+  candidate lanes. Ignored covers are not negative signals.
 
-## Decisions In Force
+## Persistence And Scope
 
-- Kocteau remains a music review and taste discovery product, not a streaming player.
-- Search remains available for signed-out browsing where possible; authentication begins when an action requires an account.
-- The route must preserve progressive result lanes and cancellation of stale search work.
-- Search should lead toward stable canonical Kocteau entity routes rather than provider-shaped duplicate destinations.
-- Editorial starter picks may support cold-start density, subject to the integrity guardrails in `AGENTS.md` and `PRODUCT.md`.
-- Desktop and mobile may use different compositions, but they must preserve the same discovery model and navigation outcome.
-- Search polish must keep the dark, editorial, minimal direction while allowing album artwork and intentional spatial disorder to carry personality.
-- Task plans and scratch specs stay local by default; only durable decisions belong in the public documentation set.
+- Up to 12 session steps expire after eight hours. Up to 80 local opening/revisit
+  aggregates expire after 30 days; account and guest storage are separate.
+- Personalization is browser-local, not cross-device or synchronized with the
+  existing review/taste graph. Start fresh clears this local exploration memory.
+- Public candidate responses remain shared and unpersonalized. Advanced curation,
+  additional intelligence layers, and Atlas remain outside this implementation.
+- No auth, RLS, schema, or For You ranking changes.
 
-## Known Gaps
+## Verification
 
-- The desktop search input currently begins inside the discovery canvas. Moving it into the main-content header may improve hierarchy and preserve more space for exploration.
-- The focused or selected-track component reads too much like a detached player/review control and is especially weak on mobile.
-- The value of an intermediate selected-track card is unresolved. Direct navigation to the canonical track route may be clearer, with review creation available there.
-- The canvas does not yet fully express the desired feeling of a young listener's disordered notebook or an expansive music catalog.
-- The right balance between visible starter picks, catalog density, legibility, and rendering cost needs evidence before implementation.
+- 74 unit tests passed, including ranking, history, stale-response rejection,
+  bounds, and storage validation; web lint, TypeScript, and production build passed.
+- Browser checks passed for signed-out desktop (1440×900), mobile (390×844),
+  seed selection, branch expansion, back/reload, keyboard activation, reduced
+  motion preference, failed requests/retry, and horizontal overflow.
+- Signed-in visual verification and cross-device behavior are not verified.
+- Build completed with existing slow upstream-data diagnostics; lint emitted
+  existing JSX parser notices without failing.
 
 ## Next Priority
 
-Research and design the `/search` discovery flow, concentrating on:
-
-1. desktop input placement in the main-content header;
-2. an intentionally scattered, explorable cover field with more useful density;
-3. the click, focus, keyboard, and touch behavior for tracks;
-4. whether selection should navigate directly to the canonical track route;
-5. a mobile composition that does not reproduce the current selected-track bar;
-6. preservation of performance, accessibility, and signed-out discovery.
-
-Implement Search only after the interaction model and acceptance criteria are explicit.
-
-## Verification Notes
-
-- `origin/main` includes `feat(settings): add contextual settings shell (#194)`.
-- Search/discovery performance work landed through `perf(search): cancel stale work and preserve discovery lanes (#193)` and `perf(discovery): split progressive recommendation lanes (#191)`.
-- Repository continuity changes are documentation-only and require Markdown, link, diff, and Git-history verification before review.
+Review the discovery loop with real listening paths, especially candidate
+relevance, repetition, and continuity on mobile. Keep this branch local until
+the maintainer requests publication.

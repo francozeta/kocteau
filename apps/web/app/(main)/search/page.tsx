@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import DiscoverEditorialEdition from "@/components/discover-editorial-edition";
+import { getCurrentUserId } from "@/lib/auth/server";
 import { getDiscoverySeedPath } from "@/lib/discovery/seed";
 import { createPageMetadata } from "@/lib/metadata";
 import { getPublicStarterTracks } from "@/lib/queries/starter";
@@ -38,10 +39,10 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const initialQuery = params.q?.trim() ?? "";
-  const starterTracks = await getPublicStarterTracks({
-    limit: 18,
-    contextKey: "search-orbit",
-  });
+  const [starterTracks, viewerId] = await Promise.all([
+    getPublicStarterTracks({ limit: 32, contextKey: "search-orbit" }),
+    getCurrentUserId(),
+  ]);
   const legacySeedTrack = params.seed
     ? starterTracks.find((track) => track.provider_id === params.seed)
     : null;
@@ -59,6 +60,7 @@ export default async function SearchPage({
   return (
     <DiscoverEditorialEdition
       starterTracks={starterTracks}
+      viewerId={viewerId}
       initialQuery={initialQuery}
     />
   );

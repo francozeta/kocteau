@@ -134,7 +134,25 @@ When there are not enough real reviews to rank, For You uses the Starter Layer: 
 
 The official `@kocteau` profile can manage these picks from `/studio/starter` using the same Deezer search source as review creation. Curators can attach taste tags or create lightweight new tags; when a user reviews a starter pick, those editorial tags are synced onto the created entity so later recommendations can reuse the signal. In the feed, starter picks behave as a lightweight taste queue: users can pass on a pick or open the review flow without scanning a long grid.
 
-## 6. Social interactions
+## 6. Search as a personal discovery canvas
+
+Search finds a starting point; the canvas is the discovery experience. A search
+result, starter pick, or shared discovery route opens a seed. Selecting another
+cover focuses it and expands the same space, preserving a path back. Canonical
+music pages and review creation remain available as secondary destinations.
+
+The first version reuses the existing catalog candidate lanes. A small,
+deterministic evaluator balances artist familiarity, unseen tracks, and lateral
+discovery. It is replaceable independently of Search and the 3D renderer.
+Opening and revisiting music are signals; ignoring a cover is not a dislike.
+
+Browser-local memory is scoped by account (or guest), bounded, expiring, and
+resettable. Detailed paths belong to the current session, not permanent event
+storage. Cross-device taste synchronization, advanced curation, and additional
+intelligence layers are deferred. This does not reintroduce Atlas or a knowledge
+graph, and it does not change For You ranking or authentication.
+
+## 7. Social interactions
 
 The MVP now includes lightweight social behavior:
 
@@ -147,7 +165,7 @@ The MVP now includes lightweight social behavior:
 
 These actions are product features and recommendation signals.
 
-## 7. Track and profile pages
+## 8. Track and profile pages
 
 Track route:
 
@@ -171,7 +189,7 @@ Shows:
 - pinned/recent reviews
 - user activity surface
 
-## 8. Lightweight analytics
+## 9. Lightweight analytics
 
 Kocteau stores minimal first-party events in Supabase:
 

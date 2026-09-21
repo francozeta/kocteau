@@ -144,6 +144,21 @@ Avoid motion on:
   product reason and with controlled contrast.
 - If adding a new accent, explain what product meaning it carries.
 
+## Search Canvas
+
+- Preserve the Feed shell's dimensions and dark background; desktop Search lives
+  in its existing header, while mobile uses the existing bottom dock.
+- Floating covers, negative space, and restrained spatial disorder carry the
+  personality. Do not replace the canvas with a dashboard or a visible graph.
+- Selecting a cover expands discovery in place. Keep some previous covers and
+  their positions so the space remains recognizable; back restores the earlier
+  composition. The entity page is an explicit secondary link.
+- Do not restore the floating Review/Open-track action bar. Keep context and
+  back/reset controls small and separate from the search input.
+- Search results use an opaque surface and structural skeletons. Keyboard users
+  must be able to choose seeds and expand covers without manipulating WebGL.
+- Stop automatic rotation for reduced motion and pause rendering offscreen.
+
 ## UI Review Checklist
 
 Before calling a UI change done, check:

@@ -87,7 +87,7 @@ export async function getPublicStarterTracks({
   seed?: string;
   contextKey?: string | null;
 } = {}): Promise<StarterTrack[]> {
-  const requestedLimit = Math.max(1, Math.min(limit, 12));
+  const requestedLimit = Math.max(1, Math.min(limit, 32));
   const rotationSeed = `${seed ?? createStarterRotationSeed()}:${contextKey ?? "public"}`;
 
   return getOrCreateLoader(

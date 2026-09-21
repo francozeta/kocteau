@@ -192,10 +192,22 @@ export default function Header({
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:block md:px-7 xl:px-8">
-          <div className="mx-auto flex w-full max-w-[76rem] items-center">
-            <span className="truncate font-pixel text-[0.82rem] font-medium tracking-[-0.012em] text-foreground/92">
-              {standardHeaderTitle}
-            </span>
+          <div
+            className={cn(
+              "mx-auto flex w-full max-w-[76rem] items-center",
+              isSearchRoute && "justify-center",
+            )}
+          >
+            {isSearchRoute ? (
+              <div
+                data-kocteau-search-header-slot
+                className="pointer-events-auto w-[calc(100%-8rem)] max-w-2xl"
+              />
+            ) : (
+              <span className="truncate font-pixel text-[0.82rem] font-medium tracking-[-0.012em] text-foreground/92">
+                {standardHeaderTitle}
+              </span>
+            )}
           </div>
         </div>
 

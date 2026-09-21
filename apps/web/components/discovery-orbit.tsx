@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import PrefetchLink from "@/components/prefetch-link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ImageSphere } from "@/lib/discovery/image-sphere";
 import type { SearchEntityType } from "@/lib/search-types";
@@ -20,31 +19,12 @@ export type DiscoveryOrbitItem = {
   artistProviderId: string | null;
 };
 
-type DiscoveryOrbitSeed = {
-  id: string;
-  title: string;
-  artistName: string | null;
-  coverUrl: string | null;
-  href: string;
-  type: SearchEntityType;
-};
-
-type SphereDisplayItem = {
-  id: string;
-  title: string;
-  artistName: string | null;
+type SphereDisplayItem = DiscoveryOrbitItem & {
   coverUrl: string;
-  href: string;
-  type: SearchEntityType;
-  routeLabel: string;
-  reason: string;
-  providerId?: string;
-  entityId?: string | null;
-  artistProviderId?: string | null;
 };
 
 type DiscoveryOrbitProps = {
-  seed?: DiscoveryOrbitSeed | null;
+  seed?: DiscoveryOrbitItem | null;
   items: DiscoveryOrbitItem[];
   centerSeed?: boolean;
   onSelect: (item: DiscoveryOrbitItem) => void;
@@ -66,6 +46,7 @@ export default function DiscoveryOrbit({
   const hostRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const sphereRef = useRef<ImageSphere | null>(null);
+  const [canvasUnavailable, setCanvasUnavailable] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<{
     x: number;
@@ -79,8 +60,7 @@ export default function DiscoveryOrbit({
               ...seed,
               coverUrl: seed.coverUrl,
               routeLabel: "Starting from",
-              reason:
-                "The point you chose. Every cover around it opens another route.",
+              reason: "Choose another cover to explore a new branch.",
             },
           ]
         : []),
@@ -101,7 +81,7 @@ export default function DiscoveryOrbit({
         seenCovers.add(key);
         return true;
       })
-      .slice(0, isMobile ? 14 : 24);
+      .slice(0, isMobile ? 16 : 30);
   }, [isMobile, items, seed]);
   const imageUrls = useMemo(
     () => sphereItems.map((item) => item.coverUrl),
@@ -124,7 +104,7 @@ export default function DiscoveryOrbit({
   useEffect(() => {
     const host = hostRef.current;
 
-    if (!host || imageUrlsRef.current.length === 0) {
+    if (!host) {
       return;
     }
 
@@ -155,43 +135,47 @@ export default function DiscoveryOrbit({
     observer.observe(host);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
-    void import("@/lib/discovery/image-sphere").then(({ ImageSphere }) => {
-      if (disposed) {
-        return;
-      }
+    void import("@/lib/discovery/image-sphere")
+      .then(({ ImageSphere }) => {
+        if (disposed) {
+          return;
+        }
 
-      const compactViewport = host.clientWidth < 640;
-      sphere = new ImageSphere(host, imageUrlsRef.current, {
-        distance: compactViewport ? 590 : 545,
-        fov: compactViewport ? 29 : 25,
-        autoRotate: !reducedMotion.matches,
-        reducedMotion: reducedMotion.matches,
-        anchorIndex: centerSeedRef.current && seedRef.current ? 0 : undefined,
-        onHoverChange: (index, position) => {
-          setHoveredIndex(index);
-          setHoverPosition(position ?? null);
-        },
-        onHoverMove: (position) => {
-          if (tooltipRef.current) {
-            tooltipRef.current.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) translateX(-50%)`;
-          }
-        },
-        onSelect: (index) => {
-          const item = sphereItemsRef.current[index];
+        const compactViewport = host.clientWidth < 640;
+        sphere = new ImageSphere(host, imageUrlsRef.current, {
+          distance: compactViewport ? 590 : 545,
+          fov: compactViewport ? 29 : 25,
+          autoRotate: !reducedMotion.matches,
+          reducedMotion: reducedMotion.matches,
+          anchorIndex: centerSeedRef.current && seedRef.current ? 0 : undefined,
+          onHoverChange: (index, position) => {
+            setHoveredIndex(index);
+            setHoverPosition(position ?? null);
+          },
+          onHoverMove: (position) => {
+            if (tooltipRef.current) {
+              tooltipRef.current.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) translateX(-50%)`;
+            }
+          },
+          onSelect: (index) => {
+            const item = sphereItemsRef.current[index];
 
-          if (item?.providerId) {
-            onSelectRef.current(item as DiscoveryOrbitItem);
-          }
-        },
+            if (item) {
+              onSelectRef.current(item);
+            }
+          },
+        });
+        sphereRef.current = sphere;
+
+        if (onScreen && !document.hidden) {
+          sphere.start();
+        } else {
+          sphere.renderStill();
+        }
+      })
+      .catch(() => {
+        if (!disposed) setCanvasUnavailable(true);
       });
-      sphereRef.current = sphere;
-
-      if (onScreen && !document.hidden) {
-        sphere.start();
-      } else {
-        sphere.renderStill();
-      }
-    });
 
     return () => {
       disposed = true;
@@ -208,10 +192,6 @@ export default function DiscoveryOrbit({
     });
   }, [centerSeed, imageUrls, seed]);
 
-  if (sphereItems.length === 0) {
-    return null;
-  }
-
   const hoveredItem =
     hoveredIndex !== null ? (sphereItems[hoveredIndex] ?? null) : null;
 
@@ -222,11 +202,27 @@ export default function DiscoveryOrbit({
         className="relative h-full min-h-0 overflow-hidden bg-transparent"
         aria-label="A draggable 3D sphere of music covers"
       >
-        <div className="sr-only">
+        <div
+          aria-label="Music covers in this discovery map"
+          className={
+            canvasUnavailable
+              ? "grid max-h-full grid-cols-2 gap-3 overflow-y-auto p-4 pb-28 pt-32 sm:grid-cols-3"
+              : undefined
+          }
+        >
           {sphereItems.map((item) => (
-            <PrefetchLink key={item.id} href={item.href}>
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => onSelect(item)}
+              className={
+                canvasUnavailable
+                  ? "min-h-11 rounded-md bg-[var(--kocteau-surface-control)] p-3 text-start text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  : "sr-only focus:not-sr-only focus:fixed focus:bottom-20 focus:left-1/2 focus:z-[100002] focus:flex focus:min-h-11 focus:max-w-[calc(100%-2rem)] focus:-translate-x-1/2 focus:items-center focus:rounded-full focus:bg-black focus:px-4 focus:font-pixel focus:text-xs focus:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/80 md:focus:absolute md:focus:bottom-5"
+              }
+            >
               {item.title} by {getArtistLabel(item)} — {item.routeLabel}
-            </PrefetchLink>
+            </button>
           ))}
         </div>
 
