@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import DiscoverEditorialEdition from "@/components/discover-editorial-edition";
+import { getCurrentUserId } from "@/lib/auth/server";
 import { isDeezerProviderId } from "@/lib/deezer";
 import { createPageMetadata } from "@/lib/metadata";
 import { getDiscoverySeed } from "@/lib/queries/discovery-seed";
@@ -47,9 +48,10 @@ export default async function DiscoveryRoute({ params }: DiscoveryRouteProps) {
     notFound();
   }
 
-  const [initialSeed, starterTracks] = await Promise.all([
+  const [initialSeed, starterTracks, viewerId] = await Promise.all([
     getDiscoverySeed(route.type, route.providerId),
-    getPublicStarterTracks({ limit: 18, contextKey: "search-orbit" }),
+    getPublicStarterTracks({ limit: 32, contextKey: "search-orbit" }),
+    getCurrentUserId(),
   ]);
 
   if (!initialSeed) {
@@ -59,6 +61,7 @@ export default async function DiscoveryRoute({ params }: DiscoveryRouteProps) {
   return (
     <DiscoverEditorialEdition
       starterTracks={starterTracks}
+      viewerId={viewerId}
       initialSeed={initialSeed}
     />
   );

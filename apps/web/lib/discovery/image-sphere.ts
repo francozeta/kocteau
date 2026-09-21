@@ -58,12 +58,28 @@ function hashFraction(value: string) {
   return (hash >>> 0) / 4_294_967_295;
 }
 
+export function getImageSphereLayoutStyle(imageUrl: string) {
+  return {
+    scale: 0.84 + hashFraction(`${imageUrl}:scale`) * 0.32,
+    tilt: (hashFraction(`${imageUrl}:tilt`) - 0.5) * 0.1,
+    verticalJitter:
+      (hashFraction(`${imageUrl}:vertical`) - 0.5) * 0.18,
+    radiusJitter: (hashFraction(`${imageUrl}:radius`) - 0.5) * 72,
+    angleJitter: (hashFraction(`${imageUrl}:angle`) - 0.5) * 0.9,
+  };
+}
+
 function getSphereHome(index: number, count: number, imageUrl: string) {
   const safeCount = Math.max(1, count);
-  const vertical = 1 - (2 * (index + 0.5)) / safeCount;
+  const layoutStyle = getImageSphereLayoutStyle(imageUrl);
+  const vertical = THREE.MathUtils.clamp(
+    1 - (2 * (index + 0.5)) / safeCount + layoutStyle.verticalJitter,
+    -0.94,
+    0.94,
+  );
   const ring = Math.sqrt(Math.max(0, 1 - vertical * vertical));
-  const angle = GOLDEN_ANGLE * index + hashFraction(imageUrl) * 0.4;
-  const radius = RADIUS + (hashFraction(`${imageUrl}:radius`) - 0.5) * 54;
+  const angle = GOLDEN_ANGLE * index + layoutStyle.angleJitter;
+  const radius = RADIUS + layoutStyle.radiusJitter;
 
   return new THREE.Vector3(
     radius * ring * Math.cos(angle),
@@ -271,14 +287,21 @@ export class ImageSphere {
         this.removalTimers.delete(removalTimer);
       }
 
+      const wasAnchor = reusable.userData.isAnchor;
       reusable.userData.index = index;
       reusable.userData.stale = false;
       reusable.userData.isAnchor = index === anchorIndex;
+      reusable.userData.baseScale =
+        index === anchorIndex ? 1 : getImageSphereLayoutStyle(url).scale;
+      reusable.userData.tilt =
+        index === anchorIndex ? 0 : getImageSphereLayoutStyle(url).tilt;
       reusable.userData.removalTimer = undefined;
       reusable.userData.homeTarget =
         index === anchorIndex
           ? undefined
-          : getSphereHome(index, nextUrls.length, url);
+          : wasAnchor
+            ? getSphereHome(index, nextUrls.length, url)
+            : reusable.userData.homeTarget;
     });
 
     for (const plane of this.planes) {
@@ -350,6 +373,7 @@ export class ImageSphere {
         material.depthTest = true;
         material.depthWrite = false;
         const plane = new THREE.Mesh(geometry, material) as PlaneMesh;
+        const layoutStyle = getImageSphereLayoutStyle(url);
         plane.userData = {
           index,
           isHovered: false,
@@ -359,6 +383,8 @@ export class ImageSphere {
           imageUrl: url,
           stale: false,
           isAnchor: index === anchorIndex,
+          baseScale: index === anchorIndex ? 1 : layoutStyle.scale,
+          tilt: index === anchorIndex ? 0 : layoutStyle.tilt,
         };
         material.opacity = 0;
 
@@ -707,6 +733,7 @@ export class ImageSphere {
       }
 
       plane.quaternion.copy(this.invQuat);
+      plane.rotateZ((plane.userData.tilt as number | undefined) ?? 0);
       if (
         plane.position.x !== home.x ||
         plane.position.y !== home.y ||
@@ -720,7 +747,8 @@ export class ImageSphere {
       const depthScale = getDepthScale(depth);
       const isHovered = plane.userData.isHovered === true;
       const isPressed = plane.userData.isPressed === true;
-      let targetScale = depthScale;
+      let targetScale =
+        depthScale * ((plane.userData.baseScale as number | undefined) ?? 1);
 
       if (isHovered) {
         targetScale *= HOVER_SCALE;
@@ -784,14 +812,16 @@ export class ImageSphere {
       }
 
       plane.quaternion.copy(this.invQuat);
+      plane.rotateZ((plane.userData.tilt as number | undefined) ?? 0);
       plane.getWorldPosition(this.worldPos);
       const depth = this.worldPos.z;
       const depthScale = getDepthScale(depth);
       const isAnchor = plane.userData.isAnchor === true;
-      const scale =
-        isAnchor
-          ? depthScale * ANCHOR_SCALE
-          : depthScale;
+      const baseScale =
+        (plane.userData.baseScale as number | undefined) ?? 1;
+      const scale = isAnchor
+        ? depthScale * ANCHOR_SCALE
+        : depthScale * baseScale;
       plane.scale.set(scale, scale, scale);
       const opacity = isAnchor ? 1 : getDepthOpacity(depth);
       plane.userData.opacity = opacity;
