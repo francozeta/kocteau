@@ -1,6 +1,6 @@
 # Current Project State
 
-Last verified: 2026-09-20
+Last verified: 2026-09-21
 Base: `origin/main` at `0037d42`
 
 Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
@@ -13,7 +13,13 @@ and floating-cover visual direction.
 
 ## Active Work
 
-- Local implementation on `feat/search-discovery-canvas`; not published or merged.
+- Implementation on `feat/search-discovery-canvas`; publication requested for
+  product review, without merging into `main`.
+- Compact responsive navigation distinguishes song, album, and artist seeds.
+  Scope controls filter seed search, not the current canvas. Candidate generation
+  still returns tracks; mixed-type curation is not implemented yet.
+- Current music identity and back navigation share one quiet context area.
+  Secondary actions use the existing desktop dialog / mobile drawer primitives.
 - Desktop Search uses the existing header; mobile keeps its bottom dock. The
   floating Review/Open-track bar is removed; the entity page is a secondary link.
 - Search results and covers open branches in place. Fast/deep catalog lanes share
@@ -28,7 +34,8 @@ and floating-cover visual direction.
 - Up to 12 session steps expire after eight hours. Up to 80 local opening/revisit
   aggregates expire after 30 days; account and guest storage are separate.
 - Personalization is browser-local, not cross-device or synchronized with the
-  existing review/taste graph. Start fresh clears this local exploration memory.
+  existing review/taste graph. New canvas preserves taste; Clear discovery memory
+  explicitly resets it from Canvas options.
 - Public candidate responses remain shared and unpersonalized. Advanced curation,
   additional intelligence layers, and Atlas remain outside this implementation.
 - No auth, RLS, schema, or For You ranking changes.
@@ -47,5 +54,5 @@ and floating-cover visual direction.
 ## Next Priority
 
 Review the discovery loop with real listening paths, especially candidate
-relevance, repetition, and continuity on mobile. Keep this branch local until
-the maintainer requests publication.
+relevance, repetition, and continuity on mobile. Gather product feedback on the
+pull request before expanding curation or merging.

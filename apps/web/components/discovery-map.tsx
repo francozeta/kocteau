@@ -5,7 +5,8 @@ import DiscoveryOrbit, {
   type DiscoveryOrbitItem,
 } from "@/components/discovery-orbit";
 import DiscoverySearch from "@/components/discovery-search";
-import PrefetchLink from "@/components/prefetch-link";
+import DiscoveryNavigation from "@/components/discovery-navigation";
+import type { SearchScope } from "@/lib/search-types";
 import { useDiscoveryCanvas } from "@/hooks/use-discovery-canvas";
 import {
   useKocteauSearch,
@@ -72,10 +73,11 @@ export default function DiscoveryMap({
   );
   const canvas = useDiscoveryCanvas(starterSeeds, initialSeed, viewerId);
   const selectedSeed = canvas.frame.focus;
+  const [searchScope, setSearchScope] = useState<SearchScope>("all");
   const [seedQuery, setSeedQuery] = useState(initialQuery);
   const seedSearch = useKocteauSearch({
     query: seedQuery,
-    type: "all",
+    type: searchScope,
     enabled: seedQuery.trim().length >= 2,
     debounceMs: 80,
   });
@@ -132,7 +134,7 @@ export default function DiscoveryMap({
 
   return (
     <section
-      className="relative h-svh min-h-0 overflow-hidden bg-transparent lg:h-[calc(100dvh-5.25rem)]"
+      className="relative flex h-svh min-h-0 flex-col overflow-hidden bg-transparent pt-[calc(env(safe-area-inset-top)+4rem)] md:pt-0 lg:h-[calc(100dvh-5.25rem)]"
       aria-labelledby="discovery-map-title"
       data-kocteau-full-width
       data-kocteau-search-surface
@@ -142,7 +144,7 @@ export default function DiscoveryMap({
       </h2>
       <div
         data-kocteau-search-results-surface
-        className="pointer-events-none absolute inset-0 z-30 [&>*]:pointer-events-auto"
+        className="pointer-events-none absolute inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+7.5rem)] z-30 md:top-16 [&>*]:pointer-events-auto"
       />
       <div
         className="kocteau-discovery-dither pointer-events-none absolute inset-0 z-0"
@@ -153,6 +155,7 @@ export default function DiscoveryMap({
         <DiscoverySearch
           key={String(mobile)}
           mobile={mobile}
+          scope={searchScope}
           query={seedQuery}
           results={seedResults}
           isSearching={seedSearch.isFetching}
@@ -164,7 +167,24 @@ export default function DiscoveryMap({
         />
       ))}
 
-      <div className="absolute inset-0 z-10 overflow-hidden">
+      <DiscoveryNavigation
+        scope={searchScope}
+        onScopeChange={(scope) => {
+          setSearchScope(scope);
+          document
+            .querySelector<HTMLInputElement>("[data-global-search-input]")
+            ?.focus();
+        }}
+        seed={selectedSeed}
+        href={orbitSeed?.href}
+        pending={canvas.isExpanding}
+        canGoBack={canvas.canGoBack}
+        onBack={canvas.back}
+        onRestart={canvas.restart}
+        onForget={canvas.forget}
+      />
+
+      <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
         <DiscoveryOrbit
           seed={orbitSeed}
           items={orbitItems}
@@ -172,45 +192,6 @@ export default function DiscoveryMap({
           onSelect={selectCover}
         />
       </div>
-
-      {selectedSeed && orbitSeed ? (
-        <nav
-          aria-label="Canvas path"
-          className="absolute inset-x-4 top-[calc(env(safe-area-inset-top)+4.5rem)] z-20 flex min-w-0 items-start gap-3 lg:inset-x-6 lg:top-3"
-        >
-          {canvas.canGoBack ? (
-            <button
-              type="button"
-              onClick={canvas.back}
-              className="min-h-11 shrink-0 rounded-full bg-[var(--kocteau-surface-control)] px-3 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Back
-            </button>
-          ) : null}
-          <div className="min-w-0 py-2">
-            <PrefetchLink
-              href={orbitSeed.href}
-              data-discovery-focus
-              className="block max-w-64 truncate rounded-sm text-xs text-foreground underline decoration-foreground/25 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {selectedSeed.title}
-            </PrefetchLink>
-            <p className="mt-1 text-[10px] text-muted-foreground" role="status">
-              {canvas.isExpanding
-                ? "Finding new paths…"
-                : "Choose a cover to keep exploring."}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={canvas.forget}
-            title="Clear exploration memory on this browser"
-            className="ms-auto min-h-11 shrink-0 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Start fresh
-          </button>
-        </nav>
-      ) : null}
 
       {canvas.hasError ? (
         <button

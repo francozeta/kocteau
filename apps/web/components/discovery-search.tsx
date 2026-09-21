@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { KocteauSearchResult } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import type { SearchScope } from "@/lib/search-types";
 
 function subscribeToPortalTargets(onStoreChange: () => void) {
   const observer = new MutationObserver(onStoreChange);
@@ -63,6 +64,7 @@ function getResultMetadataLabel(result: KocteauSearchResult) {
 }
 
 type DiscoverySearchProps = {
+  scope: SearchScope;
   query: string;
   results: KocteauSearchResult[];
   isSearching: boolean;
@@ -75,6 +77,7 @@ type DiscoverySearchProps = {
 };
 
 export default function DiscoverySearch({
+  scope,
   query,
   results,
   isSearching,
@@ -86,6 +89,10 @@ export default function DiscoverySearch({
   mobile = false,
 }: DiscoverySearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchLabel =
+    scope === "all"
+      ? "Search a song, album, or artist"
+      : `Search ${scope === "track" ? "songs" : `${scope}s`}`;
   const [isFocused, setIsFocused] = useState(Boolean(query));
   const isMobileViewport = useIsMobile();
   const inputPortalTarget = useSyncExternalStore(
@@ -135,7 +142,7 @@ export default function DiscoverySearch({
       className={cn(
         "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
         mobile
-          ? "bg-black px-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-[calc(env(safe-area-inset-top)+4.5rem)] sm:px-6"
+          ? "bg-black px-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-3 sm:px-6"
           : "bg-[var(--kocteau-shell)] px-6 pb-8 pt-5",
       )}
     >
@@ -236,7 +243,7 @@ export default function DiscoverySearch({
     >
       <div className="relative min-w-0">
         <label htmlFor={inputId} className="sr-only">
-          Search a song, album, or artist
+          {searchLabel}
         </label>
         <KocteauSearchIcon className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.05rem] -translate-y-1/2 text-muted-foreground/62" />
         <Input
@@ -261,7 +268,7 @@ export default function DiscoverySearch({
             event.preventDefault();
             closeSearch();
           }}
-          placeholder="Search a song, album, or artist…"
+          placeholder={`${searchLabel}…`}
           autoComplete="off"
           maxLength={80}
           aria-expanded={showResults}

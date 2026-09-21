@@ -212,8 +212,7 @@ export function useDiscoveryCanvas(
       setSession({ ...session, cursor: session.cursor - 1 });
   };
 
-  const forget = () => {
-    setMemory([]);
+  const restart = () => {
     setSession({
       frames: [createCanvasFrame(seeds, null, crypto.randomUUID())],
       cursor: 0,
@@ -222,6 +221,11 @@ export function useDiscoveryCanvas(
       { ...window.history.state, discovery: null },
       "",
     );
+  };
+
+  const forget = () => {
+    restart();
+    setMemory([]);
     try {
       localStorage.removeItem(memoryKey);
       sessionStorage.removeItem(`${memoryKey}:session`);
@@ -235,6 +239,7 @@ export function useDiscoveryCanvas(
     explore,
     back,
     forget,
+    restart,
     canGoBack: session.cursor > 0,
     isExpanding: Boolean(
       ready &&

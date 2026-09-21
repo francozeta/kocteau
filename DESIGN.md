@@ -157,6 +157,10 @@ Avoid motion on:
   back/reset controls small and separate from the search input.
 - Search results use an opaque surface and structural skeletons. Keyboard users
   must be able to choose seeds and expand covers without manipulating WebGL.
+- Song, album, and artist scopes filter seed search; they do not hide the active
+  canvas. Keep back navigation and current identity compact, with secondary
+  actions in the existing dialog/drawer pattern. Starting a new canvas must not
+  silently erase taste memory.
 - Stop automatic rotation for reduced motion and pause rendering offscreen.
 
 ## UI Review Checklist
