@@ -153,8 +153,12 @@ Avoid motion on:
 - Selecting a cover expands discovery in place. Keep some previous covers and
   their positions so the space remains recognizable; back restores the earlier
   composition. The entity page is an explicit secondary link.
-- Do not restore the floating Review/Open-track action bar. Keep context and
-  back/reset controls small and separate from the search input.
+- Do not duplicate music identity in a floating card. Selecting a cover reveals
+  a compact action dock: share, review, and save for tracks; open and share for
+  albums/artists. Mobile replaces the search input with this dock and a search
+  button; desktop keeps search in the header. Hover alone must not switch it.
+- Keep canonical routes as explicit destinations and share targets. Discovery
+  stays in Search; do not merge these route responsibilities without validation.
 - Search results use an opaque surface and structural skeletons. Keyboard users
   must be able to choose seeds and expand covers without manipulating WebGL.
 - Song, album, and artist scopes filter seed search; they do not hide the active
