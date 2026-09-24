@@ -177,8 +177,8 @@ export default function Header({
         aria-hidden="true"
       />
 
-      <div className="relative z-10 flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
-        <div className="relative z-10 flex items-center gap-2">
+      <div className="group/search-header relative z-10 flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
+        <div className="relative z-10 flex items-center gap-2 max-md:group-has-[[data-kocteau-search-mobile-header-slot]:not(:empty)]/search-header:invisible">
           <Button
             type="button"
             variant="ghost"
@@ -211,7 +211,14 @@ export default function Header({
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-1.5">
+        {isSearchRoute ? (
+          <div
+            data-kocteau-search-mobile-header-slot
+            className="pointer-events-auto absolute inset-0 empty:hidden md:hidden"
+          />
+        ) : null}
+
+        <div className="relative z-10 flex items-center gap-1.5 max-md:group-has-[[data-kocteau-search-mobile-header-slot]:not(:empty)]/search-header:invisible">
           {shouldUseContextualHeader ? (
             <div className="hidden items-center gap-1 md:flex">
               <button

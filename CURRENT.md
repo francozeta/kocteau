@@ -1,7 +1,7 @@
 # Current Project State
 
-Last verified: 2026-09-21
-Base: `origin/main` at `085e14d` (discovery canvas and navigation merged in #199)
+Last verified: 2026-09-24
+Base: `origin/main` at `8e95f4a` (contextual canvas actions merged in #200)
 
 Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
 
@@ -13,17 +13,21 @@ and floating-cover visual direction.
 
 ## Active Work
 
-- Review branch: `feat/search-contextual-actions`; contextual actions are not
-  merged into `main`.
+- Active branch: `feat/search-action-dock-polish`; publication requested for
+  product review, without merging into `main`.
 - Compact responsive navigation distinguishes song, album, and artist seeds.
   Scope controls filter seed search, not the current canvas. Candidate generation
   still returns tracks; mixed-type curation is not implemented yet.
-- Current music identity and back navigation share one quiet context area.
-  Secondary actions use the existing desktop dialog / mobile drawer primitives.
+- Mobile selected music uses the existing header: cover, title, artist, and a
+  back arrow that returns to all starter covers. Sharing and memory actions use
+  the existing options drawer; desktop retains previous-canvas navigation.
 - Desktop Search uses the existing header; mobile keeps its bottom dock.
-  Selecting music reveals contextual actions without a duplicate cover card.
+  Selecting music reveals contextual actions and a single header identity.
   Tracks reuse sharing, the global composer, and the library mutation; albums
   and artists offer sharing and their existing page. Search is always recoverable.
+- Mobile scopes sit above the input. Selection replaces them with two slim text
+  actions (Review / Save, or Open / Share) and a separate search control. The
+  canvas remains visible behind floating controls, without opaque mobile strips.
 - Canvas saving is an idempotent add, not a library toggle with assumed state.
   Library writes retain existing authentication; saves do not yet feed the local
   canvas evaluator. Canonical pages remain secondary destinations and share URLs.

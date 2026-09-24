@@ -1,11 +1,5 @@
 "use client";
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/kocteau-icons";
@@ -14,35 +8,9 @@ import { XIcon } from "@/components/ui/icons";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { KocteauSearchResult } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePortalTarget } from "@/hooks/use-portal-target";
 import { cn } from "@/lib/utils";
 import type { SearchScope } from "@/lib/search-types";
-
-function subscribeToPortalTargets(onStoreChange: () => void) {
-  const observer = new MutationObserver(onStoreChange);
-
-  observer.observe(document.body, { childList: true, subtree: true });
-  return () => observer.disconnect();
-}
-
-function getMobileSearchDockSnapshot() {
-  return document.getElementById("mobile-search-dock");
-}
-
-function getMobileSearchDockServerSnapshot() {
-  return null;
-}
-
-function getSearchResultsTargetSnapshot() {
-  return document.querySelector<HTMLElement>(
-    "[data-kocteau-search-results-surface]",
-  );
-}
-
-function getDesktopSearchInputTargetSnapshot() {
-  return document.querySelector<HTMLElement>(
-    "[data-kocteau-search-header-slot]",
-  );
-}
 
 function getResultTypeLabel(result: KocteauSearchResult) {
   if (result.type === "artist") return result.artist_type || "Artist";
@@ -98,15 +66,11 @@ export default function DiscoverySearch({
       : `Search ${scope === "track" ? "songs" : `${scope}s`}`;
   const [isFocused, setIsFocused] = useState(Boolean(query));
   const isMobileViewport = useIsMobile();
-  const inputPortalTarget = useSyncExternalStore(
-    subscribeToPortalTargets,
-    mobile ? getMobileSearchDockSnapshot : getDesktopSearchInputTargetSnapshot,
-    getMobileSearchDockServerSnapshot,
+  const inputPortalTarget = usePortalTarget(
+    mobile ? "#mobile-search-dock" : "[data-kocteau-search-header-slot]",
   );
-  const resultsPortalTarget = useSyncExternalStore(
-    subscribeToPortalTargets,
-    getSearchResultsTargetSnapshot,
-    getMobileSearchDockServerSnapshot,
+  const resultsPortalTarget = usePortalTarget(
+    "[data-kocteau-search-results-surface]",
   );
   const hasQuery = query.trim().length >= 2;
   const isActiveViewport = mobile === isMobileViewport;
@@ -150,7 +114,7 @@ export default function DiscoverySearch({
       className={cn(
         "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
         mobile
-          ? "bg-black px-3 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-3 sm:px-6"
+          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+8rem)] pt-3 sm:px-6"
           : "bg-[var(--kocteau-shell)] px-6 pb-8 pt-5",
       )}
     >
@@ -330,13 +294,18 @@ export default function DiscoverySearch({
             setIsFocused(true);
             requestAnimationFrame(() => inputRef.current?.focus());
           }}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <KocteauSearchIcon className="size-4" />
+          <span className="flex size-9 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] ring-1 ring-inset ring-white/[0.08]">
+            <KocteauSearchIcon className="size-4" />
+          </span>
         </button>
       </div>
     ) : (
-      searchForm
+      <div className="grid gap-1">
+        {mobile ? <div data-discovery-mobile-filters /> : null}
+        {searchForm}
+      </div>
     );
 
   return (
@@ -344,7 +313,7 @@ export default function DiscoverySearch({
       {createPortal(dock, inputPortalTarget)}
       {portaledResultList}
       {!mobile && showActions ? (
-        <div className="absolute bottom-5 left-1/2 z-20 flex w-72 -translate-x-1/2">
+        <div className="absolute bottom-5 left-1/2 z-20 flex w-[17rem] -translate-x-1/2">
           {actions}
         </div>
       ) : null}

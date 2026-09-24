@@ -153,10 +153,16 @@ Avoid motion on:
 - Selecting a cover expands discovery in place. Keep some previous covers and
   their positions so the space remains recognizable; back restores the earlier
   composition. The entity page is an explicit secondary link.
-- Do not duplicate music identity in a floating card. Selecting a cover reveals
-  a compact action dock: share, review, and save for tracks; open and share for
-  albums/artists. Mobile replaces the search input with this dock and a search
-  button; desktop keeps search in the header. Hover alone must not switch it.
+- Mobile search scopes sit directly above the bottom input, without an opaque
+  strip or a second navigation row at the top. Controls float over the canvas.
+- Selecting music on mobile replaces the header with one compact cover/title/
+  artist link. The leading back arrow replaces the sidebar trigger and returns
+  to all starter covers; the trailing options button holds sharing and memory
+  actions. Desktop retains its existing header and previous-canvas navigation.
+- The mobile selected-track dock has two text actions, Review and Save, plus a
+  separate search icon. Visible surfaces are 36px high inside 44px touch targets.
+  Album/artist seeds offer Open and Share. Recovering search restores its scopes
+  and input. Hover alone must not switch the dock.
 - Keep canonical routes as explicit destinations and share targets. Discovery
   stays in Search; do not merge these route responsibilities without validation.
 - Search results use an opaque surface and structural skeletons. Keyboard users

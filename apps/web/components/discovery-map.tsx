@@ -146,7 +146,7 @@ export default function DiscoveryMap({
       </h2>
       <div
         data-kocteau-search-results-surface
-        className="pointer-events-none absolute inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+7.5rem)] z-30 md:top-16 [&>*]:pointer-events-auto"
+        className="pointer-events-none absolute inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+4rem)] z-30 md:top-16 [&>*]:pointer-events-auto"
       />
       <div
         className="kocteau-discovery-dither pointer-events-none absolute inset-0 z-0"
@@ -173,6 +173,7 @@ export default function DiscoveryMap({
                 seed={selectedSeed}
                 href={orbitSeed.href}
                 viewerId={viewerId}
+                mobile={mobile}
               />
             ) : null
           }
@@ -192,8 +193,14 @@ export default function DiscoveryMap({
         pending={canvas.isExpanding}
         canGoBack={canvas.canGoBack}
         onBack={canvas.back}
-        onRestart={canvas.restart}
-        onForget={canvas.forget}
+        onRestart={() => {
+          setSeedQuery("");
+          canvas.restart();
+        }}
+        onForget={() => {
+          setSeedQuery("");
+          canvas.forget();
+        }}
       />
 
       <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
