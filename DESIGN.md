@@ -153,8 +153,10 @@ Avoid motion on:
 - Selecting a cover expands discovery in place. Keep some previous covers and
   their positions so the space remains recognizable; back restores the earlier
   composition. The entity page is an explicit secondary link.
-- Mobile search scopes sit directly above the bottom input, without an opaque
-  strip or a second navigation row at the top. Controls float over the canvas.
+- Mobile search scopes sit directly above the bottom input as slim rounded
+  chips using the same opaque control surface as the input. The Home
+  header gradient also softens the top and bottom edges of the canvas. The
+  artwork extends behind the header so no solid band interrupts the fade.
 - Selecting music on mobile replaces the header with one compact cover/title/
   artist link. The leading back arrow replaces the sidebar trigger and returns
   to all starter covers; the trailing options button holds sharing and memory

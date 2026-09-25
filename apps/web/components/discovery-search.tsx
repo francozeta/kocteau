@@ -297,7 +297,7 @@ export default function DiscoverySearch({
           className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex size-9 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] ring-1 ring-inset ring-white/[0.08]">
-            <KocteauSearchIcon className="size-4" />
+            <KocteauSearchIcon className="size-[1.125rem]" />
           </span>
         </button>
       </div>

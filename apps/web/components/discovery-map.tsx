@@ -136,7 +136,7 @@ export default function DiscoveryMap({
 
   return (
     <section
-      className="relative flex h-svh min-h-0 flex-col overflow-hidden bg-transparent pt-[calc(env(safe-area-inset-top)+4rem)] md:pt-0 lg:h-[calc(100dvh-5.25rem)]"
+      className="relative flex h-svh min-h-0 flex-col overflow-hidden bg-transparent lg:h-[calc(100dvh-5.25rem)]"
       aria-labelledby="discovery-map-title"
       data-kocteau-full-width
       data-kocteau-search-surface
