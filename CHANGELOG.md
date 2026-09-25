@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.16](https://github.com/francozeta/kocteau/compare/v0.3.15...v0.3.16) (2026-09-25)
+
+
+### Features
+
+* polish search action dock and improve mobile navigation experience ([2c8c444](https://github.com/francozeta/kocteau/commit/2c8c444c146d052789c3415484e4234a31c4f375))
+
+
+### Bug Fixes
+
+* **search:** refine mobile fades and filter controls ([#203](https://github.com/francozeta/kocteau/issues/203)) ([a0de952](https://github.com/francozeta/kocteau/commit/a0de952ce9c38390a911298d52a422d1042da1a1))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.15 ([#201](https://github.com/francozeta/kocteau/issues/201)) ([78194d1](https://github.com/francozeta/kocteau/commit/78194d1fb95122d571f9584293a8636256e7741f))
+
 ## [0.3.15](https://github.com/francozeta/kocteau/compare/v0.3.14...v0.3.15) (2026-09-21)
 
 
