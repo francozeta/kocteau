@@ -1,7 +1,7 @@
 # Current Project State
 
-Last verified: 2026-09-24
-Base: `origin/main` at `8e95f4a` (contextual canvas actions merged in #200)
+Last verified: 2026-09-25
+Base: `origin/main` at `78194d1` (public v0.3.15 changelog)
 
 Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
 
@@ -13,8 +13,7 @@ and floating-cover visual direction.
 
 ## Active Work
 
-- Active branch: `feat/search-action-dock-polish`; publication requested for
-  product review, without merging into `main`.
+- Review branch: `feat/search-action-dock-polish`; awaiting product feedback.
 - Compact responsive navigation distinguishes song, album, and artist seeds.
   Scope controls filter seed search, not the current canvas. Candidate generation
   still returns tracks; mixed-type curation is not implemented yet.
@@ -25,9 +24,10 @@ and floating-cover visual direction.
   Selecting music reveals contextual actions and a single header identity.
   Tracks reuse sharing, the global composer, and the library mutation; albums
   and artists offer sharing and their existing page. Search is always recoverable.
-- Mobile scopes sit above the input. Selection replaces them with two slim text
-  actions (Review / Save, or Open / Share) and a separate search control. The
-  canvas remains visible behind floating controls, without opaque mobile strips.
+- Mobile scopes sit above the input as slim opaque chips. Selection replaces them
+  with two slim text actions (Review / Save, or Open / Share) and a separate
+  search control. Home's dark edge gradient frames the floating controls;
+  the canvas extends behind the top header fade.
 - Canvas saving is an idempotent add, not a library toggle with assumed state.
   Library writes retain existing authentication; saves do not yet feed the local
   canvas evaluator. Canonical pages remain secondary destinations and share URLs.
@@ -53,7 +53,7 @@ and floating-cover visual direction.
 
 - 74 unit tests passed, including ranking, history, stale-response rejection,
   bounds, and storage validation; web lint, TypeScript, and production build passed.
-- Browser checks passed for signed-out desktop (1440×900), mobile (390×844),
+- Browser checks passed for signed-out desktop (1440×900), mobile (320×720 and 390×844),
   seed selection, branch expansion, back/reload, keyboard activation, reduced
   motion preference, failed requests/retry, and horizontal overflow.
 - Production-browser checks cover type scopes, 320px layout, contextual actions,

@@ -77,7 +77,7 @@ export default function DiscoveryNavigation({
     <div
       role="group"
       aria-label="Search for"
-      className="no-scrollbar flex min-w-0 items-center gap-1 overflow-x-auto"
+      className="no-scrollbar flex min-w-0 items-center gap-0.5 overflow-x-auto"
     >
       {scopes.map((option) => (
         <button
@@ -85,14 +85,18 @@ export default function DiscoveryNavigation({
           type="button"
           aria-pressed={scope === option.value}
           onClick={() => onScopeChange(option.value)}
-          className={cn(
-            "min-h-11 shrink-0 rounded-full px-3 text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-            scope === option.value
-              ? "font-medium text-foreground underline decoration-foreground/70 decoration-2 underline-offset-8 md:rounded-full md:bg-foreground/[0.075] md:no-underline"
-              : "text-muted-foreground hover:text-foreground",
-          )}
+          className="group flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {option.label}
+          <span
+            className={cn(
+              "flex min-h-7 items-center rounded-full px-2.5 transition-colors duration-150",
+              scope === option.value
+                ? "bg-[var(--kocteau-surface-control-hover)] text-foreground"
+                : "bg-[var(--kocteau-surface-control)] text-muted-foreground group-hover:text-foreground",
+            )}
+          >
+            {option.label}
+          </span>
         </button>
       ))}
     </div>
@@ -160,7 +164,7 @@ export default function DiscoveryNavigation({
           aria-label="Canvas options"
           className={iconButton}
         >
-          <KocteauMoreIcon className="size-4" />
+          <KocteauMoreIcon className="size-[1.125rem]" />
         </button>
       </Trigger>
       <Content className={mobile ? "px-4 pb-8" : "max-w-sm"}>
@@ -237,7 +241,7 @@ export default function DiscoveryNavigation({
                     );
                   }}
                 >
-                  <ComposeChevronLeftIcon className="size-5" />
+                  <ComposeChevronLeftIcon className="size-[1.25rem]" />
                 </button>
                 <PrefetchLink
                   href={href}
