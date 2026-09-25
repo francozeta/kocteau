@@ -169,6 +169,7 @@ export default function Header({
   const standardHeader = (
     <header className={cn(
       "pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:pointer-events-auto md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
+      isSearchRoute && "md:shadow-none",
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
     )}>
@@ -192,17 +193,15 @@ export default function Header({
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:block md:px-7 xl:px-8">
-          <div
-            className={cn(
-              "mx-auto flex w-full max-w-[76rem] items-center",
-              isSearchRoute && "justify-center",
-            )}
-          >
+          <div className={cn("mx-auto flex w-full max-w-[76rem] items-center", isSearchRoute && !profile && "pe-20")}>
             {isSearchRoute ? (
-              <div
-                data-kocteau-search-header-slot
-                className="pointer-events-auto w-[calc(100%-8rem)] max-w-2xl"
-              />
+              <div className="flex w-full min-w-0 items-center gap-2">
+                <div data-kocteau-search-desktop-identity-slot className="pointer-events-auto w-12 shrink-0 lg:w-24 lg:has-[[data-selected-music-card]]:w-52 xl:has-[[data-selected-music-card]]:w-60" />
+                <div data-kocteau-search-header-slot className="pointer-events-auto min-w-0 max-w-[21rem] flex-1" />
+                <div data-kocteau-search-desktop-filters-slot className="pointer-events-auto hidden shrink-0 empty:hidden lg:block" />
+                <div data-kocteau-search-desktop-actions-slot className="pointer-events-auto shrink-0 empty:hidden" />
+                <div data-kocteau-search-desktop-options-slot className="pointer-events-auto shrink-0 lg:hidden" />
+              </div>
             ) : (
               <span className="truncate font-pixel text-[0.82rem] font-medium tracking-[-0.012em] text-foreground/92">
                 {standardHeaderTitle}

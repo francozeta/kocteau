@@ -1,10 +1,46 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { enforceRateLimit, rateLimits } from "@/lib/rate-limit";
+import { isDeezerProviderId } from "@/lib/deezer";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import { supabaseServer } from "@/lib/supabase/server";
 import { entityLibraryMutationSchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
+
+export async function GET(req: Request) {
+  const providerId = new URL(req.url).searchParams.get("providerId");
+
+  if (!providerId || !isDeezerProviderId(providerId)) {
+    return NextResponse.json({ error: "Invalid track." }, { status: 400 });
+  }
+
+  const supabase = await supabaseServer();
+  const { data: auth } = await supabase.auth.getUser();
+
+  if (!auth.user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const { data, error } = await supabase
+    .from("entity_library_items")
+    .select("entity_id, entities!inner(provider, provider_id, type)")
+    .eq("user_id", auth.user.id)
+    .eq("item_type", "library")
+    .eq("entities.provider", "deezer")
+    .eq("entities.provider_id", providerId)
+    .eq("entities.type", "track")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return NextResponse.json({ error: "Could not check library." }, { status: 500 });
+  }
+
+  return NextResponse.json(
+    { saved: Boolean(data) },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
+}
 
 async function resolveEntityId(
   supabase: Awaited<ReturnType<typeof supabaseServer>>,

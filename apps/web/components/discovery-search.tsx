@@ -38,10 +38,10 @@ type DiscoverySearchProps = {
   query: string;
   results: KocteauSearchResult[];
   isSearching: boolean;
-  isExpanding: boolean;
   onQueryChange: (query: string) => void;
   onSubmit: () => boolean;
   onSelect: (result: KocteauSearchResult) => void;
+  onFocusChange?: (focused: boolean) => void;
   hasError: boolean;
   mobile?: boolean;
 };
@@ -52,10 +52,10 @@ export default function DiscoverySearch({
   query,
   results,
   isSearching,
-  isExpanding,
   onQueryChange,
   onSubmit,
   onSelect,
+  onFocusChange,
   hasError,
   mobile = false,
 }: DiscoverySearchProps) {
@@ -72,9 +72,12 @@ export default function DiscoverySearch({
   const resultsPortalTarget = usePortalTarget(
     "[data-kocteau-search-results-surface]",
   );
+  const desktopActionsTarget = usePortalTarget(
+    "[data-kocteau-search-desktop-actions-slot]",
+  );
   const hasQuery = query.trim().length >= 2;
   const isActiveViewport = mobile === isMobileViewport;
-  const showResults = isActiveViewport && isFocused && hasQuery;
+  const showResults = isActiveViewport && isFocused && (mobile ? hasQuery : true);
   const showClose = isFocused || query.length > 0;
   const resultListId = mobile
     ? "mobile-discovery-seed-results"
@@ -83,15 +86,18 @@ export default function DiscoverySearch({
     ? "mobile-discovery-seed-search"
     : "discovery-seed-search";
 
-  const closeSearch = () => {
+  const closeSearch = (restoreFocus = true) => {
     onQueryChange("");
     inputRef.current?.blur();
     setIsFocused(false);
-    requestAnimationFrame(() =>
-      document
-        .querySelector<HTMLButtonElement>("[data-global-search-trigger]")
-        ?.focus(),
-    );
+    onFocusChange?.(false);
+    if (restoreFocus) {
+      requestAnimationFrame(() =>
+        document
+          .querySelector<HTMLButtonElement>("[data-global-search-trigger]")
+          ?.focus(),
+      );
+    }
   };
 
   const submitSearch = () => {
@@ -101,6 +107,7 @@ export default function DiscoverySearch({
 
     inputRef.current?.blur();
     setIsFocused(false);
+    onFocusChange?.(false);
   };
 
   const resultList = showResults ? (
@@ -108,7 +115,6 @@ export default function DiscoverySearch({
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           closeSearch();
-          inputRef.current?.focus();
         }
       }}
       className={cn(
@@ -119,7 +125,7 @@ export default function DiscoverySearch({
       )}
     >
       <div id={resultListId} className="mx-auto w-full max-w-2xl">
-        {isSearching ? (
+        {!hasQuery ? null : isSearching ? (
           <div
             aria-busy="true"
             aria-label="Searching the catalog"
@@ -148,7 +154,7 @@ export default function DiscoverySearch({
                 key={`${result.provider}:${result.type}:${result.provider_id}`}
                 onClick={() => {
                   onSelect(result);
-                  closeSearch();
+                  closeSearch(false);
                 }}
                 className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
               >
@@ -225,7 +231,10 @@ export default function DiscoverySearch({
           data-global-search-input="true"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          onFocus={() => setIsFocused(true)}
+          onFocus={() => {
+            setIsFocused(true);
+            onFocusChange?.(true);
+          }}
           onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
             if (event.key === "ArrowDown" && showResults) {
               event.preventDefault();
@@ -245,14 +254,8 @@ export default function DiscoverySearch({
           maxLength={80}
           aria-expanded={showResults}
           aria-controls={resultListId}
-          className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:text-[13px]"
+          className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]"
         />
-        {isExpanding ? (
-          <span
-            className="pointer-events-none absolute right-3.5 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-foreground/60 motion-safe:animate-pulse"
-            aria-hidden="true"
-          />
-        ) : null}
         <span className="sr-only" role="status" aria-live="polite">
           {hasQuery && !isSearching
             ? `${results.length} search results available.`
@@ -267,9 +270,9 @@ export default function DiscoverySearch({
           aria-hidden={!showClose}
           tabIndex={showClose ? 0 : -1}
           onPointerDown={(event) => event.preventDefault()}
-          onClick={closeSearch}
+          onClick={() => closeSearch()}
           className={cn(
-            "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
+            "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 md:size-8",
             showClose
               ? "scale-100 opacity-100"
               : "pointer-events-none scale-95 opacity-0",
@@ -312,11 +315,9 @@ export default function DiscoverySearch({
     <>
       {createPortal(dock, inputPortalTarget)}
       {portaledResultList}
-      {!mobile && showActions ? (
-        <div className="absolute bottom-5 left-1/2 z-20 flex w-[17rem] -translate-x-1/2">
-          {actions}
-        </div>
-      ) : null}
+      {!mobile && showActions && desktopActionsTarget
+        ? createPortal(actions, desktopActionsTarget)
+        : null}
     </>
   );
 }

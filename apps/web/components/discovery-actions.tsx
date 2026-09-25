@@ -1,10 +1,8 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  KocteauShareIcon,
-  KocteauLibraryIcon,
-} from "@/components/kocteau-icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { KocteauShareIcon } from "@/components/kocteau-icons";
+import { Check, Plus } from "@/components/ui/icons";
 import PrefetchLink from "@/components/prefetch-link";
 import { Spinner } from "@/components/ui/spinner";
 import { openTrackReviewComposer } from "@/hooks/use-global-shortcuts";
@@ -21,12 +19,14 @@ import {
   setEntityLibraryState,
 } from "@/queries/entity-library";
 import type { EntityLibraryState } from "@/lib/library/entity-library";
+import { fetchJson } from "@/queries/http";
+import { cn } from "@/lib/utils";
 
 const secondaryActionClassName =
-  "flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60";
+  "flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60";
 
 const primaryActionClassName =
-  "flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-foreground px-4 text-xs font-medium text-background transition-[background-color,transform] duration-150 hover:bg-foreground/90 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-black";
+  "group flex h-10 min-w-20 items-center justify-center rounded-full text-xs font-medium text-background transition-transform duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-black";
 
 const mobileActionClassName =
   "group flex min-h-11 min-w-0 flex-1 items-center rounded-full text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default";
@@ -46,10 +46,19 @@ export default function DiscoveryActions({
 }) {
   const queryClient = useQueryClient();
   const savedKey = ["discovery-library", viewerId, seed.provider_id] as const;
+  const savedState = useQuery({
+    queryKey: savedKey,
+    queryFn: () =>
+      fetchJson<{ saved: boolean }>(
+        `/api/entities/library?providerId=${encodeURIComponent(seed.provider_id)}`,
+      ),
+    enabled: Boolean(viewerId) && seed.type === "track",
+    staleTime: 60_000,
+  });
   const save = useMutation({
     mutationFn: mutateEntityLibraryItem,
     onSuccess: (result) => {
-      queryClient.setQueryData(savedKey, true);
+      queryClient.setQueryData(savedKey, { saved: true });
       setEntityLibraryState(
         queryClient,
         result.entityId,
@@ -61,14 +70,13 @@ export default function DiscoveryActions({
     onError: (error) =>
       toastActionError(error, "We could not save this song. Try again."),
   });
-  const saved =
-    save.isSuccess ||
-    queryClient.getQueryData<boolean>(savedKey) ||
-    (seed.entityId
-      ? queryClient.getQueryData<EntityLibraryState>(
-          entityLibraryKeys.state(seed.entityId),
-        )?.library
-      : false);
+  const cachedState = seed.entityId
+    ? queryClient.getQueryData<EntityLibraryState>(
+        entityLibraryKeys.state(seed.entityId),
+      )?.library
+    : false;
+  const saved = save.isSuccess || (savedState.data?.saved ?? cachedState);
+  const checkingSavedState = Boolean(viewerId) && savedState.isPending;
   const label = seed.type === "track" ? "song" : seed.type;
   const selection = {
     provider: "deezer" as const,
@@ -132,7 +140,7 @@ export default function DiscoveryActions({
                     ? "Saved to library"
                     : "Save to library"
               }
-              disabled={save.isPending || Boolean(saved)}
+              disabled={save.isPending || checkingSavedState || Boolean(saved)}
               onClick={saveSong}
               className={mobileActionClassName}
             >
@@ -173,9 +181,9 @@ export default function DiscoveryActions({
     <div
       role="group"
       aria-label={`Actions for ${seed.title}`}
-      className="flex min-w-0 flex-1 items-center gap-2"
+      className="flex min-w-0 items-center gap-2"
     >
-      <div className="flex h-11 shrink-0 items-center rounded-full bg-[var(--kocteau-surface-control)] px-0.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.045)]">
+      <div className="flex h-8 shrink-0 items-center rounded-full bg-[var(--kocteau-surface-control)] px-0.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.045)]">
         <button
           type="button"
           aria-label={`Share ${label}`}
@@ -189,25 +197,34 @@ export default function DiscoveryActions({
           <button
             type="button"
             aria-label={
-              save.isPending
-                ? "Saving to library"
+              save.isPending || checkingSavedState
+                ? save.isPending ? "Saving to library" : "Checking library"
                 : saved
                   ? "Saved to library"
                   : "Save to library"
             }
-            aria-pressed={Boolean(saved)}
             title={saved ? "Saved to library" : "Save to library"}
-            disabled={save.isPending || Boolean(saved)}
+            disabled={save.isPending || checkingSavedState || Boolean(saved)}
             className={secondaryActionClassName}
             onClick={saveSong}
           >
-            {save.isPending ? (
+            {save.isPending || checkingSavedState ? (
               <Spinner className="size-4" />
             ) : (
-              <KocteauLibraryIcon
-                className="size-4"
-                weight={saved ? "fill" : "regular"}
-              />
+              <span className="relative size-4" aria-hidden="true">
+                <Plus
+                  className={cn(
+                    "absolute inset-0 size-4 transition-[opacity,transform,filter] duration-150 ease-[var(--kocteau-ease)] motion-reduce:transition-none",
+                    saved ? "scale-[0.25] opacity-0 blur-[4px]" : "scale-100 opacity-100 blur-0",
+                  )}
+                />
+                <Check
+                  className={cn(
+                    "absolute inset-0 size-4 transition-[opacity,transform,filter] duration-150 ease-[var(--kocteau-ease)] motion-reduce:transition-none",
+                    saved ? "scale-100 opacity-100 blur-0" : "scale-[0.25] opacity-0 blur-[4px]",
+                  )}
+                />
+              </span>
             )}
           </button>
         ) : null}
@@ -218,11 +235,11 @@ export default function DiscoveryActions({
           onClick={() => openTrackReviewComposer(selection)}
           className={primaryActionClassName}
         >
-          Review
+          <span className="flex h-8 min-w-20 items-center justify-center rounded-full bg-foreground px-3 transition-colors duration-150 group-hover:bg-foreground/90">Review</span>
         </button>
       ) : (
         <PrefetchLink href={href} className={primaryActionClassName}>
-          Open {seed.type}
+          <span className="flex h-8 min-w-20 items-center justify-center rounded-full bg-foreground px-3 transition-colors duration-150 group-hover:bg-foreground/90">Open {seed.type}</span>
         </PrefetchLink>
       )}
     </div>

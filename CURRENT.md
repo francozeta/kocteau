@@ -13,14 +13,18 @@ and floating-cover visual direction.
 
 ## Active Work
 
-- Review branch: `feat/search-action-dock-polish`; awaiting product feedback.
+- Local follow-up branch: `feat/search-desktop-header-focus`; awaiting product
+  feedback before publication. It builds on `feat/search-action-dock-polish`.
 - Compact responsive navigation distinguishes song, album, and artist seeds.
   Scope controls filter seed search, not the current canvas. Candidate generation
   still returns tracks; mixed-type curation is not implemented yet.
 - Mobile selected music uses the existing header: cover, title, artist, and a
   back arrow that returns to all starter covers. Sharing and memory actions use
   the existing options drawer; desktop retains previous-canvas navigation.
-- Desktop Search uses the existing header; mobile keeps its bottom dock.
+- Desktop Search uses one row in the existing header; mobile keeps its bottom
+  dock. A selected seed appears as a compact cover/title/artist card beside
+  the back control. Search focus covers the canvas with the shell tone while
+  leaving the canvas background unchanged. No separate desktop options row.
   Selecting music reveals contextual actions and a single header identity.
   Tracks reuse sharing, the global composer, and the library mutation; albums
   and artists offer sharing and their existing page. Search is always recoverable.
@@ -29,8 +33,9 @@ and floating-cover visual direction.
   search control. Home's dark edge gradient frames the floating controls;
   the canvas extends behind the top header fade.
 - Canvas saving is an idempotent add, not a library toggle with assumed state.
-  Library writes retain existing authentication; saves do not yet feed the local
-  canvas evaluator. Canonical pages remain secondary destinations and share URLs.
+  The desktop + becomes a check when the song is saved, using an authenticated
+  library lookup. Saves do not yet feed the local canvas evaluator. Canonical
+  pages remain secondary destinations and share URLs.
 - Search results and covers open branches in place. Fast/deep catalog lanes share
   a query cache; stale work is cancelled and late responses cannot change another branch.
 - Back/forward and reload restore bounded session snapshots. Resolved branches
@@ -60,12 +65,15 @@ and floating-cover visual direction.
   drawer layering, search recovery/shortcut, composer opening, guest save guard,
   and canonical share payload (native share stubbed). Memory reset and new-canvas
   persistence were checked separately.
-- Signed-in saving/publishing and cross-device behavior are not verified.
+- The local desktop-header follow-up passed web lint, TypeScript, production
+  build, and 74 unit tests. Browser checks covered signed-out initial, focused,
+  and selected-song states at 1280×800 and selected-song mobile at 390×844. The
+  library lookup rejects signed-out requests. Signed-in saving, publishing,
+  and cross-device behavior are not verified.
 - Build completed with existing slow upstream-data diagnostics; lint emitted
   existing JSX parser notices without failing.
 
 ## Next Priority
 
-Review the discovery loop with real listening paths, especially candidate
-relevance, repetition, and continuity on mobile. Gather product feedback on the
-pull request before expanding curation or merging.
+Review the desktop Search header and selected-song flow, then check candidate
+relevance, repetition, and continuity on mobile before expanding curation.

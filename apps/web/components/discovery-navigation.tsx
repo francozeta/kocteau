@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import EntityCoverImage from "@/components/entity-cover-image";
 import PrefetchLink from "@/components/prefetch-link";
 import { KocteauMoreIcon } from "@/components/kocteau-icons";
-import { ComposeChevronLeftIcon, ExternalLink } from "@/components/ui/icons";
+import { ComposeChevronLeftIcon } from "@/components/ui/icons";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ export default function DiscoveryNavigation({
   seed,
   href,
   pending,
+  searchActive,
   canGoBack,
   onBack,
   onRestart,
@@ -55,6 +56,7 @@ export default function DiscoveryNavigation({
   seed: DiscoverySeed | null;
   href?: string;
   pending: boolean;
+  searchActive: boolean;
   canGoBack: boolean;
   onBack: () => void;
   onRestart: () => void;
@@ -66,6 +68,9 @@ export default function DiscoveryNavigation({
     "[data-kocteau-search-mobile-header-slot]",
   );
   const filtersTarget = usePortalTarget("[data-discovery-mobile-filters]");
+  const desktopIdentityTarget = usePortalTarget("[data-kocteau-search-desktop-identity-slot]");
+  const desktopFiltersTarget = usePortalTarget("[data-kocteau-search-desktop-filters-slot]");
+  const desktopOptionsTarget = usePortalTarget("[data-kocteau-search-desktop-options-slot]");
   const Root = mobile ? Drawer : Dialog;
   const Trigger = mobile ? DrawerTrigger : DialogTrigger;
   const Content = mobile ? DrawerContent : DialogContent;
@@ -84,7 +89,10 @@ export default function DiscoveryNavigation({
           key={option.value}
           type="button"
           aria-pressed={scope === option.value}
-          onClick={() => onScopeChange(option.value)}
+          onClick={() => {
+            setOpen(false);
+            onScopeChange(option.value);
+          }}
           className="group flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span
@@ -102,13 +110,13 @@ export default function DiscoveryNavigation({
     </div>
   );
   const identity = (
-    <div className="flex min-h-14 min-w-0 items-center gap-2">
-      {canGoBack ? (
+    <div className="flex min-h-14 min-w-0 items-center gap-1">
+      {seed ? (
         <button
           type="button"
-          aria-label="Previous canvas"
-          onClick={onBack}
-          className={iconButton}
+          aria-label={canGoBack ? "Previous canvas" : "Back to all music"}
+          onClick={canGoBack ? onBack : onRestart}
+          className="flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ComposeChevronLeftIcon className="size-4" />
         </button>
@@ -117,42 +125,41 @@ export default function DiscoveryNavigation({
         <PrefetchLink
           href={href}
           data-discovery-focus
+          data-selected-music-card
           aria-label={`Open ${typeLabels[seed.type].toLowerCase()}: ${seed.title}`}
-          className="group flex min-h-11 min-w-0 items-center gap-3 rounded-md px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex h-8 min-w-0 flex-1 items-center gap-2 rounded-full bg-[var(--kocteau-surface-control)] py-1 ps-1 pe-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-lg:sr-only"
         >
+          <EntityCoverImage
+            src={seed.cover_url}
+            alt=""
+            sizes="24px"
+            className={cn(
+              "size-6 shrink-0 ring-1 ring-inset ring-white/10",
+              seed.type === "artist" ? "rounded-full" : "rounded-lg",
+            )}
+          />
           <span className="min-w-0">
-            <span className="block truncate text-[10px] text-muted-foreground">
-              {[
-                typeLabels[seed.type],
-                seed.type !== "artist" ? seed.artist_name : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-            <span className="mt-0.5 block truncate text-[13px] font-medium text-foreground">
+            <span className="block truncate text-xs font-medium text-foreground">
               {seed.title}
             </span>
+            <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+              {seed.type === "artist"
+                ? "Artist"
+                : seed.artist_name || typeLabels[seed.type]}
+            </span>
           </span>
-          <ExternalLink className="size-3.5 shrink-0 text-muted-foreground/60 group-hover:text-foreground" />
         </PrefetchLink>
       ) : (
         <h2
           data-discovery-focus
           tabIndex={-1}
-          className="px-1 text-sm font-medium text-foreground"
+          className="px-1 text-sm font-medium text-foreground max-lg:sr-only"
         >
           Search
         </h2>
       )}
-      <span role="status" className="ms-1 shrink-0">
-        <span
-          aria-hidden="true"
-          className={cn(
-            "block size-1 rounded-full bg-foreground/60",
-            !pending && "invisible",
-          )}
-        />
-        <span className="sr-only">{pending ? "Finding new paths…" : ""}</span>
+      <span role="status" className="sr-only">
+        {pending ? "Finding new paths…" : ""}
       </span>
     </div>
   );
@@ -173,6 +180,9 @@ export default function DiscoveryNavigation({
           <Description>Your exploration stays on this browser.</Description>
         </Header>
         <div className="grid gap-1">
+          <div className="mb-2 hidden md:block lg:hidden">
+            {scopeControls}
+          </div>
           {seed && href ? (
             <button
               type="button"
@@ -294,13 +304,19 @@ export default function DiscoveryNavigation({
   }
 
   return (
-    <nav
-      aria-label="Discovery navigation"
-      className="relative z-40 hidden min-h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 px-6 md:grid"
-    >
-      {identity}
-      {scopeControls}
-      {options}
-    </nav>
+    <>
+      {desktopIdentityTarget
+        ? createPortal(
+            <nav aria-label="Discovery navigation" className="min-w-0">
+              {identity}
+            </nav>,
+            desktopIdentityTarget,
+          )
+        : null}
+      {desktopFiltersTarget && (!seed || searchActive)
+        ? createPortal(scopeControls, desktopFiltersTarget)
+        : null}
+      {desktopOptionsTarget ? createPortal(options, desktopOptionsTarget) : null}
+    </>
   );
 }
