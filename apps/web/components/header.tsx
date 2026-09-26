@@ -294,15 +294,19 @@ export default function Header({
           ) : null}
 
           {profile ? null : (
-            <Link href="/login">
-              <Button
-                variant="default"
-                size="sm"
-                className="pointer-events-auto h-8 rounded-full border-0 px-2.5 text-[12px] font-medium shadow-none transition-[background-color,transform] duration-150 ease-out active:scale-[0.96] sm:px-3 sm:text-[13px]"
-              >
+            <Button
+              asChild
+              variant={isSearchRoute ? "secondary" : "default"}
+              size="sm"
+              className={cn(
+                "pointer-events-auto h-8 rounded-full px-2.5 text-[12px] font-medium shadow-none transition-[background-color,transform] duration-150 ease-out active:scale-[0.96] sm:px-3 sm:text-[13px]",
+                isSearchRoute && "border-0 bg-[var(--kocteau-surface-control)] text-foreground/80 hover:bg-[var(--kocteau-surface-control-hover)] hover:text-foreground",
+              )}
+            >
+              <Link href="/login">
                 Log in
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
         </div>
       </div>

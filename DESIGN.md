@@ -64,6 +64,10 @@ Prefer:
 
 ## Controls And Feedback
 
+- Give each view or interaction state one visually dominant action: the next
+  meaningful step for the user. Keep supporting navigation, account entry, and
+  utility actions available but quieter. Do not place two equal-weight filled
+  buttons together unless they truly represent equal choices.
 - Every action needs clear states: default, hover, active, focus-visible,
   disabled, loading, success, and error when applicable.
 - Buttons should have at least a 40px usable hit area on touch surfaces.
@@ -153,6 +157,10 @@ Avoid motion on:
 - Selecting a cover expands discovery in place. Keep some previous covers and
   their positions so the space remains recognizable; back restores the earlier
   composition. The entity page is an explicit secondary link.
+- Give every visible cover a title and artist label that follows its position,
+  without a filled label background or hover-only tooltip. The centered cover
+  remains the current object. Review is the primary track action; sharing and
+  saving remain quieter controls.
 - Mobile search scopes sit directly above the bottom input as slim rounded
   chips using the same opaque control surface as the input. The Home
   header gradient also softens the top and bottom edges of the canvas. The
@@ -165,8 +173,11 @@ Avoid motion on:
   separate search icon. Visible surfaces are 36px high inside 44px touch targets.
   Album/artist seeds offer Open and Share. Recovering search restores its scopes
   and input. Hover alone must not switch the dock.
-- Keep canonical routes as explicit destinations and share targets. Discovery
-  stays in Search; do not merge these route responsibilities without validation.
+- Each selected song, album, or artist has a shareable Search route that follows
+  the focused canvas seed. Back restores the previous route and canvas frame.
+  Share the Search route from the canvas. Keep canonical entity routes as
+  explicit secondary destinations; do not merge these route responsibilities
+  without validation.
 - Search results use an opaque surface and structural skeletons. Keyboard users
   must be able to choose seeds and expand covers without manipulating WebGL.
 - Song, album, and artist scopes filter seed search; they do not hide the active

@@ -119,11 +119,6 @@ function createRoundedPlaneGeometry(width: number, height: number) {
   return geometry;
 }
 
-export type ImageSphereHoverPosition = {
-  x: number;
-  y: number;
-};
-
 export interface ImageSphereOptions {
   distance?: number;
   fov?: number;
@@ -131,11 +126,13 @@ export interface ImageSphereOptions {
   reducedMotion?: boolean;
   anchorIndex?: number;
   onReady?: () => void;
-  onHoverChange?: (
-    index: number | null,
-    position?: ImageSphereHoverPosition,
+  onCoverPosition?: (
+    imageUrl: string,
+    x: number,
+    y: number,
+    opacity: number,
+    visible: boolean,
   ) => void;
-  onHoverMove?: (position: ImageSphereHoverPosition) => void;
   onSelect?: (index: number) => void;
 }
 
@@ -169,6 +166,8 @@ export class ImageSphere {
   private worldPos = new THREE.Vector3();
   private centerPos = new THREE.Vector3();
   private tmpPos = new THREE.Vector3();
+  private width: number;
+  private height: number;
   private raf = 0;
   private lastFrameTime = 0;
   private running = false;
@@ -183,8 +182,7 @@ export class ImageSphere {
   private anchorIndex?: number;
   private readyNotified = false;
   private onReady?: () => void;
-  private onHoverChange?: ImageSphereOptions["onHoverChange"];
-  private onHoverMove?: ImageSphereOptions["onHoverMove"];
+  private onCoverPosition?: ImageSphereOptions["onCoverPosition"];
   private onSelect?: (index: number) => void;
 
   constructor(
@@ -198,11 +196,12 @@ export class ImageSphere {
     this.pointerCanHover = window.matchMedia("(hover: hover)").matches;
     this.anchorIndex = options.anchorIndex;
     this.onReady = options.onReady;
-    this.onHoverChange = options.onHoverChange;
-    this.onHoverMove = options.onHoverMove;
+    this.onCoverPosition = options.onCoverPosition;
     this.onSelect = options.onSelect;
     const width = host.clientWidth || 1;
     const height = host.clientHeight || 1;
+    this.width = width;
+    this.height = height;
     const dpr = Math.min(window.devicePixelRatio || 1, width < 640 ? 1.5 : 2);
 
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -256,8 +255,6 @@ export class ImageSphere {
       this.pressed.userData.isPressed = false;
       this.pressed = null;
     }
-
-    this.onHoverChange?.(null);
 
     for (const plane of this.planes) {
       const imageUrl = plane.userData.imageUrl as string | undefined;
@@ -412,8 +409,6 @@ export class ImageSphere {
   }
 
   private removePlane(plane: PlaneMesh) {
-    const wasActive = plane === this.hovered || plane === this.pressed;
-
     if (plane === this.hovered) {
       this.hovered = null;
     }
@@ -432,23 +427,10 @@ export class ImageSphere {
     plane.geometry.dispose();
     plane.material.map?.dispose();
     plane.material.dispose();
-
-    if (wasActive) {
-      this.notifyActiveChange();
-    }
   }
 
   private getActivePlane() {
     return this.pressed ?? this.hovered;
-  }
-
-  private notifyActiveChange() {
-    const active = this.getActivePlane();
-
-    this.onHoverChange?.(
-      active ? (active.userData.index as number) : null,
-      active ? this.getHoverPosition(active) : undefined,
-    );
   }
 
   private setPressed(next: PlaneMesh | null) {
@@ -465,8 +447,6 @@ export class ImageSphere {
     if (this.pressed) {
       this.pressed.userData.isPressed = true;
     }
-
-    this.notifyActiveChange();
   }
 
   private bindEvents() {
@@ -590,6 +570,8 @@ export class ImageSphere {
     }
 
     this.renderer.setSize(width, height);
+    this.width = width;
+    this.height = height;
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
@@ -601,28 +583,6 @@ export class ImageSphere {
       .filter((hit) => !hit.object.userData.stale);
 
     return (hits.length > 0 ? hits[0].object : null) as PlaneMesh | null;
-  }
-
-  private getHoverPosition(plane: PlaneMesh): ImageSphereHoverPosition {
-    const rect = this.host.getBoundingClientRect();
-    plane.getWorldPosition(this.worldPos);
-    const distance = Math.max(
-      1,
-      this.camera.position.distanceTo(this.worldPos),
-    );
-    const viewHeight =
-      2 * distance * Math.tan((this.camera.fov * Math.PI) / 360);
-    const planeHeight = PLANE_SIZE * plane.scale.y;
-    const pixelHeight = (planeHeight / viewHeight) * rect.height;
-    this.tmpPos.copy(this.worldPos).project(this.camera);
-
-    const x = ((this.tmpPos.x + 1) / 2) * rect.width;
-    const y = ((1 - this.tmpPos.y) / 2) * rect.height + pixelHeight / 2 + 10;
-
-    return {
-      x: THREE.MathUtils.clamp(x, 88, Math.max(88, rect.width - 88)),
-      y: THREE.MathUtils.clamp(y, 8, Math.max(8, rect.height - 48)),
-    };
   }
 
   private hoverDetection() {
@@ -645,8 +605,29 @@ export class ImageSphere {
     if (this.hovered) {
       this.hovered.userData.isHovered = true;
     }
+  }
 
-    this.notifyActiveChange();
+  private updateCoverPosition(plane: PlaneMesh, opacity: number) {
+    const imageUrl = plane.userData.imageUrl as string | undefined;
+
+    if (!this.onCoverPosition || !imageUrl || plane.userData.stale) return;
+
+    const distance = Math.max(1, this.camera.position.distanceTo(this.worldPos));
+    const viewHeight =
+      2 * distance * Math.tan((this.camera.fov * Math.PI) / 360);
+    const pixelHeight = (PLANE_SIZE * plane.scale.y * this.height) / viewHeight;
+    this.tmpPos.copy(this.worldPos).project(this.camera);
+    const x = ((this.tmpPos.x + 1) / 2) * this.width;
+    const y = ((1 - this.tmpPos.y) / 2) * this.height + pixelHeight / 2 + 8;
+    const visible =
+      this.tmpPos.z > -1 &&
+      this.tmpPos.z < 1 &&
+      x > 0 &&
+      x < this.width &&
+      y > 0 &&
+      y < this.height - 12;
+
+    this.onCoverPosition(imageUrl, x, y, opacity, visible);
   }
 
   start() {
@@ -782,18 +763,13 @@ export class ImageSphere {
         (targetOpacity - plane.userData.opacity) * opacityEase;
       plane.userData.opacity = opacity;
       plane.material.opacity = opacity;
+      this.updateCoverPosition(plane, opacity);
       plane.renderOrder =
         isHovered || isPressed
           ? INTERACTION_RENDER_ORDER
           : isAnchor
             ? ANCHOR_RENDER_ORDER
             : Math.round((depth + RADIUS * 1.5) * 10);
-    }
-
-    const active = this.getActivePlane();
-
-    if (active && !active.userData.stale) {
-      this.onHoverMove?.(this.getHoverPosition(active));
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -826,6 +802,7 @@ export class ImageSphere {
       const opacity = isAnchor ? 1 : getDepthOpacity(depth);
       plane.userData.opacity = opacity;
       plane.material.opacity = opacity;
+      this.updateCoverPosition(plane, opacity);
       plane.renderOrder = isAnchor
         ? ANCHOR_RENDER_ORDER
         : Math.round((depth + RADIUS * 1.5) * 10);

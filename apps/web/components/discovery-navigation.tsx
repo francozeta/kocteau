@@ -25,7 +25,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePortalTarget } from "@/hooks/use-portal-target";
 import { shareUrl } from "@/lib/share";
-import type { DiscoverySeed } from "@/lib/discovery/seed";
+import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
 import type { SearchScope } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
 
@@ -192,7 +192,7 @@ export default function DiscoveryNavigation({
                   title: [seed.title, seed.artist_name]
                     .filter(Boolean)
                     .join(" — "),
-                  url: new URL(href, window.location.origin).toString(),
+                  url: new URL(getDiscoverySeedPath(seed), window.location.origin).toString(),
                   successMessage: "Link copied",
                   errorMessage: "We could not share this music. Try again.",
                 });

@@ -6,7 +6,7 @@ import { Check, Plus } from "@/components/ui/icons";
 import PrefetchLink from "@/components/prefetch-link";
 import { Spinner } from "@/components/ui/spinner";
 import { openTrackReviewComposer } from "@/hooks/use-global-shortcuts";
-import type { DiscoverySeed } from "@/lib/discovery/seed";
+import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
 import {
   toastActionError,
   toastActionSuccess,
@@ -94,7 +94,7 @@ export default function DiscoveryActions({
         seed.type === "artist"
           ? seed.title
           : [seed.title, seed.artist_name].filter(Boolean).join(" — "),
-      url: new URL(href, window.location.origin).toString(),
+      url: new URL(getDiscoverySeedPath(seed), window.location.origin).toString(),
       successMessage: "Link copied",
       errorMessage: "We could not share this music. Try again.",
     });

@@ -18,7 +18,8 @@ import {
   readCanvasSession,
   readDiscoveryMemory,
 } from "@/lib/discovery/memory";
-import type { DiscoverySeed } from "@/lib/discovery/seed";
+import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
+import { matchDiscoverySessionToPath } from "@/lib/discovery/navigation";
 import {
   mergeTrackRecommendationGroups,
   type TrackRecommendationGroup,
@@ -68,6 +69,14 @@ export function useDiscoveryCanvas(
   const { id: frameId, focus, resolved } = frame;
 
   useEffect(() => {
+    if (!ready) return;
+    const query = new URLSearchParams(window.location.search).get("q")?.trim();
+    document.title = focus
+      ? `Discover from ${focus.title} | Kocteau`
+      : `Search${query ? `: ${query}` : ""} | Kocteau`;
+  }, [focus, ready]);
+
+  useEffect(() => {
     // Hydrate only after mount; storage is optional and never blocks discovery.
     const restore = () => {
       try {
@@ -80,7 +89,11 @@ export function useDiscoveryCanvas(
                 Date.now(),
                 scope,
               );
-        if (stored) setSession(stored);
+        const matchingSession = matchDiscoverySessionToPath(
+          stored,
+          window.location.pathname,
+        );
+        if (matchingSession) setSession(matchingSession);
         setMemory(
           readDiscoveryMemory(localStorage.getItem(memoryKey), Date.now()),
         );
@@ -95,12 +108,22 @@ export function useDiscoveryCanvas(
         entry?.scope === scope
           ? parseCanvasSnapshot(entry, Date.now(), scope)
           : null;
-      if (restored) setSession(restored);
+      const path = window.location.pathname;
+      setSession((current) =>
+        matchDiscoverySessionToPath(restored, path) ??
+        matchDiscoverySessionToPath(current, path) ??
+        (path === "/search"
+          ? {
+              frames: [createCanvasFrame(seeds, null, crypto.randomUUID())],
+              cursor: 0,
+            }
+          : current),
+      );
     };
     restore();
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [memoryKey, scope]);
+  }, [memoryKey, scope, seeds]);
 
   useEffect(() => {
     if (!ready) return;
@@ -200,6 +223,7 @@ export function useDiscoveryCanvas(
         discovery: { scope, session: next, historyDepth, savedAt: Date.now() },
       },
       "",
+      getDiscoverySeedPath(seed),
     );
     setSession(next);
     setMemory(recordDiscoveryVisit(memory, seed, Date.now()));
@@ -220,6 +244,7 @@ export function useDiscoveryCanvas(
     window.history.replaceState(
       { ...window.history.state, discovery: null },
       "",
+      "/search",
     );
   };
 
