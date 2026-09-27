@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { getDiscoveryEntityPath, matchDiscoverySessionToPath } from "./navigation.ts";
 import type { CanvasSession } from "./canvas.ts";
+import { discoveryCanvasScope, parseCanvasSnapshot } from "./memory.ts";
 import { getDiscoverySeedPath } from "./seed.ts";
 
 describe("discovery entity navigation", () => {
@@ -14,6 +15,15 @@ describe("discovery entity navigation", () => {
         type: "track",
       }),
       "/search/track/love-is/6641748",
+    );
+
+    assert.equal(
+      getDiscoverySeedPath({
+        provider_id: "98765",
+        title: "Heaven or Las Vegas",
+        type: "album",
+      }),
+      "/search/album/heaven-or-las-vegas/98765",
     );
 
     assert.equal(
@@ -56,6 +66,23 @@ describe("discovery entity navigation", () => {
       1,
     );
     assert.equal(matchDiscoverySessionToPath(session, "/search/artist/other/1"), null);
+
+    const snapshot = {
+      savedAt: 1_800_000_000_000,
+      scope: discoveryCanvasScope(null),
+      session,
+    };
+    const reloaded = parseCanvasSnapshot(
+      snapshot,
+      snapshot.savedAt,
+      discoveryCanvasScope(null),
+    );
+    assert.equal(
+      matchDiscoverySessionToPath(reloaded, "/search/track/love-is/6641748")
+        ?.cursor,
+      1,
+    );
+    assert.equal(matchDiscoverySessionToPath(reloaded, "/search")?.cursor, 0);
   });
 
   it("opens database-backed results on their canonical Kocteau route", () => {

@@ -97,6 +97,7 @@ export default function DiscoveryMap({
   );
 
   const chooseResult = (result: KocteauSearchResult) => {
+    setDesktopSearchActive(false);
     canvas.explore(
       {
         id: `${result.type}:${result.provider_id}`,
@@ -123,6 +124,7 @@ export default function DiscoveryMap({
     return true;
   };
   const selectCover = (item: DiscoveryOrbitItem) => {
+    setDesktopSearchActive(false);
     canvas.explore({
       id: item.id,
       entityId: item.entityId,
@@ -194,12 +196,17 @@ export default function DiscoveryMap({
         pending={canvas.isExpanding}
         searchActive={desktopSearchActive}
         canGoBack={canvas.canGoBack}
-        onBack={canvas.back}
+        onBack={() => {
+          setDesktopSearchActive(false);
+          canvas.back();
+        }}
         onRestart={() => {
+          setDesktopSearchActive(false);
           setSeedQuery("");
           canvas.restart();
         }}
         onForget={() => {
+          setDesktopSearchActive(false);
           setSeedQuery("");
           canvas.forget();
         }}

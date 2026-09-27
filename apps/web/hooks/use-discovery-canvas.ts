@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   candidatesFromGroups,
@@ -13,6 +13,7 @@ import {
   type DiscoveryVisit,
 } from "@/lib/discovery/canvas";
 import {
+  discoveryCanvasScope,
   discoveryMemoryKey,
   parseCanvasSnapshot,
   readCanvasSession,
@@ -52,11 +53,12 @@ export function useDiscoveryCanvas(
 ) {
   const queryClient = useQueryClient();
   const memoryKey = discoveryMemoryKey(viewerId);
-  const scope = `${memoryKey}:${initialSeed ? seedKey(initialSeed) : "home"}`;
+  const scope = discoveryCanvasScope(viewerId);
   const [session, setSession] = useState<CanvasSession>(() => ({
     frames: [createCanvasFrame(seeds, initialSeed, "origin")],
     cursor: 0,
   }));
+  const sessionRef = useRef(session);
   const [memory, setMemory] = useState<DiscoveryVisit[]>([]);
   const [ready, setReady] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -67,6 +69,10 @@ export function useDiscoveryCanvas(
   }>({ frameId: "", done: [], errors: [] });
   const frame = session.frames[session.cursor];
   const { id: frameId, focus, resolved } = frame;
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   useEffect(() => {
     if (!ready) return;
@@ -82,13 +88,12 @@ export function useDiscoveryCanvas(
       try {
         const historyEntry = window.history.state?.discovery;
         const stored =
-          historyEntry?.scope === scope
-            ? parseCanvasSnapshot(historyEntry, Date.now(), scope)
-            : readCanvasSession(
-                sessionStorage.getItem(`${memoryKey}:session`),
-                Date.now(),
-                scope,
-              );
+          parseCanvasSnapshot(historyEntry, Date.now(), scope) ??
+          readCanvasSession(
+            sessionStorage.getItem(`${memoryKey}:session`),
+            Date.now(),
+            scope,
+          );
         const matchingSession = matchDiscoverySessionToPath(
           stored,
           window.location.pathname,
@@ -104,21 +109,21 @@ export function useDiscoveryCanvas(
     };
     const onPopState = (event: PopStateEvent) => {
       const entry = event.state?.discovery;
-      const restored =
-        entry?.scope === scope
-          ? parseCanvasSnapshot(entry, Date.now(), scope)
-          : null;
+      const restored = parseCanvasSnapshot(entry, Date.now(), scope);
       const path = window.location.pathname;
-      setSession((current) =>
+      const matchingSession =
         matchDiscoverySessionToPath(restored, path) ??
-        matchDiscoverySessionToPath(current, path) ??
-        (path === "/search"
-          ? {
-              frames: [createCanvasFrame(seeds, null, crypto.randomUUID())],
-              cursor: 0,
-            }
-          : current),
-      );
+        matchDiscoverySessionToPath(sessionRef.current, path);
+      if (matchingSession) {
+        setSession(matchingSession);
+      } else if (path === "/search") {
+        setSession({
+          frames: [createCanvasFrame(seeds, null, crypto.randomUUID())],
+          cursor: 0,
+        });
+      } else {
+        window.location.reload();
+      }
     };
     restore();
     window.addEventListener("popstate", onPopState);

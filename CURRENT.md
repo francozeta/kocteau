@@ -44,7 +44,9 @@ and floating-cover visual direction.
 - Search results and covers open branches in place. Fast/deep catalog lanes share
   a query cache; stale work is cancelled and late responses cannot change another branch.
 - Back/forward and reload restore bounded session snapshots. Resolved branches
-  are not re-ranked when revisited.
+  are not re-ranked when revisited. Focused Search routes share one canvas
+  session scope, so reloading retains earlier frames; unmatched history entries
+  reload their route instead of showing a different selected cover.
 - The deterministic evaluator balances artist familiarity, unseen tracks, and
   candidate lanes. Ignored covers are not negative signals.
 
@@ -72,9 +74,10 @@ and floating-cover visual direction.
   and earlier share payloads (native share stubbed). Memory reset and new-canvas
   persistence were checked separately.
 - Current browser checks covered signed-out selected-song desktop at 1280×800,
-  mobile at 390×844, permanent canvas labels, a focused entity URL, and browser
-  Back restoring the `/search` route and unselected canvas. Signed-in saving,
-  publishing, and cross-device behavior are not verified.
+  mobile at 390×844, permanent canvas labels, and focused entity URLs. A later
+  signed-out desktop check confirmed that reload retains two canvas frames,
+  Back restores `/search`, and Forward restores the focused cover. Signed-in
+  saving, publishing, and cross-device behavior are not verified.
 - Build completed with existing slow upstream-data diagnostics; lint emitted
   existing JSX parser notices without failing.
 

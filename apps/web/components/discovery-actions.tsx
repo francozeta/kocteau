@@ -136,6 +136,8 @@ export default function DiscoveryActions({
               aria-label={
                 save.isPending
                   ? "Saving to library"
+                  : checkingSavedState
+                    ? "Checking library"
                   : saved
                     ? "Saved to library"
                     : "Save to library"
@@ -147,7 +149,13 @@ export default function DiscoveryActions({
               <span
                 className={`${mobileActionSurfaceClassName} bg-[var(--kocteau-surface-control)] text-foreground ring-1 ring-inset ring-white/[0.12] group-hover:bg-[var(--kocteau-surface-control-hover)]`}
               >
-                {save.isPending ? "Saving…" : saved ? "Saved" : "Save"}
+                {save.isPending
+                  ? "Saving…"
+                  : checkingSavedState
+                    ? "Checking…"
+                    : saved
+                      ? "Saved"
+                      : "Save"}
               </span>
             </button>
           </>

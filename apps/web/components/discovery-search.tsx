@@ -1,5 +1,11 @@
 "use client";
-import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import EntityCoverImage from "@/components/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/kocteau-icons";
@@ -85,6 +91,8 @@ export default function DiscoverySearch({
   const inputId = mobile
     ? "mobile-discovery-seed-search"
     : "discovery-seed-search";
+
+  useEffect(() => () => onFocusChange?.(false), [onFocusChange]);
 
   const closeSearch = (restoreFocus = true) => {
     onQueryChange("");
