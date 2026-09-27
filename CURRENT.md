@@ -1,7 +1,7 @@
 # Current Project State
 
-Last verified: 2026-09-26
-Base: `origin/main` at `78194d1` (public v0.3.15 changelog)
+Last verified: 2026-09-27
+Base: `origin/main` at `a0de952`
 
 Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
 
@@ -13,8 +13,7 @@ and floating-cover visual direction.
 
 ## Active Work
 
-- Local follow-up branch: `fix/search-canvas-focus-identity`; awaiting product
-  feedback before publication. It builds on `feat/search-desktop-header-focus`.
+- Pull request #204: `fix/search-canvas-focus-identity`; in review.
 - Compact responsive navigation distinguishes song, album, and artist seeds.
   Scope controls filter seed search, not the current canvas. Candidate generation
   still returns tracks; mixed-type curation is not implemented yet.
