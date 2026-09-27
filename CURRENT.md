@@ -1,7 +1,7 @@
 # Current Project State
 
-Last verified: 2026-09-25
-Base: `origin/main` at `78194d1` (public v0.3.15 changelog)
+Last verified: 2026-09-27
+Base: `origin/main` at `a0de952`
 
 Stable operating, product, and interface rules live in `AGENTS.md`, `PRODUCT.md`, and `DESIGN.md`.
 
@@ -13,28 +13,40 @@ and floating-cover visual direction.
 
 ## Active Work
 
-- Review branch: `feat/search-action-dock-polish`; awaiting product feedback.
+- Pull request #204: `fix/search-canvas-focus-identity`; in review.
 - Compact responsive navigation distinguishes song, album, and artist seeds.
   Scope controls filter seed search, not the current canvas. Candidate generation
   still returns tracks; mixed-type curation is not implemented yet.
 - Mobile selected music uses the existing header: cover, title, artist, and a
   back arrow that returns to all starter covers. Sharing and memory actions use
   the existing options drawer; desktop retains previous-canvas navigation.
-- Desktop Search uses the existing header; mobile keeps its bottom dock.
+- Desktop Search uses one row in the existing header; mobile keeps its bottom
+  dock. A selected seed appears as a compact cover/title/artist card beside
+  the back control. Search focus covers the canvas with the shell tone while
+  leaving the canvas background unchanged. No separate desktop options row.
   Selecting music reveals contextual actions and a single header identity.
   Tracks reuse sharing, the global composer, and the library mutation; albums
   and artists offer sharing and their existing page. Search is always recoverable.
+- Covers now carry always-visible title/artist labels that follow the 3D canvas;
+  the hover-only tooltip and filled label background are gone. Keyboard cover
+  navigation marks the centered cover as current. Review stays the only filled
+  track action in the header; guest Log in is a quieter secondary control on
+  Search. Each focused entity now updates the Search route as the canvas expands,
+  while previous-canvas navigation restores the earlier route and frame.
 - Mobile scopes sit above the input as slim opaque chips. Selection replaces them
   with two slim text actions (Review / Save, or Open / Share) and a separate
   search control. Home's dark edge gradient frames the floating controls;
   the canvas extends behind the top header fade.
 - Canvas saving is an idempotent add, not a library toggle with assumed state.
-  Library writes retain existing authentication; saves do not yet feed the local
-  canvas evaluator. Canonical pages remain secondary destinations and share URLs.
+  The desktop + becomes a check when the song is saved, using an authenticated
+  library lookup. Saves do not yet feed the local canvas evaluator. Canonical
+  pages remain secondary destinations; Search routes are the canvas share URLs.
 - Search results and covers open branches in place. Fast/deep catalog lanes share
   a query cache; stale work is cancelled and late responses cannot change another branch.
 - Back/forward and reload restore bounded session snapshots. Resolved branches
-  are not re-ranked when revisited.
+  are not re-ranked when revisited. Focused Search routes share one canvas
+  session scope, so reloading retains earlier frames; unmatched history entries
+  reload their route instead of showing a different selected cover.
 - The deterministic evaluator balances artist familiarity, unseen tracks, and
   candidate lanes. Ignored covers are not negative signals.
 
@@ -51,21 +63,25 @@ and floating-cover visual direction.
 
 ## Verification
 
-- 74 unit tests passed, including ranking, history, stale-response rejection,
-  bounds, and storage validation; web lint, TypeScript, and production build passed.
+- 76 unit tests passed, including ranking, history, route/frame matching,
+  stale-response rejection, bounds, and storage validation. Web lint, TypeScript,
+  and production build passed.
 - Browser checks passed for signed-out desktop (1440×900), mobile (320×720 and 390×844),
   seed selection, branch expansion, back/reload, keyboard activation, reduced
   motion preference, failed requests/retry, and horizontal overflow.
 - Production-browser checks cover type scopes, 320px layout, contextual actions,
   drawer layering, search recovery/shortcut, composer opening, guest save guard,
-  and canonical share payload (native share stubbed). Memory reset and new-canvas
+  and earlier share payloads (native share stubbed). Memory reset and new-canvas
   persistence were checked separately.
-- Signed-in saving/publishing and cross-device behavior are not verified.
+- Current browser checks covered signed-out selected-song desktop at 1280×800,
+  mobile at 390×844, permanent canvas labels, and focused entity URLs. A later
+  signed-out desktop check confirmed that reload retains two canvas frames,
+  Back restores `/search`, and Forward restores the focused cover. Signed-in
+  saving, publishing, and cross-device behavior are not verified.
 - Build completed with existing slow upstream-data diagnostics; lint emitted
   existing JSX parser notices without failing.
 
 ## Next Priority
 
-Review the discovery loop with real listening paths, especially candidate
-relevance, repetition, and continuity on mobile. Gather product feedback on the
-pull request before expanding curation or merging.
+Review the desktop Search header and selected-song flow, then check candidate
+relevance, repetition, and continuity on mobile before expanding curation.

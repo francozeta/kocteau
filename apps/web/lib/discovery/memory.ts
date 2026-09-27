@@ -56,6 +56,10 @@ export function discoveryMemoryKey(viewerId: string | null) {
   return `kocteau:discovery:v1:${viewerId ?? "guest"}`;
 }
 
+export function discoveryCanvasScope(viewerId: string | null) {
+  return `${discoveryMemoryKey(viewerId)}:canvas`;
+}
+
 export function parseCanvasSnapshot(
   value: unknown,
   now: number,

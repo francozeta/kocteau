@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   candidatesFromGroups,
@@ -13,12 +13,14 @@ import {
   type DiscoveryVisit,
 } from "@/lib/discovery/canvas";
 import {
+  discoveryCanvasScope,
   discoveryMemoryKey,
   parseCanvasSnapshot,
   readCanvasSession,
   readDiscoveryMemory,
 } from "@/lib/discovery/memory";
-import type { DiscoverySeed } from "@/lib/discovery/seed";
+import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
+import { matchDiscoverySessionToPath } from "@/lib/discovery/navigation";
 import {
   mergeTrackRecommendationGroups,
   type TrackRecommendationGroup,
@@ -51,11 +53,12 @@ export function useDiscoveryCanvas(
 ) {
   const queryClient = useQueryClient();
   const memoryKey = discoveryMemoryKey(viewerId);
-  const scope = `${memoryKey}:${initialSeed ? seedKey(initialSeed) : "home"}`;
+  const scope = discoveryCanvasScope(viewerId);
   const [session, setSession] = useState<CanvasSession>(() => ({
     frames: [createCanvasFrame(seeds, initialSeed, "origin")],
     cursor: 0,
   }));
+  const sessionRef = useRef(session);
   const [memory, setMemory] = useState<DiscoveryVisit[]>([]);
   const [ready, setReady] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -68,19 +71,34 @@ export function useDiscoveryCanvas(
   const { id: frameId, focus, resolved } = frame;
 
   useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const query = new URLSearchParams(window.location.search).get("q")?.trim();
+    document.title = focus
+      ? `Discover from ${focus.title} | Kocteau`
+      : `Search${query ? `: ${query}` : ""} | Kocteau`;
+  }, [focus, ready]);
+
+  useEffect(() => {
     // Hydrate only after mount; storage is optional and never blocks discovery.
     const restore = () => {
       try {
         const historyEntry = window.history.state?.discovery;
         const stored =
-          historyEntry?.scope === scope
-            ? parseCanvasSnapshot(historyEntry, Date.now(), scope)
-            : readCanvasSession(
-                sessionStorage.getItem(`${memoryKey}:session`),
-                Date.now(),
-                scope,
-              );
-        if (stored) setSession(stored);
+          parseCanvasSnapshot(historyEntry, Date.now(), scope) ??
+          readCanvasSession(
+            sessionStorage.getItem(`${memoryKey}:session`),
+            Date.now(),
+            scope,
+          );
+        const matchingSession = matchDiscoverySessionToPath(
+          stored,
+          window.location.pathname,
+        );
+        if (matchingSession) setSession(matchingSession);
         setMemory(
           readDiscoveryMemory(localStorage.getItem(memoryKey), Date.now()),
         );
@@ -91,16 +109,26 @@ export function useDiscoveryCanvas(
     };
     const onPopState = (event: PopStateEvent) => {
       const entry = event.state?.discovery;
-      const restored =
-        entry?.scope === scope
-          ? parseCanvasSnapshot(entry, Date.now(), scope)
-          : null;
-      if (restored) setSession(restored);
+      const restored = parseCanvasSnapshot(entry, Date.now(), scope);
+      const path = window.location.pathname;
+      const matchingSession =
+        matchDiscoverySessionToPath(restored, path) ??
+        matchDiscoverySessionToPath(sessionRef.current, path);
+      if (matchingSession) {
+        setSession(matchingSession);
+      } else if (path === "/search") {
+        setSession({
+          frames: [createCanvasFrame(seeds, null, crypto.randomUUID())],
+          cursor: 0,
+        });
+      } else {
+        window.location.reload();
+      }
     };
     restore();
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [memoryKey, scope]);
+  }, [memoryKey, scope, seeds]);
 
   useEffect(() => {
     if (!ready) return;
@@ -200,6 +228,7 @@ export function useDiscoveryCanvas(
         discovery: { scope, session: next, historyDepth, savedAt: Date.now() },
       },
       "",
+      getDiscoverySeedPath(seed),
     );
     setSession(next);
     setMemory(recordDiscoveryVisit(memory, seed, Date.now()));
@@ -220,6 +249,7 @@ export function useDiscoveryCanvas(
     window.history.replaceState(
       { ...window.history.state, discovery: null },
       "",
+      "/search",
     );
   };
 

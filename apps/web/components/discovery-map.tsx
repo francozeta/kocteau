@@ -77,6 +77,7 @@ export default function DiscoveryMap({
   const selectedSeed = canvas.frame.focus;
   const [searchScope, setSearchScope] = useState<SearchScope>("all");
   const [seedQuery, setSeedQuery] = useState(initialQuery);
+  const [desktopSearchActive, setDesktopSearchActive] = useState(false);
   const seedSearch = useKocteauSearch({
     query: seedQuery,
     type: searchScope,
@@ -96,6 +97,7 @@ export default function DiscoveryMap({
   );
 
   const chooseResult = (result: KocteauSearchResult) => {
+    setDesktopSearchActive(false);
     canvas.explore(
       {
         id: `${result.type}:${result.provider_id}`,
@@ -122,6 +124,7 @@ export default function DiscoveryMap({
     return true;
   };
   const selectCover = (item: DiscoveryOrbitItem) => {
+    setDesktopSearchActive(false);
     canvas.explore({
       id: item.id,
       entityId: item.entityId,
@@ -146,7 +149,7 @@ export default function DiscoveryMap({
       </h2>
       <div
         data-kocteau-search-results-surface
-        className="pointer-events-none absolute inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+4rem)] z-30 md:top-16 [&>*]:pointer-events-auto"
+        className="pointer-events-none absolute inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+4rem)] z-30 md:top-0 [&>*]:pointer-events-auto"
       />
       <div
         className="kocteau-discovery-dither pointer-events-none absolute inset-0 z-0"
@@ -162,10 +165,10 @@ export default function DiscoveryMap({
           results={seedResults}
           isSearching={seedSearch.isFetching}
           hasError={seedSearch.isError}
-          isExpanding={canvas.isExpanding}
           onQueryChange={setSeedQuery}
           onSelect={chooseResult}
           onSubmit={chooseFirst}
+          onFocusChange={mobile ? undefined : setDesktopSearchActive}
           actions={
             selectedSeed && orbitSeed ? (
               <DiscoveryActions
@@ -191,13 +194,19 @@ export default function DiscoveryMap({
         seed={selectedSeed}
         href={orbitSeed?.href}
         pending={canvas.isExpanding}
+        searchActive={desktopSearchActive}
         canGoBack={canvas.canGoBack}
-        onBack={canvas.back}
+        onBack={() => {
+          setDesktopSearchActive(false);
+          canvas.back();
+        }}
         onRestart={() => {
+          setDesktopSearchActive(false);
           setSeedQuery("");
           canvas.restart();
         }}
         onForget={() => {
+          setDesktopSearchActive(false);
           setSeedQuery("");
           canvas.forget();
         }}

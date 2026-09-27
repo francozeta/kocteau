@@ -30,7 +30,7 @@ type DiscoveryOrbitProps = {
   onSelect: (item: DiscoveryOrbitItem) => void;
 };
 
-function getArtistLabel(item: SphereDisplayItem) {
+function getArtistLabel(item: Pick<DiscoveryOrbitItem, "type" | "artistName">) {
   return item.type === "artist"
     ? "Artist"
     : item.artistName || "Unknown artist";
@@ -44,14 +44,9 @@ export default function DiscoveryOrbit({
 }: DiscoveryOrbitProps) {
   const isMobile = useIsMobile();
   const hostRef = useRef<HTMLDivElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
+  const labelRefs = useRef(new Map<string, HTMLDivElement>());
   const sphereRef = useRef<ImageSphere | null>(null);
   const [canvasUnavailable, setCanvasUnavailable] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [hoverPosition, setHoverPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
   const sphereItems = useMemo(() => {
     const combined: SphereDisplayItem[] = [
       ...(seed?.coverUrl
@@ -59,7 +54,7 @@ export default function DiscoveryOrbit({
             {
               ...seed,
               coverUrl: seed.coverUrl,
-              routeLabel: "Starting from",
+              routeLabel: "Current music",
               reason: "Choose another cover to explore a new branch.",
             },
           ]
@@ -148,14 +143,13 @@ export default function DiscoveryOrbit({
           autoRotate: !reducedMotion.matches,
           reducedMotion: reducedMotion.matches,
           anchorIndex: centerSeedRef.current && seedRef.current ? 0 : undefined,
-          onHoverChange: (index, position) => {
-            setHoveredIndex(index);
-            setHoverPosition(position ?? null);
-          },
-          onHoverMove: (position) => {
-            if (tooltipRef.current) {
-              tooltipRef.current.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) translateX(-50%)`;
-            }
+          onCoverPosition: (imageUrl, x, y, opacity, visible) => {
+            const label = labelRefs.current.get(imageUrl);
+
+            if (!label) return;
+
+            label.style.transform = `translate3d(${x}px, ${y}px, 0) translateX(-50%)`;
+            label.style.opacity = visible ? String(Math.max(0.55, opacity)) : "0";
           },
           onSelect: (index) => {
             const item = sphereItemsRef.current[index];
@@ -192,8 +186,16 @@ export default function DiscoveryOrbit({
     });
   }, [centerSeed, imageUrls, seed]);
 
-  const hoveredItem =
-    hoveredIndex !== null ? (sphereItems[hoveredIndex] ?? null) : null;
+  useEffect(() => {
+    const labels = hostRef.current?.querySelectorAll<HTMLDivElement>(
+      "[data-discovery-cover-label]",
+    );
+    labelRefs.current.clear();
+    labels?.forEach((label) => {
+      const imageUrl = label.dataset.coverUrl;
+      if (imageUrl) labelRefs.current.set(imageUrl, label);
+    });
+  }, [sphereItems]);
 
   return (
     <div className="relative h-full min-h-0 overflow-hidden">
@@ -214,6 +216,7 @@ export default function DiscoveryOrbit({
             <button
               type="button"
               key={item.id}
+              aria-current={seed?.id === item.id ? "true" : undefined}
               onClick={() => onSelect(item)}
               className={
                 canvasUnavailable
@@ -226,26 +229,24 @@ export default function DiscoveryOrbit({
           ))}
         </div>
 
-        {hoveredItem ? (
-          <div
-            ref={tooltipRef}
-            style={
-              hoverPosition
-                ? {
-                    transform: `translate3d(${hoverPosition.x}px, ${hoverPosition.y}px, 0) translateX(-50%)`,
-                  }
-                : undefined
-            }
-            className="pointer-events-none absolute left-0 top-0 z-30 max-w-44 rounded-[0.3rem] bg-black/78 px-2 py-1.5 text-center will-change-transform backdrop-blur-sm"
-          >
-            <p className="truncate font-pixel text-[10px] leading-tight text-foreground/90">
-              {hoveredItem.title}
-            </p>
-            <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground/68">
-              {getArtistLabel(hoveredItem)}
-            </p>
-          </div>
-        ) : null}
+        {!canvasUnavailable
+          ? sphereItems.map((item) => (
+              <div
+                key={item.id}
+                data-discovery-cover-label
+                data-cover-url={item.coverUrl}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 z-10 w-32 text-center opacity-0 [text-shadow:0_1px_4px_#000] md:w-40"
+              >
+                <span className="block truncate text-[10px] font-medium leading-tight text-foreground/90">
+                  {item.title}
+                </span>
+                <span className="mt-0.5 block truncate text-[9px] leading-tight text-muted-foreground/75">
+                  {getArtistLabel(item)}
+                </span>
+              </div>
+            ))
+          : null}
       </div>
     </div>
   );
