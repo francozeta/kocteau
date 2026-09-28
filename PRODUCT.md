@@ -1,6 +1,6 @@
 # Kocteau Product
 
-[Repository README](./README.md) | [Current state](./CURRENT.md) | [Design](./DESIGN.md) | [Web roadmap](./docs/web-roadmap.md) | [Discovery and curation](./docs/discovery-curation.md)
+[Repository README](./README.md) | [Current state](./CURRENT.md) | [Design](./DESIGN.md) | [Discovery and curation](./docs/discovery-curation.md)
 
 This is the canonical product contract for Kocteau. It records the product loop, present scope, and explicit boundaries; detailed execution notes live in the specialized documents under `docs/`.
 
@@ -145,9 +145,10 @@ starter picks form a lightweight taste queue with pass and review actions.
 
 Catalog research, editorial proposals, and listener ranking are separate
 responsibilities. Provider metadata is evidence, not an approved editorial signal.
-The next Studio flow reuses its existing dialog/drawer: select music, collect
-evidence, review proposed signals, then explicitly accept. Research must not
-publish a starter pick or mutate taste tags before that decision. See
+Studio source research reuses its existing dialog/drawer: select music and request
+evidence without publishing. Structured proposals and explicit acceptance are the
+next connection. Research must not publish a starter pick or mutate taste tags
+before that decision. See
 [Knowledge Layer and Search](./docs/knowledge-layer.md) for the implementation
 boundaries and [CURRENT.md](./CURRENT.md) for verified progress.
 

@@ -51,6 +51,7 @@ supabase/.temp/
 supabase/.branches/
 
 # Local agent tooling
+/.plan/
 .agents/
 skills-lock.json
 my-agent/

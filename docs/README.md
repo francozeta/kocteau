@@ -1,39 +1,29 @@
 # Kocteau Documentation
 
-[Repository README](../README.md) is the front door for the project. This page is the documentation map for product direction, contributor work, operations, and maintainer workflows.
+Start with the [repository README](../README.md), [product](../PRODUCT.md),
+[design](../DESIGN.md), and [current state](../CURRENT.md). These are the main
+contracts; the guides below cover specific contributor and maintainer needs.
 
-## Product Direction
+## Product And Implementation
 
-- [Current project state](../CURRENT.md): active phase, decisions, known gaps, and next priority.
-- [Product contract](../PRODUCT.md): current product loop, scope, and out-of-scope guardrails.
-- [Design contract](../DESIGN.md): visual, interaction, and motion direction.
-- [Core architecture](./core-architecture.md): minimal product boundaries, reduction rules, and the future Go extraction path.
-- [Web roadmap](./web-roadmap.md): phased web product direction and execution order.
-- [Discovery and curation](./discovery-curation.md): hybrid recommendation philosophy, signal contract, starter curation, and future RFC lanes.
-- [Knowledge Layer and Search](./knowledge-layer.md): source policy, taste taxonomy, and explainable discovery direction.
-- [Public backlog](./backlog.md): issue-ready work, maintainer-led work, and future RFC backlog.
+- [Core architecture](./core-architecture.md): product boundaries and reduction rules.
+- [Catalog research and curation](./knowledge-layer.md): music identity, source evidence, editorial decisions, and Studio integration.
+- [Discovery and curation](./discovery-curation.md): recommendation surfaces and the analytics signal contract.
+- [Contribution backlog](./backlog.md): focused contribution areas and sensitive-system boundaries. Use GitHub issues to coordinate individual tasks.
 
 ## Setup And Operations
 
-- [Local development](./setup/local-development.md): local-first setup with Supabase CLI.
-- [Environment and secrets](./security/environment.md): safe handling for local, staging, and production configuration.
-- [Operations](./operations.md): production setup notes, post-deploy checks, Supabase scripts, and recommendation health checks.
-- [Load readiness](./load-readiness.md): k6 profiles, latency thresholds, database snapshots, and rollback criteria.
-- [Supabase maintainer workflow](./maintainers/supabase-workflow.md): cloud migrations, staging, production, and contributor boundaries.
+- [Local development](./setup/local-development.md): local-first Supabase setup.
+- [Environment and secrets](./security/environment.md): local, staging, and production configuration.
+- [Operations](./operations.md): rollouts, smoke checks, catalog research, and recommendation health.
+- [Load readiness](./load-readiness.md): k6 profiles, latency thresholds, and rollback criteria.
 
 ## Maintainer Workflows
 
-- [Release automation](./maintainers/release.md): Release Please, changelog flow, and release smoke checks.
-- [Supabase maintainer workflow](./maintainers/supabase-workflow.md): versioned Supabase Cloud migration flow for maintainers.
-- [GitHub rules](./maintainers/github-rules.md): repository settings, branch protection, labels, and Actions permissions.
+- [Supabase](./maintainers/supabase-workflow.md): versioned cloud migrations and contributor boundaries.
+- [Release automation](./maintainers/release.md): release flow and smoke checks.
+- [GitHub rules](./maintainers/github-rules.md): protections, labels, and Actions permissions.
+- [Apple Music imports](./maintainers/apple-music-import.md): editorial source imports and rotation.
 
-## Historical Specs
-
-- [Public maintainer automation design](./superpowers/specs/2026-05-05-public-maintainer-automation-design.md): prior design spec for public maintainer automation.
-
-## Where To Start
-
-- New contributor: read [CONTRIBUTING.md](../CONTRIBUTING.md), then [local development](./setup/local-development.md), then [public backlog](./backlog.md).
-- Product/design contributor: read the [product contract](../PRODUCT.md), [design contract](../DESIGN.md), and [web roadmap](./web-roadmap.md).
-- Recommendation or analytics contributor: read [discovery and curation](./discovery-curation.md), [operations](./operations.md), and the sensitive-system notes in [public backlog](./backlog.md).
-- Maintainer: read [current project state](../CURRENT.md), [operations](./operations.md), [Supabase maintainer workflow](./maintainers/supabase-workflow.md), [release automation](./maintainers/release.md), and [GitHub rules](./maintainers/github-rules.md).
+Device-local phases and plans belong in the ignored root `.plan/` directory.
+They are not required reading for contributors; published status stays in CURRENT.md.

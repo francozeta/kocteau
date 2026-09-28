@@ -1,6 +1,6 @@
 # Kocteau Design
 
-[Repository README](./README.md) | [Current state](./CURRENT.md) | [Product](./PRODUCT.md) | [Web roadmap](./docs/web-roadmap.md)
+[Repository README](./README.md) | [Current state](./CURRENT.md) | [Product](./PRODUCT.md)
 
 This is the canonical visual, interaction, and motion contract for Kocteau. Use it with `AGENTS.md`; specialized implementation details may remain under `docs/`, but they must not override this document.
 
