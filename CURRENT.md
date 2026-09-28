@@ -14,7 +14,7 @@ editorial proposals and human acceptance are the next phase.
 ## Active Work
 
 - Implementation and documentation committed locally on feat/studio-catalog-research;
-  not pushed or deployed.
+  not yet merged or deployed.
 - Sources in the existing Studio dialog/drawer can research a selected track,
   inspect Deezer/MusicBrainz outcomes, and resume eligible queued work. The server
   resolves canonical identity and reuses jobs without publishing picks or tags.
@@ -33,8 +33,9 @@ editorial proposals and human acceptance are the next phase.
 
 - The phase-one migration 20260928051000 is applied remotely according to the
   linked CLI migration history. PR #205 is merged.
-- The new migration 20260928133212_studio_catalog_research.sql is local and must
-  be applied before deploying this phase. No cloud changes or deployment here.
+- The new migration 20260928133212_studio_catalog_research.sql is applied to
+  the linked Supabase project. The remote history and a read-only check confirm
+  the lease row, RLS, service-role RPC access, and denied client access.
 - 90 unit tests, web lint, TypeScript, production build, and diff checks pass.
   SQL assertions pass in isolated embedded PostgreSQL for both source evidence
   and the new lease/targeted-claim behavior. Docker/full Supabase reset is unavailable.
@@ -44,13 +45,14 @@ editorial proposals and human acceptance are the next phase.
 - The research component passes isolated desktop/mobile browser checks with
   fixture responses, retained editorial input, source links, and keyboard focus.
   This does not verify an authenticated curator session against the migrated stack.
-- Types for the new schema are synchronized manually. The maintainer's pre-existing
-  generated-type changes remain separate. Regenerate from the migrated schema.
+- Generated types from the linked schema were compared to the committed schema
+  additions; only formatting and declaration order differ. The maintainer's
+  pre-existing generated-type changes remain separate from this branch.
   See the [rollout checks](./docs/operations.md#studio-research-rollout).
 
 ## Next Priority
 
-Apply the new migration in the intended environment and verify a real curator
-research request plus cron recovery. Then add versioned, evidence-linked proposals,
+Verify a real curator research request against the linked schema and cron recovery
+after the web branch is deployed. Then add versioned, evidence-linked proposals,
 corrections, collection destination selection, and transactional human acceptance.
 No model inference, automated editorial approval, or ranking experiment is included.
