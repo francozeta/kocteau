@@ -44,17 +44,26 @@ The next work should improve measurement, editorial workflow, and ranking confid
 
 ## Status Snapshot
 
-This roadmap is intentionally phased. Current shipped or in-review work:
+This roadmap groups product areas; its phase numbers are not a fresh build order.
+The repository already contains:
 
 - Phase 1 signal contract and analytics validation are in place.
 - Phase 2 recommendation health has a maintainer Studio surface and aggregate checks.
 - Phase 3A contextual starter rails are in place through a surface/context contract.
 - Phase 3B starter taxonomy work is in place for `era` and `format` signals.
 - Phase 3C starter Studio workflow polish is in place with catalog filters, readiness labels, editorial notes, and safer archive confirmation.
-- Phase 3D anti-mainstream Deezer candidate finder V0 is in place for related and deep-cut suggestions.
-- Phase 4 editorial candidate queue V1 is in place for persisting curator decisions.
+- Phase 3D candidate generation helpers and API routes for related/deep-cut suggestions.
+- Phase 4 candidate queue storage and decision routes. The current Studio client
+  uses Search/Scout; the queue is not a connected enrichment approval flow.
+- Feed tuning v1, private track library, and artist/album catalog relationships.
+- Deezer/MusicBrainz background enrichment with persistent jobs.
+- Search canvas expansion, focused share routes, history restoration, and bounded
+  browser-local opening/revisit memory. This evaluator is separate from For You.
 
-Phase 5 is the next maintainer phase. Feed tuning should start with a baseline snapshot before changing the recommendation RPC.
+The next dependency is trustworthy catalog evidence and a curator approval flow,
+not another recommendation framework. Follow the implementation map and delivery
+gates in [Knowledge Layer and Search](./knowledge-layer.md). Deployment and
+verification status belongs in [CURRENT.md](../CURRENT.md).
 
 ## Product Model
 
@@ -73,7 +82,7 @@ Content can enter discovery from:
 - follows
 - recently active entities
 - underexposed tracks
-- future editorial candidate queues
+- curator candidate queues
 
 ### 2. Knowledge Layer
 
@@ -88,10 +97,11 @@ External catalogs identify and enrich. Kocteau explains and routes.
 
 Separate canonical facts from editorial knowledge:
 
-- canonical facts: genre, release date, country, label, aliases, provider IDs
+- source evidence: release date, country, label, aliases, provider IDs, and attributed tags
 - editorial knowledge: mood, scene framing, style, gateway paths, deep cuts, stranger paths, and why a pick belongs
 
-For the full source policy and Atlas direction, see [Knowledge Layer and Atlas](./knowledge-layer.md).
+External tags and search match scores are not verified editorial judgments. See
+[Knowledge Layer and Search](./knowledge-layer.md) for source policy and approval.
 
 ### 3. Ranking And Routing
 
@@ -266,7 +276,10 @@ Useful checks:
 
 Improve `/studio/starter` as a quiet editorial tool for the official curator.
 
-Status: shipped enough for the current starter curation loop. Future work should be narrow visual QA, candidate quality measurement, or measured rail diversity.
+Status: manual curation, coverage labels, and contextual rails exist. Automated
+research, evidence inspection, and proposal acceptance remain the next Studio
+extension. Current `Ready` means all six tag kinds are present; it does not mean
+evidence has been reviewed.
 
 Phase 3A starts with the secondary starter rail: starter picks should not feel identical on every screen, and they should not block the main layout render. The rail can use a lightweight surface/context contract, such as `home`, `profile:{username}`, `track:{id}`, `review:{id}`, or `studio:health`, to request a stable daily editorial rotation from `get_starter_tracks_for_surface()`.
 
@@ -290,7 +303,8 @@ Keep it editorial and focused. Do not turn it into a generic admin dashboard.
 
 Add a curator-only finder inside `/studio/starter` where Deezer proposes possible starter picks and Kocteau filters them through editorial rules.
 
-Status: shipped for V0. The finder can suggest related and deep-cut candidates, while persistence is handled by the Phase 4 queue.
+Status: candidate helpers and routes exist. The current Studio Search/Scout UI
+does not expose the older finder as a complete proposal-and-approval flow.
 
 Principle:
 
@@ -328,7 +342,9 @@ This phase should prove whether a human curator can use algorithmic suggestions 
 
 Introduce `editorial_candidates` as a queue where the system proposes tracks that might deserve human review.
 
-Status: shipped for V1 persistence. The first persistent version stores only curator-facing track candidates and decisions. It does not auto-promote candidates into starter picks.
+Status: database and API persistence exist for curator-facing candidates and
+decisions. They do not auto-promote candidates or provide evidence-based editorial
+proposal storage. Reuse them only where their semantics match the new workflow.
 
 Candidate reasons can include:
 
@@ -359,7 +375,9 @@ V1 constraints:
 
 Tune `get_recommended_review_ids` only after Phase 1 and Phase 2 produce enough signal.
 
-Status: next maintainer phase. Capture the baseline with `supabase/scripts/maintenance/feed-tuning-baseline-snapshot.sql` before changing the RPC.
+Status: feed tuning v1 already exists in `20260603143952_feed_tuning_v1.sql`.
+Further scoring changes need a new baseline and a concrete hypothesis. Catalog
+research does not require changing this RPC.
 
 Potential tuning areas:
 
@@ -477,12 +495,14 @@ The first implementation should stay simple:
 5. Derive track relationships from repeated co-curation, reviews, and explicit collection meaning.
 6. Show lightweight `Why this?` explanations only after the underlying signal is real.
 
-The AI posture is future-ready, not AI-dependent:
+The synthesis posture is optional and curator-controlled:
 
 - Today, Kocteau can use SQL, tags, reviews, saves, follows, and collections.
 - A future controlled AI layer may summarize collection intent or draft explanation copy, but it is not required for candidate generation.
-- The first AI-assisted implementation should stay local-only: export safe entity data, draft suggestions, require maintainer review, then apply SQL manually.
-- AI should never write directly to production recommendation tables without maintainer review.
+- Existing local export/draft/apply scripts remain useful for maintenance. The
+  next product implementation should prepare private, versioned proposals inside
+  Studio, using persisted evidence and explicit human acceptance.
+- Synthesis must never publish picks or write recommendation tags autonomously.
 - User-facing explanations should cite product signals, not hidden model confidence.
 
 ### Phase 7: Taste Graph
@@ -513,6 +533,9 @@ The preferred model is hybrid:
 Do not index the whole Deezer catalog for color. Kocteau should only analyze music that enters the local editorial or review layer.
 
 ### Phase 9: Taste Atlas
+
+Deferred historical direction. The current product surface is the Search canvas;
+do not create Atlas or a parallel graph interface to implement editorial research.
 
 Design a native Kocteau discovery surface that lets listeners move through taste relationships instead of only scrolling a feed or searching directly.
 

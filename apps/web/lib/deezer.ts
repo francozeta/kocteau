@@ -234,7 +234,8 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
     errorMessage,
     revalidate,
     scope,
-  }: DeezerFetchOptions & { scope: string },
+    throwOnError = false,
+  }: DeezerFetchOptions & { scope: string; throwOnError?: boolean },
 ): Promise<T | null> {
   try {
     const json = await fetchDeezerJson<T>(url, {
@@ -243,8 +244,21 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
       retryDelays: deezerResourceRetryDelaysMs,
     });
 
-    return hasDeezerApiError(json) ? null : json;
+    if (hasDeezerApiError(json)) {
+      if (throwOnError) {
+        throw new DeezerRequestError(errorMessage);
+      }
+      return null;
+    }
+
+    return json;
   } catch (error) {
+    if (error instanceof DeezerRequestError && error.status === 404) {
+      return null;
+    }
+    if (throwOnError) {
+      throw error;
+    }
     console.warn(`[deezer.${scope}] unavailable`, getDeezerErrorDetails(error));
     return null;
   }
@@ -392,8 +406,12 @@ export async function getDeezerArtist(
 
 export async function getDeezerAlbum(
   albumId: string,
+  { throwOnError = false }: { throwOnError?: boolean } = {},
 ): Promise<DeezerAlbumResult | null> {
   if (!isDeezerProviderId(albumId)) {
+    if (throwOnError) {
+      throw new DeezerRequestError("Invalid Deezer album identity");
+    }
     return null;
   }
 
@@ -404,8 +422,13 @@ export async function getDeezerAlbum(
       errorMessage: "Deezer album request failed",
       revalidate: deezerResourceRevalidateSeconds,
       scope: "album",
+      throwOnError,
     },
   );
+
+  if (json && throwOnError && (!json.id || !json.title)) {
+    throw new DeezerRequestError("Invalid Deezer album response");
+  }
 
   return json ? mapDeezerAlbum(json) : null;
 }
@@ -520,8 +543,14 @@ export async function getDeezerAlbumTracks(
   );
 }
 
-export async function getDeezerTrack(providerId: string): Promise<DeezerTrackResult | null> {
+export async function getDeezerTrack(
+  providerId: string,
+  { throwOnError = false }: { throwOnError?: boolean } = {},
+): Promise<DeezerTrackResult | null> {
   if (!isDeezerProviderId(providerId)) {
+    if (throwOnError) {
+      throw new DeezerRequestError("Invalid Deezer track identity");
+    }
     return null;
   }
 
@@ -532,10 +561,14 @@ export async function getDeezerTrack(providerId: string): Promise<DeezerTrackRes
       errorMessage: "Deezer track request failed",
       revalidate: deezerResourceRevalidateSeconds,
       scope: "track",
+      throwOnError,
     },
   );
 
   if (!json || !json.id || !json.title) {
+    if (json && throwOnError) {
+      throw new DeezerRequestError("Invalid Deezer track response");
+    }
     return null;
   }
 

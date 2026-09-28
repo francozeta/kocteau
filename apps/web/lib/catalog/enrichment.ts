@@ -11,6 +11,17 @@ import {
   findMusicBrainzRecording,
   findMusicBrainzReleaseGroup,
 } from "@/lib/catalog/musicbrainz";
+import {
+  collectCatalogSource,
+  type CatalogLookup,
+  type CatalogSourceObservation,
+} from "@/lib/catalog/source-evidence";
+import {
+  normalizeDeezerAlbum,
+  normalizeDeezerTrack,
+  normalizeMusicBrainzArtist,
+  normalizeMusicBrainzEntity,
+} from "@/lib/catalog/source-normalization";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -21,6 +32,38 @@ type CatalogJob =
 
 const musicBrainzRequestIntervalMs = 1_100;
 let lastMusicBrainzRequestAt = 0;
+
+async function persistSourceObservation(job: CatalogJob, observation: CatalogSourceObservation) {
+  const { error } = await supabaseAdmin()
+    .from("catalog_source_observations")
+    .insert({
+      job_id: job.job_id,
+      source: observation.source,
+      source_entity_type: observation.sourceEntityType,
+      source_entity_id: observation.sourceEntityId,
+      status: observation.status,
+      lookup: observation.lookup,
+      facts: observation.facts,
+      match_score: observation.matchScore,
+      error_code: observation.errorCode,
+      schema_version: observation.schemaVersion,
+      retrieved_at: observation.retrievedAt,
+    });
+
+  if (error) {
+    throw error;
+  }
+}
+
+function entityLookup(entity: EntityRow): CatalogLookup {
+  return {
+    provider: entity.provider,
+    providerId: entity.provider_id,
+    type: entity.type,
+    title: entity.title,
+    artistName: entity.artist_name,
+  };
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -216,23 +259,50 @@ async function hydrateAlbumContext(entity: EntityRow, album: DeezerAlbumResult) 
   return data;
 }
 
-async function hydrateEntityContext(entity: EntityRow) {
+async function hydrateEntityContext(job: CatalogJob, entity: EntityRow) {
   if (entity.provider !== "deezer") {
     return entity;
   }
 
   if (entity.type === "track") {
-    const track = await getDeezerTrack(entity.provider_id);
+    const track = await collectCatalogSource({
+      source: "deezer",
+      sourceEntityType: "track",
+      lookup: entityLookup(entity),
+      fetchSource: () => getDeezerTrack(entity.provider_id, { throwOnError: true }),
+      normalize: normalizeDeezerTrack,
+      persist: (observation) => persistSourceObservation(job, observation),
+    });
     return track ? hydrateTrackContext(entity, track) : entity;
   }
 
-  const album = await getDeezerAlbum(entity.provider_id);
+  const album = await collectCatalogSource({
+    source: "deezer",
+    sourceEntityType: "album",
+    lookup: entityLookup(entity),
+    fetchSource: () => getDeezerAlbum(entity.provider_id, { throwOnError: true }),
+    normalize: normalizeDeezerAlbum,
+    persist: (observation) => persistSourceObservation(job, observation),
+  });
   return album ? hydrateAlbumContext(entity, album) : entity;
 }
 
-async function enrichArtist(artist: ArtistRow) {
+async function enrichArtist(job: CatalogJob, artist: ArtistRow) {
   await waitForMusicBrainzSlot();
-  const match = await findMusicBrainzArtist(artist.name);
+  const match = await collectCatalogSource({
+    source: "musicbrainz",
+    sourceEntityType: "artist",
+    lookup: {
+      provider: artist.provider,
+      providerId: artist.provider_id,
+      type: "artist",
+      title: artist.name,
+      artistName: null,
+    },
+    fetchSource: () => findMusicBrainzArtist(artist.name),
+    normalize: normalizeMusicBrainzArtist,
+    persist: (observation) => persistSourceObservation(job, observation),
+  });
   const supabase = supabaseAdmin();
   const { error } = await supabase
     .from("artists")
@@ -254,19 +324,25 @@ async function enrichArtist(artist: ArtistRow) {
   }
 }
 
-async function enrichEntity(entity: EntityRow) {
-  const hydratedEntity = await hydrateEntityContext(entity);
+async function enrichEntity(job: CatalogJob, entity: EntityRow) {
+  const hydratedEntity = await hydrateEntityContext(job, entity);
   await waitForMusicBrainzSlot();
-  const match =
-    hydratedEntity.type === "album"
-      ? await findMusicBrainzReleaseGroup(
+  const match = await collectCatalogSource({
+    source: "musicbrainz",
+    sourceEntityType: hydratedEntity.type === "album" ? "release-group" : "recording",
+    lookup: entityLookup(hydratedEntity),
+    fetchSource: () => hydratedEntity.type === "album"
+      ? findMusicBrainzReleaseGroup(
           hydratedEntity.title,
           hydratedEntity.artist_name,
         )
-      : await findMusicBrainzRecording(
+      : findMusicBrainzRecording(
           hydratedEntity.title,
           hydratedEntity.artist_name,
-        );
+        ),
+    normalize: normalizeMusicBrainzEntity,
+    persist: (observation) => persistSourceObservation(job, observation),
+  });
   const supabase = supabaseAdmin();
   const { error } = await supabase
     .from("entities")
@@ -366,7 +442,7 @@ async function processJob(job: CatalogJob) {
     }
 
     if (data) {
-      await enrichArtist(data);
+      await enrichArtist(job, data);
     }
   } else if (job.target_type === "entity") {
     const { data, error } = await supabase
@@ -380,7 +456,7 @@ async function processJob(job: CatalogJob) {
     }
 
     if (data) {
-      await enrichEntity(data);
+      await enrichEntity(job, data);
     }
   } else {
     throw new Error(`Unsupported catalog target: ${job.target_type}`);
