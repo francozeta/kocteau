@@ -13,8 +13,8 @@ editorial proposals and human acceptance are the next phase.
 
 ## Active Work
 
-- Implementation and documentation committed locally on feat/studio-catalog-research;
-  not yet merged or deployed.
+- Draft PR #207 carries the implementation on feat/studio-catalog-research; it is
+  in review, not merged. Issue #206 carries the cross-device phase sequence.
 - Sources in the existing Studio dialog/drawer can research a selected track,
   inspect Deezer/MusicBrainz outcomes, and resume eligible queued work. The server
   resolves canonical identity and reuses jobs without publishing picks or tags.
@@ -35,7 +35,8 @@ editorial proposals and human acceptance are the next phase.
   linked CLI migration history. PR #205 is merged.
 - The new migration 20260928133212_studio_catalog_research.sql is applied to
   the linked Supabase project. The remote history and a read-only check confirm
-  the lease row, RLS, service-role RPC access, and denied client access.
+  the lease row, RLS, service-role RPC access, and denied client access. A later
+  linked dry run reports no pending migrations.
 - 90 unit tests, web lint, TypeScript, production build, and diff checks pass.
   SQL assertions pass in isolated embedded PostgreSQL for both source evidence
   and the new lease/targeted-claim behavior. Docker/full Supabase reset is unavailable.
@@ -49,6 +50,8 @@ editorial proposals and human acceptance are the next phase.
   additions; only formatting and declaration order differ. The maintainer's
   pre-existing generated-type changes remain separate from this branch.
   See the [rollout checks](./docs/operations.md#studio-research-rollout).
+- PR verification and preview deployment are still running; the authenticated
+  curator and cron flow has not been checked against the preview.
 
 ## Next Priority
 
