@@ -50,8 +50,8 @@ editorial proposals and human acceptance are the next phase.
   additions; only formatting and declaration order differ. The maintainer's
   pre-existing generated-type changes remain separate from this branch.
   See the [rollout checks](./docs/operations.md#studio-research-rollout).
-- PR verification and preview deployment are still running; the authenticated
-  curator and cron flow has not been checked against the preview.
+- PR verification and the web preview passed. The authenticated curator and
+  cron flow has not been checked against that preview.
 
 ## Next Priority
 
