@@ -6,6 +6,28 @@ Load testing and launch thresholds are documented in [Load readiness](./load-rea
 
 This file captures the production setup that lives outside the codebase.
 
+## Catalog Evidence Rollout
+
+Apply `20260928051000_catalog_source_observations.sql` through the
+[maintainer workflow](./maintainers/supabase-workflow.md) before deploying the
+worker that writes source observations. The migration adds private append-only
+evidence and keeps job preparation from resetting pending/failed attempts.
+No evidence is reconstructed from existing metadata, and no bulk re-enrichment
+is triggered. Existing exhausted jobs require an intentional retry after the
+underlying provider issue is resolved.
+
+Before rollout, run `pnpm exec supabase test db` on the local stack, regenerate
+database types, and check the web build. In staging, exercise a successful lookup,
+an unmatched lookup, and a provider failure through the protected worker. Verify
+source identity and lookup context, retained earlier observations, and increasing
+attempts/backoff. A storage error must stop the corresponding metadata projection.
+
+The public catalog still reads its existing projected columns. Observations do
+not publish tags, picks, or collections and are not exposed through a public API.
+The current MusicBrainz pause is process-local; coordinate requests across workers
+and cap execution time before adding interactive Studio research. Monitor table
+growth before expanding collection volume or adding proposal retention policies.
+
 ## Supabase Auth
 
 Kocteau is OTP-first.

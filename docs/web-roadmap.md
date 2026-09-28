@@ -403,19 +403,21 @@ Strengthen the reasons people come back and feel safe participating.
 
 ## Suggested Execution Order
 
-1. Phase 0
-2. Phase 1
-3. Phase 2
-4. Phase 3
-5. Phase 4
-6. Phase 5
-7. Phase 6
+The phases above describe product areas, not unimplemented work. Use
+[CURRENT.md](../CURRENT.md) for the active slice and the
+[catalog-to-curation map](./knowledge-layer.md) for its dependencies.
 
 ## Immediate Next Execution Steps
 
-1. Implement the discovery analytics signal contract.
-2. Use analytics to validate For You health after real usage.
-3. Improve `/studio/starter` around tag coverage, trust, and curator speed.
-4. Improve review creation quality and post-publish feedback.
-5. Strengthen Explore around trending, discussed, and top-rated music.
-6. Add lightweight trust/reporting flows without a heavy dashboard.
+1. Preserve Search canvas continuity; verify signed-in save/review behavior and
+   candidate relevance with real usage.
+2. Record provider evidence through the existing catalog worker; preserve failure
+   history, retry limits, and the distinction between metadata and editorial taste.
+3. Connect selected Studio drafts to canonical catalog research with shared source
+   throttling before enabling concurrent curator requests.
+4. Add private structured proposals and evidence inspection to the existing Studio
+   drawer, then explicit acceptance into starter tags and collection membership.
+5. Measure proposal corrections, coverage, cost, and latency before using accepted
+   signals for contextual discovery. Reuse existing feed analytics where possible.
+6. Tune For You or the Search evaluator only against a measured baseline. Defer
+   embeddings, additional decision services, and large recommendation abstractions.

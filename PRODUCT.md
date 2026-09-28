@@ -14,6 +14,9 @@ The conceptual reference is:
 - social music criticism
 - human curation supported by lightweight algorithms
 
+The curator chooses the music; Kocteau researches it; the listener discovers it.
+Editorial taste is a starting point, not the limit of a listener's taste.
+
 ## Product Objective
 
 The MVP should prove that Kocteau has a clear loop:
@@ -132,7 +135,21 @@ Signed-out users fall back to a public latest-style experience.
 
 When there are not enough real reviews to rank, For You uses the Starter Layer: curated tracks from `starter_tracks`, grouped by optional `editorial_collections`, and matched to onboarding tags through `starter_track_tags`. This keeps early sessions useful without inventing fake users or fake reviews.
 
-The official `@kocteau` profile can manage these picks from `/studio/starter` using the same Deezer search source as review creation. Curators can attach taste tags or create lightweight new tags; when a user reviews a starter pick, those editorial tags are synced onto the created entity so later recommendations can reuse the signal. In the feed, starter picks behave as a lightweight taste queue: users can pass on a pick or open the review flow without scanning a long grid.
+Authorized curators can manage these picks from `/studio/starter` through Kocteau
+Search or Deezer Scout. Private curator roles govern access; the public official
+badge is a separate concern. Curators currently select tags and save manually.
+The Studio form saves to `starter-picks`; collection tables and membership already
+exist, but a collection destination picker is not implemented. When a user reviews
+a starter pick, its editorial tags are synced onto the created entity. In the feed,
+starter picks form a lightweight taste queue with pass and review actions.
+
+Catalog research, editorial proposals, and listener ranking are separate
+responsibilities. Provider metadata is evidence, not an approved editorial signal.
+The next Studio flow reuses its existing dialog/drawer: select music, collect
+evidence, review proposed signals, then explicitly accept. Research must not
+publish a starter pick or mutate taste tags before that decision. See
+[Knowledge Layer and Search](./docs/knowledge-layer.md) for the implementation
+boundaries and [CURRENT.md](./CURRENT.md) for verified progress.
 
 ## 6. Search as a personal discovery canvas
 

@@ -173,6 +173,59 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_source_observations: {
+        Row: {
+          error_code: string | null
+          facts: Json
+          id: string
+          job_id: string
+          lookup: Json
+          match_score: number | null
+          retrieved_at: string
+          schema_version: number
+          source: string
+          source_entity_id: string | null
+          source_entity_type: string
+          status: string
+        }
+        Insert: {
+          error_code?: string | null
+          facts?: Json
+          id?: string
+          job_id: string
+          lookup: Json
+          match_score?: number | null
+          retrieved_at?: string
+          schema_version?: number
+          source: string
+          source_entity_id?: string | null
+          source_entity_type: string
+          status: string
+        }
+        Update: {
+          error_code?: string | null
+          facts?: Json
+          id?: string
+          job_id?: string
+          lookup?: Json
+          match_score?: number | null
+          retrieved_at?: string
+          schema_version?: number
+          source?: string
+          source_entity_id?: string | null
+          source_entity_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_source_observations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_enrichment_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curator_applications: {
         Row: {
           availability: string
