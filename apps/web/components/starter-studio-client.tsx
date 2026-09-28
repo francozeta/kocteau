@@ -1,5 +1,7 @@
 "use client";
 
+import { StarterCatalogResearch } from "@/components/starter-catalog-research";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -906,6 +908,8 @@ export default function StarterStudioClient() {
               </div>
             </div>
           </section>
+
+          <StarterCatalogResearch key={inspectedTrack.provider_id} providerId={inspectedTrack.provider_id} />
 
           <section className="space-y-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

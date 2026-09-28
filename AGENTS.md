@@ -41,10 +41,10 @@ Before repository work, read `AGENTS.md` and `CURRENT.md` completely. Read `PROD
 ### Working Notes And Plans
 
 - Plans, scratch notes, and implementation checklists are working memory, not public documentation by default.
-- Keep short plans in the active session. If a persistent local file is genuinely useful, store it under the path returned by `git rev-parse --git-path agent-plans` so it remains local in normal clones and linked worktrees.
+- Keep short plans in the active session. Keep device-local phases, plans, and implementation checklists under the root `.plan/` directory, which must remain ignored by Git.
 - Do not add generated plans or specs to `docs/` unless the maintainer explicitly asks for a public RFC, design record, or long-lived contributor document.
 - Promote only durable outcomes: update `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `CURRENT.md`, a relevant specialized document, or the implementation itself.
-- Remove obsolete local planning notes when the task is complete. Do not make contributors navigate process artifacts to understand the product.
+- Keep concise phase outcomes in `.plan/` for local continuity and retire obsolete checklists there. Do not make contributors navigate process artifacts to understand the product.
 
 ### Branches, Commits, And Pull Requests
 

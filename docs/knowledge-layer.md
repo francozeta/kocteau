@@ -11,12 +11,12 @@ discovery application. Delivery and deployment status belong in `CURRENT.md`.
 
 ## Implementation Map
 
-| Responsibility | Existing implementation | Remaining connection |
+| Responsibility | Existing implementation | Boundary and next work |
 | --- | --- | --- |
 | Music identity | `entities`, `artists`, provider IDs, artist/album relationships; `lib/deezer.ts` and `lib/catalog/musicbrainz.ts` | Keep Kocteau IDs stable; a source search match is supporting evidence, not canonical certainty. |
-| Background research | `catalog_enrichment_jobs`, claim/prepare RPCs, `lib/catalog/enrichment.ts`, protected `/api/cron/enrich-catalog` | Retain observations; add shared request throttling and execution budgets before concurrent Studio research. |
-| Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Connect authorized source inspection to Studio. Existing projected metadata has no reconstructed provenance. |
-| Studio selection | `components/starter-studio-client.tsx`: Kocteau Search, Deezer Scout, responsive editor | Resolve a selected draft into catalog research without saving an active starter pick. |
+| Background research | `catalog_enrichment_jobs`, claim/prepare RPCs, `lib/catalog/enrichment.ts`, protected `/api/cron/enrich-catalog` | Shared database lease for MusicBrainz and a worker execution budget; cron resumes interrupted work. |
+| Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Curator-only inspection through `/api/starter/research`; existing projected metadata has no reconstructed provenance. |
+| Studio selection | `components/starter-studio-client.tsx`: Kocteau Search, Deezer Scout, responsive editor | Sources in the existing editor resolve drafts and request research without saving an active starter pick. |
 | Editorial vocabulary | `preference_tags` with genre, mood, scene, style, era, format | Suggest existing tag IDs with evidence references; do not create a parallel taxonomy. |
 | Editorial publication | `upsert_starter_track`, `starter_tracks`, `starter_track_tags`, `editorial_collections`, `editorial_collection_items` | Version proposals and decisions; add explicit destination selection and atomic acceptance. Current form uses `starter-picks`. |
 | Candidate decisions | `editorial_candidates`, candidate routes and helpers | The current Search/Scout editor does not provide an integrated candidate research queue. Reuse only matching concepts. |
@@ -114,11 +114,13 @@ referenced evidence. Define retention before increasing collection volume.
 Existing source rows are not backfilled as if their provenance were known. Normal
 refreshes collect new observations. A new starter pick also does not necessarily
 have an `entities` row: current starter upsert only syncs tags when that entity
-already exists. That bridge remains necessary before Studio can request research.
+already exists. Studio research now resolves a missing entity from server-fetched
+Deezer identity, preserves catalog uniqueness, and reuses the existing target job.
 
 ## Studio Flow
 
-The target remains inside the existing Studio dialog/drawer:
+The complete proposal/acceptance flow remains a target inside the existing
+Studio dialog/drawer. The current research-only slice is described below:
 
 `Search / Scout → choose track → choose destination → research → review → Accept`
 
@@ -146,33 +148,37 @@ transaction, reject obsolete proposals after identity changes, and make repeated
 acceptance idempotent. Current `upsert_starter_track` also publishes its collection;
 review that behavior before supporting destinations beyond `starter-picks`.
 
-## Delivery Gates
+## Research Runtime
 
-1. **Evidence foundation.** Reuse provider clients and jobs, preserve source outcomes,
-   and enforce retry history. Verify access grants and failure behavior. See
-   `CURRENT.md` for the migration and verification state.
-2. **Research entry from Studio.** Resolve drafts without publishing, reuse existing
-   catalog jobs, expose only authorized observations, coordinate MusicBrainz requests
-   across workers, and bound work to the execution deadline. The existing 1.1-second
-   in-process pause is not a shared limiter. MusicBrainz requires an identifying
-   User-Agent and at most one request per second per IP; see its
-   [rate-limiting policy](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting).
-3. **Proposal and acceptance.** Introduce versioned structured suggestions, evidence
-   inspection, corrections, and transactional human approval in the existing drawer.
-   Verify curator access, concurrent edits, retry, cancellation, and stale results.
-4. **Contextual discovery.** Evaluate enough accepted tracks across actual taste
-   categories and collections to support one useful path. Measure corrections,
-   repetition, source failures, latency, and cost before modifying ranking.
-5. **Optional experiments.** Add a narrow typed decision evaluator only against a
-   measured baseline. Embeddings or pgvector require an unmet retrieval need.
-   No autonomous acceptance, generated reviews, extra vector service, large
-   recommendation package, or Atlas surface is required by this flow.
+The Sources section loads the selected track's latest observation per provider.
+Research track makes an authenticated curator-only POST; the browser supplies only
+a validated Deezer ID. The server resolves missing identity from Deezer, reuses
+the target job, and schedules a targeted claim after the response. Existing
+evidence is reused; reopening the editor does not reset failures or backoff.
+Completed legacy jobs without evidence receive one recorded pass. No starter
+pick, collection membership, or taste tag is written by this route.
 
-Existing analytics already record feed/review/starter activity. Source observations
-and job attempts provide operational research history in this first slice.
-Editorial search, selection, proposal edits, and acceptance events should arrive
-with their actual UI actions and a bounded schema. Avoid collecting speculative
-free-form search logs or treating local discovery paths as permanent telemetry.
+Studio and cron use the same claim RPC and MusicBrainz lease. The lease excludes
+concurrent source calls, expires after 30 seconds if a worker disappears, and
+retains a 1.1-second gap after release. A stale token cannot release a new owner.
+The provider request has a ten-second timeout. Coordination failure fails closed.
+The existing identifying User-Agent remains in place; see the
+[MusicBrainz policy](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting).
+
+Workers use a 50-second budget within a 60-second route. They stop claiming new
+work with fewer than 30 seconds remaining and defer source contention without
+spending a failed-source attempt. Database latency is not a hard wall-clock
+guarantee; stale processing jobs remain recoverable after 15 minutes.
+The durable queue, not the post-response callback, is the recovery boundary.
+
+Source reads never expose raw job errors or credentials. Research requests are
+limited per curator and refuse work if the rate limiter is unavailable. Client
+polling is bounded; Check progress resumes inspection after the editor is reopened.
+The six-kind coverage filter remains separate from source research status.
+
+Proposal generation, corrections, destination selection, and atomic human
+acceptance remain separate work. Their contracts are above; current delivery
+status is in [CURRENT.md](../CURRENT.md), not a second roadmap here.
 
 ## Taste Vocabulary
 

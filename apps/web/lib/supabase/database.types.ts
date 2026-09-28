@@ -173,6 +173,12 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_source_leases: {
+        Row: { source: string; token: string | null; available_at: string }
+        Insert: { source: string; token?: string | null; available_at?: string }
+        Update: { source?: string; token?: string | null; available_at?: string }
+        Relationships: []
+      }
       catalog_source_observations: {
         Row: {
           error_code: string | null
@@ -1483,8 +1489,10 @@ export type Database = {
           reset_at: string
         }[]
       }
+      acquire_catalog_source_lease: { Args: never; Returns: string }
+      release_catalog_source_lease: { Args: { p_token: string }; Returns: undefined }
       claim_catalog_enrichment_job: {
-        Args: never
+        Args: { p_job_id?: string }
         Returns: {
           attempts: number
           job_id: string

@@ -24,14 +24,12 @@ import {
 } from "@/lib/catalog/source-normalization";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
+import { CatalogResearchDeferred, withMusicBrainzLease } from "./source-lease";
 
 type ArtistRow = Database["public"]["Tables"]["artists"]["Row"];
 type EntityRow = Database["public"]["Tables"]["entities"]["Row"];
 type CatalogJob =
   Database["public"]["Functions"]["claim_catalog_enrichment_job"]["Returns"][number];
-
-const musicBrainzRequestIntervalMs = 1_100;
-let lastMusicBrainzRequestAt = 0;
 
 async function persistSourceObservation(job: CatalogJob, observation: CatalogSourceObservation) {
   const { error } = await supabaseAdmin()
@@ -63,21 +61,6 @@ function entityLookup(entity: EntityRow): CatalogLookup {
     title: entity.title,
     artistName: entity.artist_name,
   };
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForMusicBrainzSlot() {
-  const elapsed = Date.now() - lastMusicBrainzRequestAt;
-  const waitMs = Math.max(0, musicBrainzRequestIntervalMs - elapsed);
-
-  if (waitMs > 0) {
-    await sleep(waitMs);
-  }
-
-  lastMusicBrainzRequestAt = Date.now();
 }
 
 async function enqueueRelatedTargets(targets: Array<{
@@ -287,9 +270,8 @@ async function hydrateEntityContext(job: CatalogJob, entity: EntityRow) {
   return album ? hydrateAlbumContext(entity, album) : entity;
 }
 
-async function enrichArtist(job: CatalogJob, artist: ArtistRow) {
-  await waitForMusicBrainzSlot();
-  const match = await collectCatalogSource({
+async function enrichArtist(job: CatalogJob, artist: ArtistRow, deadline: number) {
+  const match = await withMusicBrainzLease(deadline, () => collectCatalogSource({
     source: "musicbrainz",
     sourceEntityType: "artist",
     lookup: {
@@ -302,7 +284,7 @@ async function enrichArtist(job: CatalogJob, artist: ArtistRow) {
     fetchSource: () => findMusicBrainzArtist(artist.name),
     normalize: normalizeMusicBrainzArtist,
     persist: (observation) => persistSourceObservation(job, observation),
-  });
+  }));
   const supabase = supabaseAdmin();
   const { error } = await supabase
     .from("artists")
@@ -324,10 +306,9 @@ async function enrichArtist(job: CatalogJob, artist: ArtistRow) {
   }
 }
 
-async function enrichEntity(job: CatalogJob, entity: EntityRow) {
+async function enrichEntity(job: CatalogJob, entity: EntityRow, deadline: number) {
   const hydratedEntity = await hydrateEntityContext(job, entity);
-  await waitForMusicBrainzSlot();
-  const match = await collectCatalogSource({
+  const match = await withMusicBrainzLease(deadline, () => collectCatalogSource({
     source: "musicbrainz",
     sourceEntityType: hydratedEntity.type === "album" ? "release-group" : "recording",
     lookup: entityLookup(hydratedEntity),
@@ -342,7 +323,7 @@ async function enrichEntity(job: CatalogJob, entity: EntityRow) {
         ),
     normalize: normalizeMusicBrainzEntity,
     persist: (observation) => persistSourceObservation(job, observation),
-  });
+  }));
   const supabase = supabaseAdmin();
   const { error } = await supabase
     .from("entities")
@@ -403,9 +384,9 @@ async function markJobFailed(job: CatalogJob, error: unknown) {
   }
 }
 
-async function claimJob() {
+async function claimJob(jobId?: string) {
   const supabase = supabaseAdmin();
-  const { data, error } = await supabase.rpc("claim_catalog_enrichment_job");
+  const { data, error } = await supabase.rpc("claim_catalog_enrichment_job", { p_job_id: jobId });
 
   if (error) {
     throw error;
@@ -427,7 +408,7 @@ async function prepareJobs() {
   return data ?? 0;
 }
 
-async function processJob(job: CatalogJob) {
+async function processJob(job: CatalogJob, deadline: number) {
   const supabase = supabaseAdmin();
 
   if (job.target_type === "artist") {
@@ -442,7 +423,7 @@ async function processJob(job: CatalogJob) {
     }
 
     if (data) {
-      await enrichArtist(job, data);
+      await enrichArtist(job, data, deadline);
     }
   } else if (job.target_type === "entity") {
     const { data, error } = await supabase
@@ -456,7 +437,7 @@ async function processJob(job: CatalogJob) {
     }
 
     if (data) {
-      await enrichEntity(job, data);
+      await enrichEntity(job, data, deadline);
     }
   } else {
     throw new Error(`Unsupported catalog target: ${job.target_type}`);
@@ -465,33 +446,50 @@ async function processJob(job: CatalogJob) {
   await markJobComplete(job.job_id);
 }
 
+async function runClaimedJob(job: CatalogJob, deadline: number) {
+  try {
+    await processJob(job, deadline);
+    return "completed" as const;
+  } catch (error) {
+    if (error instanceof CatalogResearchDeferred) {
+      const { error: updateError } = await supabaseAdmin()
+        .from("catalog_enrichment_jobs")
+        .update({
+          status: "pending",
+          attempts: job.attempts - 1,
+          next_attempt_at: new Date(Date.now() + 30_000).toISOString(),
+        })
+        .eq("id", job.job_id);
+      if (updateError) throw updateError;
+      return "deferred" as const;
+    }
+    await markJobFailed(job, error);
+    console.error("[catalog.enrichment] job failed", {
+      jobId: job.job_id,
+      targetType: job.target_type,
+    });
+    return "failed" as const;
+  }
+}
+
+export async function processCatalogResearchJob(jobId: string, deadline: number) {
+  if (Date.now() + 30_000 >= deadline) return;
+  const job = await claimJob(jobId);
+  if (job) await runClaimedJob(job, deadline);
+}
+
 export async function processCatalogEnrichmentBatch(limit = 8) {
+  const deadline = Date.now() + 50_000;
   const safeLimit = Math.max(1, Math.min(24, Math.floor(limit)));
   const prepared = await prepareJobs();
-  let completed = 0;
-  let failed = 0;
+  const result = { prepared, completed: 0, failed: 0, deferred: 0 };
 
-  for (let index = 0; index < safeLimit; index += 1) {
+  for (let index = 0; index < safeLimit && Date.now() + 30_000 < deadline; index += 1) {
     const job = await claimJob();
-
-    if (!job) {
-      break;
-    }
-
-    try {
-      await processJob(job);
-      completed += 1;
-    } catch (error) {
-      failed += 1;
-      await markJobFailed(job, error);
-      console.error("[catalog.enrichment] job failed", {
-        jobId: job.job_id,
-        targetType: job.target_type,
-        targetId: job.target_id,
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
+    if (!job) break;
+    const outcome = await runClaimedJob(job, deadline);
+    result[outcome] += 1;
+    if (outcome === "deferred") break;
   }
-
-  return { prepared, completed, failed };
+  return result;
 }

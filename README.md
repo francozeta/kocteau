@@ -44,7 +44,7 @@ Kocteau is an open-source music review and taste discovery app. The current prod
 | Understand the product contract | [PRODUCT.md](./PRODUCT.md) |
 | Understand the interface direction | [DESIGN.md](./DESIGN.md) |
 | Make a first contribution | [Good first issues](https://github.com/francozeta/kocteau/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22) |
-| Understand the product direction | [docs/web-roadmap.md](./docs/web-roadmap.md) |
+| Understand the product direction | [PRODUCT.md](./PRODUCT.md) |
 | Read the contributor guide | [CONTRIBUTING.md](./CONTRIBUTING.md) |
 | Browse the public backlog | [docs/backlog.md](./docs/backlog.md) |
 
@@ -283,7 +283,7 @@ Core docs:
 
 - Product contract: [PRODUCT.md](./PRODUCT.md)
 - Design contract: [DESIGN.md](./DESIGN.md)
-- Web roadmap: [docs/web-roadmap.md](./docs/web-roadmap.md)
+- Active priority: [CURRENT.md](./CURRENT.md)
 - Discovery, curation, and analytics strategy: [docs/discovery-curation.md](./docs/discovery-curation.md)
 - Public backlog and future RFCs: [docs/backlog.md](./docs/backlog.md)
 

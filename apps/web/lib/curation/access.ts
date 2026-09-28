@@ -40,7 +40,7 @@ export async function requireStarterCurator() {
     };
   }
 
-  return { ok: true as const, supabase };
+  return { ok: true as const, supabase, user };
 }
 
 export async function requireKocteauAdmin() {

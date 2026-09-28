@@ -24,9 +24,9 @@ attempts/backoff. A storage error must stop the corresponding metadata projectio
 
 The public catalog still reads its existing projected columns. Observations do
 not publish tags, picks, or collections and are not exposed through a public API.
-The current MusicBrainz pause is process-local; coordinate requests across workers
-and cap execution time before adding interactive Studio research. Monitor table
-growth before expanding collection volume or adding proposal retention policies.
+The [Studio research rollout](#studio-research-rollout) adds shared source
+coordination and a worker time budget. Monitor table growth before expanding
+collection volume or adding proposal retention policies.
 
 ## Supabase Auth
 
@@ -262,21 +262,42 @@ Public identity and internal permissions are intentionally separate:
 
 The editorial starter migration grants `admin` to the profile whose username is `kocteau` when it runs. If that profile does not exist yet, create the profile first or insert the role later.
 
-## Branching and Releases
+## Branching And Releases
 
-Current preference:
+Follow the branch and commit conventions in [AGENTS.md](../AGENTS.md). Release
+Please handles versioning and changelogs; release PR merging remains manual.
+See [release automation](./maintainers/release.md) and
+[GitHub rules](./maintainers/github-rules.md) for the maintained procedures.
 
-- Use Release Please for automatic versioning, changelog updates, tags, and GitHub Releases.
-- Keep the public release process web-first until mobile becomes a production surface.
-- Use branches for meaningful features.
-- Use squash merge titles as the release-note source.
-- Keep release PR merging manual; do not enable auto-merge for release PRs yet.
-- Use `docs/maintainers/release.md` for release automation notes.
-- Use `docs/maintainers/github-rules.md` for recommended repository rules.
+## Studio Research Rollout
 
-Good branch names:
+Apply `20260928133212_studio_catalog_research.sql` after the source-observation
+migration and before deploying Studio research. Follow the
+[Supabase workflow](./maintainers/supabase-workflow.md); creating a local migration
+does not apply it to cloud. Regenerate database types from the migrated schema.
 
-- `auth-email-code-only`
-- `recommendation-v2`
-- `instrumentation-v0.1.3`
-- `feature-name-short`
+Verify the SQL regressions in `supabase/tests/database` on a disposable local
+stack, then run these staging checks with the cron configured:
+
+1. Signed-out and non-curator requests to GET/POST `/api/starter/research` must
+   fail before any privileged read or provider call.
+2. Open a new track in Studio, request research, and inspect both sources.
+   Confirm identity is unique and no starter pick, membership, or taste tag was published.
+3. Reopen the same track and request it concurrently from two sessions. There
+   should be one target job; requests must respect the shared MusicBrainz lease.
+4. Verify missing matches, provider failure, backoff, and interrupted-worker
+   recovery. Failed research must preserve source history and the editor's draft.
+5. Check desktop dialog and mobile drawer, keyboard focus, source links, and
+   that manual curation still works. Confirm the cron completes queued work
+   after the initial post-response execution ends.
+
+The UI shows the latest result per provider. Earlier observations remain in the
+append-only table; a failed newer observation does not erase successful history.
+Only the service role can execute coordination and claim RPCs. No client role
+can access lease rows or observations directly.
+
+For security-advisor follow-ups, use the read-only
+`supabase/scripts/maintenance/advisor-hardening-00-diagnostics.sql` and current
+advisor results. The old June audit is historical; schema/grant changes belong
+in reviewed migrations. Smoke-test auth, avatar upload, review actions, Library,
+follows, For You, and curator access after permission changes.
