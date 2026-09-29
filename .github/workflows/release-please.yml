@@ -30,7 +30,7 @@ jobs:
 
       - name: Checkout release contents
         if: ${{ steps.release-please.outputs.release_created == 'true' }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
