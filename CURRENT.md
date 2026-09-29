@@ -1,7 +1,6 @@
 # Current Project State
 
 Last verified: 2026-09-29
-Studio baseline: `feat/studio-signal-proposals` at `14a59d2`.
 
 Stable contracts are in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and the [knowledge layer](./docs/knowledge-layer.md).
@@ -10,10 +9,10 @@ Stable contracts are in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 Studio automatically researches a selected track, drafts conservative signals
 from current source evidence, and keeps the curator's saved or manual choices
-authoritative. Optional Gateway context is in [PR #208](https://github.com/francozeta/kocteau/pull/208)
-on `feat/studio-gateway-reconciliation`; it explains existing source-backed
-proposals and cannot change a draft or publish a pick. Human decision history,
-collection destination choice, and transactional acceptance are still future work.
+authoritative. Optional Gateway context explains those source-backed proposals
+on explicit request; it cannot change a draft or publish a pick. Human decision
+history, collection destination choice, and transactional acceptance are still
+future work.
 
 ## Verification And Deployment
 
@@ -24,7 +23,7 @@ collection destination choice, and transactional acceptance are still future wor
   confirmed the three-source RPC body, RLS on both private tables, denied
   client reads/reservations, and service-role reservation access.
 - The proposal and three-source SQL checks pass in isolated PostgreSQL.
-  The current branch passes 110 web unit tests, 15 proposal route scenarios,
+  The Studio integration passes 110 web unit tests, 15 proposal route scenarios,
   TypeScript, lint, and production build. Linked types were regenerated after
   applying the migration; its RPC signature is unchanged.
 - A refreshed local Vercel OIDC token passed Gateway model and credit checks.
@@ -35,6 +34,6 @@ collection destination choice, and transactional acceptance are still future wor
 
 ## Next Priority
 
-Exercise the authenticated curator flow on the PR preview, including sparse
-evidence, manual edits, and non-curator denial. Review the PR before merging it
-into the Studio baseline.
+Exercise the authenticated curator flow on the deployed web build, including
+sparse evidence, manual edits, and non-curator denial. Then refine the curation
+experience before adding durable decisions and transactional publication.
