@@ -13,6 +13,7 @@ import {
 } from "@/lib/catalog/musicbrainz";
 import {
   collectCatalogSource,
+  catalogResearchVersion,
   type CatalogLookup,
   type CatalogSourceObservation,
 } from "@/lib/catalog/source-evidence";
@@ -60,6 +61,7 @@ function entityLookup(entity: EntityRow): CatalogLookup {
     type: entity.type,
     title: entity.title,
     artistName: entity.artist_name,
+    researchVersion: catalogResearchVersion,
   };
 }
 
@@ -244,7 +246,7 @@ async function hydrateAlbumContext(entity: EntityRow, album: DeezerAlbumResult) 
 
 async function hydrateEntityContext(job: CatalogJob, entity: EntityRow) {
   if (entity.provider !== "deezer") {
-    return entity;
+    return { entity, identifiers: {} };
   }
 
   if (entity.type === "track") {
@@ -256,7 +258,19 @@ async function hydrateEntityContext(job: CatalogJob, entity: EntityRow) {
       normalize: normalizeDeezerTrack,
       persist: (observation) => persistSourceObservation(job, observation),
     });
-    return track ? hydrateTrackContext(entity, track) : entity;
+    if (!track) return { entity, identifiers: {} };
+    const hydrated = await hydrateTrackContext(entity, track);
+    if (track.album_id) {
+      await collectCatalogSource({
+        source: "deezer",
+        sourceEntityType: "album",
+        lookup: entityLookup(hydrated),
+        fetchSource: () => getDeezerAlbum(track.album_id!, { throwOnError: true }),
+        normalize: normalizeDeezerAlbum,
+        persist: (observation) => persistSourceObservation(job, observation),
+      });
+    }
+    return { entity: hydrated, identifiers: { isrc: track.isrc, durationSeconds: track.duration_seconds } };
   }
 
   const album = await collectCatalogSource({
@@ -267,7 +281,7 @@ async function hydrateEntityContext(job: CatalogJob, entity: EntityRow) {
     normalize: normalizeDeezerAlbum,
     persist: (observation) => persistSourceObservation(job, observation),
   });
-  return album ? hydrateAlbumContext(entity, album) : entity;
+  return { entity: album ? await hydrateAlbumContext(entity, album) : entity, identifiers: {} };
 }
 
 async function enrichArtist(job: CatalogJob, artist: ArtistRow, deadline: number) {
@@ -280,6 +294,7 @@ async function enrichArtist(job: CatalogJob, artist: ArtistRow, deadline: number
       type: "artist",
       title: artist.name,
       artistName: null,
+      researchVersion: catalogResearchVersion,
     },
     fetchSource: () => findMusicBrainzArtist(artist.name),
     normalize: normalizeMusicBrainzArtist,
@@ -307,7 +322,7 @@ async function enrichArtist(job: CatalogJob, artist: ArtistRow, deadline: number
 }
 
 async function enrichEntity(job: CatalogJob, entity: EntityRow, deadline: number) {
-  const hydratedEntity = await hydrateEntityContext(job, entity);
+  const { entity: hydratedEntity, identifiers } = await hydrateEntityContext(job, entity);
   const match = await withMusicBrainzLease(deadline, () => collectCatalogSource({
     source: "musicbrainz",
     sourceEntityType: hydratedEntity.type === "album" ? "release-group" : "recording",
@@ -320,6 +335,7 @@ async function enrichEntity(job: CatalogJob, entity: EntityRow, deadline: number
       : findMusicBrainzRecording(
           hydratedEntity.title,
           hydratedEntity.artist_name,
+          identifiers,
         ),
     normalize: normalizeMusicBrainzEntity,
     persist: (observation) => persistSourceObservation(job, observation),
@@ -330,18 +346,18 @@ async function enrichEntity(job: CatalogJob, entity: EntityRow, deadline: number
     .update({
       musicbrainz_recording_id:
         hydratedEntity.type === "track"
-          ? match?.id ?? hydratedEntity.musicbrainz_recording_id
+          ? match?.id ?? null
           : hydratedEntity.musicbrainz_recording_id,
       musicbrainz_release_group_id:
         hydratedEntity.type === "album"
           ? match?.id ?? hydratedEntity.musicbrainz_release_group_id
           : hydratedEntity.musicbrainz_release_group_id,
       musicbrainz_match_score: match?.score ?? null,
-      disambiguation: match?.disambiguation ?? hydratedEntity.disambiguation,
+      disambiguation: match?.disambiguation ?? (hydratedEntity.type === "track" ? null : hydratedEntity.disambiguation),
       first_release_date:
-        match?.firstReleaseDate ?? hydratedEntity.first_release_date,
+        match?.firstReleaseDate ?? (hydratedEntity.type === "track" ? null : hydratedEntity.first_release_date),
       record_type: match?.recordType ?? hydratedEntity.record_type,
-      genres: match?.genres.length ? match.genres : hydratedEntity.genres,
+      genres: match?.genres.length ? match.genres : hydratedEntity.type === "track" ? [] : hydratedEntity.genres,
       musicbrainz_synced_at: new Date().toISOString(),
     })
     .eq("id", hydratedEntity.id);

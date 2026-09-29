@@ -16,7 +16,8 @@ discovery application. Delivery and deployment status belong in `CURRENT.md`.
 | Music identity | `entities`, `artists`, provider IDs, artist/album relationships; `lib/deezer.ts` and `lib/catalog/musicbrainz.ts` | Keep Kocteau IDs stable; a source search match is supporting evidence, not canonical certainty. |
 | Background research | `catalog_enrichment_jobs`, claim/prepare RPCs, `lib/catalog/enrichment.ts`, protected `/api/cron/enrich-catalog` | Shared database lease for MusicBrainz and a worker execution budget; cron resumes interrupted work. |
 | Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Curator-only inspection through `/api/starter/research`; existing projected metadata has no reconstructed provenance. |
-| Studio selection | `components/starter-studio-client.tsx`: Kocteau Search, Deezer Scout, responsive editor | Sources in the existing editor resolve drafts and request research without saving an active starter pick. |
+| Studio selection | `components/starter-studio-client.tsx`: Kocteau Search, Deezer Scout, responsive editor | Selecting a track starts research; supported signals populate a new or untagged draft without publishing it. |
+| Draft suggestions | `lib/catalog/signal-proposals.ts`, `signal-selection.ts` | Versioned, evidence-linked deterministic output; optional Gateway context is stored separately, while curator decisions are not yet durable. |
 | Editorial vocabulary | `preference_tags` with genre, mood, scene, style, era, format | Suggest existing tag IDs with evidence references; do not create a parallel taxonomy. |
 | Editorial publication | `upsert_starter_track`, `starter_tracks`, `starter_track_tags`, `editorial_collections`, `editorial_collection_items` | Version proposals and decisions; add explicit destination selection and atomic acceptance. Current form uses `starter-picks`. |
 | Candidate decisions | `editorial_candidates`, candidate routes and helpers | The current Search/Scout editor does not provide an integrated candidate research queue. Reuse only matching concepts. |
@@ -46,8 +47,9 @@ not the truth of a mood, genre, scene, or editorial recommendation.
 
 ### Editorial proposals
 
-A future structured synthesis layer consumes an identity snapshot and stored
-source observations, then proposes a small set of existing vocabulary IDs.
+The deterministic draft layer consumes an identity snapshot and stored source
+observations, then proposes a small set of existing vocabulary IDs. Optional
+Gateway synthesis can explain those signals and evidence gaps through the same boundary.
 Separate external assertions, derived interpretations, and human decisions.
 A provider tag may contain a mood or a style; it is not automatically a genre.
 
@@ -108,8 +110,8 @@ should reference observation IDs and deduplicate inputs by source and identity.
 
 The table is private, with RLS enabled and only service-role SELECT/INSERT grants.
 It has no direct browser access and no editorial approval semantics. Observations
-are removed with their parent job; future proposal references must prevent deleting
-referenced evidence. Define retention before increasing collection volume.
+are normally removed with their parent job; proposal foreign keys prevent deleting
+referenced evidence or its parent job. Define retention before increasing collection volume.
 
 Existing source rows are not backfilled as if their provenance were known. Normal
 refreshes collect new observations. A new starter pick also does not necessarily
@@ -119,10 +121,10 @@ Deezer identity, preserves catalog uniqueness, and reuses the existing target jo
 
 ## Studio Flow
 
-The complete proposal/acceptance flow remains a target inside the existing
-Studio dialog/drawer. The current research-only slice is described below:
+The complete durable proposal/acceptance flow remains a target inside the existing
+Studio dialog/drawer. Selection-driven research and draft autofill are implemented:
 
-`Search / Scout → choose track → choose destination → research → review → Accept`
+`Search / Scout → choose track → automatic research and signals → adjust → save`
 
 Show cover, title, and artist immediately. Retain existing tags and notes while
 sources arrive. Offer accept, remove, correct, retry, and source inspection without
@@ -148,14 +150,52 @@ transaction, reject obsolete proposals after identity changes, and make repeated
 acceptance idempotent. Current `upsert_starter_track` also publishes its collection;
 review that behavior before supporting destinations beyond `starter-picks`.
 
+## Optional Gateway Context
+
+`Prepare context` is an explicit curator action after source research completes.
+The server reloads the selected Deezer identity, version-2 observations, and the
+deterministic signal proposal. The browser supplies only a validated track ID.
+The model receives neither personal notes nor listener activity. It may explain
+only proposed tag IDs with their own resolved observation references; its output
+never selects signals, writes notes, or publishes a pick. No call is made when
+deterministic research found no supported signal. Empty insights and uncertainty
+are valid for other drafts. Earlier results based on older research versions are
+stale and are not shown as current context.
+
+AI SDK structured output uses Vercel AI Gateway. The default model is
+`google/gemini-2.5-flash-lite`; `STUDIO_PROPOSAL_MODEL` can name another compatible
+low-cost model. The database reserves an ID before inference and stores the input
+snapshot, prompt version, model, result or failure, token usage, reported cost,
+and up to three referenced observations. Identical current inputs reuse a
+pending or completed result. Input, deterministic rules, model, or prompt changes
+create a new version. A failed attempt requires an explicit retry.
+
+The shared database allowance is 50 attempts per UTC month, including failures.
+Each call must pass an estimate below $0.02, model price ceilings, a 32 KB input
+limit, and a current-credit check. Generation is limited to 2,048 output tokens
+and 35 seconds with no SDK retry, tools, web search, or fallback model. This is
+an application allowance, not a team billing guarantee; configure a Gateway
+budget for an account spend limit. The application never buys or tops up credit.
+See [Gateway pricing](https://vercel.com/docs/ai-gateway/pricing) for current
+credit eligibility.
+
+`STUDIO_PROPOSALS_ENABLED=0` stops new calls while retaining history. Vercel can
+authenticate with OIDC; other environments use a server-only
+`AI_GATEWAY_API_KEY`. Missing access, exhausted credit, quota limits, invalid
+output, and provider failures leave manual curation available.
+
 ## Research Runtime
 
-The Sources section loads the selected track's latest observation per provider.
-Research track makes an authenticated curator-only POST; the browser supplies only
+The Sources section loads the selected track's latest observation per provider
+and source entity type, including its Deezer album. Selection starts an
+authenticated curator-only POST when research is eligible; the browser supplies only
 a validated Deezer ID. The server resolves missing identity from Deezer, reuses
 the target job, and schedules a targeted claim after the response. Existing
 evidence is reused; reopening the editor does not reset failures or backoff.
-Completed legacy jobs without evidence receive one recorded pass. No starter
+Completed jobs with older lookup versions receive one recorded pass. Version 2
+uses ISRC when available and checks recording title, full artist credit, duration,
+and live/edit/remix context. Ambiguous matches remain unresolved; search scores
+alone do not select a recording. No starter
 pick, collection membership, or taste tag is written by this route.
 
 Studio and cron use the same claim RPC and MusicBrainz lease. The lease excludes
@@ -173,11 +213,25 @@ The durable queue, not the post-response callback, is the recovery boundary.
 
 Source reads never expose raw job errors or credentials. Research requests are
 limited per curator and refuse work if the rate limiter is unavailable. Client
-polling is bounded; Check progress resumes inspection after the editor is reopened.
+polling is bounded to 90 seconds; Check again resumes inspection when needed.
 The six-kind coverage filter remains separate from source research status.
 
-Proposal generation, corrections, destination selection, and atomic human
-acceptance remain separate work. Their contracts are above; current delivery
+Draft proposals include schema/rules versions, the selected identity, existing
+tag IDs, external/inferred origins, and observation/field/value references. They
+normalize attributed tags, derive era from the original recording date when
+available, and use the explicitly related album for release format. Prominent
+MusicBrainz tags require positive votes and at least a quarter of the highest tag
+count. Suggestions are bounded to three per kind and twelve total; no category
+quota invents missing context. This is a conservative rule, not confidence in a
+musical assertion or a trained model.
+
+Previously saved nonempty tags stay authoritative. New and untagged picks receive
+suggestions; manual additions, removals, and Clear survive late results and retries
+within the draft. Saving still uses the existing starter RPC. Draft output is
+derived from stored evidence, not a persisted acceptance/rejection audit.
+
+Gateway context is persisted, but cross-session correction history, destination selection,
+and atomic proposal acceptance remain separate work. Their contracts are above; current delivery
 status is in [CURRENT.md](../CURRENT.md), not a second roadmap here.
 
 ## Taste Vocabulary

@@ -2,10 +2,11 @@ import "server-only";
 
 import { getDeezerTrack } from "@/lib/deezer";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import type { CatalogResearch } from "./research-state";
+import { needsCatalogResearchRefresh, type CatalogResearch } from "./research-state";
+import { buildCatalogSignalProposal } from "./signal-proposals";
 
 async function findResearchEntity(providerId: string) {
-  const { data, error } = await supabaseAdmin().from("entities").select("id")
+  const { data, error } = await supabaseAdmin().from("entities").select("id,title,artist_name")
     .eq("provider", "deezer").eq("provider_id", providerId).eq("type", "track")
     .maybeSingle();
   if (error) throw error;
@@ -14,22 +15,29 @@ async function findResearchEntity(providerId: string) {
 
 export async function readCatalogResearch(providerId: string): Promise<CatalogResearch> {
   const entity = await findResearchEntity(providerId);
-  if (!entity) return { job: null, sources: [] };
+  if (!entity) return { job: null, sources: [], proposal: null };
   const supabase = supabaseAdmin();
   const { data: job, error } = await supabase.from("catalog_enrichment_jobs")
     .select("id,status,attempts,next_attempt_at,updated_at")
     .eq("target_type", "entity").eq("target_id", entity.id).maybeSingle();
   if (error) throw error;
-  if (!job) return { job: null, sources: [] };
-  const sources = await Promise.all(["deezer", "musicbrainz"].map(async (source) => {
+  if (!job) return { job: null, sources: [], proposal: null };
+  const [sources, tags] = await Promise.all([Promise.all([
+    ["deezer", "track"], ["deezer", "album"], ["musicbrainz", "recording"],
+  ].map(async ([source, type]) => {
     const { data, error: sourceError } = await supabase.from("catalog_source_observations")
-      .select("source,source_entity_type,source_entity_id,status,facts,match_score,retrieved_at")
-      .eq("job_id", job.id).eq("source", source)
-      .order("retrieved_at", { ascending: false }).limit(1).maybeSingle();
+      .select("id,source,source_entity_type,source_entity_id,status,lookup,facts,match_score,retrieved_at")
+      .eq("job_id", job.id).eq("source", source).eq("source_entity_type", type)
+      .order("retrieved_at", { ascending: false }).order("id").limit(1).maybeSingle();
     if (sourceError) throw sourceError;
     return data;
-  }));
-  return { job, sources: sources.filter((source) => source !== null) };
+  })), supabase.from("preference_tags").select("id,kind,slug,label").order("id")]);
+  if (tags.error) throw tags.error;
+  const observations = sources.filter((source) => source !== null);
+  return {
+    job, sources: observations,
+    proposal: buildCatalogSignalProposal({ provider: "deezer", providerId, type: "track", title: entity.title, artistName: entity.artist_name }, observations, tags.data),
+  };
 }
 
 export async function ensureCatalogResearch(providerId: string) {
@@ -52,8 +60,8 @@ export async function ensureCatalogResearch(providerId: string) {
   }, { onConflict: "target_type,target_id", ignoreDuplicates: true });
   if (error) throw error;
   const research = await readCatalogResearch(providerId);
-  if (research.job?.status === "complete" && research.sources.length === 0) {
-    // Catalog entries researched before evidence storage need one recorded pass.
+  if (research.job?.status === "complete" && needsCatalogResearchRefresh(research)) {
+    // Older name-only recording matches need one identity-checked evidence pass.
     const { error: requeueError } = await supabase.from("catalog_enrichment_jobs")
       .update({ status: "pending", attempts: 0, next_attempt_at: new Date().toISOString() })
       .eq("id", research.job.id).eq("status", "complete");

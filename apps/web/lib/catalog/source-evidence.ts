@@ -1,4 +1,5 @@
 export type CatalogSource = "deezer" | "musicbrainz";
+export const catalogResearchVersion = 2;
 export type CatalogSourceEntityType =
   | "track"
   | "album"
@@ -12,6 +13,7 @@ export type CatalogLookup = {
   type: "track" | "album" | "artist";
   title: string;
   artistName: string | null;
+  researchVersion?: number;
 };
 
 type CatalogFacts = Record<string, string | number | string[]>;

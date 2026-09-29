@@ -14,3 +14,11 @@ Workspace
 *.log
 *.tsbuildinfo
 **/*.tsbuildinfo
+
+# Contributor context is versioned, but not part of the deployed application.
+.agents
+.plan
+.codex-private
+.playwright-cli
+output
+skills-lock.json

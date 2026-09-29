@@ -14,6 +14,8 @@ export function normalizeDeezerTrack(track: DeezerTrackResult): ResolvedCatalogS
       album_title: track.album_title,
       album_record_type: track.album_record_type,
       release_date: track.release_date,
+      isrc: track.isrc,
+      duration_seconds: track.duration_seconds,
       cover_url: track.cover_url,
       deezer_url: track.deezer_url,
     }),
@@ -26,10 +28,12 @@ export function normalizeDeezerAlbum(album: DeezerAlbumResult): ResolvedCatalogS
     matchScore: null,
     facts: catalogFacts({
       title: album.title,
+      album_id: album.id,
       artist_name: album.artist_name,
       artist_id: album.artist_id,
       record_type: album.record_type,
       release_date: album.release_date,
+      tags: album.genres,
       cover_url: album.cover_url,
       deezer_url: album.deezer_url,
     }),
@@ -60,6 +64,10 @@ export function normalizeMusicBrainzEntity(entity: MusicBrainzEntityMatch): Reso
       first_release_date: entity.firstReleaseDate,
       record_type: entity.recordType,
       tags: entity.genres,
+      prominent_tags: entity.prominentTags ?? [],
+      matched_title: entity.matchedTitle,
+      matched_artist: entity.matchedArtist,
+      match_method: entity.matchMethod,
     }),
   };
 }

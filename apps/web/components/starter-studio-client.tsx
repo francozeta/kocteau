@@ -1,6 +1,7 @@
 "use client";
 
 import { StarterCatalogResearch } from "@/components/starter-catalog-research";
+import { StarterEditorialProposal } from "@/components/starter-editorial-proposal";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -61,6 +62,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDeezerSearch } from "@/hooks/use-deezer-search";
 import { useKocteauSearch } from "@/hooks/use-kocteau-search";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useStarterCatalogResearch } from "@/hooks/use-starter-catalog-research";
+import { createSignalSelection, clearSignalSelection, selectedSignalIds, toggleSignal } from "@/lib/catalog/signal-selection";
 import {
   preferenceKindLabels,
   preferenceKindOrder,
@@ -427,7 +430,7 @@ export default function StarterStudioClient() {
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [editorialNote, setEditorialNote] = useState("");
   const [featured, setFeatured] = useState(true);
-  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(() => new Set());
+  const [signalSelection, setSignalSelection] = useState(createSignalSelection);
   const [signalSearchByKind, setSignalSearchByKind] =
     useState<Partial<Record<PreferenceKind, string>>>({});
   const [activeSignalKind, setActiveSignalKind] =
@@ -446,6 +449,13 @@ export default function StarterStudioClient() {
     useState<StarterDraftTrack | null>(null);
   const [editingTrack, setEditingTrack] =
     useState<StarterTrackWithTags | null>(null);
+  const inspectedTrack = editingTrack ?? selectedDraftTrack;
+  const research = useStarterCatalogResearch(inspectedTrack?.provider_id ?? "", curationOpen);
+  const startResearch = research.start;
+  const selectedTagIds = useMemo(
+    () => selectedSignalIds(signalSelection, research.proposal),
+    [signalSelection, research.proposal],
+  );
   const normalizedQuery = query.trim();
   const starterTracksQuery = useInfiniteQuery(
     starterCuratorTracksInfiniteQueryOptions({ limit: starterCatalogPageSize }),
@@ -610,7 +620,7 @@ export default function StarterStudioClient() {
     setPrompt(defaultPrompt);
     setEditorialNote("");
     setFeatured(true);
-    setSelectedTagIds(new Set());
+    setSignalSelection(createSignalSelection());
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
@@ -630,14 +640,13 @@ export default function StarterStudioClient() {
     setPrompt(track.prompt ?? defaultPrompt);
     setEditorialNote(track.editorial_note ?? "");
     setFeatured(track.is_featured);
-    setSelectedTagIds(
-      new Set((track.starter_track_tags ?? []).map((tag) => tag.tag_id)),
-    );
+    setSignalSelection(createSignalSelection((track.starter_track_tags ?? []).map((tag) => tag.tag_id)));
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
     setCurationOpen(true);
-  }, []);
+    startResearch(track.provider_id);
+  }, [startResearch]);
 
   const selectSearchTrack = useCallback((track: StarterDraftTrack) => {
     const existingTrack = starterTracks.find(
@@ -654,12 +663,13 @@ export default function StarterStudioClient() {
     setPrompt(defaultPrompt);
     setEditorialNote("");
     setFeatured(true);
-    setSelectedTagIds(new Set());
+    setSignalSelection(createSignalSelection());
     setSignalSearchByKind({});
     setActiveSignalKind(null);
     setOpenSignalKind(null);
     setCurationOpen(true);
-  }, [startEditing, starterTracks]);
+    startResearch(track.provider_id);
+  }, [startEditing, starterTracks, startResearch]);
 
   function startEditingTag(tag: StarterPreferenceTag) {
     setEditingTag(tag);
@@ -735,13 +745,9 @@ export default function StarterStudioClient() {
     }),
     onSuccess: (payload) => {
       toast.success(`${payload.tag.label} created.`);
-      setSelectedTagIds((current) => {
-        if (!curationOpen || (!editingTrack && !selectedDraftTrack) || current.size >= starterTagLimit) {
-          return current;
-        }
-
-        return new Set(current).add(payload.tag.id);
-      });
+      if (curationOpen && inspectedTrack && selectedTagIds.size < starterTagLimit) {
+        setSignalSelection((current) => ({ ...current, chosen: [...new Set([...current.chosen, payload.tag.id])] }));
+      }
       resetTagDraft();
       setActiveSignalKind(payload.tag.kind);
       setOpenSignalKind(payload.tag.kind);
@@ -790,7 +796,6 @@ export default function StarterStudioClient() {
   const pendingProviderId = addMutation.isPending
     ? addMutation.variables?.provider_id ?? null
     : null;
-  const inspectedTrack = editingTrack ?? selectedDraftTrack;
   const inspectedTags = selectedTags;
   const inspectedMissingKinds = useMemo(
     () => getMissingEditorialKindsFromTags(inspectedTags),
@@ -838,13 +843,9 @@ export default function StarterStudioClient() {
 
     if (existingTag) {
       if (!editingTag) {
-        setSelectedTagIds((current) => {
-          if (!curationOpen || (!editingTrack && !selectedDraftTrack) || current.size >= starterTagLimit) {
-            return current;
-          }
-
-          return new Set(current).add(existingTag.id);
-        });
+        if (curationOpen && inspectedTrack && selectedTagIds.size < starterTagLimit) {
+          setSignalSelection((current) => ({ ...current, chosen: [...new Set([...current.chosen, existingTag.id])] }));
+        }
         resetTagDraft();
         setActiveSignalKind(existingTag.kind);
         setOpenSignalKind(existingTag.kind);
@@ -909,7 +910,14 @@ export default function StarterStudioClient() {
             </div>
           </section>
 
-          <StarterCatalogResearch key={inspectedTrack.provider_id} providerId={inspectedTrack.provider_id} />
+          <StarterCatalogResearch
+            data={research.data} error={research.error} collecting={research.collecting}
+            onRetry={() => startResearch(inspectedTrack.provider_id)}
+            preservesSavedSignals={Boolean(editingTrack?.starter_track_tags?.length)}
+          >
+            <StarterEditorialProposal providerId={inspectedTrack.provider_id}
+              research={research.data} collecting={research.collecting} />
+          </StarterCatalogResearch>
 
           <section className="space-y-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -920,7 +928,7 @@ export default function StarterStudioClient() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setSelectedTagIds(new Set())}
+                    onClick={() => setSignalSelection(clearSignalSelection())}
                     className="h-7 rounded-md px-1.5 text-[0.68rem] text-muted-foreground hover:bg-transparent hover:text-foreground"
                   >
                     Clear
@@ -974,24 +982,13 @@ export default function StarterStudioClient() {
                         [kind]: value,
                       }))
                     }
-                    onToggleTag={(tag) =>
-                      setSelectedTagIds((current) => {
-                        const next = new Set(current);
-
-                        if (next.has(tag.id)) {
-                          next.delete(tag.id);
-                          return next;
-                        }
-
-                        if (next.size >= starterTagLimit) {
-                          toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
-                          return current;
-                        }
-
-                        next.add(tag.id);
-                        return next;
-                      })
-                    }
+                    onToggleTag={(tag) => {
+                      if (!selectedTagIds.has(tag.id) && selectedTagIds.size >= starterTagLimit) {
+                        toast.error(`Choose ${starterTagLimit} starter signals or fewer.`);
+                        return;
+                      }
+                      setSignalSelection((current) => toggleSignal(current, tag.id, selectedTagIds));
+                    }}
                     onEditTag={startEditingTag}
                   />
                 );
@@ -1041,7 +1038,7 @@ export default function StarterStudioClient() {
               <Button
                 type="button"
                 size="sm"
-                disabled={addMutation.isPending}
+                disabled={addMutation.isPending || research.collecting}
                 onClick={() => addMutation.mutate(inspectedTrack)}
                 className="h-9 w-full rounded-full bg-foreground text-background hover:bg-foreground/90 sm:w-auto sm:min-w-36"
               >

@@ -44,6 +44,21 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 
 Use the local email inbox printed by `pnpm supabase:status` to read OTP codes. Do not use production Supabase, SMTP, or service role credentials for public contribution work.
 
+## Shared Context And Skills
+
+Read [AGENTS.md](./AGENTS.md) and [CURRENT.md](./CURRENT.md) before making changes.
+[.plan/README.md](./.plan/README.md) indexes shared plans and handoffs;
+[.agents/README.md](./.agents/README.md) maps the checked-in skills to UI, React,
+data, and discovery work. `skills-lock.json` records their upstream sources.
+A normal clone includes these files; no context migration script is needed.
+
+Use separate conventional branches for concurrent tasks and link the issue and
+PR when handing work to another contributor or device. GitHub records code and
+review status; plans explain intent. Never upload `.env` values, tool sessions,
+browser state, production identifiers from diagnostics, or personal configuration.
+Only sanitized environment examples belong in Git. Keep private scratch work in
+`.plan/local/` or `.codex-private/`.
+
 ## Checks
 
 Before opening a web PR, run:

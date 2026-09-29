@@ -35,26 +35,29 @@ packages/*/tsconfig.tsbuildinfo
 
 # Environment files
 .env
-.env.local
-.env.*.local
-.env.sentry-build-plugin
-apps/*/.env
-apps/*/.env.local
-apps/*/.env.*.local
-apps/*/.env.sentry-build-plugin
-packages/*/.env
-packages/*/.env.local
-packages/*/.env.*.local
+.env.*
+!.env.example
+!.env.*.example
 
 # Supabase local state
 supabase/.temp/
 supabase/.branches/
 
-# Local agent tooling
+# Private work state
 /.plan/
-.agents/
-skills-lock.json
+.codex-private/
+.playwright-cli/
+output/
 my-agent/
+*.log
+__pycache__/
+*.pyc
+
+# The Eve skill only needs its entry point; framework code comes from the package.
+.agents/skills/eve/*
+!.agents/skills/eve/SKILL.md
+!.agents/skills/eve/LICENSE
+!.agents/skills/eve/NOTICE
 
 # Vercel
 .vercel/
