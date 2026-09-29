@@ -17,7 +17,7 @@ discovery application. Delivery and deployment status belong in `CURRENT.md`.
 | Background research | `catalog_enrichment_jobs`, claim/prepare RPCs, `lib/catalog/enrichment.ts`, protected `/api/cron/enrich-catalog` | Shared database lease for MusicBrainz and a worker execution budget; cron resumes interrupted work. |
 | Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Curator-only inspection through `/api/starter/research`; existing projected metadata has no reconstructed provenance. |
 | Studio selection | `components/starter-studio-client.tsx`: Kocteau Search, Deezer Scout, responsive editor | Selecting a track starts research; supported signals populate a new or untagged draft without publishing it. |
-| Draft suggestions | `lib/catalog/signal-proposals.ts`, `signal-selection.ts` | Versioned, evidence-linked deterministic output; durable proposal and decision storage remains separate work. |
+| Draft suggestions | `lib/catalog/signal-proposals.ts`, `signal-selection.ts` | Versioned, evidence-linked deterministic output; optional Gateway context is stored separately, while curator decisions are not yet durable. |
 | Editorial vocabulary | `preference_tags` with genre, mood, scene, style, era, format | Suggest existing tag IDs with evidence references; do not create a parallel taxonomy. |
 | Editorial publication | `upsert_starter_track`, `starter_tracks`, `starter_track_tags`, `editorial_collections`, `editorial_collection_items` | Version proposals and decisions; add explicit destination selection and atomic acceptance. Current form uses `starter-picks`. |
 | Candidate decisions | `editorial_candidates`, candidate routes and helpers | The current Search/Scout editor does not provide an integrated candidate research queue. Reuse only matching concepts. |
@@ -48,8 +48,8 @@ not the truth of a mood, genre, scene, or editorial recommendation.
 ### Editorial proposals
 
 The deterministic draft layer consumes an identity snapshot and stored source
-observations, then proposes a small set of existing vocabulary IDs. A future
-optional synthesis layer can interpret evidence gaps through the same boundary.
+observations, then proposes a small set of existing vocabulary IDs. Optional
+Gateway synthesis can explain those signals and evidence gaps through the same boundary.
 Separate external assertions, derived interpretations, and human decisions.
 A provider tag may contain a mood or a style; it is not automatically a genre.
 
@@ -110,8 +110,8 @@ should reference observation IDs and deduplicate inputs by source and identity.
 
 The table is private, with RLS enabled and only service-role SELECT/INSERT grants.
 It has no direct browser access and no editorial approval semantics. Observations
-are removed with their parent job; future proposal references must prevent deleting
-referenced evidence. Define retention before increasing collection volume.
+are normally removed with their parent job; proposal foreign keys prevent deleting
+referenced evidence or its parent job. Define retention before increasing collection volume.
 
 Existing source rows are not backfilled as if their provenance were known. Normal
 refreshes collect new observations. A new starter pick also does not necessarily
@@ -149,6 +149,40 @@ boundary. Keep proposal/decision persistence and starter tags/membership in one
 transaction, reject obsolete proposals after identity changes, and make repeated
 acceptance idempotent. Current `upsert_starter_track` also publishes its collection;
 review that behavior before supporting destinations beyond `starter-picks`.
+
+## Optional Gateway Context
+
+`Prepare context` is an explicit curator action after source research completes.
+The server reloads the selected Deezer identity, version-2 observations, and the
+deterministic signal proposal. The browser supplies only a validated track ID.
+The model receives neither personal notes nor listener activity. It may explain
+only proposed tag IDs with their own resolved observation references; its output
+never selects signals, writes notes, or publishes a pick. No call is made when
+deterministic research found no supported signal. Empty insights and uncertainty
+are valid for other drafts. Earlier results based on older research versions are
+stale and are not shown as current context.
+
+AI SDK structured output uses Vercel AI Gateway. The default model is
+`google/gemini-2.5-flash-lite`; `STUDIO_PROPOSAL_MODEL` can name another compatible
+low-cost model. The database reserves an ID before inference and stores the input
+snapshot, prompt version, model, result or failure, token usage, reported cost,
+and up to three referenced observations. Identical current inputs reuse a
+pending or completed result. Input, deterministic rules, model, or prompt changes
+create a new version. A failed attempt requires an explicit retry.
+
+The shared database allowance is 50 attempts per UTC month, including failures.
+Each call must pass an estimate below $0.02, model price ceilings, a 32 KB input
+limit, and a current-credit check. Generation is limited to 2,048 output tokens
+and 35 seconds with no SDK retry, tools, web search, or fallback model. This is
+an application allowance, not a team billing guarantee; configure a Gateway
+budget for an account spend limit. The application never buys or tops up credit.
+See [Gateway pricing](https://vercel.com/docs/ai-gateway/pricing) for current
+credit eligibility.
+
+`STUDIO_PROPOSALS_ENABLED=0` stops new calls while retaining history. Vercel can
+authenticate with OIDC; other environments use a server-only
+`AI_GATEWAY_API_KEY`. Missing access, exhausted credit, quota limits, invalid
+output, and provider failures leave manual curation available.
 
 ## Research Runtime
 
@@ -196,8 +230,8 @@ suggestions; manual additions, removals, and Clear survive late results and retr
 within the draft. Saving still uses the existing starter RPC. Draft output is
 derived from stored evidence, not a persisted acceptance/rejection audit.
 
-Durable proposals, cross-session correction history, destination selection, and
-atomic proposal acceptance remain separate work. Their contracts are above; current delivery
+Gateway context is persisted, but cross-session correction history, destination selection,
+and atomic proposal acceptance remain separate work. Their contracts are above; current delivery
 status is in [CURRENT.md](../CURRENT.md), not a second roadmap here.
 
 ## Taste Vocabulary

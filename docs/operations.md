@@ -296,6 +296,29 @@ append-only table; a failed newer observation does not erase successful history.
 Only the service role can execute coordination and claim RPCs. No client role
 can access lease rows or observations directly.
 
+## Studio Gateway Context Rollout
+
+Apply `20260929024624_studio_editorial_proposals.sql` and
+`20260929152706_studio_proposal_three_sources.sql` using the authorized
+[migration workflow](./maintainers/supabase-workflow.md). Check remote history,
+permission grants, and generated types before deploying. The runtime and budget
+contract is in [Optional Gateway Context](./knowledge-layer.md#optional-gateway-context).
+
+1. Confirm signed-out and non-curator requests to the proposal routes are denied.
+2. Research a track through the current Studio flow and prepare optional context.
+   Reopening or repeating with the same sources must reuse the saved result.
+3. Inspect the cited signal and source links on desktop and mobile. Verify that
+   source changes make earlier context stale and that manually selected signals,
+   removed suggestions, notes, and the pick remain untouched.
+4. Check that missing Gateway access, exhausted allowance, invalid output, and
+   interrupted generation leave manual curation available. Test quota exhaustion
+   on a disposable database because failures count toward the shared allowance.
+
+For local development, use a server-only Gateway key or refresh Vercel OIDC with
+the CLI after linking the existing project. Back up local overrides before
+pulling environment files, which can replace them. Set
+`STUDIO_PROPOSALS_ENABLED=0` to disable new inference without losing history.
+
 For security-advisor follow-ups, use the read-only
 `supabase/scripts/maintenance/advisor-hardening-00-diagnostics.sql` and current
 advisor results. The old June audit is historical; schema/grant changes belong
