@@ -1,81 +1,51 @@
 "use client";
 
-import { useRef } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { canRunCatalogResearch, catalogSourceUrl, type CatalogResearch } from "@/lib/catalog/research-state";
 
 const factLabels: Record<string, string> = {
-  title: "Track", artist_name: "Artist", album_title: "Album",
+  title: "Title", artist_name: "Artist", album_title: "Album",
   release_date: "Release", first_release_date: "First release",
   album_record_type: "Album type", record_type: "Type",
-  disambiguation: "Context", tags: "Source tags · unreviewed",
+  disambiguation: "Context", tags: "Source tags · unreviewed", isrc: "Recording ID",
+  match_method: "Matched by",
 };
 
-async function loadResearch(providerId: string, method = "GET"): Promise<CatalogResearch> {
-  const response = await fetch(`/api/starter/research?provider_id=${encodeURIComponent(providerId)}`, {
-    method,
-    ...(method === "POST" ? {
-      headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider_id: providerId }),
-    } : {}),
-  });
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(body?.error ?? "Catalog research is unavailable. Try again later.");
-  }
-  return response.json();
-}
-
-export function StarterCatalogResearch({ providerId }: { providerId: string }) {
-  const queryClient = useQueryClient();
-  const pollUntil = useRef(0);
-  const queryKey = ["starter-catalog-research", providerId];
-  const research = useQuery({
-    queryKey,
-    queryFn: () => loadResearch(providerId),
-    retry: false,
-    refetchInterval: (query) => {
-      const status = query.state.data?.job?.status;
-      return Date.now() < pollUntil.current && (status === "pending" || status === "processing") ? 2_000 : false;
-    },
-  });
-  const start = useMutation({
-    mutationFn: () => loadResearch(providerId, "POST"),
-    onSuccess: (data) => {
-      pollUntil.current = Date.now() + 90_000;
-      queryClient.setQueryData(queryKey, data);
-    },
-  });
-  const data = research.data;
+export function StarterCatalogResearch({ data, error, collecting, onRetry, preservesSavedSignals }: {
+  data: CatalogResearch | undefined;
+  error: Error | null;
+  collecting: boolean;
+  onRetry: () => void;
+  preservesSavedSignals: boolean;
+}) {
   const job = data?.job;
-  const busy = start.isPending || job?.status === "processing" || job?.status === "pending";
-  const canStart = data && canRunCatalogResearch(data);
-  const message = job?.status === "complete" ? "Sources collected. Review the evidence below."
+  const canRetry = !collecting && (error || !data || canRunCatalogResearch(data) || job?.status === "pending" || job?.status === "processing");
+  const message = collecting ? "Finding signals from catalog sources…"
+    : job?.status === "complete" ? preservesSavedSignals ? "Saved signals kept. You can edit them below."
+      : data?.proposal?.signals.length ? "Signals filled from sources. Adjust anything before saving."
+      : "No matching signals found. You can choose them below."
     : job?.status === "failed" ? job.attempts >= 5
       ? "Research stopped after repeated failures. Earlier evidence is kept."
       : "A source could not be reached. Research will retry after a wait."
-    : busy ? "Research is queued. You can keep editing while it runs."
-    : "Collect catalog evidence before choosing editorial signals.";
+    : job ? "Research is still queued. Save available signals or check again."
+    : "Choose a track to find signals from catalog sources.";
 
   return (
     <section aria-label="Catalog research" className="space-y-2 border-y border-border/40 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-medium">Sources</h3>
-        {canStart ? (
-          <Button variant="ghost" size="sm" className="min-h-10 px-2 text-xs" disabled={start.isPending}
-            onClick={() => start.mutate()}>
-            {start.isPending ? "Starting…" : job && job.status !== "complete" ? "Continue research" : "Research track"}
+        {canRetry ? (
+          <Button type="button" variant="ghost" size="sm" className="min-h-10 px-2 text-xs" onClick={onRetry}>
+            Check again
           </Button>
         ) : null}
       </div>
       <p role="status" className="text-pretty text-xs leading-5 text-muted-foreground">
-        {research.isPending ? "Loading source history…" : message}
+        {message}
       </p>
-      {research.error || start.error ? (
+      {error ? (
         <div role="alert" className="text-xs leading-5 text-muted-foreground">
-          {(research.error ?? start.error)?.message}
-          <button type="button" className="ml-2 min-h-10 underline underline-offset-4 focus-visible:outline-2"
-            onClick={() => { start.reset(); void research.refetch(); }}>Check again</button>
+          {error.message} Your edits are kept.
         </div>
       ) : null}
       {data?.sources.map((source) => {
@@ -85,9 +55,9 @@ export function StarterCatalogResearch({ providerId }: { providerId: string }) {
             (typeof value === "string" || (Array.isArray(value) && value.every((item) => typeof item === "string"))))
           : [];
         return (
-          <details key={source.source} className="text-xs">
+          <details key={source.id} className="text-xs">
             <summary className="flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-sm focus-visible:outline-2">
-              <span>{source.source === "deezer" ? "Deezer" : "MusicBrainz"}</span>
+              <span>{source.source === "deezer" ? source.source_entity_type === "album" ? "Deezer · album" : "Deezer · track" : "MusicBrainz"}</span>
               <span className="text-right text-muted-foreground">
                 {source.status === "resolved" ? "View evidence" : source.status === "no_match" ? "No confident match" : "Source unavailable"}
               </span>
@@ -105,10 +75,6 @@ export function StarterCatalogResearch({ providerId }: { providerId: string }) {
           </details>
         );
       })}
-      {job && job.status !== "complete" ? (
-        <button type="button" className="min-h-10 text-xs text-muted-foreground underline underline-offset-4 focus-visible:outline-2"
-          onClick={() => { pollUntil.current = Date.now() + 90_000; void research.refetch(); }}>Check progress</button>
-      ) : null}
     </section>
   );
 }

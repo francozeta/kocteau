@@ -8,6 +8,7 @@ const job: NonNullable<CatalogResearch["job"]> = {
   next_attempt_at: new Date(now).toISOString(), updated_at: new Date(now).toISOString(),
 };
 const source: CatalogResearch["sources"][number] = {
+  id: "source", lookup: { researchVersion: 2 },
   source: "deezer", source_entity_type: "track", source_entity_id: "123",
   status: "no_match", facts: {}, match_score: null, retrieved_at: new Date(now).toISOString(),
 };
@@ -15,7 +16,13 @@ const source: CatalogResearch["sources"][number] = {
 test("new drafts and legacy completed jobs can request recorded evidence", () => {
   assert.equal(canRunCatalogResearch({ job: null, sources: [] }, now), true);
   assert.equal(canRunCatalogResearch({ job: { ...job, status: "complete" }, sources: [] }, now), true);
-  assert.equal(canRunCatalogResearch({ job: { ...job, status: "complete" }, sources: [source] }, now), false);
+  assert.equal(canRunCatalogResearch({ job: { ...job, status: "complete" }, sources: [source] }, now), true);
+  assert.equal(canRunCatalogResearch({ job: { ...job, status: "complete" }, sources: [source,
+    { ...source, source: "musicbrainz", source_entity_type: "recording" },
+  ] }, now), false);
+  assert.equal(canRunCatalogResearch({ job: { ...job, status: "complete" }, sources: [
+    { ...source, lookup: {} }, { ...source, source: "musicbrainz", lookup: {} },
+  ] }, now), true);
 });
 
 test("UI retry availability respects backoff and attempt exhaustion", () => {

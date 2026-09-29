@@ -40,11 +40,13 @@ Before repository work, read `AGENTS.md` and `CURRENT.md` completely. Read `PROD
 
 ### Working Notes And Plans
 
-- Plans, scratch notes, and implementation checklists are working memory, not public documentation by default.
-- Keep short plans in the active session. Keep device-local phases, plans, and implementation checklists under the root `.plan/` directory, which must remain ignored by Git.
+- Keep short scratch notes in the active session. Version useful phases, decisions, and implementation handoffs under the root `.plan/` directory so contributors and devices share the same context.
+- Keep experiments, raw diagnostics, screenshots, machine paths, and private working notes under `.plan/local/` or `.codex-private/`; both remain ignored. Never commit environment values, credentials, sessions, or personal data.
 - Do not add generated plans or specs to `docs/` unless the maintainer explicitly asks for a public RFC, design record, or long-lived contributor document.
 - Promote only durable outcomes: update `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `CURRENT.md`, a relevant specialized document, or the implementation itself.
-- Keep concise phase outcomes in `.plan/` for local continuity and retire obsolete checklists there. Do not make contributors navigate process artifacts to understand the product.
+- Keep `.plan/README.md` as the small shared index. Mark older plans as historical rather than treating their status as current; `CURRENT.md` and GitHub evidence remain authoritative.
+- Commit project skills, their required reference files, and `skills-lock.json`. Use `.agents/README.md` to select relevant skills. Do not vendor unrelated framework repositories, dependencies, generated output, or user-global tool settings.
+- On a device handoff, read the linked issue and PR alongside repository documents. One active task has one owner; concurrent work uses separate conventional branches. Preserve and reconcile overlapping work before integrating it.
 
 ### Branches, Commits, And Pull Requests
 

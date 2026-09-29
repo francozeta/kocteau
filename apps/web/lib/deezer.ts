@@ -14,6 +14,8 @@ export type DeezerTrackResult = {
   cover_url: string | null;
   deezer_url: string | null;
   release_date?: string | null;
+  isrc?: string | null;
+  duration_seconds?: number | null;
   rank: number | null;
 };
 
@@ -36,6 +38,7 @@ export type DeezerAlbumResult = {
   deezer_url: string | null;
   record_type: string | null;
   release_date: string | null;
+  genres?: string[];
 };
 
 type DeezerTrackApiItem = {
@@ -43,6 +46,8 @@ type DeezerTrackApiItem = {
   title: string;
   link?: string | null;
   rank?: number | null;
+  isrc?: string | null;
+  duration?: number | null;
   artist?: {
     id?: number | string | null;
     name?: string | null;
@@ -97,6 +102,7 @@ type DeezerAlbumApiItem = {
   cover?: string | null;
   record_type?: string | null;
   release_date?: string | null;
+  genres?: { data?: Array<{ name?: string }> };
   artist?: {
     id?: number | string | null;
     name?: string | null;
@@ -241,7 +247,7 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
     const json = await fetchDeezerJson<T>(url, {
       errorMessage,
       revalidate,
-      retryDelays: deezerResourceRetryDelaysMs,
+      retryDelays: throwOnError ? [] : deezerResourceRetryDelaysMs,
     });
 
     if (hasDeezerApiError(json)) {
@@ -290,6 +296,8 @@ function mapDeezerTrack(
     cover_url: item.album?.cover_medium ?? item.album?.cover ?? options.cover_url ?? null,
     deezer_url: item.link ?? null,
     release_date: item.release_date ?? item.album?.release_date ?? null,
+    isrc: item.isrc ?? null,
+    duration_seconds: getOptionalNumber(item.duration),
     rank: getOptionalNumber(item.rank),
   };
 }
@@ -360,6 +368,7 @@ function mapDeezerAlbum(item: DeezerAlbumApiItem): DeezerAlbumResult | null {
     deezer_url: item.link ?? null,
     record_type: item.record_type ?? null,
     release_date: item.release_date ?? null,
+    genres: (item.genres?.data ?? []).flatMap((genre) => genre.name?.trim() ? [genre.name.trim()] : []),
   };
 }
 
@@ -426,7 +435,7 @@ export async function getDeezerAlbum(
     },
   );
 
-  if (json && throwOnError && (!json.id || !json.title)) {
+  if (json && throwOnError && (String(json.id) !== albumId || !json.title)) {
     throw new DeezerRequestError("Invalid Deezer album response");
   }
 
@@ -565,7 +574,7 @@ export async function getDeezerTrack(
     },
   );
 
-  if (!json || !json.id || !json.title) {
+  if (!json || String(json.id) !== providerId || !json.title) {
     if (json && throwOnError) {
       throw new DeezerRequestError("Invalid Deezer track response");
     }

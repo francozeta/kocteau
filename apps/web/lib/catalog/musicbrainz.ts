@@ -1,4 +1,5 @@
 import "server-only";
+import { normalizeCatalogText, normalizeIsrc, selectRecordingMatch, type RecordingCandidate, type RecordingIdentity } from "./recording-match";
 
 const musicBrainzApiUrl = "https://musicbrainz.org/ws/2";
 const musicBrainzUserAgent = "Kocteau/0.3.8 (https://kocteau.com)";
@@ -29,11 +30,7 @@ type MusicBrainzArtistSearchResult = {
 };
 
 type MusicBrainzRecordingSearchResult = {
-  recordings?: Array<{
-    id: string;
-    title: string;
-    score?: number;
-    disambiguation?: string;
+  recordings?: Array<RecordingCandidate & {
     "first-release-date"?: string;
     tags?: MusicBrainzTag[];
   }>;
@@ -70,6 +67,10 @@ export type MusicBrainzEntityMatch = {
   firstReleaseDate: string | null;
   recordType: string | null;
   genres: string[];
+  prominentTags?: string[];
+  matchedTitle?: string;
+  matchedArtist?: string;
+  matchMethod?: "isrc" | "title-artist";
 };
 
 export class MusicBrainzRequestError extends Error {
@@ -82,22 +83,13 @@ export class MusicBrainzRequestError extends Error {
   }
 }
 
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
 function escapeLucene(value: string) {
   return value.replace(/([+\-&|!(){}\[\]^"~*?:\\/])/g, "\\$1");
 }
 
 function getGenres(tags: MusicBrainzTag[] | undefined) {
   return [...(tags ?? [])]
-    .filter((tag) => Boolean(tag.name?.trim()))
+    .filter((tag) => Boolean(tag.name?.trim()) && (tag.count ?? 0) > 0)
     .sort((left, right) => (right.count ?? 0) - (left.count ?? 0))
     .slice(0, 8)
     .map((tag) => tag.name!.trim().toLowerCase());
@@ -107,7 +99,7 @@ function selectConfidentMatch<T extends { score?: number; title?: string; name?:
   results: T[] | undefined,
   expectedName: string,
 ) {
-  const expected = normalizeText(expectedName);
+  const expected = normalizeCatalogText(expectedName);
   const ranked = [...(results ?? [])].sort(
     (left, right) => (right.score ?? 0) - (left.score ?? 0),
   );
@@ -115,7 +107,7 @@ function selectConfidentMatch<T extends { score?: number; title?: string; name?:
   return (
     ranked.find((candidate) => {
       const score = candidate.score ?? 0;
-      const candidateName = normalizeText(candidate.title ?? candidate.name ?? "");
+      const candidateName = normalizeCatalogText(candidate.title ?? candidate.name ?? "");
       return score >= minimumMatchScore && candidateName === expected;
     }) ?? null
   );
@@ -125,7 +117,7 @@ async function fetchMusicBrainz<T>(resource: string, query: string) {
   const params = new URLSearchParams({
     query,
     fmt: "json",
-    limit: "5",
+    limit: "10",
   });
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), musicBrainzTimeoutMs);
@@ -190,16 +182,18 @@ export async function findMusicBrainzArtist(
 export async function findMusicBrainzRecording(
   title: string,
   artistName: string | null,
+  identifiers: Pick<RecordingIdentity, "isrc" | "durationSeconds"> = {},
 ): Promise<MusicBrainzEntityMatch | null> {
+  const isrc = normalizeIsrc(identifiers.isrc);
   const artistQuery = artistName
     ? ` AND artist:"${escapeLucene(artistName)}"`
     : "";
-  const query = `recording:"${escapeLucene(title)}"${artistQuery}`;
+  const query = isrc ? `isrc:${isrc}` : `recording:"${escapeLucene(title)}"${artistQuery}`;
   const result = await fetchMusicBrainz<MusicBrainzRecordingSearchResult>(
     "recording",
     query,
   );
-  const match = selectConfidentMatch(result.recordings, title);
+  const match = selectRecordingMatch(result.recordings, { title, artistName, ...identifiers });
 
   if (!match) {
     return null;
@@ -212,6 +206,12 @@ export async function findMusicBrainzRecording(
     firstReleaseDate: match["first-release-date"] ?? null,
     recordType: "recording",
     genres: getGenres(match.tags),
+    prominentTags: getGenres((match.tags ?? []).filter((tag) =>
+      (tag.count ?? 0) >= Math.max(1, Math.ceil(Math.max(...(match.tags ?? []).map((item) => item.count ?? 0)) / 4)),
+    )),
+    matchedTitle: match.title,
+    matchedArtist: artistName ?? undefined,
+    matchMethod: isrc ? "isrc" : "title-artist",
   };
 }
 
