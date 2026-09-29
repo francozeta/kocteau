@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.16](https://github.com/francozeta/kocteau/compare/v0.3.15...v0.3.16) (2026-09-29)
+
+
+### Features
+
+* **catalog:** preserve source evidence and retry history ([#205](https://github.com/francozeta/kocteau/issues/205)) ([ce7eb76](https://github.com/francozeta/kocteau/commit/ce7eb7604fb906a8c1f62faeb8e109a691d13a66))
+* polish search action dock and improve mobile navigation experience ([2c8c444](https://github.com/francozeta/kocteau/commit/2c8c444c146d052789c3415484e4234a31c4f375))
+* **studio:** clarify context progress ([#210](https://github.com/francozeta/kocteau/issues/210)) ([83fa943](https://github.com/francozeta/kocteau/commit/83fa943840b3a9ba3d19671dfe410b971b6a7da8))
+* **studio:** connect drafts to catalog research ([#207](https://github.com/francozeta/kocteau/issues/207)) ([96af63b](https://github.com/francozeta/kocteau/commit/96af63b93150cc5dfb94efc459042dbc7520d9d2))
+* **studio:** integrate source-backed curation ([#209](https://github.com/francozeta/kocteau/issues/209)) ([67403df](https://github.com/francozeta/kocteau/commit/67403df3e9c6d4d9da22961f82f79d08c73909d6))
+* **web:** clarify search discovery and navigation ([#204](https://github.com/francozeta/kocteau/issues/204)) ([7ddbf7b](https://github.com/francozeta/kocteau/commit/7ddbf7b703cb7b61ce305c164686cf9914eb5e8a))
+
+
+### Bug Fixes
+
+* **search:** refine mobile fades and filter controls ([#203](https://github.com/francozeta/kocteau/issues/203)) ([a0de952](https://github.com/francozeta/kocteau/commit/a0de952ce9c38390a911298d52a422d1042da1a1))
+
+
+### Documentation
+
+* **web:** draft public changelog for v0.3.15 ([#201](https://github.com/francozeta/kocteau/issues/201)) ([78194d1](https://github.com/francozeta/kocteau/commit/78194d1fb95122d571f9584293a8636256e7741f))
+
 ## [0.3.15](https://github.com/francozeta/kocteau/compare/v0.3.14...v0.3.15) (2026-09-21)
 
 
