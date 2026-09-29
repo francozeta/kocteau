@@ -10,8 +10,8 @@ Stable contracts are in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 Studio automatically researches a selected track, drafts conservative signals
 from current source evidence, and keeps the curator's saved or manual choices
-authoritative. Optional Gateway context is in review on
-`feat/studio-gateway-reconciliation`; it explains existing source-backed
+authoritative. Optional Gateway context is in [PR #208](https://github.com/francozeta/kocteau/pull/208)
+on `feat/studio-gateway-reconciliation`; it explains existing source-backed
 proposals and cannot change a draft or publish a pick. Human decision history,
 collection destination choice, and transactional acceptance are still future work.
 
