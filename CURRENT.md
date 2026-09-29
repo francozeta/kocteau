@@ -27,11 +27,11 @@ and transactional acceptance are still future work.
   The current branch passes 110 web unit tests, 15 proposal route scenarios,
   TypeScript, lint, and production build. Linked types were regenerated after
   applying the migration; its RPC signature is unchanged.
-- A refreshed local Vercel OIDC token passed read-only Gateway model and credit
-  checks. No generation was run against this integrated version.
-- An authenticated curator run of this integrated branch against the linked
-  environment remains unverified. Earlier two-source Gateway experiments do
-  not verify the current version-2 evidence flow.
+- A refreshed local Vercel OIDC token passed Gateway model and credit checks.
+  A direct eight-token smoke request to the configured model succeeded; the
+  integrated Studio generation route has not been exercised with a curator
+  against the linked environment. Earlier two-source experiments do not verify
+  the current version-2 evidence flow.
 
 ## Next Priority
 
