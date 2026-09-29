@@ -17,16 +17,16 @@ and transactional acceptance are still future work.
 
 ## Verification And Deployment
 
-- The linked Supabase migration history shows the source and Studio research
-  migrations, plus `20260929024624_studio_editorial_proposals.sql`, applied.
-  The latter was executed and its access boundaries checked during the prior
-  Studio work. The new `20260929152706_studio_proposal_three_sources.sql` is
-  **pending**. Its linked dry run fails at Postgres authentication even after
-  relinking the same project; it has not been applied.
+- The linked Supabase migration history shows both
+  `20260929024624_studio_editorial_proposals.sql` and
+  `20260929152706_studio_proposal_three_sources.sql` applied. The pinned CLI
+  dry run now reports the remote database up to date. A linked read-only query
+  confirmed the three-source RPC body, RLS on both private tables, denied
+  client reads/reservations, and service-role reservation access.
 - The proposal and three-source SQL checks pass in isolated PostgreSQL.
   The current branch passes 110 web unit tests, 15 proposal route scenarios,
-  TypeScript, lint, and production build. Linked types were regenerated from
-  the currently applied schema; the pending migration keeps the RPC signature.
+  TypeScript, lint, and production build. Linked types were regenerated after
+  applying the migration; its RPC signature is unchanged.
 - A refreshed local Vercel OIDC token passed read-only Gateway model and credit
   checks. No generation was run against this integrated version.
 - An authenticated curator run of this integrated branch against the linked
@@ -35,7 +35,6 @@ and transactional acceptance are still future work.
 
 ## Next Priority
 
-Restore the linked Postgres CLI credential, run the pinned dry run, apply the
-pending migration, verify remote history and the affected grants/RPC, then
-exercise the authenticated curator flow on the integrated web branch. Review
-the local task branch before publishing or merging it into the Studio baseline.
+Exercise the authenticated curator flow on the integrated web branch, including
+sparse evidence, manual edits, and non-curator denial. Review the local task
+branch before publishing or merging it into the Studio baseline.
