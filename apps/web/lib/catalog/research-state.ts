@@ -24,7 +24,7 @@ export function canRunCatalogResearch(research: Pick<CatalogResearch, "job" | "s
   return Date.parse(job.next_attempt_at) <= now;
 }
 
-export function catalogSourceUrl(source: CatalogResearch["sources"][number]) {
+export function catalogSourceUrl(source: Pick<CatalogResearch["sources"][number], "source" | "source_entity_type" | "source_entity_id">) {
   const id = source.source_entity_id;
   if (!id) return null;
   if (source.source === "deezer" && /^[1-9]\d{0,19}$/.test(id)) {

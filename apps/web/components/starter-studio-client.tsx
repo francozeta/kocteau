@@ -1,6 +1,7 @@
 "use client";
 
 import { StarterCatalogResearch } from "@/components/starter-catalog-research";
+import { StarterEditorialProposal } from "@/components/starter-editorial-proposal";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -913,7 +914,10 @@ export default function StarterStudioClient() {
             data={research.data} error={research.error} collecting={research.collecting}
             onRetry={() => startResearch(inspectedTrack.provider_id)}
             preservesSavedSignals={Boolean(editingTrack?.starter_track_tags?.length)}
-          />
+          >
+            <StarterEditorialProposal providerId={inspectedTrack.provider_id}
+              research={research.data} collecting={research.collecting} />
+          </StarterCatalogResearch>
 
           <section className="space-y-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
