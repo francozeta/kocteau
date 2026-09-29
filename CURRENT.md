@@ -31,9 +31,14 @@ future work.
   integrated Studio generation route has not been exercised with a curator
   against the linked environment. Earlier two-source experiments do not verify
   the current version-2 evidence flow.
+- A local Studio context-motion refinement on `feat/studio-context-motion`
+  passes web lint and build. The signed-out browser route loads, but Studio
+  redirects to login; the authenticated context transition remains unverified.
+  This branch has not been published.
 
 ## Next Priority
 
 Exercise the authenticated curator flow on the deployed web build, including
-sparse evidence, manual edits, and non-curator denial. Then refine the curation
-experience before adding durable decisions and transactional publication.
+sparse evidence, manual edits, and non-curator denial. Audit real evidence
+coverage for mood, scene, and style signals before adding providers or durable
+decisions; see [KOC-52](https://linear.app/kocteau/issue/KOC-52/audit-real-evidence-for-studio-mood-scene-and-style-signals).

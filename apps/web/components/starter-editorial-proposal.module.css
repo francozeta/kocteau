@@ -1,0 +1,45 @@
+.mark {
+  width: 4px;
+  height: 4px;
+  flex: none;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--muted-foreground);
+  opacity: 0.55;
+}
+
+.thinking {
+  position: relative;
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .markWorking {
+    animation: studio-context-pulse 1.8s ease-in-out infinite;
+  }
+
+  .thinking {
+    background: linear-gradient(90deg, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%);
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: studio-context-shimmer 2.4s linear infinite;
+  }
+}
+
+@keyframes studio-context-pulse {
+  50% { opacity: 1; }
+}
+
+@keyframes studio-context-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+
+@media (forced-colors: active) {
+  .thinking {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    animation: none;
+  }
+}
