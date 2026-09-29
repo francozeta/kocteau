@@ -174,9 +174,21 @@ export type Database = {
         Relationships: []
       }
       catalog_source_leases: {
-        Row: { source: string; token: string | null; available_at: string }
-        Insert: { source: string; token?: string | null; available_at?: string }
-        Update: { source?: string; token?: string | null; available_at?: string }
+        Row: {
+          available_at: string
+          source: string
+          token: string | null
+        }
+        Insert: {
+          available_at?: string
+          source: string
+          token?: string | null
+        }
+        Update: {
+          available_at?: string
+          source?: string
+          token?: string | null
+        }
         Relationships: []
       }
       catalog_source_observations: {
@@ -466,6 +478,104 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      editorial_proposal_sources: {
+        Row: {
+          observation_id: string
+          proposal_id: string
+        }
+        Insert: {
+          observation_id: string
+          proposal_id: string
+        }
+        Update: {
+          observation_id?: string
+          proposal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_proposal_sources_observation_id_fkey"
+            columns: ["observation_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_source_observations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_proposal_sources_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editorial_proposals: {
+        Row: {
+          cost_usd: number | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          error_code: string | null
+          estimated_max_cost_usd: number
+          finished_at: string | null
+          id: string
+          input_hash: string
+          input_snapshot: Json
+          input_tokens: number | null
+          model: string
+          output_tokens: number | null
+          prompt_version: number
+          result: Json | null
+          schema_version: number
+          status: string
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          error_code?: string | null
+          estimated_max_cost_usd: number
+          finished_at?: string | null
+          id?: string
+          input_hash: string
+          input_snapshot: Json
+          input_tokens?: number | null
+          model: string
+          output_tokens?: number | null
+          prompt_version?: number
+          result?: Json | null
+          schema_version?: number
+          status?: string
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          error_code?: string | null
+          estimated_max_cost_usd?: number
+          finished_at?: string | null
+          id?: string
+          input_hash?: string
+          input_snapshot?: Json
+          input_tokens?: number | null
+          model?: string
+          output_tokens?: number | null
+          prompt_version?: number
+          result?: Json | null
+          schema_version?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_proposals_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entities: {
         Row: {
@@ -1443,6 +1553,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_catalog_source_lease: { Args: never; Returns: string }
       archive_starter_track: {
         Args: { p_starter_track_id: string }
         Returns: {
@@ -1489,8 +1600,6 @@ export type Database = {
           reset_at: string
         }[]
       }
-      acquire_catalog_source_lease: { Args: never; Returns: string }
-      release_catalog_source_lease: { Args: { p_token: string }; Returns: undefined }
       claim_catalog_enrichment_job: {
         Args: { p_job_id?: string }
         Returns: {
@@ -1675,6 +1784,26 @@ export type Database = {
         Returns: {
           comments_count: number
           review_id: string
+        }[]
+      }
+      release_catalog_source_lease: {
+        Args: { p_token: string }
+        Returns: undefined
+      }
+      reserve_editorial_proposal: {
+        Args: {
+          p_created_by: string
+          p_entity_id: string
+          p_estimated_max_cost_usd: number
+          p_input_hash: string
+          p_input_snapshot: Json
+          p_model: string
+          p_observation_ids: string[]
+          p_prompt_version: number
+        }
+        Returns: {
+          created: boolean
+          proposal_id: string
         }[]
       }
       set_entity_library_item: {

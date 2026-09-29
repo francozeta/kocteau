@@ -40,11 +40,11 @@ Before repository work, read `AGENTS.md` and `CURRENT.md` completely. Read `PROD
 
 ### Working Notes And Plans
 
-- Keep short scratch notes in the active session. Version useful phases, decisions, and implementation handoffs under the root `.plan/` directory so contributors and devices share the same context.
-- Keep experiments, raw diagnostics, screenshots, machine paths, and private working notes under `.plan/local/` or `.codex-private/`; both remain ignored. Never commit environment values, credentials, sessions, or personal data.
+- Keep short plans in the active session. Keep device-local phases, plans, and implementation checklists under the root `.plan/` directory, which must remain ignored by Git.
+- Never commit environment values, credentials, sessions, or personal data.
 - Do not add generated plans or specs to `docs/` unless the maintainer explicitly asks for a public RFC, design record, or long-lived contributor document.
 - Promote only durable outcomes: update `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `CURRENT.md`, a relevant specialized document, or the implementation itself.
-- Keep `.plan/README.md` as the small shared index. Mark older plans as historical rather than treating their status as current; `CURRENT.md` and GitHub evidence remain authoritative.
+- Keep concise phase outcomes in `.plan/` for local continuity and retire obsolete checklists there. Do not make contributors navigate process artifacts to understand the product.
 - Commit project skills, their required reference files, and `skills-lock.json`. Use `.agents/README.md` to select relevant skills. Do not vendor unrelated framework repositories, dependencies, generated output, or user-global tool settings.
 - On a device handoff, read the linked issue and PR alongside repository documents. One active task has one owner; concurrent work uses separate conventional branches. Preserve and reconcile overlapping work before integrating it.
 
@@ -460,6 +460,17 @@ If recommendation data is sparse, prefer graceful editorial fallback over preten
 ## 13. Data and Supabase Rules
 
 Keep writes intentional.
+
+Schema work includes executing and verifying its migration, not only writing SQL.
+Use the repository's pinned CLI scripts and the
+[Supabase workflow](./docs/maintainers/supabase-workflow.md). Obtain maintainer
+authorization for the repository and target environment before a cloud write.
+Once granted for the current work, carry it through without asking again: review
+the linked target and pending SQL, run the dry run, apply, check remote history,
+verify the affected permissions/flow, and regenerate types. Record actual results
+in CURRENT.md. Missing credentials or a failed command means deployment is still
+pending. Authorization does not transfer to another repository or environment,
+nor authorize resets, history repairs, or destructive maintenance.
 
 Use server routes and RPCs where the project already does.
 

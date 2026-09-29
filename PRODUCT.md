@@ -145,10 +145,11 @@ starter picks form a lightweight taste queue with pass and review actions.
 
 Catalog research, editorial proposals, and listener ranking are separate
 responsibilities. Provider metadata is evidence, not an approved editorial signal.
-Studio source research reuses its existing dialog/drawer: select music and request
-evidence without publishing. Structured proposals and explicit acceptance are the
-next connection. Research must not publish a starter pick or mutate taste tags
-before that decision. See
+Studio source research reuses its existing dialog/drawer. Selecting music starts
+evidence collection and fills supported signals in new or untagged drafts; the
+curator reviews and saves them. Optional source context never changes the draft.
+Transactional acceptance and destination selection are the next connection.
+Research must not publish a starter pick or mutate taste tags before saving. See
 [Knowledge Layer and Search](./docs/knowledge-layer.md) for the implementation
 boundaries and [CURRENT.md](./CURRENT.md) for verified progress.
 

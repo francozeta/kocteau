@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { canRunCatalogResearch, catalogSourceUrl, type CatalogResearch } from "@/lib/catalog/research-state";
 
@@ -11,12 +12,13 @@ const factLabels: Record<string, string> = {
   match_method: "Matched by",
 };
 
-export function StarterCatalogResearch({ data, error, collecting, onRetry, preservesSavedSignals }: {
+export function StarterCatalogResearch({ data, error, collecting, onRetry, preservesSavedSignals, children }: {
   data: CatalogResearch | undefined;
   error: Error | null;
   collecting: boolean;
   onRetry: () => void;
   preservesSavedSignals: boolean;
+  children?: ReactNode;
 }) {
   const job = data?.job;
   const canRetry = !collecting && (error || !data || canRunCatalogResearch(data) || job?.status === "pending" || job?.status === "processing");
@@ -75,6 +77,7 @@ export function StarterCatalogResearch({ data, error, collecting, onRetry, prese
           </details>
         );
       })}
+      {children}
     </section>
   );
 }
