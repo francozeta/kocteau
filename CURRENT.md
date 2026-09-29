@@ -10,10 +10,10 @@ Stable contracts are in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 Studio automatically researches a selected track, drafts conservative signals
 from current source evidence, and keeps the curator's saved or manual choices
-authoritative. Optional Gateway context is being integrated on a separate local
-task branch; it explains existing source-backed proposals and cannot change a
-draft or publish a pick. Human decision history, collection destination choice,
-and transactional acceptance are still future work.
+authoritative. Optional Gateway context is in review on
+`feat/studio-gateway-reconciliation`; it explains existing source-backed
+proposals and cannot change a draft or publish a pick. Human decision history,
+collection destination choice, and transactional acceptance are still future work.
 
 ## Verification And Deployment
 
@@ -35,6 +35,6 @@ and transactional acceptance are still future work.
 
 ## Next Priority
 
-Exercise the authenticated curator flow on the integrated web branch, including
-sparse evidence, manual edits, and non-curator denial. Review the local task
-branch before publishing or merging it into the Studio baseline.
+Exercise the authenticated curator flow on the PR preview, including sparse
+evidence, manual edits, and non-curator denial. Review the PR before merging it
+into the Studio baseline.
