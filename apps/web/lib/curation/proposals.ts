@@ -102,10 +102,10 @@ export async function readEditorialProposal(providerId: string): Promise<Proposa
     if (currentError) throw currentError;
     if (current) return { proposal: publicProposal(current), available: configured(), stale: false, needsResearch: false };
   }
-  const { data, error: readError } = await db.from("editorial_proposals").select(columns)
+  const { data, error: readError } = await db.from("editorial_proposals").select("input_hash")
     .eq("entity_id", entity.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
   if (readError) throw readError;
-  return { proposal: data ? publicProposal(data) : null, available: configured(), needsResearch: !input,
+  return { proposal: null, available: configured(), needsResearch: !input,
     stale: Boolean(data && data.input_hash !== hash) };
 }
 
