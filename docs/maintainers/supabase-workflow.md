@@ -73,6 +73,18 @@ pnpm supabase:types
 
 ## Migration Rules
 
+- Migration delivery includes CLI execution and verification. A checked-in SQL
+  file is not evidence that a database was migrated.
+- Cloud writes require the maintainer's authorization for this repository and
+  target environment. When that authorization already covers the current work,
+  execute the workflow without requesting it again. Contributors and other
+  repositories establish their own authorization; do not inherit another user's
+  consent. Resets, migration-history repairs, and destructive maintenance are
+  separate operations.
+- Before applying, confirm the linked target and inspect every pending migration.
+  After applying, check linked history, exercise the affected permissions/flow,
+  regenerate types, and record the result in CURRENT.md. Report any unavailable
+  credential, execution failure, or unverified flow explicitly as pending.
 - Every schema change must be in `supabase/migrations`.
 - Every exposed table needs RLS and explicit grants.
 - Sensitive writes should go through server routes or curator-only RPCs.
