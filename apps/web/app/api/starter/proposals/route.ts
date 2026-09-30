@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       if (error.code === "needs_research") return json({ error: "Finish source research before preparing suggestions." }, 409);
       if (error.code === "limit") return json({ error: "The suggestion allowance is unavailable. Your draft is unchanged; try again later." }, 429);
       if (error.code === "gateway_auth") return json({ error: "Gateway access expired or is unavailable. Refresh local OIDC or configure a server-only key." }, 503);
+      if (error.code === "model_auth") return json({ error: "Model access is unavailable. Check the server-only API key, then try again." }, 503);
       if (error.code === "storage") return json({ error: "Proposal storage is unavailable. Your draft is unchanged." }, 503);
     }
     return json({ error: "Context could not start. Continue curating manually or try again later." }, 503);

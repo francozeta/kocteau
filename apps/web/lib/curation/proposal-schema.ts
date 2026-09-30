@@ -13,6 +13,8 @@ export const proposalSchema = z.object({
 
 export type ProposalResult = z.infer<typeof proposalSchema>;
 export type ProposalInput = {
+  purpose?: "context" | "source_scout";
+  source_class?: "editorial" | "community";
   identity: { id: string; provider_id: string; title: string; artist_name: string | null };
   deterministic: CatalogSignalProposal;
   evidence: {
