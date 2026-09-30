@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { CatalogSignalProposal } from "@/lib/catalog/signal-proposals";
+import type { EvidenceClass } from "@/lib/catalog/source-evidence";
 
 export const proposalSchema = z.object({
   insights: z.array(z.object({
@@ -12,11 +13,14 @@ export const proposalSchema = z.object({
 
 export type ProposalResult = z.infer<typeof proposalSchema>;
 export type ProposalInput = {
+  purpose?: "context" | "source_scout";
+  source_class?: "editorial" | "community";
   identity: { id: string; provider_id: string; title: string; artist_name: string | null };
   deterministic: CatalogSignalProposal;
   evidence: {
     id: string; source: string; source_entity_type: string; source_entity_id: string | null;
     status: string; facts: Record<string, string | string[]>; retrieved_at: string;
+    field_classes?: Record<string, EvidenceClass>;
   }[];
   vocabulary: { id: string; label: string; slug: string; kind: string }[];
 };
