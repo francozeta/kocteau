@@ -1,18 +1,19 @@
 # Current Project State
 
-Last verified: 2026-09-29
+Last verified: 2026-09-30
 
 Stable contracts are in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and the [knowledge layer](./docs/knowledge-layer.md).
 
 ## Current Phase
 
-Studio automatically researches a selected track, drafts conservative signals
-from current source evidence, and keeps the curator's saved or manual choices
-authoritative. Optional Gateway context explains those source-backed proposals
-on explicit request; it cannot change a draft or publish a pick. Human decision
-history, collection destination choice, and transactional acceptance are still
-future work.
+Research V3 is the current Studio direction under
+[KOC-52](https://linear.app/kocteau/issue/KOC-52/research-v3-build-a-multi-source-evidence-layer-for-studio).
+Studio researches a selected track and drafts conservative, source-backed
+signals; saved or manual curator choices stay authoritative. Optional Gateway
+context explains proposals without changing or publishing them. Durable human
+decision history, destination choice, and transactional acceptance remain future
+work.
 
 ## Verification And Deployment
 
@@ -31,14 +32,19 @@ future work.
   integrated Studio generation route has not been exercised with a curator
   against the linked environment. Earlier two-source experiments do not verify
   the current version-2 evidence flow.
-- A local Studio context-motion refinement on `feat/studio-context-motion`
-  passes web lint and build. The signed-out browser route loads, but Studio
-  redirects to login; the authenticated context transition remains unverified.
-  This branch has not been published.
+- Studio context motion is on `main` through PR #210; its authenticated
+  transition still needs a curator browser check.
+- Local `feat/studio-evidence-classes` work for KOC-54 derives classes for
+  known current observation fields and preserves them per proposal reference.
+  It has no schema migration or publication change. Web unit tests, lint, and
+  production build pass; authenticated curator verification remains pending.
+- Last.fm remains an evaluation candidate, not a runtime source. Its published
+  API terms require a commercial-use agreement before such use; KOC-55 rights
+  and quality checks are open. KOC-59 needs a curator-selected track set.
 
 ## Next Priority
 
-Exercise the authenticated curator flow on the deployed web build, including
-sparse evidence, manual edits, and non-curator denial. Audit real evidence
-coverage for mood, scene, and style signals before adding providers or durable
-decisions; see [KOC-52](https://linear.app/kocteau/issue/KOC-52/audit-real-evidence-for-studio-mood-scene-and-style-signals).
+Review KOC-54 in an authenticated curator flow, including mixed/empty evidence
+and manual edits. Select the KOC-59 evaluation set and resolve KOC-55 usage
+rights before comparing Last.fm with MusicBrainz. Keep Editorial Scout and other
+providers behind that evidence and evaluation gate.

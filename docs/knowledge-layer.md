@@ -15,7 +15,7 @@ discovery application. Delivery and deployment status belong in `CURRENT.md`.
 | --- | --- | --- |
 | Music identity | `entities`, `artists`, provider IDs, artist/album relationships; `lib/deezer.ts` and `lib/catalog/musicbrainz.ts` | Keep Kocteau IDs stable; a source search match is supporting evidence, not canonical certainty. |
 | Background research | `catalog_enrichment_jobs`, claim/prepare RPCs, `lib/catalog/enrichment.ts`, protected `/api/cron/enrich-catalog` | Shared database lease for MusicBrainz and a worker execution budget; cron resumes interrupted work. |
-| Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Curator-only inspection through `/api/starter/research`; existing projected metadata has no reconstructed provenance. |
+| Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Curator-only inspection through `/api/starter/research`; known current fields derive evidence classes without rewriting observation history. Existing projected metadata has no reconstructed provenance. |
 | Studio selection | `components/starter-studio-client.tsx`: Kocteau Search, Deezer Scout, responsive editor | Selecting a track starts research; supported signals populate a new or untagged draft without publishing it. |
 | Draft suggestions | `lib/catalog/signal-proposals.ts`, `signal-selection.ts` | Versioned, evidence-linked deterministic output; optional Gateway context is stored separately, while curator decisions are not yet durable. |
 | Editorial vocabulary | `preference_tags` with genre, mood, scene, style, era, format | Suggest existing tag IDs with evidence references; do not create a parallel taxonomy. |
@@ -58,6 +58,18 @@ references, an origin (`external`, `inferred`, or `human`), and a decision state
 (`suggested`, `accepted`, or `rejected`). Corrections retain their earlier proposal
 and the final human decision. Explicit human assertions may lack an external
 source; they must remain distinguishable from researched claims.
+
+Research V3 classifies the support at the field and proposal-reference boundary:
+`fact` is source-reported identity or release metadata, `community` is an
+attributed folksonomy tag, `editorial` is a bounded sourced editorial assertion,
+`inferred` is a rule-derived interpretation, and `human` is a curator assertion.
+These are provenance types, not confidence levels. One observation can contain
+multiple classes: MusicBrainz recording dates are factual metadata while its
+tags are community evidence. Current Deezer album genre labels do not have a
+verified source class; using one as a track genre is explicitly `inferred`.
+Unknown fields and observations predating the current research contract remain
+unclassified. A source's match score is
+only for identity resolution. No class overrides a saved curator choice.
 
 Use strict structured output, validate referenced tags and evidence on the server,
 and allow uncertainty or an empty proposal. Missing context is preferable to an
@@ -217,7 +229,7 @@ polling is bounded to 90 seconds; Check again resumes inspection when needed.
 The six-kind coverage filter remains separate from source research status.
 
 Draft proposals include schema/rules versions, the selected identity, existing
-tag IDs, external/inferred origins, and observation/field/value references. They
+tag IDs, external/inferred origins, and observation/field/value/class references. They
 normalize attributed tags, derive era from the original recording date when
 available, and use the explicitly related album for release format. Prominent
 MusicBrainz tags require positive votes and at least a quarter of the highest tag
@@ -229,6 +241,16 @@ Previously saved nonempty tags stay authoritative. New and untagged picks receiv
 suggestions; manual additions, removals, and Clear survive late results and retries
 within the draft. Saving still uses the existing starter RPC. Draft output is
 derived from stored evidence, not a persisted acceptance/rejection audit.
+
+For Research V3 comparisons, keep a curator-selected set of roughly 20 tracks
+covering familiar and unfamiliar scenes, eras, mainstream/niche releases,
+ambiguous tags, and sparse evidence. For each track, record the exact identity,
+source observations, proposed signals with support classes, accepted/rejected
+signals, curator corrections, disagreements, and deliberately empty categories.
+Compare the same set before and after a source or normalization change; report
+useful coverage and false positives separately. Evaluation notes are not
+publication state or a second decision store. The curator chooses the set and
+judges the outcomes; see [KOC-59](https://linear.app/kocteau/issue/KOC-59/create-a-curator-owned-evaluation-set-for-research-v3).
 
 Gateway context is persisted, but cross-session correction history, destination selection,
 and atomic proposal acceptance remain separate work. Their contracts are above; current delivery

@@ -26,9 +26,13 @@ function ContextInsight({ insight, proposal, index, reducedMotion }: {
       <p className="text-pretty leading-5 text-muted-foreground">{insight.rationale}</p>
       {insight.evidence_ids.map((id) => {
         const source = proposal.input_snapshot.evidence.find((item) => item.id === id);
+        const support = proposal.input_snapshot.deterministic.schemaVersion === 2
+          ? proposal.input_snapshot.deterministic.signals.find((item) => item.tagId === insight.tag_id)
+            ?.evidence.find((item) => item.observationId === id) : null;
         const url = source ? catalogSourceUrl(source) : null;
         return source ? <div key={id} className="mt-1 text-muted-foreground">
-          <span>{source.source === "deezer" ? "Deezer" : "MusicBrainz"} · </span>
+          <span>{source.source === "deezer" ? "Deezer" : "MusicBrainz"}
+            {support ? ` · ${support.evidenceClass}${support.sourceClass && support.sourceClass !== support.evidenceClass ? ` from ${support.sourceClass}` : ""}` : ""} · </span>
           <time dateTime={source.retrieved_at}>{new Date(source.retrieved_at).toLocaleDateString()}</time>
           {url ? <a href={url} target="_blank" rel="noreferrer" className="ml-2 inline-flex min-h-10 items-center underline underline-offset-4 focus-visible:outline-2">Open source ↗</a> : null}
         </div> : null;
