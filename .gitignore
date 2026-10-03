@@ -43,8 +43,8 @@ packages/*/tsconfig.tsbuildinfo
 supabase/.temp/
 supabase/.branches/
 
-# Private work state
-/.plan/
+# Private work state (shared plans and skills are versioned)
+.plan/local/
 .codex-private/
 .playwright-cli/
 output/

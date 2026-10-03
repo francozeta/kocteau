@@ -19,11 +19,8 @@ jobs:
     name: Verify
     runs-on: ubuntu-latest
     env:
-      EXPO_PUBLIC_KOCTEAU_API_URL: https://kocteau.local
-      EXPO_PUBLIC_SUPABASE_KEY: ci-placeholder
-      EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SITE_URL: https://kocteau.local
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ci-placeholder
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
 
     steps:
@@ -38,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 24.15.0
+          node-version-file: .node-version
           cache: pnpm
 
       - name: Install dependencies

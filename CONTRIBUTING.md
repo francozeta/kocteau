@@ -1,116 +1,70 @@
 # Contributing to Kocteau
 
-Kocteau is a music review and taste discovery app. The public contribution path is web-first: `apps/web` is the production surface. A native mobile app is deferred until the web core proves the product loop, so it is not part of the current workspace.
+Kocteau is a music review and taste discovery app. `apps/web` is the production
+surface; native mobile parity is deferred. Prefer small, focused changes.
 
-The best early contributions are small, focused, and easy to review.
+## Start
 
-## Quick Path
+1. Read [AGENTS.md](./AGENTS.md) and [CURRENT.md](./CURRENT.md), then the relevant
+   [product](./PRODUCT.md), [design](./DESIGN.md), or [technical guide](./docs/README.md).
+2. Choose a scoped [issue](https://github.com/francozeta/kocteau/issues) or coordinate
+   a task from the [contribution backlog](./docs/backlog.md).
+3. Follow [local development](./docs/setup/local-development.md) for runtime,
+   dependencies, environment files, Supabase, and OTP. Normal contribution work
+   uses local Supabase and does not require production credentials.
+4. Inspect Git status and remote history before changing files. Use a focused
+   `<type>/<short-kebab-description>` branch; keep `main` releasable.
 
-Good first contributions usually live in one of these areas:
+Docs, copy, accessibility, sparse states, and isolated web fixes are good first
+contributions. Coordinate auth, data, recommendations, analytics, CI, and release
+changes with the maintainer when their behavior is not already agreed.
 
-- README or docs improvements
-- Copy fixes
-- Small web UI polish
-- Accessibility improvements in isolated web components
-- Loading, empty, or error-state polish
-- Small bug fixes with clear before/after behavior
+## Shared Context
 
-Avoid starting with auth, Supabase, recommendation, analytics, release, or CI changes unless a maintainer has already discussed the direction with you.
+[Project skills](./.agents/README.md), their references, and `skills-lock.json`
+travel with the clone. [Shared plans](./.plan/README.md) explain useful handoffs;
+CURRENT.md and linked issues/PRs record actual status. Use separate conventional
+branches for concurrent work and reconcile overlap before integration.
 
-See [docs/README.md](./docs/README.md) for the documentation map and [docs/backlog.md](./docs/backlog.md) for the current public backlog. Maintainers use the backlog to turn small, clear tasks into GitHub issues.
+Keep experiments and private diagnostics in `.plan/local/` or `.codex-private/`.
+Only sanitized environment examples belong in Git. Preserve the maintainer's Git
+identity and authorship as required by AGENTS.md.
 
-## Local Setup
+## Verification
 
-Kocteau's default contribution path uses local Supabase. You should not need production credentials for normal web work.
-
-```bash
-pnpm install
-pnpm supabase:start
-pnpm supabase:status
-cp apps/web/.env.example apps/web/.env.local
-pnpm supabase:reset
-pnpm supabase:types
-pnpm dev:web
-```
-
-Open `http://localhost:3000`.
-
-Copy the local Supabase URL and local anon key from `pnpm supabase:status` into `apps/web/.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
-```
-
-Use the local email inbox printed by `pnpm supabase:status` to read OTP codes. Do not use production Supabase, SMTP, or service role credentials for public contribution work.
-
-## Shared Context And Skills
-
-Read [AGENTS.md](./AGENTS.md) and [CURRENT.md](./CURRENT.md) before making changes.
-[.plan/README.md](./.plan/README.md) indexes shared plans and handoffs;
-[.agents/README.md](./.agents/README.md) maps the checked-in skills to UI, React,
-data, and discovery work. `skills-lock.json` records their upstream sources.
-A normal clone includes these files; no context migration script is needed.
-
-Use separate conventional branches for concurrent tasks and link the issue and
-PR when handing work to another contributor or device. GitHub records code and
-review status; plans explain intent. Never upload `.env` values, tool sessions,
-browser state, production identifiers from diagnostics, or personal configuration.
-Only sanitized environment examples belong in Git. Keep private scratch work in
-`.plan/local/` or `.codex-private/`.
-
-## Checks
-
-Before opening a web PR, run:
+From the repository root:
 
 ```bash
-pnpm supabase:lint
-pnpm --filter web lint
-pnpm --filter web build
+pnpm check
 git diff --check
 ```
 
-Root `pnpm build` is not the public contribution check yet because the monorepo build path still needs more review.
+`pnpm check` runs unit tests, workspace lint, and the web production build, including
+TypeScript validation. It does not exercise a real database, OTP delivery, or an
+authenticated curator session. For docs-only edits, check local links and commands;
+runtime or CI changes also need the relevant executable checks.
 
-## Pull Requests
+UI changes need desktop/mobile, keyboard, and relevant signed-in/out and sparse
+states. Schema or permission changes also need local database lint, relevant
+SQL/RLS regressions, generated types, and the affected manual flow; see the
+[Supabase workflow](./docs/maintainers/supabase-workflow.md). Report any missing
+environment or verification explicitly.
 
-Keep PRs narrow. A strong PR explains:
+## Pull Requests And Releases
 
-- what changed
-- why it changed
-- how it was checked
-- whether it touches a sensitive area
-- screenshots or short recordings for visible UI changes
-
-Use clear PR titles. Release Please uses PR titles and squash commit messages to update versions, generate `CHANGELOG.md`, create tags, and publish GitHub Releases, so contributors do not need to write changelog entries by hand.
-
-Good title examples:
+Use Conventional Commits for commits and PR titles, for example:
 
 ```text
 fix(web): prevent review card text overflow
 feat(web): add saved review empty state
-docs: clarify local web setup
-chore(repo): document release checklist
+docs(repo): clarify device setup
 ```
 
-## Sensitive Areas
+A PR explains the problem, resulting behavior, important decisions, verification,
+and remaining caveats. Include screenshots or a short recording for visible UI
+changes. Update the owning documentation when a command or contract changes.
 
-These areas need extra context and maintainer review:
-
-- Supabase schema, SQL, RLS, RPC, or storage
-- Auth, onboarding, session, proxy, or permission flows
-- API route write behavior
-- Recommendation, feed ranking, starter picks, or editorial curation
-- Analytics behavior
-- CI, package manager, dependency, release, or deployment changes
-- Sentry and environment configuration
-
-Public contribution is welcome here, but please open an issue or discussion first when the behavior is not already agreed.
-
-## Changelog
-
-Do not edit `CHANGELOG.md` in normal feature or fix PRs.
-
-Release Please updates the changelog automatically after changes land on `main`. Maintainers review and merge the generated release PR.
-
-Use clear PR titles so release notes stay readable.
+Local commits do not authorize push, PR publication, merge, or deployment. Follow
+the maintainer's direction and the [working contract](./AGENTS.md).
+Do not edit `CHANGELOG.md` in normal feature/fix PRs: [Release Please](./docs/maintainers/release.md)
+uses conventional squash titles to propose versions and release notes.
