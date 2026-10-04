@@ -3,6 +3,9 @@
 Read [AGENTS.md](../AGENTS.md) and [CURRENT.md](../CURRENT.md) before working.
 Then open the guide for the area you are changing.
 
+The same sources build the public `/docs` route. Run `pnpm dev` to preview it.
+Use [documentation maintenance](./documentation.md) for publishing and indexing.
+
 ## Contracts
 
 | Document | Owns |
@@ -19,6 +22,8 @@ Then open the guide for the area you are changing.
 | --- | --- |
 | [Local development](./setup/local-development.md) | Fresh setup, returning devices, runtime, and checks |
 | [Architecture](./core-architecture.md) | Code map, request/data boundaries, and reduction rules |
+| [Components](./components.md) | Product directories and flow entry points |
+| [Working context](./working-context.md) | Durable decisions and contributor/device handoffs |
 | [Environment](./security/environment.md) | Variables, credentials, and environment separation |
 | [Catalog research](./knowledge-layer.md) | Music identity, source evidence, and Studio proposals |
 | [Discovery and curation](./discovery-curation.md) | Recommendation surfaces and analytics signals |
@@ -35,6 +40,7 @@ Then open the guide for the area you are changing.
 | [Load readiness](./load-readiness.md) | k6 profiles, thresholds, and rollback criteria |
 | [Apple Music imports](./maintainers/apple-music-import.md) | Maintainer source imports and rotation |
 | [Email templates](../apps/web/emails/README.md) | OTP email source and preview |
+| [Documentation](./documentation.md) | Source catalog, preview, link checks, and public indexing |
 
 [Project skills](../.agents/README.md) travel with the clone.
 [Shared plans](../.plan/README.md) hold useful handoffs until their outcomes enter

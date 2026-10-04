@@ -17,6 +17,7 @@ apps/*/.turbo/
 packages/*/.turbo/
 
 # Build output
+.generated/
 .next/
 apps/*/.next/
 packages/*/.next/

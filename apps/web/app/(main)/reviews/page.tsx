@@ -1,5 +1,5 @@
-import { FeedReviewCard } from "@/components/review-route-cards-server";
-import JsonLd from "@/components/json-ld";
+import { FeedReviewCard } from "@/components/reviews/review-route-cards-server";
+import JsonLd from "@/components/shared/json-ld";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";

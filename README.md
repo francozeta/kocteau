@@ -43,6 +43,7 @@ Kocteau is an open-source music review and taste discovery app. The current prod
 | Understand the product and interface | [PRODUCT.md](./PRODUCT.md) and [DESIGN.md](./DESIGN.md) |
 | Run or resume the project on another machine | [Local development](./docs/setup/local-development.md) |
 | Find the code and data boundaries | [Architecture](./docs/core-architecture.md) |
+| Find a component or resume a product flow | [Components](./docs/components.md) and [working context](./docs/working-context.md) |
 | Contribute a focused change | [CONTRIBUTING.md](./CONTRIBUTING.md) and [backlog](./docs/backlog.md) |
 | Find a technical or operational guide | [Documentation index](./docs/README.md) |
 
@@ -78,8 +79,11 @@ pnpm check
 git diff --check
 ```
 
-`pnpm check` runs unit tests, workspace lint, and the web build with TypeScript
+`pnpm check` validates documentation, runs unit tests, workspace lint, and the web build with TypeScript
 validation. Database and authenticated flows need their own verification.
+
+The public documentation route is `/docs`; it builds from the repository Markdown.
+See [documentation maintenance](./docs/documentation.md) for preview and indexing.
 
 ## Contributing And Operations
 

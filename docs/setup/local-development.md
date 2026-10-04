@@ -100,7 +100,7 @@ pnpm check
 git diff --check
 ```
 
-The combined check runs unit tests, workspace lint, and the web build with TypeScript
+The combined check validates documentation, runs unit tests, workspace lint, and the web build with TypeScript
 validation. These checks need dependencies and web configuration, but do not require
 a running local database. They do not prove that database permissions or OTP work.
 

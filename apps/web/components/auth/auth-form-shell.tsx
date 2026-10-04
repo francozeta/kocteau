@@ -3,8 +3,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState, type ReactNode } from "react";
-import BrandLogo from "@/components/brand-logo";
-import { KocteauChevronLeftSmallIcon } from "@/components/kocteau-icons";
+import BrandLogo from "@/components/brand/brand-logo";
+import { KocteauChevronLeftSmallIcon } from "@/components/icons/kocteau-icons";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 

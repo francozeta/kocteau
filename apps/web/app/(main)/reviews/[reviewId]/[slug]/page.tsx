@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import JsonLd from "@/components/json-ld";
-import ReviewCommentsPanel from "@/components/review-comments-panel";
-import ReviewPageHeaderBridge from "@/components/review-page-header-bridge";
+import JsonLd from "@/components/shared/json-ld";
+import ReviewCommentsPanel from "@/components/reviews/review-comments-panel";
+import ReviewPageHeaderBridge from "@/components/reviews/review-page-header-bridge";
 import {
   createReviewEditSeed,
   ReviewPageCard,
-} from "@/components/review-route-cards-server";
+} from "@/components/reviews/review-route-cards-server";
 import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata, createReviewDescription } from "@/lib/metadata";
 import {

@@ -29,10 +29,14 @@ New code must strengthen that loop or remove friction from it. A feature is not 
 
 Do not create another application layer or service merely to match a diagram.
 Follow existing domain modules and split only when a concrete boundary needs it.
+Product components are grouped by [flow](./components.md). Flow READMEs keep
+entry points and invariants close to the implementation; `ui/` remains the
+primitive layer.
 
 ## Routes And Data Flow
 
 `/` serves the public landing and redirects authenticated listeners to `/feed`.
+`/docs` renders selected repository Markdown as static, public contributor guides.
 `/search` is the discovery canvas. Canonical public music routes use
 `/tracks/{slug}/{id}`, `/albums/{slug}/{id}`, and `/artists/{slug}/{id}`;
 reviews use `/reviews/{id}/{slug}`, profiles `/u/{username}`. Legacy singular

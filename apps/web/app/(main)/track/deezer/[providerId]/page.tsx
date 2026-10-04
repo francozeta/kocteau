@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Music2 } from "@/components/ui/icons";
 import { notFound, permanentRedirect } from "next/navigation";
-import TrackPageHeaderBridge from "@/components/track-page-header-bridge";
-import TrackPageHero from "@/components/track-page-hero";
+import TrackPageHeaderBridge from "@/components/music/track-page-header-bridge";
+import TrackPageHero from "@/components/music/track-page-hero";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { getDeezerTrack, isDeezerProviderId } from "@/lib/deezer";

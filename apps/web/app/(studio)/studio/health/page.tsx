@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import RecommendationHealthSummary from "@/components/recommendation-health-summary";
+import RecommendationHealthSummary from "@/components/studio/recommendation-health-summary";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getStarterCuratorAccess } from "@/lib/queries/curation";

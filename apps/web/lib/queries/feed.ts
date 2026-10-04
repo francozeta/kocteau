@@ -5,7 +5,7 @@ import type {
   ReviewCardAuthor,
   ReviewCardData,
   ReviewCardEntity,
-} from "@/components/review-card";
+} from "@/components/reviews/review-card";
 import type { FeedView, RecommendationReason } from "@/lib/feed-view";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";

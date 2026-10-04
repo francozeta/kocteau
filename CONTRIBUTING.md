@@ -26,6 +26,11 @@ travel with the clone. [Shared plans](./.plan/README.md) explain useful handoffs
 CURRENT.md and linked issues/PRs record actual status. Use separate conventional
 branches for concurrent work and reconcile overlap before integration.
 
+Each [product flow](./docs/components.md) has a README beside its components.
+Read it before changing that flow; update its entry points, invariants, or checks
+when they change. [Working context](./docs/working-context.md) maps decisions to
+their owning documents.
+
 Keep experiments and private diagnostics in `.plan/local/` or `.codex-private/`.
 Only sanitized environment examples belong in Git. Preserve the maintainer's Git
 identity and authorship as required by AGENTS.md.
@@ -39,10 +44,11 @@ pnpm check
 git diff --check
 ```
 
-`pnpm check` runs unit tests, workspace lint, and the web production build, including
+`pnpm check` checks documentation, runs unit tests, workspace lint, and the web production build, including
 TypeScript validation. It does not exercise a real database, OTP delivery, or an
 authenticated curator session. For docs-only edits, check local links and commands;
-runtime or CI changes also need the relevant executable checks.
+runtime or CI changes also need the relevant executable checks. `pnpm docs:check`
+validates public sources, repository links, and registered heading anchors.
 
 UI changes need desktop/mobile, keyboard, and relevant signed-in/out and sparse
 states. Schema or permission changes also need local database lint, relevant

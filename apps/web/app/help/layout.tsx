@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import HelpMobileMenu from "@/components/help/help-mobile-menu";
-import BrandLogo from "@/components/brand-logo";
+import BrandLogo from "@/components/brand/brand-logo";
 
 type HelpLayoutProps = {
   children: ReactNode;

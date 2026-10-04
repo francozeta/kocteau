@@ -16,6 +16,7 @@
     "packages/*"
   ],
   "scripts": {
+    "docs:check": "node apps/web/scripts/build-docs.mjs",
     "dev": "pnpm --filter web dev",
     "dev:web": "pnpm --filter web dev",
     "supabase:start": "supabase start -x logflare,vector",
@@ -46,7 +47,7 @@
     "build": "turbo run build",
     "test": "pnpm --filter web test",
     "lint": "turbo run lint",
-    "check": "pnpm test && pnpm lint && pnpm --filter web build"
+    "check": "pnpm docs:check && pnpm test && pnpm lint && pnpm --filter web build"
   },
   "devDependencies": {
     "eslint": "9.39.4",

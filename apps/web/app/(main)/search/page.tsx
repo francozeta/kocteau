@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import DiscoverEditorialEdition from "@/components/discover-editorial-edition";
+import DiscoverEditorialEdition from "@/components/discovery/discover-editorial-edition";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { getDiscoverySeedPath } from "@/lib/discovery/seed";
 import { createPageMetadata } from "@/lib/metadata";

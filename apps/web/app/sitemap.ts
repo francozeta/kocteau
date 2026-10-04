@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { documentation } from "@/lib/docs";
 import { HELP_LAST_UPDATED, helpRoutes } from "@/lib/help";
 import { getMetadataBase } from "@/lib/metadata";
 import { isPublicReviewIndexable } from "@/lib/reviews/public-content";
@@ -161,6 +162,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: helpLastModified,
       changeFrequency: "monthly" as const,
       priority: route.href === "/help" ? 0.45 : 0.35,
+    })),
+    ...["/docs", ...documentation.map((page) => page.href)].map((href) => ({
+      url: new URL(href, metadataBase).toString(),
+      changeFrequency: "weekly" as const,
+      priority: 0.4,
     })),
   ];
 

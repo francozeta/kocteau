@@ -6,6 +6,7 @@ import type { NextConfig } from "next";
 const withMDX = createMDX({});
 
 const nextConfig: NextConfig = {
+  agentRules: false,
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   turbopack: {
     root: path.resolve(__dirname, "../.."),

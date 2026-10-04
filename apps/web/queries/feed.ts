@@ -3,7 +3,7 @@ import type {
   ReviewCardAuthor,
   ReviewCardData,
   ReviewCardEntity,
-} from "@/components/review-card";
+} from "@/components/reviews/review-card";
 import type { FeedView, RecommendationReason } from "@/lib/feed-view";
 import type { ActiveProfile } from "@/lib/queries/profiles";
 import { fetchJson, isRetryableFetchJsonError } from "@/queries/http";

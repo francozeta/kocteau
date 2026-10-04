@@ -22,7 +22,7 @@ export default function robots(): MetadataRoute.Robots {
     "/*opengraph-image*",
     "/*twitter-image*",
   ];
-  const aiCrawlerDisallow = [
+  const restrictedCrawlers = [
     "CCBot",
     "ChatGPT-User",
     "ClaudeBot",
@@ -37,7 +37,8 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
-        userAgent: aiCrawlerDisallow,
+        userAgent: restrictedCrawlers,
+        allow: ["/docs", "/llms.txt"],
         disallow: ["/"],
       },
       {

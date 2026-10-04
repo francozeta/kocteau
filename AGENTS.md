@@ -52,6 +52,8 @@ Before repository work, read `AGENTS.md` and `CURRENT.md` completely. Read `PROD
 
 - Keep one owner per fact: setup in `docs/setup/local-development.md`, environment variables in `docs/security/environment.md`, implementation boundaries in `docs/core-architecture.md` and the relevant domain guide, verified status in `CURRENT.md`.
 - Keep `README.md` an entry point and `docs/README.md` a navigation index. Link to the owning document instead of copying its instructions.
+- Read the relevant flow README under `apps/web/components/<flow>/` before changing that flow. Keep its entry points, invariants, and checks current; shared product/design decisions remain in their owning contracts.
+- `docs/meta.json` selects public documentation and navigation order. Edit canonical Markdown sources, run `pnpm docs:check`, and keep generated documentation ignored. Public guides must be safe for the open web.
 - When changing a documented command, environment variable, route, permission, or file path, update its owning guide in the same change and check local links.
 - Use `.node-version`, `package.json`, and `pnpm-lock.yaml` for runtime and dependency versions. Install with `pnpm install --frozen-lockfile` when setting up or synchronizing a device.
 - Fetch and inspect remote history before a handoff. Advance clean branches with fast-forward updates; an open PR is available work, not integrated product behavior.
@@ -512,6 +514,8 @@ Do not add sensitive analytics fields such as email, IP, or user agent.
 ## 14. Component Rules
 
 Prefer small, readable components.
+
+Keep product components under their owning flow directory. Use [the component map](./docs/components.md) to find it. Keep styles beside the component, import files directly, and preserve client/server and deferred-loading boundaries when moving code. `components/ui` remains the primitive layer.
 
 Avoid turning large product surfaces into one huge client component.
 

@@ -1,6 +1,6 @@
 # Current Project State
 
-Last verified: 2026-10-03
+Last verified: 2026-10-04
 Integrated baseline: origin/main at 83fa943 ([PR #210](https://github.com/francozeta/kocteau/pull/210)).
 
 Stable contracts live in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
@@ -18,15 +18,26 @@ Stable contracts live in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   source scouting remain review work. They are not part of main.
 - [Release PR #202](https://github.com/francozeta/kocteau/pull/202) for v0.3.16 is open;
   the current released version remains v0.3.15.
-- Documentation and device-readiness maintenance is local on
-  `docs/laptop-project-readiness`, pending publication. The entry points now route
-  to owning guides; runtime versions and returning-device checks are explicit.
+- Device-readiness documentation (5c5e6fc) and follow-up maintenance remain local
+  on `refactor/component-maintenance`, pending publication. Components now live
+  in owning flow directories, with short READMEs for entry points and checks.
+  `/docs` builds public guides from canonical Markdown; navigation, source links,
+  text indexes, sitemap entries, and crawler access share one catalog.
 
 ## Verification And Caveats
 
 - Frozen-lockfile installation, 110 web unit tests, workspace lint, production
   build with TypeScript, documentation links, and diff checks pass. Node matches
   the version shared with CI. The updated workflow has not run remotely.
+- Public documentation was checked signed out on desktop and at 390/320px:
+  search/results, code copying, keyboard/skip navigation, mobile menu, headings,
+  and table overflow. Automated accessibility checks found no violations on the
+  inspected Studio and Components guides; a screen-reader session was not run.
+  Production HTTP checks pass for all 33 guides and Markdown sources, canonical
+  URLs, the documentation sitemap, text indexes, and unknown-route 404s.
+  Unknown static documentation paths return 404 but log `NoFallbackError`, matching
+  [Next.js #90537](https://github.com/vercel/next.js/issues/90537).
+  The portal has not been deployed or verified in a search engine index.
 - The local production server returns 200 for landing/login/Search, redirects
   signed-out feed/Studio access to login, and denies research/context APIs with 401.
 - Read-only linked history confirms all 33 migrations present on main are applied.
@@ -41,6 +52,9 @@ Stable contracts live in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   and desktop/mobile authenticated behavior remain unverified.
 
 ## Next Priority
+
+Publish the local maintenance branch through review, reconciling Studio file moves
+with PR #211 before integration. Then verify `/docs` on the deployed site.
 
 Publish and reconcile the existing failure-recovery migration from its source
 device, then verify the authenticated curator and cron flow against the matching
