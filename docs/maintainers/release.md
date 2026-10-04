@@ -8,7 +8,7 @@ This keeps release control with the maintainer while avoiding manual version and
 
 ## Scope
 
-The current release ritual is web-first. `apps/web` is the production contribution surface. Mobile changes can exist in the repo, but they should not drive public release notes until mobile becomes a production surface.
+The release surface is `apps/web`. A native mobile app is outside the current workspace.
 
 ## How It Works
 
@@ -32,8 +32,6 @@ docs: clarify contributor setup
 chore(repo): update maintainer automation
 ```
 
-During the current web-first phase, mobile changes should usually use `chore(mobile): ...` unless the maintainer intentionally wants them in public release notes.
-
 ## Release PR Review
 
 Before merging a Release Please PR:
@@ -50,7 +48,7 @@ Prefer fixing noisy PR titles before merge. Avoid hand-editing generated release
 After deploy:
 
 1. Open `/`.
-2. Confirm the feed loads.
+2. Sign in and confirm `/feed` loads For You.
 3. Open search.
 4. Open a track page.
 5. Open a profile page.

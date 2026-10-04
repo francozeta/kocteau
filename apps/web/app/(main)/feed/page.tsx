@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
-import AuthenticatedFeedSurface from "@/components/authenticated-feed-surface";
+import AuthenticatedFeedSurface from "@/components/feed/authenticated-feed-surface";
 import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
 import { getAuthenticatedFeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import CuratorApplicationClient from "@/components/curator-application-client";
+import CuratorApplicationClient from "@/components/profile/curator-application-client";
 import { Button } from "@/components/ui/button";
 import type { CuratorApplication } from "@/lib/curators";
 import { getCurrentUserId } from "@/lib/auth/server";

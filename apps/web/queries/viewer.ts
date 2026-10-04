@@ -2,7 +2,7 @@ import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import type {
   ReviewCardData,
-} from "@/components/review-card";
+} from "@/components/reviews/review-card";
 import type { FeedBundleReview, FeedInfiniteQueryData } from "@/queries/feed";
 import { feedKeys } from "@/queries/feed";
 import type { ReviewBundleQueryData } from "@/queries/reviews";

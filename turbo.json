@@ -2,6 +2,15 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/**",
+        "$TURBO_ROOT$/AGENTS.md",
+        "$TURBO_ROOT$/PRODUCT.md",
+        "$TURBO_ROOT$/DESIGN.md",
+        "$TURBO_ROOT$/CURRENT.md",
+        "$TURBO_ROOT$/CONTRIBUTING.md"
+      ],
       "dependsOn": [
         "^build"
       ],

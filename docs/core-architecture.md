@@ -10,6 +10,59 @@ Kocteau keeps one product loop:
 
 New code must strengthen that loop or remove friction from it. A feature is not part of the core merely because it already exists.
 
+## Code Map
+
+| Path | Responsibility |
+| --- | --- |
+| `apps/web/app` | App Router pages, layouts, metadata, and `api` Route Handlers |
+| `apps/web/components`, `hooks`, `queries` | Product UI, interactions, and client query hooks |
+| `apps/web/lib` | Server queries, auth helpers, catalog, discovery, curation, analytics, and validation |
+| `apps/web/lib/supabase` | Browser/server/admin clients, environment readers, and generated database types |
+| `apps/web/proxy.ts` | Session refresh and route redirects; sensitive endpoints authorize independently |
+| `packages/config` | Shared theme and query defaults |
+| `packages/types` | Portable domain types; generated database types remain in the web app |
+| `packages/ui` | Shared UI package entry point; existing product components live in the web app |
+| `supabase/migrations`, `seeds`, `templates` | Ordered schema/RLS/RPC history, deterministic configuration, and local OTP email |
+| `supabase/tests` | Database and RLS regressions |
+| `supabase/scripts` | Type generation, curation tooling, and reviewed maintenance |
+| `apps/web/lib/**/*.test.ts`, `apps/web/tests/load` | Unit regressions and optional k6 load checks |
+
+Do not create another application layer or service merely to match a diagram.
+Follow existing domain modules and split only when a concrete boundary needs it.
+Product components are grouped by [flow](./components.md). Flow READMEs keep
+entry points and invariants close to the implementation; `ui/` remains the
+primitive layer.
+
+## Routes And Data Flow
+
+`/` serves the public landing and redirects authenticated listeners to `/feed`.
+`/docs` renders selected repository Markdown as static, public contributor guides.
+`/search` is the discovery canvas. Canonical public music routes use
+`/tracks/{slug}/{id}`, `/albums/{slug}/{id}`, and `/artists/{slug}/{id}`;
+reviews use `/reviews/{id}/{slug}`, profiles `/u/{username}`. Legacy singular
+routes redirect, and Deezer resolver routes handle music without a Kocteau ID.
+Route helpers in `apps/web/lib/seo-routes.ts` own canonical path construction.
+
+`/login`, `/signup`, `/onboarding`, and `/onboarding/taste` implement the OTP/profile/
+taste loop. `/studio/starter`, `/studio/health`, and `/studio/curators` are private
+role-gated tools; an official badge is not permission to use them.
+
+Typical writes follow:
+
+`client action → Route Handler → validate session/input/limits → RPC or scoped write → Postgres`
+
+RLS and explicit grants define database access. Routes using the server-only admin
+client must check authorization before privileged work. A redirect or hidden control
+does not protect an API. Review and curation invariants stay in their existing
+transactional RPCs; provider data must preserve `(provider, provider_id, type)` identity.
+
+Server-rendered pages use server queries for initial data. TanStack Query owns
+live/optimistic client interactions. Public catalog caches must not include viewer
+state; account-specific responses require their existing private boundaries.
+Catalog research uses the durable enrichment queue shared by Studio and cron.
+Evidence collection, draft context, and editorial publication remain separate;
+see [catalog research](./knowledge-layer.md) and [discovery](./discovery-curation.md).
+
 ## Boundaries Today
 
 ### Next.js: product and delivery

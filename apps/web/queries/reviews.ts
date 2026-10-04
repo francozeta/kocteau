@@ -4,7 +4,7 @@ import type {
   ReviewCardAuthor,
   ReviewCardData,
   ReviewCardEntity,
-} from "@/components/review-card";
+} from "@/components/reviews/review-card";
 import { fetchJson } from "@/queries/http";
 
 export type ReviewBundleEntity = ReviewCardEntity & {

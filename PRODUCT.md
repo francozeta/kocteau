@@ -111,7 +111,8 @@ To group reviews correctly, `entities` should remain unique by:
 
 ## 5. For You feed
 
-Home `/` is now the primary For You feed for signed-in users.
+`/feed` is the primary For You feed for signed-in users. Authenticated visits to
+`/` redirect there; signed-out visits to `/` see the public landing.
 
 For You combines:
 
@@ -131,7 +132,7 @@ Fallback modes still exist:
 - following
 - top-rated
 
-Signed-out users fall back to a public latest-style experience.
+Signed-out users can browse public Search, music, review, and profile surfaces.
 
 When there are not enough real reviews to rank, For You uses the Starter Layer: curated tracks from `starter_tracks`, grouped by optional `editorial_collections`, and matched to onboarding tags through `starter_track_tags`. This keeps early sessions useful without inventing fake users or fake reviews.
 
@@ -190,7 +191,7 @@ These actions are product features and recommendation signals.
 
 Track route:
 
-- `/track/[id]`
+- `/tracks/[slug]/[id]`; the legacy `/track/[id]` redirects.
 
 Shows:
 

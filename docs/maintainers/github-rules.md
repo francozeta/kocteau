@@ -2,7 +2,9 @@
 
 [Docs index](../README.md) | [Release automation](./release.md) | [Operations](../operations.md) | [Backlog](../backlog.md)
 
-These settings keep Kocteau open to public contributions while protecting release, auth, data, and recommendation flows.
+This is maintainer guidance for repository settings, not a verified snapshot of
+GitHub configuration. Inspect the current settings before changing protections
+or permissions. Source-controlled workflows live in `.github/workflows`.
 
 ## General Repository Settings
 
@@ -67,8 +69,6 @@ perf(web): reduce feed image layout shift
 docs: clarify contributor setup
 chore(repo): update maintainer automation
 ```
-
-During the current web-first phase, mobile work should normally use `chore(mobile): ...` unless the maintainer intentionally wants it in public release notes.
 
 ## Labels
 

@@ -2,7 +2,9 @@
 
 [Docs index](../README.md) | [Local development](../setup/local-development.md) | [Operations](../operations.md) | [Contributing](../../CONTRIBUTING.md)
 
-Kocteau uses separate environments for local development, staging, and production.
+Keep local development, staging, and production separate. These are configuration
+boundaries, not a claim that every environment is provisioned; check the target
+before using maintainer commands.
 
 ## Environment Boundaries
 
@@ -25,7 +27,9 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 ```
 
-The exact publishable key variable name can vary during migrations, but the safety rule is fixed: if the browser needs it, it must be treated as public and named accordingly.
+`apps/web/lib/supabase/env.ts` reads this canonical key first, then the legacy
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` deployment fallback. New local
+configuration uses the canonical name from `apps/web/.env.example`.
 
 ## Secret Variables
 
@@ -50,12 +54,22 @@ The web app intentionally keeps a small environment surface:
 | `NEXT_PUBLIC_SITE_URL` | Public | Canonical URL outside Vercel. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Supabase API origin. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | RLS-protected browser access. The legacy `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` remains a temporary deployment fallback. |
-| `SUPABASE_SECRET_KEY` | Server only | Catalog worker and other privileged server operations. |
+| `SUPABASE_SECRET_KEY` | Server only | Catalog worker and privileged server operations; `SUPABASE_SERVICE_ROLE_KEY` is the legacy fallback. Use only a local key for local Supabase. |
 | `CRON_SECRET` | Server only | Authenticates Vercel Cron requests to `/api/cron/enrich-catalog`. Configure it in Project Settings → Environment Variables, not in the Cron Jobs screen. |
 | `V0_REFERRAL_URL` | Server only, optional | Creator Perks destination. |
 | `APPLE_MUSIC_DEVELOPER_TOKEN` | Server only, optional | Maintainer-only Apple Music import. |
 | `SENTRY_AUTH_TOKEN` | Build only, optional | Source-map upload during deployment. |
+| `AI_GATEWAY_API_KEY` | Server only, optional | Studio source-context generation outside Vercel OIDC. |
+| `VERCEL_OIDC_TOKEN` | Server only, temporary | Local Gateway authentication from the Vercel CLI; it expires and must not be committed. |
+| `STUDIO_PROPOSALS_ENABLED` | Server only, optional | `0` disables new Gateway generation while retaining history. |
+| `STUDIO_PROPOSAL_MODEL` | Server only, optional | Gateway model override; default and budget contract live in [catalog research](../knowledge-layer.md#optional-gateway-context). |
 | `KOCTEAU_PERF_*` | Server only, optional | Sampled performance diagnostics. |
+
+Use `apps/web/.env.example` as the configuration template. Preserve existing local
+files when synchronizing devices. Next.js development overrides such as
+`.env.development.local` can supersede `.env.local`; build and development may
+therefore target different environments. Do not copy a cloud secret into a local
+example or pull environment files over existing overrides without preserving them.
 
 MusicBrainz does not require an API key. Kocteau identifies itself with a stable
 `User-Agent`, stores matches in Supabase, and performs enrichment only through
@@ -73,6 +87,11 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<local anon key>
 ```
 
 Optional analytics and referral variables should be blank unless a maintainer intentionally configures them.
+
+Privileged local Studio/worker checks additionally need the local server-only key
+from Supabase status and an intentionally configured curator role. Normal public
+web work does not need Gateway, SMTP, or production credentials. Having a variable
+configured does not prove its credential is current or a flow has been verified.
 
 ## Supabase Safety Checklist
 

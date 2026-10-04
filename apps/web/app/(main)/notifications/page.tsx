@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import NotificationsInbox from "@/components/notifications-inbox";
+import NotificationsInbox from "@/components/notifications/notifications-inbox";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import {

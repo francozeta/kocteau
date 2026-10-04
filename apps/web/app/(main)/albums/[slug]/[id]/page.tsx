@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import CatalogEntityPage from "@/components/catalog-entity-page";
+import CatalogEntityPage from "@/components/music/catalog-entity-page";
 import { getAlbumPageData } from "@/lib/catalog/page-data";
 import { createPageMetadata } from "@/lib/metadata";
 import { getEntityPageByRouteId } from "@/lib/queries/entities";

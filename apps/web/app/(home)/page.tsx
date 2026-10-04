@@ -1,7 +1,7 @@
 import { circular, redaction } from "@/app/landing-fonts";
-import GuestHeader from "@/components/guest-header";
-import GuestHome from "@/components/guest-home";
-import JsonLd from "@/components/json-ld";
+import GuestHeader from "@/components/landing/guest-header";
+import GuestHome from "@/components/landing/guest-home";
+import JsonLd from "@/components/shared/json-ld";
 import { createPageMetadata } from "@/lib/metadata";
 import { measureServerTask } from "@/lib/perf";
 import { getFeedPage } from "@/lib/queries/feed";

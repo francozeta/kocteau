@@ -1,4 +1,4 @@
-import { TrackPageLoadingSkeleton } from "@/components/route-loading-skeletons";
+import { TrackPageLoadingSkeleton } from "@/components/shell/route-loading-skeletons";
 
 export default function Loading() {
   return <TrackPageLoadingSkeleton />;

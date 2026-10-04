@@ -1,44 +1,63 @@
 # Current Project State
 
-Last verified: 2026-09-29
+Last verified: 2026-10-04
+Integrated baseline: origin/main at 83fa943 ([PR #210](https://github.com/francozeta/kocteau/pull/210)).
 
-Stable contracts are in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
-[DESIGN.md](./DESIGN.md), and the [knowledge layer](./docs/knowledge-layer.md).
+Stable contracts live in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
+[DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
+[Issue #206](https://github.com/francozeta/kocteau/issues/206) coordinates Studio phases.
 
-## Current Phase
+## Integrated And In Review
 
-Studio automatically researches a selected track, drafts conservative signals
-from current source evidence, and keeps the curator's saved or manual choices
-authoritative. Optional Gateway context explains those source-backed proposals
-on explicit request; it cannot change a draft or publish a pick. Human decision
-history, collection destination choice, and transactional acceptance are still
-future work.
+- [PR #209](https://github.com/francozeta/kocteau/pull/209) integrated selection-driven research, conservative source-backed draft
+  signals, and optional Gateway context into main. PR #210 added context progress
+  motion. Saved/manual curator choices remain authoritative; publication uses the
+  normal save boundary.
+- [PR #211](https://github.com/francozeta/kocteau/pull/211) is open on
+  `feat/studio-source-scout`: evidence classes, direct model routing, and optional
+  source scouting remain review work. They are not part of main.
+- [Release PR #202](https://github.com/francozeta/kocteau/pull/202) for v0.3.16 is open;
+  the current released version remains v0.3.15.
+- Device-readiness documentation (5c5e6fc) and follow-up maintenance remain local
+  on `refactor/component-maintenance`, pending publication. Components now live
+  in owning flow directories, with short READMEs for entry points and checks.
+  `/docs` builds public guides from canonical Markdown; navigation, source links,
+  text indexes, sitemap entries, and crawler access share one catalog.
 
-## Verification And Deployment
+## Verification And Caveats
 
-- The linked Supabase migration history shows both
-  `20260929024624_studio_editorial_proposals.sql` and
-  `20260929152706_studio_proposal_three_sources.sql` applied. The pinned CLI
-  dry run now reports the remote database up to date. A linked read-only query
-  confirmed the three-source RPC body, RLS on both private tables, denied
-  client reads/reservations, and service-role reservation access.
-- The proposal and three-source SQL checks pass in isolated PostgreSQL.
-  The Studio integration passes 110 web unit tests, 15 proposal route scenarios,
-  TypeScript, lint, and production build. Linked types were regenerated after
-  applying the migration; its RPC signature is unchanged.
-- A refreshed local Vercel OIDC token passed Gateway model and credit checks.
-  A direct eight-token smoke request to the configured model succeeded; the
-  integrated Studio generation route has not been exercised with a curator
-  against the linked environment. Earlier two-source experiments do not verify
-  the current version-2 evidence flow.
-- A local Studio context-motion refinement on `feat/studio-context-motion`
-  passes web lint and build. The signed-out browser route loads, but Studio
-  redirects to login; the authenticated context transition remains unverified.
-  This branch has not been published.
+- Frozen-lockfile installation, 110 web unit tests, workspace lint, production
+  build with TypeScript, documentation links, and diff checks pass. Node matches
+  the version shared with CI. The updated workflow has not run remotely.
+- Public documentation was checked signed out on desktop and at 390/320px:
+  search/results, code copying, keyboard/skip navigation, mobile menu, headings,
+  and table overflow. Automated accessibility checks found no violations on the
+  inspected Studio and Components guides; a screen-reader session was not run.
+  Production HTTP checks pass for all 33 guides and Markdown sources, canonical
+  URLs, the documentation sitemap, text indexes, and unknown-route 404s.
+  Unknown static documentation paths return 404 but log `NoFallbackError`, matching
+  [Next.js #90537](https://github.com/vercel/next.js/issues/90537).
+  The portal has not been deployed or verified in a search engine index.
+- The local production server returns 200 for landing/login/Search, redirects
+  signed-out feed/Studio access to login, and denies research/context APIs with 401.
+- Read-only linked history confirms all 33 migrations present on main are applied.
+  Cloud also contains `20260930225425_studio_research_failure_recovery`, absent
+  from every fetched branch. The maintainer confirmed its SQL is pending
+  publication from another device. Do not repair history or regenerate baseline
+  types against that newer schema until the source is reconciled.
+- Local Supabase reset, SQL/RLS checks, and local OTP were not rerun because Docker
+  is unavailable. Earlier Studio SQL/route verification is recorded in PR #209;
+  it does not verify an authenticated curator session on the current deployment.
+- Real curator research/context, cron recovery, manual selection preservation,
+  and desktop/mobile authenticated behavior remain unverified.
 
 ## Next Priority
 
-Exercise the authenticated curator flow on the deployed web build, including
-sparse evidence, manual edits, and non-curator denial. Audit real evidence
-coverage for mood, scene, and style signals before adding providers or durable
-decisions; see [KOC-52](https://linear.app/kocteau/issue/KOC-52/audit-real-evidence-for-studio-mood-scene-and-style-signals).
+Publish the local maintenance branch through review, reconciling Studio file moves
+with PR #211 before integration. Then verify `/docs` on the deployed site.
+
+Publish and reconcile the existing failure-recovery migration from its source
+device, then verify the authenticated curator and cron flow against the matching
+web/schema baseline. Review PR #211 and evaluate real source support before
+scouting rollout. Durable human decisions, collection destinations, and atomic
+acceptance remain later phases in issue #206.

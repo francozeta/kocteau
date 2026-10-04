@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import BrandLogo from "@/components/brand-logo";
+import BrandLogo from "@/components/brand/brand-logo";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

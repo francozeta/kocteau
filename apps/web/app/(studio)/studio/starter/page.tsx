@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import StarterStudioClient from "@/components/starter-studio-client";
+import StarterStudioClient from "@/components/studio/starter-studio-client";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getStarterCuratorAccess } from "@/lib/queries/curation";

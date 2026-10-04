@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import JsonLd from "@/components/json-ld";
-import ProfilePageHeader from "@/components/profile-page-header";
-import ProfileRecentReviewsSection from "@/components/profile-recent-reviews-section";
-import type { ReviewCardAuthor } from "@/components/review-card";
+import JsonLd from "@/components/shared/json-ld";
+import ProfilePageHeader from "@/components/profile/profile-page-header";
+import ProfileRecentReviewsSection from "@/components/profile/profile-recent-reviews-section";
+import type { ReviewCardAuthor } from "@/components/reviews/review-card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { ProfileReviewCard } from "@/components/review-route-cards-server";
+import { ProfileReviewCard } from "@/components/reviews/review-route-cards-server";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { getV0ReferralUrl } from "@/lib/creator-perks";
 import { createPageMetadata, createProfileDescription } from "@/lib/metadata";

@@ -1,29 +1,51 @@
 # Kocteau Documentation
 
-Start with the [repository README](../README.md), [product](../PRODUCT.md),
-[design](../DESIGN.md), and [current state](../CURRENT.md). These are the main
-contracts; the guides below cover specific contributor and maintainer needs.
+Read [AGENTS.md](../AGENTS.md) and [CURRENT.md](../CURRENT.md) before working.
+Then open the guide for the area you are changing.
 
-## Product And Implementation
+The same sources build the public `/docs` route. Run `pnpm dev` to preview it.
+Use [documentation maintenance](./documentation.md) for publishing and indexing.
 
-- [Core architecture](./core-architecture.md): product boundaries and reduction rules.
-- [Catalog research and curation](./knowledge-layer.md): music identity, source evidence, editorial decisions, and Studio integration.
-- [Discovery and curation](./discovery-curation.md): recommendation surfaces and the analytics signal contract.
-- [Contribution backlog](./backlog.md): focused contribution areas and sensitive-system boundaries. Use GitHub issues to coordinate individual tasks.
+## Contracts
 
-## Setup And Operations
+| Document | Owns |
+| --- | --- |
+| [Working rules](../AGENTS.md) | Ownership, branches, changes, and verification |
+| [Product](../PRODUCT.md) | Review/discovery loop, scope, and deferred work |
+| [Design](../DESIGN.md) | Visual, interaction, and motion decisions |
+| [Current state](../CURRENT.md) | Integrated work, review status, caveats, and next priority |
+| [Contributing](../CONTRIBUTING.md) | Contribution and pull request workflow |
 
-- [Local development](./setup/local-development.md): local-first Supabase setup.
-- [Environment and secrets](./security/environment.md): local, staging, and production configuration.
-- [Operations](./operations.md): rollouts, smoke checks, catalog research, and recommendation health.
-- [Load readiness](./load-readiness.md): k6 profiles, latency thresholds, and rollback criteria.
+## Development And Implementation
 
-## Maintainer Workflows
+| Guide | Owns |
+| --- | --- |
+| [Local development](./setup/local-development.md) | Fresh setup, returning devices, runtime, and checks |
+| [Architecture](./core-architecture.md) | Code map, request/data boundaries, and reduction rules |
+| [Components](./components.md) | Product directories and flow entry points |
+| [Working context](./working-context.md) | Durable decisions and contributor/device handoffs |
+| [Environment](./security/environment.md) | Variables, credentials, and environment separation |
+| [Catalog research](./knowledge-layer.md) | Music identity, source evidence, and Studio proposals |
+| [Discovery and curation](./discovery-curation.md) | Recommendation surfaces and analytics signals |
+| [Contribution backlog](./backlog.md) | Contribution areas; individual tasks stay in issues |
 
-- [Supabase](./maintainers/supabase-workflow.md): versioned cloud migrations and contributor boundaries.
-- [Release automation](./maintainers/release.md): release flow and smoke checks.
-- [GitHub rules](./maintainers/github-rules.md): protections, labels, and Actions permissions.
-- [Apple Music imports](./maintainers/apple-music-import.md): editorial source imports and rotation.
+## Operations
 
-Device-local phases and plans belong in the ignored root `.plan/` directory.
-They are not required reading for contributors; published status stays in CURRENT.md.
+| Guide | Owns |
+| --- | --- |
+| [Operations](./operations.md) | External configuration, rollout, and smoke checks |
+| [Supabase](./maintainers/supabase-workflow.md) | Versioned cloud migrations and authorization |
+| [Releases](./maintainers/release.md) | Versions, changelog, and release review |
+| [GitHub](./maintainers/github-rules.md) | Repository settings and protections |
+| [Load readiness](./load-readiness.md) | k6 profiles, thresholds, and rollback criteria |
+| [Apple Music imports](./maintainers/apple-music-import.md) | Maintainer source imports and rotation |
+| [Email templates](../apps/web/emails/README.md) | OTP email source and preview |
+| [Documentation](./documentation.md) | Source catalog, preview, link checks, and public indexing |
+
+[Project skills](../.agents/README.md) travel with the clone.
+[Shared plans](../.plan/README.md) hold useful handoffs until their outcomes enter
+the contracts. Private scratch stays in ignored `.plan/local/` or `.codex-private/`.
+
+Each fact has one owning document. Update it when behavior changes and link to it
+elsewhere. Keep delivery status in CURRENT.md and issue/PR evidence; do not create
+a second roadmap or copy setup instructions into several guides.
