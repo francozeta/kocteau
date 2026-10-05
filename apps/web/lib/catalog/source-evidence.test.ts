@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { collectCatalogSource, type CatalogSourceObservation } from "./source-evidence";
+import { catalogFieldEvidenceClass, collectCatalogSource, type CatalogSourceObservation } from "./source-evidence";
 import {
   normalizeDeezerTrack,
   normalizeMusicBrainzArtist,
@@ -117,4 +117,16 @@ test("normalization keeps provider fields separate and does not infer absent sig
     id: match.id, score: 90, type: "Group", countryCode: "GB",
     disambiguation: null, lifeSpanBegin: null, lifeSpanEnd: null, genres: [],
   }).facts, { artist_type: "Group", country_code: "GB" });
+});
+
+test("field classes derive only from known current source provenance", () => {
+  const base = { source: "musicbrainz", source_entity_type: "recording", status: "resolved",
+    lookup: { researchVersion: 2 } };
+  assert.equal(catalogFieldEvidenceClass(base, "prominent_tags"), "community");
+  assert.equal(catalogFieldEvidenceClass(base, "first_release_date"), "fact");
+  assert.equal(catalogFieldEvidenceClass(base, "disambiguation"), null);
+  assert.equal(catalogFieldEvidenceClass({ ...base, lookup: {} }, "prominent_tags"), null);
+  assert.equal(catalogFieldEvidenceClass({ ...base, status: "failed" }, "first_release_date"), null);
+  assert.equal(catalogFieldEvidenceClass({ ...base, source: "unknown" }, "prominent_tags"), null);
+  assert.equal(catalogFieldEvidenceClass({ ...base, source: "deezer", source_entity_type: "album" }, "tags"), null);
 });

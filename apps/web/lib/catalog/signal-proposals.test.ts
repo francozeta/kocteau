@@ -28,13 +28,40 @@ const album: CatalogEvidence = {
 
 test("Teardrop gets existing signal IDs with versioned, source-linked evidence", () => {
   const result = buildCatalogSignalProposal(identity, [track, recording, album], vocabulary)!;
-  assert.equal(result.schemaVersion, 1);
-  assert.equal(result.rulesVersion, "catalog-signals-v1");
+  assert.equal(result.schemaVersion, 2);
+  assert.equal(result.rulesVersion, "catalog-signals-v2");
   assert.deepEqual(result.signals.map((signal) => signal.tagId), ["electronic", "trip", "90s", "album"]);
   assert.ok(result.signals.every((signal) => signal.status === "suggested" && signal.evidence.length > 0));
   assert.equal(result.signals.find((signal) => signal.tagId === "trip")?.origin, "external");
   assert.equal(result.signals.find((signal) => signal.tagId === "90s")?.origin, "inferred");
   assert.equal(result.signals.find((signal) => signal.tagId === "90s")?.evidence[0].observationId, recording.id);
+  assert.deepEqual(result.signals.find((signal) => signal.tagId === "90s")?.evidence[0], {
+    observationId: recording.id, field: "first_release_date", value: "1998-04-17",
+    evidenceClass: "inferred", sourceClass: "fact",
+  });
+});
+
+test("mixed provider support retains each class without promoting it", () => {
+  const result = buildCatalogSignalProposal(identity, [track, recording, album], vocabulary)!;
+  assert.deepEqual(result.signals.find((signal) => signal.tagId === "electronic")?.evidence, [
+    { observationId: recording.id, field: "prominent_tags", value: "electronic",
+      evidenceClass: "community", sourceClass: "community" },
+    { observationId: album.id, field: "tags", value: "Electronic",
+      evidenceClass: "inferred", sourceClass: null },
+  ]);
+});
+
+test("conflicting community and album labels remain separate suggestions", () => {
+  const disputed = { ...album, facts: { ...album.facts as object, tags: ["trip-hop"] } };
+  const result = buildCatalogSignalProposal(identity, [track, {
+    ...recording, facts: { ...recording.facts as object, prominent_tags: ["electronic"] },
+  }, disputed], vocabulary)!;
+  assert.deepEqual(result.signals.filter((signal) => signal.kind === "genre").map((signal) => ({
+    tagId: signal.tagId, evidenceClass: signal.evidence[0].evidenceClass,
+  })), [
+    { tagId: "electronic", evidenceClass: "community" },
+    { tagId: "trip", evidenceClass: "inferred" },
+  ]);
 });
 test("missing categories stay empty rather than deriving moods from genres", () => {
   const result = buildCatalogSignalProposal(identity, [track, recording], vocabulary)!;

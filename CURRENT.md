@@ -1,18 +1,19 @@
 # Current Project State
 
-Last verified: 2026-09-29
+Last verified: 2026-09-30
 
 Stable contracts are in [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and the [knowledge layer](./docs/knowledge-layer.md).
 
 ## Current Phase
 
-Studio automatically researches a selected track, drafts conservative signals
-from current source evidence, and keeps the curator's saved or manual choices
-authoritative. Optional Gateway context explains those source-backed proposals
-on explicit request; it cannot change a draft or publish a pick. Human decision
-history, collection destination choice, and transactional acceptance are still
-future work.
+Research V3 is the current Studio direction under
+[KOC-52](https://linear.app/kocteau/issue/KOC-52/research-v3-build-a-multi-source-evidence-layer-for-studio).
+Studio researches a selected track and drafts conservative, source-backed
+signals; saved or manual curator choices stay authoritative. Optional model
+context explains proposals without changing or publishing them. Durable human
+decision history, destination choice, and transactional acceptance remain future
+work.
 
 ## Verification And Deployment
 
@@ -22,23 +23,35 @@ future work.
   dry run now reports the remote database up to date. A linked read-only query
   confirmed the three-source RPC body, RLS on both private tables, denied
   client reads/reservations, and service-role reservation access.
-- The proposal and three-source SQL checks pass in isolated PostgreSQL.
-  The Studio integration passes 110 web unit tests, 15 proposal route scenarios,
-  TypeScript, lint, and production build. Linked types were regenerated after
-  applying the migration; its RPC signature is unchanged.
-- A refreshed local Vercel OIDC token passed Gateway model and credit checks.
-  A direct eight-token smoke request to the configured model succeeded; the
-  integrated Studio generation route has not been exercised with a curator
-  against the linked environment. Earlier two-source experiments do not verify
-  the current version-2 evidence flow.
-- A local Studio context-motion refinement on `feat/studio-context-motion`
-  passes web lint and build. The signed-out browser route loads, but Studio
-  redirects to login; the authenticated context transition remains unverified.
-  This branch has not been published.
+- Studio context motion is on `main` through PR #210. Local
+  `feat/studio-source-scout` includes KOC-54 field classes, direct model routing,
+  and an opt-in private source lookup preview for missing moods, scenes, and
+  styles. It reuses private proposal JSONB storage without a schema migration.
+  No publication or recommendation behavior is changed.
+- A real `gpt-6-luna` SDK request passed with server-only
+  credentials. A real lookup for Underworld's `Jumbo` found editorial URLs;
+  an earlier prompt overinterpreted one mood, so the current prompt requires
+  explicit label support and the same lookup returns readings with no tags.
+  A separate community lookup found Reddit discussions and a euphoric lead;
+  that term was confirmed in the original listener's post. These single-track
+  checks do not establish general curation quality or community consensus.
+  Research candidates remain unverified until the curator inspects the source.
+  Production lookup remains off pending source rights and KOC-59 evaluation.
+- Verification passes 121 web unit tests, 15 context and 19 source lookup route
+  scenarios, TypeScript, lint, and production build. Linked read-only checks
+  confirmed context/scout query filters. Anonymous lookup GET/POST return 401.
+  An isolated real-component fixture passed explicit confirmation, selection
+  preservation across empty results, and 360px mobile overflow checks.
+  Authenticated linked reservation/generation and curator acceptance remain
+  unverified; the browser session has no curator login.
+- Last.fm remains an evaluation candidate, not a runtime source. Its published
+  API terms require a commercial-use agreement before such use; KOC-55 rights
+  and quality checks are open. KOC-59 needs a curator-selected track set.
 
 ## Next Priority
 
-Exercise the authenticated curator flow on the deployed web build, including
-sparse evidence, manual edits, and non-curator denial. Audit real evidence
-coverage for mood, scene, and style signals before adding providers or durable
-decisions; see [KOC-52](https://linear.app/kocteau/issue/KOC-52/audit-real-evidence-for-studio-mood-scene-and-style-signals).
+Verify direct context and private source lookup in an authenticated curator flow,
+including empty readings, citations, manual edits, and checked signal selection.
+Select the KOC-59 evaluation set and measure false positives before production
+lookup rollout. Resolve provider usage rights before adding normalized source
+observations or comparing Last.fm with MusicBrainz.

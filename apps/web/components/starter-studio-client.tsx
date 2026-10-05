@@ -2,6 +2,7 @@
 
 import { StarterCatalogResearch } from "@/components/starter-catalog-research";
 import { StarterEditorialProposal } from "@/components/starter-editorial-proposal";
+import { StarterSourceScout } from "@/components/starter-source-scout";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -917,6 +918,9 @@ export default function StarterStudioClient() {
           >
             <StarterEditorialProposal providerId={inspectedTrack.provider_id}
               research={research.data} collecting={research.collecting} />
+            <StarterSourceScout key={inspectedTrack.provider_id} providerId={inspectedTrack.provider_id}
+              research={research.data} collecting={research.collecting} selectedIds={selectedTagIds}
+              onChoose={(id) => setSignalSelection((current) => toggleSignal(current, id, selectedTagIds))} />
           </StarterCatalogResearch>
 
           <section className="space-y-2">

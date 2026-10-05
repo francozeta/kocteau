@@ -15,7 +15,7 @@ discovery application. Delivery and deployment status belong in `CURRENT.md`.
 | --- | --- | --- |
 | Music identity | `entities`, `artists`, provider IDs, artist/album relationships; `lib/deezer.ts` and `lib/catalog/musicbrainz.ts` | Keep Kocteau IDs stable; a source search match is supporting evidence, not canonical certainty. |
 | Background research | `catalog_enrichment_jobs`, claim/prepare RPCs, `lib/catalog/enrichment.ts`, protected `/api/cron/enrich-catalog` | Shared database lease for MusicBrainz and a worker execution budget; cron resumes interrupted work. |
-| Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Curator-only inspection through `/api/starter/research`; existing projected metadata has no reconstructed provenance. |
+| Source evidence | `catalog_source_observations`, `lib/catalog/source-evidence.ts`, `source-normalization.ts` | Curator-only inspection through `/api/starter/research`; known current fields derive evidence classes without rewriting observation history. Existing projected metadata has no reconstructed provenance. |
 | Studio selection | `components/starter-studio-client.tsx`: Kocteau Search, Deezer Scout, responsive editor | Selecting a track starts research; supported signals populate a new or untagged draft without publishing it. |
 | Draft suggestions | `lib/catalog/signal-proposals.ts`, `signal-selection.ts` | Versioned, evidence-linked deterministic output; optional Gateway context is stored separately, while curator decisions are not yet durable. |
 | Editorial vocabulary | `preference_tags` with genre, mood, scene, style, era, format | Suggest existing tag IDs with evidence references; do not create a parallel taxonomy. |
@@ -58,6 +58,18 @@ references, an origin (`external`, `inferred`, or `human`), and a decision state
 (`suggested`, `accepted`, or `rejected`). Corrections retain their earlier proposal
 and the final human decision. Explicit human assertions may lack an external
 source; they must remain distinguishable from researched claims.
+
+Research V3 classifies the support at the field and proposal-reference boundary:
+`fact` is source-reported identity or release metadata, `community` is an
+attributed folksonomy tag, `editorial` is a bounded sourced editorial assertion,
+`inferred` is a rule-derived interpretation, and `human` is a curator assertion.
+These are provenance types, not confidence levels. One observation can contain
+multiple classes: MusicBrainz recording dates are factual metadata while its
+tags are community evidence. Current Deezer album genre labels do not have a
+verified source class; using one as a track genre is explicitly `inferred`.
+Unknown fields and observations predating the current research contract remain
+unclassified. A source's match score is
+only for identity resolution. No class overrides a saved curator choice.
 
 Use strict structured output, validate referenced tags and evidence on the server,
 and allow uncertainty or an empty proposal. Missing context is preferable to an
@@ -150,7 +162,7 @@ transaction, reject obsolete proposals after identity changes, and make repeated
 acceptance idempotent. Current `upsert_starter_track` also publishes its collection;
 review that behavior before supporting destinations beyond `starter-picks`.
 
-## Optional Gateway Context
+## Optional Source Context
 
 `Prepare context` is an explicit curator action after source research completes.
 The server reloads the selected Deezer identity, version-2 observations, and the
@@ -162,9 +174,12 @@ deterministic research found no supported signal. Empty insights and uncertainty
 are valid for other drafts. Earlier results based on older research versions are
 stale and are not shown as current context.
 
-AI SDK structured output uses Vercel AI Gateway. The default model is
-`google/gemini-2.5-flash-lite`; `STUDIO_PROPOSAL_MODEL` can name another compatible
-low-cost model. The database reserves an ID before inference and stores the input
+AI SDK structured output can use a direct server-only `OPENAI_API_KEY`
+(`OPENAI_KEY` is also accepted) with `gpt-6-luna`, or Vercel AI Gateway.
+`STUDIO_AI_PROVIDER=openai|gateway` selects an explicit route; without it, a direct
+key takes priority. `STUDIO_OPENAI_MODEL` configures the direct model and
+`STUDIO_PROPOSAL_MODEL` the Gateway model, whose default is `openai/gpt-6-luna`.
+There is no automatic provider or model fallback. The database reserves an ID before inference and stores the input
 snapshot, prompt version, model, result or failure, token usage, reported cost,
 and up to three referenced observations. Identical current inputs reuse a
 pending or completed result. Input, deterministic rules, model, or prompt changes
@@ -172,10 +187,13 @@ create a new version. A failed attempt requires an explicit retry.
 
 The shared database allowance is 50 attempts per UTC month, including failures.
 Each call must pass an estimate below $0.02, model price ceilings, a 32 KB input
-limit, and a current-credit check. Generation is limited to 2,048 output tokens
+limit, and a current-credit check for Gateway routing. Direct routing checks
+model access and the public model price catalog; it cannot check account balance.
+Generation is limited to 2,048 output tokens
 and 35 seconds with no SDK retry, tools, web search, or fallback model. This is
-an application allowance, not a team billing guarantee; configure a Gateway
-budget for an account spend limit. The application never buys or tops up credit.
+an application allowance, not an account billing guarantee; configure provider
+spending controls separately. Direct token costs stored in `cost_usd` are estimates
+using catalog prices, while Gateway can report its cost. The application never buys or tops up credit.
 See [Gateway pricing](https://vercel.com/docs/ai-gateway/pricing) for current
 credit eligibility.
 
@@ -183,6 +201,55 @@ credit eligibility.
 authenticate with OIDC; other environments use a server-only
 `AI_GATEWAY_API_KEY`. Missing access, exhausted credit, quota limits, invalid
 output, and provider failures leave manual curation available.
+
+### Private source lookup preview
+
+`STUDIO_SOURCE_SCOUT_ENABLED=1` exposes an explicit `Find source links` action
+after catalog research, including when no deterministic signals were found.
+The default is off. This preview requires direct `gpt-6-luna` access and targets
+missing mood, scene, and style kinds. The curator chooses editorial sources
+(Bandcamp Daily and Pitchfork) or community discussions (Reddit), each with a
+separate stored result and domain restriction. It does not scrape pages or call Reddit's
+Data API. Review publisher access, commercial usage, and retention rights before
+production persistence; search access does not grant unrestricted reuse.
+
+The server reloads identity and the existing vocabulary. It accepts only HTTPS
+source links present in the search tool's consulted URL list, a matching track or
+explicitly related release identity, and existing tag IDs from uncovered kinds.
+The extraction prompt requires explicit label support and rejects figurative
+mood mapping. Search links and identity checks do not verify semantic entailment:
+every candidate remains an **inferred, unverified research lead**. Editorial links
+and community discussions stay distinct; release context is never silently
+converted into track evidence. Useful source readings can return with no tags.
+
+The curator opens the original and explicitly confirms that the signal fits the
+track before adding it to the current draft. Saved tags and manual edits remain
+authoritative. Research does not write source observations, select tags, or
+publish a pick. The current Save action still publishes the curator's choices;
+durable acceptance/correction history remains future work.
+
+Private lookup snapshots and results reuse `editorial_proposals` with
+`purpose=source_scout`; context readers exclude those rows. Retained research data
+is limited to URLs, scoped identity, bounded generated explanations, uncertainty,
+and existing catalog references. No article bodies, original excerpts, Reddit
+comments, usernames, or votes are retained. A current result is reused for the
+same inputs and UTC day. Input/prompt/model changes create another revision.
+
+Lookup and context share the existing 50-attempt monthly reservation. Lookup
+allows one native search call, 2,048 output tokens, 45 seconds, and no SDK retry.
+Its below-$0.02 estimate includes the search fee and an allowance for search
+context; this is an estimate, not a hard provider billing cap. Invalid output or
+interruption preserves manual curation. Production rollout still requires source
+rights review and KOC-59 quality evaluation, including false positives and empty
+categories. More source URLs alone do not establish useful evidence coverage.
+
+Maintainers can check the configured model with `pnpm --filter web studio:check-ai`.
+Adding a researched Deezer track ID runs a bounded source lookup against the real
+vocabulary, for example `pnpm --filter web studio:check-ai 82265252`. This diagnostic
+makes an editorial lookup; append `community` to look up Reddit discussions. It
+makes a paid model request, prints no credentials, and writes no proposals,
+source observations, or publication data. Diagnostics are outside the database
+reservation allowance; avoid unattended repeated runs.
 
 ## Research Runtime
 
@@ -217,7 +284,7 @@ polling is bounded to 90 seconds; Check again resumes inspection when needed.
 The six-kind coverage filter remains separate from source research status.
 
 Draft proposals include schema/rules versions, the selected identity, existing
-tag IDs, external/inferred origins, and observation/field/value references. They
+tag IDs, external/inferred origins, and observation/field/value/class references. They
 normalize attributed tags, derive era from the original recording date when
 available, and use the explicitly related album for release format. Prominent
 MusicBrainz tags require positive votes and at least a quarter of the highest tag
@@ -229,6 +296,16 @@ Previously saved nonempty tags stay authoritative. New and untagged picks receiv
 suggestions; manual additions, removals, and Clear survive late results and retries
 within the draft. Saving still uses the existing starter RPC. Draft output is
 derived from stored evidence, not a persisted acceptance/rejection audit.
+
+For Research V3 comparisons, keep a curator-selected set of roughly 20 tracks
+covering familiar and unfamiliar scenes, eras, mainstream/niche releases,
+ambiguous tags, and sparse evidence. For each track, record the exact identity,
+source observations, proposed signals with support classes, accepted/rejected
+signals, curator corrections, disagreements, and deliberately empty categories.
+Compare the same set before and after a source or normalization change; report
+useful coverage and false positives separately. Evaluation notes are not
+publication state or a second decision store. The curator chooses the set and
+judges the outcomes; see [KOC-59](https://linear.app/kocteau/issue/KOC-59/create-a-curator-owned-evaluation-set-for-research-v3).
 
 Gateway context is persisted, but cross-session correction history, destination selection,
 and atomic proposal acceptance remain separate work. Their contracts are above; current delivery

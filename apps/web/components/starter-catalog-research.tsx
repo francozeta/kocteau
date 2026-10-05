@@ -3,12 +3,18 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { canRunCatalogResearch, catalogSourceUrl, type CatalogResearch } from "@/lib/catalog/research-state";
+import { catalogFieldEvidenceClass } from "@/lib/catalog/source-evidence";
+
+const evidenceLabels = {
+  fact: "Fact", community: "Community-sourced", editorial: "Editorial", inferred: "Inferred", human: "Curator",
+} satisfies Record<NonNullable<ReturnType<typeof catalogFieldEvidenceClass>>, string>;
 
 const factLabels: Record<string, string> = {
   title: "Title", artist_name: "Artist", album_title: "Album",
   release_date: "Release", first_release_date: "First release",
   album_record_type: "Album type", record_type: "Type",
-  disambiguation: "Context", tags: "Source tags · unreviewed", isrc: "Recording ID",
+  disambiguation: "Context", tags: "Source tags · unreviewed",
+  prominent_tags: "Proposal tags · unreviewed", isrc: "Recording ID",
   match_method: "Matched by",
 };
 
@@ -68,9 +74,14 @@ export function StarterCatalogResearch({ data, error, collecting, onRetry, prese
               <p>Checked <time dateTime={source.retrieved_at}>{new Date(source.retrieved_at).toLocaleString()}</time></p>
               {source.match_score !== null ? <p>Search match: {source.match_score}/100 · not editorial confidence</p> : null}
               {facts.length ? <dl className="space-y-2">
-                {facts.map(([key, value]) => <div key={key} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3">
-                  <dt>{factLabels[key]}</dt><dd className="break-words text-foreground/80">{Array.isArray(value) ? value.join(", ") : String(value)}</dd>
-                </div>)}
+                {facts.map(([key, value]) => {
+                  const evidenceClass = catalogFieldEvidenceClass(source, key);
+                  return <div key={key} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3">
+                    <dt>{factLabels[key]}{evidenceClass ?
+                      <span className="block text-[0.65rem]">{evidenceLabels[evidenceClass]}</span> : null}</dt>
+                    <dd className="break-words text-foreground/80">{Array.isArray(value) ? value.join(", ") : String(value)}</dd>
+                  </div>;
+                })}
               </dl> : null}
               {url ? <a href={url} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center underline underline-offset-4 focus-visible:outline-2">Open source ↗</a> : null}
             </div>

@@ -1,5 +1,6 @@
 export type CatalogSource = "deezer" | "musicbrainz";
 export const catalogResearchVersion = 2;
+export type EvidenceClass = "fact" | "community" | "editorial" | "inferred" | "human";
 export type CatalogSourceEntityType =
   | "track"
   | "album"
@@ -47,6 +48,29 @@ export type CatalogSourceObservation = {
       errorCode: "request_failed";
     }
 );
+
+export function catalogFieldEvidenceClass(source: {
+  source: string;
+  source_entity_type: string;
+  status: string;
+  lookup: unknown;
+}, field: string): EvidenceClass | null {
+  if (source.status !== "resolved" || !source.lookup || typeof source.lookup !== "object" ||
+    Array.isArray(source.lookup) ||
+    (source.lookup as { researchVersion?: unknown }).researchVersion !== catalogResearchVersion) return null;
+
+  if (source.source === "musicbrainz" &&
+    ["artist", "recording", "release-group"].includes(source.source_entity_type)) {
+    if (["tags", "prominent_tags"].includes(field)) return "community";
+    if (["first_release_date", "record_type", "artist_type", "country_code",
+      "life_span_begin", "life_span_end"].includes(field)) return "fact";
+  }
+  if (source.source === "deezer" && ["track", "album"].includes(source.source_entity_type) &&
+    ["title", "artist_name", "artist_id", "album_id", "album_title", "release_date",
+      "record_type", "album_record_type", "isrc", "duration_seconds"].includes(field)) return "fact";
+
+  return null;
+}
 
 export async function collectCatalogSource<T>({
   source,
