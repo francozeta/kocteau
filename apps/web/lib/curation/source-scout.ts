@@ -97,6 +97,7 @@ async function generateScout(id: string, input: ProposalInput, runtime: StudioRu
     const invalid = NoObjectGeneratedError.isInstance(error) || error instanceof SourceScoutOutputError || error instanceof z.ZodError;
     if (NoObjectGeneratedError.isInstance(error)) {
       inputTokens = error.usage?.inputTokens; outputTokens = error.usage?.outputTokens;
+      cost = proposalCost(runtime, inputTokens, outputTokens, undefined);
     }
     if (error instanceof SourceScoutOutputError) {
       inputTokens = error.usage.inputTokens; outputTokens = error.usage.outputTokens;

@@ -14,7 +14,9 @@ try {
   if (!providerId) {
     const response = await generateText({ model: runtime.model, prompt: "Reply with only OK.", maxOutputTokens: 16,
       maxRetries: 0, abortSignal: AbortSignal.timeout(15_000), providerOptions: runtime.providerOptions });
-    console.log(JSON.stringify({ model: runtime.id, ok: response.text.trim() === "OK", usage: response.usage }));
+    const ok = response.text.trim() === "OK";
+    console.log(JSON.stringify({ model: runtime.id, ok, usage: response.usage }));
+    if (!ok) process.exitCode = 1;
   } else {
     const { isDeezerProviderId } = await import("../lib/deezer.ts");
     if (!isDeezerProviderId(providerId) || !runtime.client || runtime.id !== "openai/gpt-6-luna") throw new Error("Choose a researched Deezer track and the direct research model.");
@@ -42,7 +44,7 @@ try {
     code: error && typeof error === "object" && "code" in error ? error.code : undefined,
     status: error && typeof error === "object" && "statusCode" in error ? error.statusCode : undefined,
     providerCode: providerError?.code, parameter: providerError?.param,
-    detail: providerError?.message?.replace(/sk-[\w-]+/g, "[redacted]").slice(0, 400) ||
-      (error instanceof Error && /^(Research |Choose |Finish )/.test(error.message) ? error.message : undefined) }));
+    detail: (providerError?.message || (error instanceof Error ? error.message : undefined))
+      ?.replace(/sk-[\w-]+/g, "[redacted]").slice(0, 400) }));
   process.exitCode = 1;
 }

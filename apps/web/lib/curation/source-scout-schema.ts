@@ -31,13 +31,12 @@ export function scoutVocabulary(input: ProposalInput) {
 }
 
 export function sourceScoutOutputSchema(input: ProposalInput) {
-  const ids = scoutVocabulary(input).map((tag) => tag.id);
+  const hasVocabulary = scoutVocabulary(input).length > 0;
   const candidate = sourceScoutSchema.shape.candidates.element.extend({ source_url: z.string().min(1).max(1_800) });
   return sourceScoutSchema.extend({
     readings: z.array(sourceScoutSchema.shape.readings.element.extend({ source_url: z.string().min(1).max(1_800) })).max(3),
-    candidates: ids.length
-    ? z.array(candidate.extend({ tag_id: z.enum(ids) })).max(3)
-    : z.array(candidate).max(0) });
+    candidates: hasVocabulary ? z.array(candidate).max(3) : z.array(candidate).max(0),
+  });
 }
 
 const identityKey = (value: string) => value.normalize("NFKC").trim().toLocaleLowerCase("en");

@@ -3,6 +3,7 @@ import test from "node:test";
 import { z } from "zod";
 import type { ProposalInput } from "./proposal-schema";
 import { estimateScoutCeiling, sourceScoutOutputSchema, validateSourceScout } from "./source-scout-schema";
+import { scoutPrompt, scoutSystem } from "./source-scout-runner";
 import { scoutSource } from "./source-scout-sources";
 
 const tag = "10000000-0000-4000-8000-000000000001";
@@ -40,7 +41,9 @@ test("unsafe URLs, unrelated hosts and search pages cannot become source links",
     "https://someone@pitchfork.com/reviews/albums/example/", "https://pitchfork.com:444/reviews/albums/example/",
     "https://reddit.com/search?q=track", "https://daily.bandcamp.com/", "javascript:alert(1)"]) assert.equal(scoutSource(unsafe), null);
   assert.equal(scoutSource("https://www.reddit.com/r/music/comments/abc123/discussion/")?.evidenceClass, "community");
+  assert.equal(scoutSource("https://old.reddit.com/r/music/comments/abc123/discussion/")?.evidenceClass, "community");
   assert.equal(scoutSource("https://daily.bandcamp.com/features/example")?.evidenceClass, "editorial");
+  assert.equal(scoutSource("https://daily.bandcamp.com/about/contact"), null);
 });
 
 test("community and editorial lookup cannot silently borrow each other's citations", () => {
@@ -67,7 +70,17 @@ test("research allowance includes one paid search and rejects expensive or overs
     [1, -1, 0], [1, 0.00001, 0], [32_000, 0.0000003, 0.000002]]) assert.throws(() => estimateScoutCeiling(bytes, inputPrice, outputPrice));
 });
 
-test("the provider schema avoids unsupported URI formats while server URL validation stays strict", () => {
-  assert.ok(!JSON.stringify(z.toJSONSchema(sourceScoutOutputSchema(input))).includes('"format":"uri"'));
+test("the provider schema stays compact while server validation enforces vocabulary and URLs", () => {
+  const schema = JSON.stringify(z.toJSONSchema(sourceScoutOutputSchema(input)));
+  assert.ok(!schema.includes('"format":"uri"'));
+  assert.ok(!schema.includes(tag));
   assert.throws(() => validateSourceScout({ ...output, candidates: [{ ...candidate, source_url: "not a URL" }] }, input, ["not a URL"]));
+
+  const manyTags: ProposalInput = { ...input, vocabulary: Array.from({ length: 300 }, (_, index) => ({
+    id: `10000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+    label: `Mood ${index + 1}`, slug: `mood-${index + 1}`, kind: "mood",
+  })) };
+  const bytes = Buffer.byteLength(scoutSystem + scoutPrompt(manyTags) + JSON.stringify(z.toJSONSchema(sourceScoutOutputSchema(manyTags))));
+  assert.ok(bytes <= 32_000, `expected compact scout input, received ${bytes} bytes`);
+  assert.doesNotThrow(() => estimateScoutCeiling(bytes, 0.0000001, 0.0000005));
 });

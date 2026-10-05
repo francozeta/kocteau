@@ -27,7 +27,8 @@ export class SourceScoutOutputError extends Error {
 export function scoutPrompt(input: ProposalInput) {
   const album = input.evidence.find((source) => source.source === "deezer" && source.source_entity_type === "track")?.facts.album_title;
   return JSON.stringify({ identity: input.identity, release_title: typeof album === "string" ? album : null,
-    missing_vocabulary: scoutVocabulary(input), source_class: input.source_class || "editorial", domains: scoutDomains(input.source_class || "editorial") });
+    missing_vocabulary: scoutVocabulary(input).map(({ id, label, kind }) => ({ id, label, kind })),
+    source_class: input.source_class || "editorial", domains: scoutDomains(input.source_class || "editorial") });
 }
 
 export async function runSourceScout(client: ReturnType<typeof createOpenAI>, model: string, input: ProposalInput) {

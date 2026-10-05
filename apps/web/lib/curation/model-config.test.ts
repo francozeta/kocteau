@@ -8,6 +8,7 @@ test("a direct key selects the research model without depending on an expired ga
 });
 
 test("explicit routing and the kill switch do not silently fall back", () => {
+  assert.equal(studioModelConfig({ VERCEL_OIDC_TOKEN: "test-token", STUDIO_AI_PROVIDER: "gateway" })?.available, true);
   assert.equal(studioModelConfig({ OPENAI_API_KEY: "test-key", STUDIO_AI_PROVIDER: "gateway" })?.available, false);
   assert.equal(studioModelConfig({ AI_GATEWAY_API_KEY: "test-key", STUDIO_AI_PROVIDER: "openai" })?.available, false);
   assert.equal(studioModelConfig({ OPENAI_KEY: "test-key", STUDIO_PROPOSALS_ENABLED: "0" })?.available, false);
