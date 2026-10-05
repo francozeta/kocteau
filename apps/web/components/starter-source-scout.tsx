@@ -29,7 +29,7 @@ export function StarterSourceScout({ providerId, research, collecting, selectedI
     enabled: ready,
     refetchInterval: (queryState) => {
       const pendingScout = queryState.state.data?.scout;
-      return pendingScout?.status === "pending" && Date.parse(pendingScout.created_at) > Date.now() - 150_000 ? 2_000 : false;
+      return pendingScout?.status === "pending" && Date.parse(pendingScout.created_at) > queryState.state.dataUpdatedAt - 150_000 ? 2_000 : false;
     },
   });
   const generate = useMutation({
@@ -43,7 +43,7 @@ export function StarterSourceScout({ providerId, research, collecting, selectedI
   });
   const state = query.data;
   const scout = state?.scout;
-  const pending = scout?.status === "pending" && Date.parse(scout.created_at) > Date.now() - 150_000;
+  const pending = scout?.status === "pending" && Date.parse(scout.created_at) > query.dataUpdatedAt - 150_000;
   const working = ready && !query.isError && (generate.isPending || query.isPending || Boolean(pending));
   const result = ready && !query.isError && !generate.isPending && !state?.stale && scout?.status === "complete" ? scout.result : null;
   const canGenerate = ready && missing.length > 0 && state?.available && !state.needsResearch &&
