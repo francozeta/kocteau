@@ -23,6 +23,33 @@ to the next contributor:
 Edit the owning document alongside the code. Link to stable rules instead of
 copying them. Scratch output stays in ignored local directories.
 
+## Context That Survives A Handoff
+
+Keep the entry context small. Read the root contracts, then the owning flow and
+only the references required by the task. Use direct file search and existing
+commands before adding another retrieval layer. Load relevant skills through
+[the project index](../.agents/README.md), rather than every available guide.
+
+Use these fields when recording meaningful work in CURRENT.md or a shared plan:
+
+| Field | Evidence to retain |
+| --- | --- |
+| Outcome | User-visible behavior and a concrete acceptance condition |
+| Baseline | Branch, commit, and integrated versus local or in-review state |
+| Finding | Trigger, observed failure, impact, and owning file or flow |
+| Decision | Chosen approach and the constraint that made it useful |
+| Verification | Command or flow, result, date, and local versus deployed environment |
+| Limits | Unexercised auth/role/data states and unresolved deployment or schema differences |
+| Next action | Smallest remaining step and any required input or authorization |
+
+Retain reproduced defects separately from hypotheses. A command without its
+result is not evidence; a remembered deployment state needs rechecking. Avoid
+copying logs, private values, and unchanged history into the handoff.
+
+Validate workflow changes on representative work: finding a flow, reproducing a
+defect, and handing the result to a fresh checkout. Compare correctness, missing
+context, repeated reads, and time spent before claiming an efficiency gain.
+
 ## Verify
 
 Use [contribution checks](../CONTRIBUTING.md#verification). State what passed and

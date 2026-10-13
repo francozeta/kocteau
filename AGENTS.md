@@ -20,6 +20,12 @@ Use this order when gathering context:
 
 Before repository work, read `AGENTS.md` and `CURRENT.md` completely. Read `PRODUCT.md`, `DESIGN.md`, and specialized documents when the task touches their domain. Inspect the current branch, worktree status, and recent commits before changing files. Reconcile written status with repository evidence rather than trusting stale prose blindly.
 
+Read context progressively: root contracts first, then the owning flow and the
+files needed for the task. Use `.agents/README.md` to choose relevant skills;
+do not preload every skill, historical plan, or specialized guide. Prefer direct
+file searches and existing commands over new retrieval wrappers. Persistent
+context links to canonical facts; verification records its baseline and limits.
+
 ### Ownership And Authorship
 
 - Franco Zeta is the repository owner, product author, and public author of Kocteau.
