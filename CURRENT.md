@@ -29,13 +29,15 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 ## Verification And Limits
 
 - 115 web unit tests, web lint, production build with TypeScript, documentation
-  checks (33 guides, 149 repository links), and diff checks pass. Node and pnpm
+  checks (33 guides, 150 repository links), and diff checks pass. Node and pnpm
   match the pinned versions. Remote CI is running on the published PR.
 - The first published preview failed because deployment packaging excluded
   documentation link targets. The follow-up retains those targets and tracks
   them in build-cache inputs; analyzer generation, development shutdown, heading
   IDs, image URLs, and documentation navigation were also corrected. The revised
-  preview still needs verification.
+  preview passed at bf3ae1b. A final follow-up restores focus when returning to
+  composer search and reads a guest draft before opening its session; that head
+  still needs remote verification.
 - Local production HTTP checks covered public pages, signed-out feed/Studio,
   private API denial, callback sanitization, and preservation of the draft return
   path. Browser checks at 1280px/390px covered composer state across breakpoints,

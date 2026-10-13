@@ -25,10 +25,8 @@ copying them. Scratch output stays in ignored local directories.
 
 ## Context That Survives A Handoff
 
-Keep the entry context small. Read the root contracts, then the owning flow and
-only the references required by the task. Use direct file search and existing
-commands before adding another retrieval layer. Load relevant skills through
-[the project index](../.agents/README.md), rather than every available guide.
+The [repository contract](../AGENTS.md#source-of-truth) owns context-gathering rules;
+[the project index](../.agents/README.md) routes relevant skills.
 
 Use these fields when recording meaningful work in CURRENT.md or a shared plan:
 

@@ -14,6 +14,8 @@ Track identity, reviewer, rating, and take come before engagement. Rating-only
 reviews remain valid. Writes authorize in the route/RPC and retain RLS. Preserve
 draft recovery and optimistic rollback. See [the product loop](../../../../PRODUCT.md).
 Guest drafts return to `/feed?compose=1&draft=review` after login/onboarding.
+Read the saved draft before opening its session; returning to search restores
+focus to the search input.
 Storage denial or quota failure must retain the form and show its existing save
 error; draft cleanup must not report a successful publication as failed.
 Composer state lives above its responsive container. Resizing must retain the

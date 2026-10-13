@@ -47,7 +47,7 @@ Route helpers in `apps/web/lib/seo-routes.ts` own canonical path construction.
 taste loop. `/studio/starter`, `/studio/health`, and `/studio/curators` are private
 role-gated tools; an official badge is not permission to use them.
 
-Post-auth `next` paths are checked by `lib/internal-path.ts` against browser URL
+Post-auth `next` paths are checked by `apps/web/lib/internal-path.ts` against browser URL
 normalization. Guest review recovery targets `/feed?compose=1&draft=review`
 directly so the landing redirect cannot discard the composer state.
 

@@ -18,6 +18,7 @@ remains in [issue #206](https://github.com/francozeta/kocteau/issues/206).
 | The composer is in its second step | The visually hidden search step remains reachable to keyboard and assistive technology | Make inactive steps inert and autofocus only active search |
 | Enter activates the fourth star | The pointer-only click calculation selects 3.5 stars | Keyboard activation selects whole stars; arrows retain half-star changes and move focus |
 | A `compose=1` return URL reaches the app shell | The deferred composer never mounts; an explicit null selection also prevents reading URL state | Mount on URL intent and allow URL/draft initialization when no event selection is present |
+| A keyboard user returns from composition to search | Removing the back button leaves focus on the dialog container | Focus the search input when its step becomes active |
 
 The targeted suite first failed five cases on the baseline and then passed all
 eight after correction. These are local regression results, not an end-to-end
@@ -28,6 +29,8 @@ and note across responsive changes. `N` opens the composer; typing it into a
 field does not restart it. A URL selection opens composition without a launcher
 event. Enter, arrows, Home/End, a single rating Tab stop, Escape, URL cleanup,
 mobile modal focus, and overflow were checked. Inspected flows log no errors.
+The guest draft is read before opening its interactive session, avoiding a blank
+session that is immediately replaced by restored state.
 
 An isolated session regression also checked retained pending state across consumer
 remounts, delivered errors/results, fresh state after reopening, rejection of

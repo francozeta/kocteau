@@ -7,6 +7,8 @@
 - Navigation: `nav-*`; loading geometry: `route-loading-skeletons.tsx`.
 - Shortcuts: `global-shortcuts.tsx`; route motion: `app-route-transition.tsx`.
 - The deferred composer mounts on the review event or `compose=1` URL state.
+- Omit `initialSelection` when no event selection exists so the dialog reads URL
+  state. Explicit `null` switches off URL initialization.
 
 ## Preserve
 

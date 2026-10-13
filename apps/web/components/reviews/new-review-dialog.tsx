@@ -117,7 +117,15 @@ export default function NewReviewDialog({
       entity_id: null,
     } satisfies InitialSelection;
   }, [searchParams]);
-  const [restoredDraft, setRestoredDraft] = useState<StoredPendingReviewDraft | null>(null);
+  const [draftRestoration, setDraftRestoration] = useState<{
+    requested: boolean;
+    ready: boolean;
+    draft: StoredPendingReviewDraft | null;
+  }>(() => ({ requested: shouldRestoreDraftFromUrl, ready: false, draft: null }));
+  if (draftRestoration.requested !== shouldRestoreDraftFromUrl) {
+    setDraftRestoration({ requested: shouldRestoreDraftFromUrl, ready: false, draft: null });
+  }
+  const restoredDraft = shouldRestoreDraftFromUrl ? draftRestoration.draft : null;
   const resolvedInitialQuery = initialQuery ?? initialQueryFromUrl;
   const resolvedInitialSelection =
     initialSelection ?? initialSelectionFromUrl ?? restoredDraft?.selection ?? null;
@@ -184,14 +192,16 @@ export default function NewReviewDialog({
   }, []);
 
   useEffect(() => {
+    if (!shouldRestoreDraftFromUrl) return;
     const timer = window.setTimeout(() => {
-      setRestoredDraft(shouldRestoreDraftFromUrl ? readPendingReviewDraft() : null);
+      setDraftRestoration({ requested: true, ready: true, draft: readPendingReviewDraft() });
     }, 0);
 
     return () => window.clearTimeout(timer);
   }, [shouldRestoreDraftFromUrl]);
 
-  const resolvedOpen = shouldOpenFromUrl || (controlledOpen ?? internalOpen);
+  const resolvedOpen = (shouldOpenFromUrl || (controlledOpen ?? internalOpen)) &&
+    (!shouldRestoreDraftFromUrl || draftRestoration.ready);
 
   function renderStepDots() {
     return (

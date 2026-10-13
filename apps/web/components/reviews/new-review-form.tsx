@@ -222,6 +222,7 @@ function NewReviewFormState({
   const router = useRouter();
   const queryClient = useQueryClient();
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const searchInputId = useId();
   const isEditMode = mode === "edit" && Boolean(reviewId);
   const isSearchIntent = intent === "search" && !isEditMode;
@@ -319,6 +320,10 @@ function NewReviewFormState({
   useEffect(() => {
     onStepChange?.(step);
   }, [onStepChange, step]);
+
+  useEffect(() => {
+    if (step === "search") searchInputRef.current?.focus();
+  }, [step]);
 
   useEffect(() => {
     onSelectionChange?.(selected);
@@ -709,6 +714,7 @@ function NewReviewFormState({
             <label className="sr-only" htmlFor={searchInputId}>Search tracks to review</label>
             <Input
               id={searchInputId}
+              ref={searchInputRef}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
@@ -717,7 +723,6 @@ function NewReviewFormState({
               onKeyDown={handleSearchKeyDown}
               placeholder="Search tracks to review…"
               disabled={saving}
-              autoFocus={step === "search"}
               className="kocteau-compose-search-field h-11 shrink-0 rounded-full pr-12 pl-11 text-[13px] shadow-none placeholder:text-muted-foreground/76 focus-visible:ring-0"
               maxLength={80}
             />
