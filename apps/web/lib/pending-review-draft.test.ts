@@ -84,9 +84,52 @@ test("pending review draft ignores malformed payloads", () => {
 });
 
 test("pending review draft routes back to the composer through login", () => {
-  assert.equal(getPendingReviewDraftReturnPath(), "/?compose=1&draft=review");
+  assert.equal(getPendingReviewDraftReturnPath(), "/feed?compose=1&draft=review");
   assert.equal(
     getPendingReviewDraftLoginPath(),
-    "/login?next=%2F%3Fcompose%3D1%26draft%3Dreview",
+    "/login?next=%2Ffeed%3Fcompose%3D1%26draft%3Dreview",
   );
+});
+
+test("unavailable draft storage reports a failed save without interrupting the form", () => {
+  const storage = new MemoryStorage();
+  storage.setItem = () => {
+    throw new DOMException("Quota exceeded", "QuotaExceededError");
+  };
+  assert.equal(savePendingReviewDraft(draft, storage), false);
+});
+
+test("blocked storage reads and cleanup do not interrupt recovery or publication", () => {
+  const storage = new MemoryStorage();
+  storage.getItem = () => {
+    throw new DOMException("Storage blocked", "SecurityError");
+  };
+  storage.removeItem = () => {
+    throw new DOMException("Storage blocked", "SecurityError");
+  };
+  assert.equal(readPendingReviewDraft(storage), null);
+  assert.doesNotThrow(() => clearPendingReviewDraft(storage));
+});
+
+test("blocked access to browser storage uses the same failure states", () => {
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", {
+    configurable: true,
+    value: {
+      get localStorage() {
+        throw new DOMException("Storage blocked", "SecurityError");
+      },
+    },
+  });
+  try {
+    assert.equal(savePendingReviewDraft(draft), false);
+    assert.equal(readPendingReviewDraft(), null);
+    assert.doesNotThrow(() => clearPendingReviewDraft());
+  } finally {
+    if (originalWindow) {
+      Object.defineProperty(globalThis, "window", originalWindow);
+    } else {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+  }
 });

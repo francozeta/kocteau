@@ -31,7 +31,7 @@ export type StoredPendingReviewDraft = PendingReviewDraft & {
 export const pendingReviewDraftStorageKey = "kocteau:pending-review-draft";
 
 export function getPendingReviewDraftReturnPath() {
-  return "/?compose=1&draft=review";
+  return "/feed?compose=1&draft=review";
 }
 
 export function getPendingReviewDraftLoginPath() {
@@ -117,36 +117,40 @@ export function savePendingReviewDraft(
   draft: PendingReviewDraft,
   storage?: Storage,
 ) {
-  const targetStorage = getBrowserStorage(storage);
+  try {
+    const targetStorage = getBrowserStorage(storage);
 
-  if (!targetStorage) {
+    if (!targetStorage) {
+      return false;
+    }
+
+    const storedDraft = {
+      ...draft,
+      version: 1,
+      createdAt: Date.now(),
+    } satisfies StoredPendingReviewDraft;
+
+    targetStorage.setItem(pendingReviewDraftStorageKey, JSON.stringify(storedDraft));
+    return true;
+  } catch {
     return false;
   }
-
-  const storedDraft = {
-    ...draft,
-    version: 1,
-    createdAt: Date.now(),
-  } satisfies StoredPendingReviewDraft;
-
-  targetStorage.setItem(pendingReviewDraftStorageKey, JSON.stringify(storedDraft));
-  return true;
 }
 
 export function readPendingReviewDraft(storage?: Storage) {
-  const targetStorage = getBrowserStorage(storage);
-
-  if (!targetStorage) {
-    return null;
-  }
-
-  const rawDraft = targetStorage.getItem(pendingReviewDraftStorageKey);
-
-  if (!rawDraft) {
-    return null;
-  }
-
   try {
+    const targetStorage = getBrowserStorage(storage);
+
+    if (!targetStorage) {
+      return null;
+    }
+
+    const rawDraft = targetStorage.getItem(pendingReviewDraftStorageKey);
+
+    if (!rawDraft) {
+      return null;
+    }
+
     return normalizeStoredDraft(JSON.parse(rawDraft));
   } catch {
     return null;
@@ -154,11 +158,9 @@ export function readPendingReviewDraft(storage?: Storage) {
 }
 
 export function clearPendingReviewDraft(storage?: Storage) {
-  const targetStorage = getBrowserStorage(storage);
-
-  if (!targetStorage) {
-    return;
+  try {
+    getBrowserStorage(storage)?.removeItem(pendingReviewDraftStorageKey);
+  } catch {
+    // Cleanup must not turn a published review into a failed submission.
   }
-
-  targetStorage.removeItem(pendingReviewDraftStorageKey);
 }
