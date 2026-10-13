@@ -4,6 +4,7 @@
 
 - Public profile composition: `profile-page-header.tsx`, `profile-recent-reviews-section.tsx`.
 - Editing: `profile-editor-form.tsx`; avatar upload/crop components stay together.
+- Curator applications: `curator-application-client.tsx`.
 - Follow action: `follow-profile-button.tsx`, `hooks/use-profile-follow.ts`.
 - Reads/writes: `lib/queries/profiles.ts`, `app/api/profile`, `app/api/profiles/[profileId]/follow`.
 
@@ -16,4 +17,5 @@ server/client boundaries follow [architecture](../../../../docs/core-architectur
 ## Check
 
 Run tests, lint, and the web build. Check owner/other-listener/signed-out states,
-nullable onboarding usernames, follow rollback, avatar crop/upload, and mobile layout.
+nullable onboarding usernames, follow rollback, avatar crop/upload, curator
+applications, and mobile layout.

@@ -54,6 +54,13 @@ including the shared replacements and documentation. It does not rewrite ranking
 
 ## Durable Context
 
+Publication verification exposed deployment packaging that removed documentation
+link targets. The follow-up preserves the small shared indexes/plan Markdown and
+includes external link targets in build-cache inputs. It also generates docs for
+analysis, prevents development watchers reopening after shutdown, gives headings
+unique IDs, retains table alignment, and serves relative images from raw asset URLs.
+The remaining flow index corrections describe current behavior rather than changing ranking.
+
 [Working context](../docs/working-context.md) now defines compact handoff fields:
 outcome, baseline, reproduced finding, decision, verification scope, limits,
 and next action. [AGENTS.md](../AGENTS.md) routes context progressively through

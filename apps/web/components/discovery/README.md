@@ -9,8 +9,8 @@
 
 ## Preserve
 
-Browsing works signed out; publishing requires auth. Keep Kocteau results first,
-provider identity stable, and URL navigation recoverable. The music catalog and
+Browsing works signed out; publishing requires auth. Keep the Kocteau ranking
+boost, provider identity stable, and URL navigation recoverable. The music catalog and
 source boundaries live in [catalog research](../../../../docs/knowledge-layer.md).
 
 ## Check

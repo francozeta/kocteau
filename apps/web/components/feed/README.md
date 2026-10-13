@@ -15,6 +15,6 @@ Starter picks are editorial prompts. Ranking and signal contracts live in
 
 ## Check
 
-Run tests, lint, and the web build. Check For You/Following/Top, pagination,
+Run tests, lint, and the web build. Check For You/Following/Trending, pagination,
 empty and sparse feeds, optimistic review actions, and mobile rail placement.
 Record an aggregate baseline before changing ranking.

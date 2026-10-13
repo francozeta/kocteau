@@ -26,7 +26,7 @@ export default function DocumentationLayout({ children }: { children: ReactNode 
           <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] overflow-y-auto py-8 pr-3 lg:block">
             <DocsNavigation pages={documentation} />
           </aside>
-          <main id="documentation-content" tabIndex={-1} className="min-w-0 py-10 focus:outline-none sm:py-14">{children}</main>
+          <main id="documentation-content" tabIndex={-1} className="min-w-0 scroll-mt-16 py-10 focus:outline-none sm:py-14">{children}</main>
         </div>
       </div>
     </div>

@@ -5,11 +5,13 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/docs/**",
-        "$TURBO_ROOT$/AGENTS.md",
-        "$TURBO_ROOT$/PRODUCT.md",
-        "$TURBO_ROOT$/DESIGN.md",
-        "$TURBO_ROOT$/CURRENT.md",
-        "$TURBO_ROOT$/CONTRIBUTING.md"
+        "$TURBO_ROOT$/*.md",
+        "$TURBO_ROOT$/.node-version",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/.agents/README.md",
+        "$TURBO_ROOT$/.plan/*.md",
+        "$TURBO_ROOT$/.github/workflows/**",
+        "$TURBO_ROOT$/supabase/**"
       ],
       "dependsOn": [
         "^build"

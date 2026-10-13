@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node scripts/dev-with-docs.mjs",
     "build": "node scripts/build-docs.mjs && next build",
-    "analyze": "next experimental-analyze --output",
+    "analyze": "node scripts/build-docs.mjs && next experimental-analyze --output",
     "email:dev": "email dev --dir emails --port 3001",
     "email:export": "email export --dir emails --outDir emails/out",
     "start": "next start",

@@ -21,8 +21,8 @@ export function getDocumentationComponents(): MDXComponents {
         <table className="w-full border-collapse text-left text-sm leading-6">{children}</table>
       </div>
     ),
-    th: ({ children }) => <th className="border-b border-foreground/20 px-3 py-3 font-medium text-foreground first:pl-0">{children}</th>,
-    td: ({ children }) => <td className="border-b border-foreground/10 px-3 py-3 align-top text-muted-foreground first:pl-0">{children}</td>,
+    th: ({ children, ...props }) => <th {...props} className="border-b border-foreground/20 px-3 py-3 font-medium text-foreground first:pl-0">{children}</th>,
+    td: ({ children, ...props }) => <td {...props} className="border-b border-foreground/10 px-3 py-3 align-top text-muted-foreground first:pl-0">{children}</td>,
     h4: ({ children, ...props }) => <h4 className="mt-6 scroll-mt-24 text-sm font-semibold text-foreground" {...props}>{children}</h4>,
   });
 }

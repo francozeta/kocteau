@@ -13,6 +13,9 @@ pnpm dev
 Open `/docs`. The development process watches registered Markdown and regenerates
 the documentation when it changes. Production builds compile the same sources.
 Generated files under `apps/web/.generated/docs/` stay ignored.
+Builds and `pnpm --filter web analyze` generate these modules before compilation.
+Deployment packaging retains the shared plan Markdown and skills index because
+public guides validate links to them; private notes and skill bundles stay excluded.
 The web configuration disables framework-generated working rules; the repository
 [contract](../AGENTS.md) and flow READMEs own contributor context.
 

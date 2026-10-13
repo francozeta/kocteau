@@ -11,8 +11,9 @@
 ## Preserve
 
 Keep shell geometry stable and review/discovery actions reachable. Preserve lazy
-dialogs and server-rendered page content. Shortcut, focus, and motion rules live
-in [DESIGN.md](../../../../DESIGN.md).
+dialogs and server-rendered page content. Focus and motion rules live in
+[DESIGN.md](../../../../DESIGN.md); shortcut bindings live in
+[use-global-shortcuts.ts](../../hooks/use-global-shortcuts.ts).
 
 ## Check
 

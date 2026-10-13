@@ -8,6 +8,7 @@ export const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url
 export const catalogPath = path.join(repositoryRoot, "docs/meta.json");
 const output = fileURLToPath(new URL("../.generated/docs/", import.meta.url));
 const repositoryUrl = "https://github.com/francozeta/kocteau/blob/main/";
+const assetUrl = "https://raw.githubusercontent.com/francozeta/kocteau/main/";
 
 function textContent(node) {
   return node.value ?? node.children?.map(textContent).join("") ?? "";
@@ -62,17 +63,22 @@ export async function buildDocs() {
     const filename = path.resolve(repositoryRoot, record.source);
     const source = (await readFile(filename, "utf8")).replaceAll("\r\n", "\n");
     const headings = [];
-    const ids = new Map();
+    const ids = new Set();
     let titleId;
     function prepareDocument() {
       return (tree) => {
+        const imageReferences = new Set();
+        visit(tree, (node) => {
+          if (node.type === "imageReference") imageReferences.add(node.identifier);
+        });
         visit(tree, (node) => {
           if (node.type === "heading") {
             const title = textContent(node);
             const base = headingSlug(title);
-            const count = ids.get(base) ?? 0;
-            ids.set(base, count + 1);
-            const id = count ? `${base}-${count}` : base;
+            let id = base;
+            let suffix = 1;
+            while (ids.has(id)) id = `${base}-${suffix++}`;
+            ids.add(id);
             node.data = { ...node.data, hProperties: { ...node.data?.hProperties, id } };
             if (node.depth === 1) titleId = id;
             else headings.push({ id, title, depth: node.depth });
@@ -86,7 +92,9 @@ export async function buildDocs() {
             if (relative) {
               const registered = sources.get(target);
               const targetPath = path.relative(repositoryRoot, target).split(path.sep).map(encodeURIComponent).join("/");
-              node.url = target === path.join(repositoryRoot, "docs/README.md")
+              const isImage = node.type === "image" ||
+                (node.type === "definition" && imageReferences.has(node.identifier));
+              node.url = isImage ? `${assetUrl}${targetPath}` : target === path.join(repositoryRoot, "docs/README.md")
                 ? "/docs"
                 : registered ? `/docs/${registered.slug}` : `${repositoryUrl}${targetPath}`;
               if (hash) node.url += `#${hash}`;

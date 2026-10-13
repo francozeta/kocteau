@@ -15,9 +15,11 @@ Workspace
 *.tsbuildinfo
 **/*.tsbuildinfo
 
-# Contributor context is versioned, but not part of the deployed application.
-.agents
-.plan
+# Keep documentation link targets available during the build.
+.agents/*
+!.agents/README.md
+.plan/*
+!.plan/*.md
 .codex-private
 .playwright-cli
 output
