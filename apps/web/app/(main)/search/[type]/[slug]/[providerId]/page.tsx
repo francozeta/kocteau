@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import DiscoverEditorialEdition from "@/components/discover-editorial-edition";
+import DiscoverEditorialEdition from "@/components/discovery/discover-editorial-edition";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { isDeezerProviderId } from "@/lib/deezer";
 import { createPageMetadata } from "@/lib/metadata";

@@ -2,9 +2,9 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import BrandLogo from "@/components/brand-logo";
+import BrandLogo from "@/components/brand/brand-logo";
 import { OnboardingProgressBar } from "@/components/auth/onboarding-progress-bar";
-import { KocteauChevronLeftSmallIcon } from "@/components/kocteau-icons";
+import { KocteauChevronLeftSmallIcon } from "@/components/icons/kocteau-icons";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";

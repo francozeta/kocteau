@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { KocteauBookmarkIcon } from "@/components/kocteau-icons";
-import LibraryRouteHeader from "@/components/library-route-header";
-import PrefetchLink from "@/components/prefetch-link";
-import SavedReviewsList from "@/components/saved-reviews-list";
+import { KocteauBookmarkIcon } from "@/components/icons/kocteau-icons";
+import LibraryRouteHeader from "@/components/library/library-route-header";
+import PrefetchLink from "@/components/shared/prefetch-link";
+import SavedReviewsList from "@/components/reviews/saved-reviews-list";
 import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { getCurrentUserId } from "@/lib/auth/server";

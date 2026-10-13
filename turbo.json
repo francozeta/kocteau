@@ -2,6 +2,17 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/**",
+        "$TURBO_ROOT$/*.md",
+        "$TURBO_ROOT$/.node-version",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/.agents/README.md",
+        "$TURBO_ROOT$/.plan/*.md",
+        "$TURBO_ROOT$/.github/workflows/**",
+        "$TURBO_ROOT$/supabase/**"
+      ],
       "dependsOn": [
         "^build"
       ],

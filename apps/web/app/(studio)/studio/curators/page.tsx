@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import CuratorApplicationsStudioClient, {
   type StudioCuratorApplication,
-} from "@/components/curator-applications-studio-client";
+} from "@/components/studio/curator-applications-studio-client";
 import { getCurrentUser } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getKocteauAdminAccess } from "@/lib/queries/curation";

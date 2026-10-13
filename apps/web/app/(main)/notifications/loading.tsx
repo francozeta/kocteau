@@ -1,4 +1,4 @@
-import { ActivityPageLoadingSkeleton } from "@/components/route-loading-skeletons";
+import { ActivityPageLoadingSkeleton } from "@/components/shell/route-loading-skeletons";
 
 export default function Loading() {
   return <ActivityPageLoadingSkeleton />;

@@ -1,0 +1,93 @@
+"use client";
+
+import { Bell } from "@/components/ui/icons";
+import { useNotifications } from "@/hooks/use-notifications";
+import type { NotificationItem } from "@/lib/notifications";
+import NotificationList from "@/components/notifications/notification-list";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
+import { toastActionError } from "@/lib/feedback";
+
+type NotificationsInboxProps = {
+  userId: string;
+  initialNotifications: NotificationItem[];
+  initialUnreadCount: number;
+};
+
+export default function NotificationsInbox({
+  userId,
+  initialNotifications,
+  initialUnreadCount,
+}: NotificationsInboxProps) {
+  const {
+    notifications,
+    unreadCount,
+    isLoadingNotifications,
+    isNotificationsError,
+    notificationsError,
+    markAsRead,
+    isMarkingAsRead,
+  } = useNotifications({
+    userId,
+    initialNotifications,
+    initialUnreadCount,
+    subscribe: false,
+    enableList: true,
+  });
+
+  async function handleMarkAsRead(notificationId: string) {
+    try {
+      await markAsRead(notificationId);
+    } catch (error) {
+      toastActionError(error, "We couldn't update that notification right now.");
+    }
+  }
+
+  return (
+    <section className="w-full max-w-3xl space-y-5 sm:space-y-6">
+      <div className="border-b border-border/34 pb-4 md:border-border/30">
+        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{notifications.length}</span>
+          <span>{notifications.length === 1 ? "item" : "items"}</span>
+          <span>•</span>
+          <span className="font-medium text-foreground">{unreadCount}</span>
+          <span>unread</span>
+        </div>
+      </div>
+
+      {isLoadingNotifications ? (
+        <div className="flex justify-center rounded-[1.75rem] border border-border/34 bg-card/26 px-5 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/25 md:bg-card/20">
+          <Spinner className="size-4 text-muted-foreground/70" />
+        </div>
+      ) : isNotificationsError ? (
+        <Alert className="rounded-2xl border-border/52 bg-card/64 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] md:border-border/50 md:bg-card/60">
+          <AlertTitle>Notifications unavailable</AlertTitle>
+          <AlertDescription>
+            {notificationsError instanceof Error
+              ? notificationsError.message
+              : "Notifications are temporarily unavailable."}
+          </AlertDescription>
+        </Alert>
+      ) : notifications.length > 0 ? (
+        <NotificationList
+          notifications={notifications}
+          isMarkingAsRead={isMarkingAsRead}
+          onMarkAsRead={handleMarkAsRead}
+        />
+      ) : (
+        <Empty className="rounded-[1.75rem] border-border/34 bg-card/26 px-6 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:px-8 sm:py-12 md:border-border/25 md:bg-card/20">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Bell className="size-4" />
+            </EmptyMedia>
+            <EmptyTitle>No notifications yet</EmptyTitle>
+            <EmptyDescription>
+              New likes and replies to your reviews will appear here.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
+    </section>
+  );
+}

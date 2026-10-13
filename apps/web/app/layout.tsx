@@ -4,7 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from "geist/font/sans";
 import localFont from "next/font/local";
 import "./globals.css";
-import JsonLd from "@/components/json-ld";
+import JsonLd from "@/components/shared/json-ld";
 import { cn } from "@/lib/utils";
 import { getMetadataBase } from "@/lib/metadata";
 import { buildSiteGraphJsonLd } from "@/lib/structured-data";

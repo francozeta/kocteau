@@ -11,8 +11,8 @@ import {
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check } from "@/components/ui/icons";
 import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
-import NewReviewDialog from "@/components/new-review-dialog";
-import ReviewGlyphIcon from "@/components/review-glyph-icon";
+import NewReviewDialog from "@/components/reviews/new-review-dialog";
+import ReviewGlyphIcon from "@/components/icons/review-glyph-icon";
 import { PrimaryGrowButton } from "@/components/ui/grow-button";
 import {
   groupPreferenceTags,

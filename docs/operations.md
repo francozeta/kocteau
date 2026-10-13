@@ -215,7 +215,10 @@ The easiest way to seed starter picks is the internal route:
 /studio/starter
 ```
 
-Only the official `@kocteau` profile can write through this route. It searches Deezer, saves the track metadata, creates the default `starter-picks` collection if needed, attaches editorial tags, creates lightweight new tags when needed, and archives picks without deleting historical rows.
+Private curator/admin roles authorize writes through this route; the official
+badge does not grant access. It searches music, saves track metadata to the default
+`starter-picks` collection, attaches editorial tags, creates lightweight new tags
+when needed, and archives picks without deleting historical rows.
 
 Starter tags affect recommendations in two stages:
 

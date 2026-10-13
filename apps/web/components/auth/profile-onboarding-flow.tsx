@@ -10,8 +10,8 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "@/components/ui/icons";
-import AvatarCropDialog from "@/components/avatar-crop-dialog";
-import GeneratedUserAvatar from "@/components/generated-user-avatar";
+import AvatarCropDialog from "@/components/profile/avatar-crop-dialog";
+import GeneratedUserAvatar from "@/components/profile/generated-user-avatar";
 import OnboardingStepFrame from "@/components/auth/onboarding-step-frame";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

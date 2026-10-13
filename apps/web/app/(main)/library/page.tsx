@@ -5,7 +5,7 @@ import {
   KocteauArtistIcon,
   KocteauBookmarkIcon,
   KocteauSongIcon,
-} from "@/components/kocteau-icons";
+} from "@/components/icons/kocteau-icons";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getViewerEntityLibraryItems } from "@/lib/queries/entity-library";

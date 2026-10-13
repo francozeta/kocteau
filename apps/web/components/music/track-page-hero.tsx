@@ -1,0 +1,286 @@
+"use client";
+
+import { FaDeezer } from "react-icons/fa";
+
+import EditReviewDialog from "@/components/reviews/edit-review-dialog";
+import EntityCoverImage from "@/components/music/entity-cover-image";
+import { KocteauShareIcon } from "@/components/icons/kocteau-icons";
+import EntityLibraryActions from "@/components/music/entity-library-actions";
+import NewReviewDialog from "@/components/reviews/new-review-dialog";
+import PrefetchLink from "@/components/shared/prefetch-link";
+import ReviewGlyphIcon from "@/components/icons/review-glyph-icon";
+import { Button } from "@/components/ui/button";
+import { toastActionError, toastActionSuccess } from "@/lib/feedback";
+import {
+  type EntityLibraryState,
+  getEmptyEntityLibraryState,
+} from "@/lib/library/entity-library";
+
+type TrackPageHeroProps = {
+  entity: {
+    id?: string | null;
+    provider_id: string;
+    title: string;
+    artist_name: string | null;
+    cover_url: string | null;
+    deezer_url: string | null;
+  };
+  artist?: {
+    provider_id: string;
+    image_url: string | null;
+    href: string;
+  } | null;
+  album?: {
+    provider_id: string;
+    title: string;
+    cover_url: string | null;
+    deezer_url: string | null;
+    release_date: string | null;
+    record_type: string | null;
+    href: string;
+  } | null;
+  isAuthenticated: boolean;
+  sharePath?: string;
+  viewerReview: {
+    id: string;
+    title: string | null;
+    body: string | null;
+    rating: number;
+    is_pinned: boolean;
+  } | null;
+  shouldOpenViewerEditor?: boolean;
+  initialLibraryState?: EntityLibraryState;
+};
+
+const primaryActionClassName =
+  "inline-flex h-10 min-w-[10.5rem] items-center justify-center gap-2 rounded-[0.9rem] border border-white/60 bg-foreground px-4 text-sm font-semibold text-background shadow-none transition-[background-color,border-color,transform] duration-150 hover:border-white hover:bg-foreground/90 active:scale-[0.96] sm:h-11 sm:min-w-[11.5rem]";
+
+const sideActionClassName =
+  "size-10 rounded-full border border-border/28 bg-card/18 text-muted-foreground shadow-none hover:bg-card/30 hover:text-foreground max-md:bg-card/20 max-md:backdrop-blur-md max-md:backdrop-saturate-100 sm:size-11";
+
+export default function TrackPageHero({
+  entity,
+  artist,
+  album,
+  isAuthenticated,
+  sharePath,
+  viewerReview,
+  shouldOpenViewerEditor = false,
+  initialLibraryState = getEmptyEntityLibraryState(),
+}: TrackPageHeroProps) {
+  const deezerLink = entity.deezer_url
+    ? {
+        label: "Deezer",
+        url: entity.deezer_url,
+      }
+    : null;
+  const createSelection = {
+    provider: "deezer" as const,
+    provider_id: entity.provider_id,
+    type: "track" as const,
+    title: entity.title,
+    artist_name: entity.artist_name,
+    artist_provider_id: artist?.provider_id ?? null,
+    artist_picture_url: artist?.image_url ?? null,
+    album_provider_id: album?.provider_id ?? null,
+    album_title: album?.title ?? null,
+    album_deezer_url: album?.deezer_url ?? null,
+    album_record_type: album?.record_type ?? null,
+    release_date: album?.release_date ?? null,
+    cover_url: entity.cover_url,
+    deezer_url: entity.deezer_url,
+    entity_id: entity.id ?? null,
+  };
+  const librarySelection = {
+    provider: "deezer" as const,
+    provider_id: entity.provider_id,
+    type: "track" as const,
+    title: entity.title,
+    artist_name: entity.artist_name,
+    cover_url: entity.cover_url,
+    deezer_url: entity.deezer_url,
+    id: entity.id ?? null,
+  };
+  const editSelection = entity.id
+    ? {
+        ...createSelection,
+        entity_id: entity.id,
+      }
+    : null;
+
+  async function handleShareTrack() {
+    try {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const path = sharePath ?? (entity.id ? `/track/${entity.id}` : `/track/deezer/${entity.provider_id}`);
+      const shareUrl = new URL(path, window.location.origin).toString();
+      const shareLabel = entity.artist_name?.trim()
+        ? `${entity.title} — ${entity.artist_name}`
+        : entity.title;
+
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({
+            title: shareLabel,
+            text: shareLabel,
+            url: shareUrl,
+          });
+          return;
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return;
+          }
+        }
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        toastActionSuccess("Track link copied");
+        return;
+      }
+
+      throw new Error("Sharing is unavailable on this device right now.");
+    } catch (error) {
+      toastActionError(error, "We couldn't share this track right now.");
+    }
+  }
+
+  return (
+    <section className="border-b border-border/32 pb-4 max-md:border-transparent md:border-border/24 md:pb-5">
+      <div className="grid gap-4 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center lg:grid-cols-[11.5rem_minmax(0,1fr)] lg:gap-5">
+        <EntityCoverImage
+          src={entity.cover_url}
+          alt={entity.title}
+          sizes="(max-width: 767px) 176px, (max-width: 1279px) 160px, 184px"
+          priority
+          quality={90}
+          variant="hero"
+          className="mx-auto size-[min(56vw,11rem)] rounded-[1.25rem] border border-border/24 bg-muted/16 shadow-none md:mx-0 md:size-[10rem] lg:size-[11.5rem]"
+          iconClassName="size-10"
+        />
+
+        <div className="min-w-0 text-center md:text-left">
+          <p className="text-[0.72rem] font-medium text-muted-foreground">
+            track
+          </p>
+          <h1 className="mt-2.5 font-heading text-[1.95rem] font-medium leading-none text-balance sm:text-[2.25rem] lg:text-[2.7rem]">
+            {entity.title}
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground text-pretty sm:text-[0.95rem]">
+            {artist && entity.artist_name ? (
+              <PrefetchLink
+                href={artist.href}
+                className="rounded-sm underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+              >
+                {entity.artist_name}
+              </PrefetchLink>
+            ) : (
+              entity.artist_name ?? "Unknown artist"
+            )}
+          </p>
+
+          {album ? (
+            <p className="mt-1 text-xs text-muted-foreground/64">
+              From{" "}
+              <PrefetchLink
+                href={album.href}
+                className="rounded-sm underline-offset-4 transition-colors hover:text-muted-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+              >
+                {album.title}
+              </PrefetchLink>
+            </p>
+          ) : null}
+
+          <div className="mt-4 grid grid-cols-[2.5rem_minmax(0,auto)_2.5rem] items-center justify-center gap-2.5 md:inline-grid md:grid-cols-[2.75rem_minmax(0,auto)_2.75rem] md:justify-start md:gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => void handleShareTrack()}
+              className={sideActionClassName}
+              aria-label="Share track"
+            >
+              <KocteauShareIcon className="size-4" />
+            </Button>
+
+            {viewerReview && editSelection ? (
+              <EditReviewDialog
+                reviewId={viewerReview.id}
+                defaultOpen={shouldOpenViewerEditor}
+                dismissSearchParam="editReview"
+                trigger={
+                  <button type="button" className={primaryActionClassName}>
+                    <ReviewGlyphIcon className="size-4" />
+                    Edit review
+                  </button>
+                }
+                initialSelection={editSelection}
+                initialTitle={viewerReview.title ?? ""}
+                initialBody={viewerReview.body ?? ""}
+                initialRating={viewerReview.rating}
+                initialPinned={Boolean(viewerReview.is_pinned)}
+              />
+            ) : (
+              <NewReviewDialog
+                isAuthenticated={isAuthenticated}
+                initialQuery={[entity.title, entity.artist_name].filter(Boolean).join(" ")}
+                initialSelection={createSelection}
+                trigger={
+                  <button type="button" className={primaryActionClassName}>
+                    <ReviewGlyphIcon className="size-4" />
+                    Review track
+                  </button>
+                }
+                triggerLabelClassName="sr-only"
+              />
+            )}
+
+            {deezerLink ? (
+              <Button
+                asChild
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={sideActionClassName}
+              >
+                <a
+                  href={deezerLink.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Open on ${deezerLink.label}`}
+                >
+                  <FaDeezer className="size-4" aria-hidden="true" />
+                </a>
+              </Button>
+            ) : (
+              <span className="size-11" aria-hidden="true" />
+            )}
+          </div>
+
+          {deezerLink ? (
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[0.72rem] font-medium text-muted-foreground md:justify-start">
+              <a
+                href={deezerLink.url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/24 bg-card/18 px-2.5 py-1 transition-[background-color,border-color,color] hover:border-border/45 hover:bg-card/30 hover:text-foreground max-md:border-transparent max-md:bg-card/16 max-md:backdrop-blur-xl max-md:backdrop-saturate-150"
+              >
+                <FaDeezer className="size-3.5" aria-hidden="true" />
+                <span>Deezer</span>
+              </a>
+            </div>
+          ) : null}
+
+          <EntityLibraryActions
+            entity={librarySelection}
+            initialState={initialLibraryState}
+            isAuthenticated={isAuthenticated}
+            className="mt-3"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}

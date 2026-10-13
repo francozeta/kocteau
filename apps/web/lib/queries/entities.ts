@@ -13,7 +13,7 @@ import { isFullUuid, isShortUuidPrefix } from "@/lib/seo-routes";
 import type {
   ReviewCardAuthor,
   ReviewCardData,
-} from "@/components/review-card";
+} from "@/components/reviews/review-card";
 
 export type EntityPage = {
   id: string;

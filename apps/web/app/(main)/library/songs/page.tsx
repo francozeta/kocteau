@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { KocteauSongIcon } from "@/components/kocteau-icons";
-import LibraryEntityGrid from "@/components/library-entity-grid";
-import LibraryRouteHeader from "@/components/library-route-header";
+import { KocteauSongIcon } from "@/components/icons/kocteau-icons";
+import LibraryEntityGrid from "@/components/library/library-entity-grid";
+import LibraryRouteHeader from "@/components/library/library-route-header";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 import { getViewerEntityLibraryItems } from "@/lib/queries/entity-library";

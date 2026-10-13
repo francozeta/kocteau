@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { ReviewCardData } from "@/components/review-card";
+import type { ReviewCardData } from "@/components/reviews/review-card";
 import { measureServerTask } from "@/lib/perf";
 import {
   getSavedReviewBookmarksForUser,

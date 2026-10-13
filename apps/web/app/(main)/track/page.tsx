@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Music2 } from "@/components/ui/icons";
-import EntityCoverImage from "@/components/entity-cover-image";
-import PrefetchLink from "@/components/prefetch-link";
-import TrackContextMenu from "@/components/track-context-menu";
+import EntityCoverImage from "@/components/music/entity-cover-image";
+import PrefetchLink from "@/components/shared/prefetch-link";
+import TrackContextMenu from "@/components/music/track-context-menu";
 import { buttonVariants } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";

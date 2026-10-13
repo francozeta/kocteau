@@ -1,0 +1,548 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import FeedReviewCta from "@/components/feed/feed-review-cta";
+import FeedStarterLayer from "@/components/feed/feed-starter-layer";
+import FeedStarterShelf from "@/components/feed/feed-starter-shelf";
+import { FeedReviewStackSkeleton } from "@/components/feed/feed-loading-skeletons";
+import {
+  KocteauProfileIcon,
+  KocteauReviewsIcon,
+  KocteauSongIcon,
+} from "@/components/icons/kocteau-icons";
+import { FeedReviewCard } from "@/components/reviews/review-route-cards";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
+import { trackAnalyticsEvent } from "@/lib/analytics/client";
+import type { FeedView } from "@/lib/feed-view";
+import type { StarterTrack } from "@/lib/starter";
+import {
+  feedInfiniteQueryOptions,
+  type FeedBundleQueryData,
+  type FeedBundleReview,
+} from "@/queries/feed";
+
+type FeedReviewListViewer = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+} | null;
+
+type FeedReviewListProps = {
+  view: FeedView;
+  initialPage?: FeedBundleQueryData;
+  isAuthenticated: boolean;
+  viewer: FeedReviewListViewer;
+  starterTracks?: StarterTrack[];
+  showReviewCta?: boolean;
+  showStarterShelf?: boolean;
+  enablePagination?: boolean;
+};
+
+const recommendationReasonLabels = {
+  entity_taste: "In your lane",
+  taste_match: "Taste match",
+  following: "From your follows",
+  familiar_entity: "Related pick",
+  author_affinity: "Similar listener",
+  popular_recent: "Popular now",
+} satisfies Partial<Record<
+  NonNullable<FeedBundleReview["recommendation_reason"]>,
+  string
+>>;
+
+const reviewReadThresholds = [
+  { depth: 50, eventType: "review_read_50" },
+  { depth: 90, eventType: "review_read_90" },
+] as const;
+const minimumReadDwellMs = 1200;
+
+function getRecommendationEyebrow(review: FeedBundleReview, view: FeedView) {
+  if (view !== "for-you" || !review.recommendation_reason) {
+    return null;
+  }
+
+  if (review.recommendation_reason === "own_review") {
+    return null;
+  }
+
+  return recommendationReasonLabels[review.recommendation_reason] ?? null;
+}
+
+function FeedEmptyState({
+  view,
+  isAuthenticated,
+}: {
+  view: FeedView;
+  isAuthenticated: boolean;
+}) {
+  if (view === "for-you") {
+    return (
+      <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <KocteauReviewsIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>{isAuthenticated ? "No picks yet" : "Log in to tune For You"}</EmptyTitle>
+          <EmptyDescription>
+            {isAuthenticated
+              ? "Review, save, or follow a few listeners to warm up your feed."
+              : "Your tuned feed starts from taste signals and listening activity."}
+          </EmptyDescription>
+        </EmptyHeader>
+        {!isAuthenticated ? (
+          <Link
+            href="/login"
+            className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-foreground px-3 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+          >
+            Log in
+          </Link>
+        ) : null}
+      </Empty>
+    );
+  }
+
+  if (view === "following") {
+    return (
+      <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <KocteauProfileIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>{isAuthenticated ? "No following reviews yet" : "Log in to see Following"}</EmptyTitle>
+          <EmptyDescription>
+            {isAuthenticated
+              ? "Follow more listeners and their reviews will show up here."
+              : "Your following feed is built from people you follow."}
+          </EmptyDescription>
+        </EmptyHeader>
+        {!isAuthenticated ? (
+          <Link
+            href="/login"
+            className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-foreground px-3 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+          >
+            Log in
+          </Link>
+        ) : null}
+      </Empty>
+    );
+  }
+
+  return (
+    <Empty className="rounded-lg border-border/42 bg-card/40 px-6 py-10 md:border-border/34 md:bg-card/32">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <KocteauSongIcon className="size-4" />
+        </EmptyMedia>
+        <EmptyTitle>No reviews yet</EmptyTitle>
+        <EmptyDescription>Start with a review.</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+export default function FeedReviewList({
+  view,
+  initialPage,
+  isAuthenticated,
+  viewer,
+  starterTracks = [],
+  showReviewCta = true,
+  showStarterShelf = true,
+  enablePagination = true,
+}: FeedReviewListProps) {
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const trackedPageKeysRef = useRef(new Set<string>());
+  const reviewNodeRefs = useRef(new Map<string, HTMLDivElement>());
+  const trackedReadThresholdsRef = useRef(new Set<string>());
+  const reviewVisibleSinceRef = useRef(new Map<string, number>());
+  const feedQuery = useInfiniteQuery({
+    ...feedInfiniteQueryOptions(view),
+    ...(initialPage
+      ? {
+          initialData: {
+            pages: [initialPage],
+            pageParams: [null],
+          },
+        }
+      : {}),
+  });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+  } = feedQuery;
+  const reviews = useMemo(() => {
+    const seen = new Set<string>();
+
+    return (data?.pages ?? []).flatMap((page) =>
+      page.feed.filter((review) => {
+        if (seen.has(review.id)) {
+          return false;
+        }
+
+        seen.add(review.id);
+        return true;
+      }),
+    );
+  }, [data?.pages]);
+  const reviewedStarterKeys = useMemo(() => {
+    const keys = new Set<string>();
+
+    reviews.forEach((review) => {
+      const entity = review.entities;
+
+      if (!entity?.provider || !entity.provider_id || !entity.type) {
+        return;
+      }
+
+      keys.add(`${entity.provider}:${entity.type}:${entity.provider_id}`);
+    });
+
+    return keys;
+  }, [reviews]);
+  const visibleStarterTracks = useMemo(
+    () =>
+      starterTracks.filter(
+        (track) =>
+          !reviewedStarterKeys.has(
+            `${track.provider}:${track.type}:${track.provider_id}`,
+          ),
+      ),
+    [reviewedStarterKeys, starterTracks],
+  );
+  const forYouReadAnalyticsReviews = useMemo(
+    () =>
+      reviews.map((review, position) => ({
+        id: review.id,
+        entityId: review.entities?.id ?? null,
+        reason: review.recommendation_reason ?? null,
+        position,
+      })),
+    [reviews],
+  );
+  const setReviewNodeRef = useCallback(
+    (reviewId: string) => (node: HTMLDivElement | null) => {
+      if (node) {
+        reviewNodeRefs.current.set(reviewId, node);
+        return;
+      }
+
+      reviewNodeRefs.current.delete(reviewId);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (view !== "for-you" || !isAuthenticated) {
+      return;
+    }
+
+    let reviewPositionOffset = 0;
+
+    (data?.pages ?? []).forEach((page, pageIndex) => {
+      const reviewIds = page.feed.map((review) => review.id);
+      const pageStartPosition = reviewPositionOffset;
+      reviewPositionOffset += page.feed.length;
+
+      if (reviewIds.length === 0) {
+        return;
+      }
+
+      const pageKey = `${view}:${pageIndex}:${reviewIds.join(",")}`;
+
+      if (trackedPageKeysRef.current.has(pageKey)) {
+        return;
+      }
+
+      trackedPageKeysRef.current.add(pageKey);
+      trackAnalyticsEvent({
+        eventType: "feed_loaded",
+        source: "feed:for-you",
+        metadata: {
+          view,
+          page_index: pageIndex,
+          review_count: reviewIds.length,
+          starter_count: visibleStarterTracks.length,
+          review_ids: reviewIds,
+          has_cursor: Boolean(page.nextCursor),
+          has_next_page: Boolean(page.nextCursor),
+        },
+      });
+
+      page.feed.forEach((review, reviewIndex) => {
+        trackAnalyticsEvent({
+          eventType: "review_impression",
+          source: "feed:for-you",
+          metadata: {
+            review_id: review.id,
+            entity_id: review.entities?.id ?? null,
+            reason: review.recommendation_reason ?? null,
+            page_index: pageIndex,
+            position: pageStartPosition + reviewIndex,
+          },
+        });
+      });
+    });
+  }, [data?.pages, isAuthenticated, view, visibleStarterTracks.length]);
+
+  useEffect(() => {
+    if (view !== "for-you" || !isAuthenticated || forYouReadAnalyticsReviews.length === 0) {
+      return;
+    }
+
+    const scrollRoot = document.querySelector<HTMLElement>("[data-kocteau-scroll-main]");
+    const reviewById = new Map(forYouReadAnalyticsReviews.map((review) => [review.id, review]));
+    let frame = 0;
+    let dwellTimer = 0;
+
+    function getViewportBounds() {
+      if (scrollRoot) {
+        const rect = scrollRoot.getBoundingClientRect();
+        return {
+          top: rect.top,
+          bottom: rect.bottom,
+        };
+      }
+
+      return {
+        top: 0,
+        bottom: window.innerHeight,
+      };
+    }
+
+    function measureReadDepth() {
+      frame = 0;
+      const now = performance.now();
+      const viewport = getViewportBounds();
+
+      for (const review of reviewById.values()) {
+        const node = reviewNodeRefs.current.get(review.id);
+
+        if (!node) {
+          continue;
+        }
+
+        const rect = node.getBoundingClientRect();
+
+        if (rect.height <= 0 || rect.bottom <= viewport.top || rect.top >= viewport.bottom) {
+          reviewVisibleSinceRef.current.delete(review.id);
+          continue;
+        }
+
+        if (!reviewVisibleSinceRef.current.has(review.id)) {
+          reviewVisibleSinceRef.current.set(review.id, now);
+        }
+
+        const visibleFor = now - (reviewVisibleSinceRef.current.get(review.id) ?? now);
+
+        const progress = Math.max(
+          0,
+          Math.min(1, (viewport.bottom - rect.top) / rect.height),
+        );
+
+        for (const threshold of reviewReadThresholds) {
+          if (progress < threshold.depth / 100) {
+            continue;
+          }
+
+          if (visibleFor < minimumReadDwellMs) {
+            scheduleMeasureReadDepthAfter(minimumReadDwellMs - visibleFor);
+            continue;
+          }
+
+          const thresholdKey = `${review.id}:${threshold.depth}`;
+
+          if (trackedReadThresholdsRef.current.has(thresholdKey)) {
+            continue;
+          }
+
+          trackedReadThresholdsRef.current.add(thresholdKey);
+          trackAnalyticsEvent({
+            eventType: threshold.eventType,
+            source: "feed:for-you",
+            metadata: {
+              review_id: review.id,
+              entity_id: review.entityId,
+              reason: review.reason,
+              position: review.position,
+              read_depth: threshold.depth,
+            },
+          });
+        }
+      }
+    }
+
+    function scheduleMeasureReadDepthAfter(delay: number) {
+      if (dwellTimer) {
+        return;
+      }
+
+      dwellTimer = window.setTimeout(() => {
+        dwellTimer = 0;
+        scheduleMeasureReadDepth();
+      }, Math.max(0, delay));
+    }
+
+    function scheduleMeasureReadDepth() {
+      if (frame) {
+        return;
+      }
+
+      frame = window.requestAnimationFrame(measureReadDepth);
+    }
+
+    scheduleMeasureReadDepth();
+    window.addEventListener("resize", scheduleMeasureReadDepth);
+    scrollRoot?.addEventListener("scroll", scheduleMeasureReadDepth, { passive: true });
+
+    return () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      if (dwellTimer) {
+        window.clearTimeout(dwellTimer);
+      }
+
+      window.removeEventListener("resize", scheduleMeasureReadDepth);
+      scrollRoot?.removeEventListener("scroll", scheduleMeasureReadDepth);
+    };
+  }, [forYouReadAnalyticsReviews, isAuthenticated, view]);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+
+    if (!enablePagination || !node || !hasNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+
+        if (entry?.isIntersecting && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      {
+        rootMargin: "360px 0px",
+      },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [enablePagination, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const showStarterLayer =
+    view === "for-you" &&
+    isAuthenticated &&
+    visibleStarterTracks.length > 0 &&
+    reviews.length < 4;
+  const shouldShowStarterShelf =
+    showStarterShelf &&
+    visibleStarterTracks.length > 0 &&
+    reviews.length > 0 &&
+    (
+      (isAuthenticated && view === "for-you") ||
+      (!isAuthenticated && view === "latest")
+    );
+  const shouldShowReviewCta =
+    showReviewCta && (view === "for-you" || view === "latest");
+
+  if (isPending) {
+    return (
+      <div aria-busy="true" aria-label="Loading feed">
+        <FeedReviewStackSkeleton />
+      </div>
+    );
+  }
+
+  if (reviews.length === 0) {
+    if (showStarterLayer) {
+      return (
+        <FeedStarterLayer
+          tracks={visibleStarterTracks}
+          isAuthenticated={isAuthenticated}
+        />
+      );
+    }
+
+    return <FeedEmptyState view={view} isAuthenticated={isAuthenticated} />;
+  }
+
+  return (
+    <div className="space-y-3.5">
+      {shouldShowReviewCta ? (
+        <FeedReviewCta isAuthenticated={isAuthenticated} />
+      ) : null}
+
+      {shouldShowStarterShelf ? (
+        <FeedStarterShelf
+          tracks={visibleStarterTracks}
+          isAuthenticated={isAuthenticated}
+          variant={isAuthenticated ? "personalized" : "editorial"}
+          className="lg:hidden"
+        />
+      ) : null}
+
+      {reviews.map((review, index) => {
+        const author = review.author;
+
+        return (
+          <div key={review.id} ref={setReviewNodeRef(review.id)} className="kocteau-review-card-list-item">
+            <FeedReviewCard
+              review={review}
+              entity={review.entities}
+              author={author}
+              showInteractionBar={isAuthenticated}
+              isAuthenticated={isAuthenticated}
+              canManage={Boolean(viewer?.id && author?.id === viewer.id)}
+              recommendationEyebrow={getRecommendationEyebrow(review, view)}
+              imagePriority={index === 0}
+              analyticsSource={view === "for-you" ? "feed:for-you" : null}
+              viewer={viewer}
+            />
+          </div>
+        );
+      })}
+
+      {showStarterLayer ? (
+        <div className={shouldShowStarterShelf ? "hidden lg:block" : undefined}>
+          <FeedStarterLayer
+            tracks={visibleStarterTracks}
+            isAuthenticated={isAuthenticated}
+          />
+        </div>
+      ) : null}
+
+      {!enablePagination ? null : hasNextPage ? (
+        <div ref={sentinelRef} className="flex min-h-12 items-center justify-center py-2">
+          {isFetchingNextPage ? (
+            <Spinner className="size-4 text-muted-foreground/70" />
+          ) : null}
+        </div>
+      ) : (
+        <p className="py-3 text-center text-xs text-muted-foreground/46">
+          created by{" "}
+          <Link
+            href="https://francozeta.vercel.app/"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-muted-foreground/62 underline underline-offset-4 transition-colors hover:text-muted-foreground/82"
+          >
+            francozeta
+          </Link>
+        </p>
+      )}
+    </div>
+  );
+}

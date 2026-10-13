@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-import ProfileEditorForm from "@/components/profile-editor-form";
-import SettingsPageFrame from "@/components/settings-page-frame";
+import ProfileEditorForm from "@/components/profile/profile-editor-form";
+import SettingsPageFrame from "@/components/settings/settings-page-frame";
 import { getCurrentViewerProfile } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/metadata";
 

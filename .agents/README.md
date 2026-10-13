@@ -6,6 +6,10 @@ path, and recorded upstream hash). Read `../AGENTS.md` and `../CURRENT.md` first
 skills do not override Kocteau's product decisions or authorize unrelated changes.
 
 Load only the skills relevant to the task, then follow their referenced guidance.
+Find and read the owning flow README using the [component map](../docs/components.md)
+before implementation.
+[Working context](../docs/working-context.md) keeps handoffs and durable decisions
+in repository documents that every contributor can read.
 
 | Work | Starting points |
 | --- | --- |

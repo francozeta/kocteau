@@ -1,96 +1,127 @@
-# Local Development Setup
+# Local Development
 
-[Docs index](../README.md) | [Environment and secrets](../security/environment.md) | [Operations](../operations.md) | [Contributing](../../CONTRIBUTING.md)
+[Docs](../README.md) | [Environment](../security/environment.md) | [Contributing](../../CONTRIBUTING.md) | [Supabase workflow](../maintainers/supabase-workflow.md)
 
-Kocteau is local-first for contributors. A fresh checkout should run against a local Supabase stack and should not require production credentials.
+Contributors use local Supabase. A checkout must not require production credentials.
+An existing maintainer cloud environment follows the separate Supabase workflow;
+fetching code does not authorize cloud migrations or resets.
 
-## Requirements
+## Runtime
 
-- Node.js compatible with the repo lockfile
-- pnpm 9.15.3 through Corepack or a local pnpm install
-- Docker Desktop running before starting Supabase
+- Use the Node version in [`.node-version`](../../.node-version); CI reads this same file.
+- Use the pnpm version in the root [`package.json`](../../package.json) `packageManager` field.
+- Docker Desktop must be installed and running for the local Supabase stack.
+- Supabase CLI is a repository dependency; run the `pnpm supabase:*` scripts.
 
-## Fresh Install
+Check `node --version` and `pnpm --version` before installation. Use an existing
+Corepack setup or install the specified pnpm version; do not regenerate the lockfile
+with a different package manager to get an install past an error.
 
-From the repo root:
+## New Checkout
+
+From the repository root, install dependencies and start local services:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm supabase:start
 pnpm supabase:status
-cp apps/web/.env.example apps/web/.env.local
+```
+
+For a checkout without an environment file, copy `apps/web/.env.example` to
+`apps/web/.env.local`. On PowerShell:
+
+```powershell
+Copy-Item apps/web/.env.example apps/web/.env.local
+```
+
+On macOS/Linux use `cp apps/web/.env.example apps/web/.env.local`.
+Do not overwrite existing overrides. Fill the URL and browser key from local
+Supabase status. For privileged local Studio/worker operations, also fill the
+server-only local secret/service-role key. See [environment variables](../security/environment.md).
+Leave external service credentials blank unless intentionally testing an integration.
+
+Then initialize this disposable local database and run the app:
+
+```bash
 pnpm supabase:reset
 pnpm supabase:types
 pnpm dev:web
 ```
 
-Open `http://localhost:3000`.
+Open [localhost:3000](http://localhost:3000). `/` is the public landing; signed-in
+listeners reach For You at `/feed`. The local email inbox shown by Supabase status,
+normally [localhost:54324](http://127.0.0.1:54324), captures six-digit OTP codes for
+`/login` and `/signup`.
 
-`pnpm supabase:status` prints the local API URL and local anon key. Put those local values in `apps/web/.env.local`:
+`supabase:reset` deletes local database data, replays migrations, and loads the
+deterministic seeds in `supabase/config.toml`. Seeds contain product configuration
+(tags, collections, starter picks), not users, reviews, or engagement.
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<local anon key from supabase status>
-```
+## Returning Device
 
-The exact public key variable name can evolve, but the rule should not: browser-safe Supabase keys must live in `NEXT_PUBLIC_*` for web, and privileged keys must never be committed or pasted into chat.
-
-## Local OTP Email
-
-Local Supabase does not send production email. OTP messages appear in the local email UI printed by `pnpm supabase:status`, normally:
-
-```text
-http://127.0.0.1:54324
-```
-
-Use the 6-digit code from that inbox when testing `/login` or `/signup`.
-
-## Database Reset
-
-Use this whenever migrations or seeds change:
+Read AGENTS.md, CURRENT.md, and the linked issue/PR before continuing an active task.
+Inspect the checkout, other worktrees, and newly fetched history:
 
 ```bash
-pnpm supabase:reset
+git status --short --branch
+git worktree list
+git fetch --all --prune --tags
+git log -10 --oneline --decorate origin/main
+git branch -vv
 ```
 
-That applies `supabase/migrations` in order and then loads the deterministic seed files listed in `supabase/config.toml`.
-
-The seed path intentionally contains only product configuration:
-
-- preference tags
-- editorial starter collection
-- starter tracks and starter track tags
-
-It does not create users, reviews, likes, bookmarks, comments, follows, notifications, or analytics events.
-
-## Schema Changes
-
-For future schema work:
+When the checkout is clean, update the integrated baseline with:
 
 ```bash
-pnpm supabase:migration:new descriptive_name
-pnpm supabase:reset
-pnpm supabase:lint
-pnpm supabase:types
+git switch main
+git merge --ff-only origin/main
 ```
 
-Every migration must include RLS and explicit grants for exposed tables, views, and RPCs. Public read access still needs both a policy and a grant.
+Continue an existing task branch against its own upstream, or create a conventional
+task branch from main. Preserve local commits and edits first. A failed fast-forward
+means histories diverged; inspect rather than resetting. Open PR branches remain
+review work and should not be merged just to synchronize a laptop.
 
-This local flow is contributor-safe and Docker-backed. Maintainers deploying to Supabase Cloud should use the separate [Supabase maintainer workflow](../maintainers/supabase-workflow.md).
+Run `pnpm install --frozen-lockfile` after updating. Preserve existing environment
+files and compare variable names with `.env.example` without sharing values.
+Development overrides such as `.env.development.local` can supersede `.env.local`;
+review both when the app reaches the wrong environment.
 
-## Maintenance Scripts
-
-Fresh installs should not run anything in `supabase/scripts/maintenance`.
-
-Those files are old, destructive, or environment-specific operator scripts. Review them with a maintainer before running them anywhere.
+For local Supabase, compare migrations before restarting or resetting. Reset only
+a disposable local database whose data can be discarded. Generate types from the
+schema actually being verified and inspect their diff; do not substitute cloud
+types for a local schema. Report code, dependency, database, and manual-flow readiness
+separately.
 
 ## Checks
 
-Before opening a web PR:
+```bash
+pnpm check
+git diff --check
+```
+
+The combined check validates documentation, runs unit tests, workspace lint, and the web build with TypeScript
+validation. These checks need dependencies and web configuration, but do not require
+a running local database. They do not prove that database permissions or OTP work.
+
+For database changes, additionally run on the disposable local stack:
 
 ```bash
 pnpm supabase:lint
-pnpm --filter web lint
-pnpm --filter web build
-git diff --check
+pnpm exec supabase test db
+pnpm supabase:types
 ```
+
+RLS regression instructions are in [supabase/tests/rls](../../supabase/tests/rls/README.md).
+For the affected flow, verify signed-out, authenticated, and denied-role behavior.
+
+## Optional Tools And Troubleshooting
+
+- Without Docker, web tests/lint/build can still run. Local Supabase, migration
+  resets, SQL tests, and local OTP remain unverified; do not replace them with production.
+- Gateway context is optional and needs its own server credential. Manual curation
+  remains available without it; see [Studio rollout](../operations.md#studio-gateway-context-rollout).
+- `pnpm --filter web email:dev` previews email templates; k6 belongs to the
+  separate [load-readiness workflow](../load-readiness.md).
+- Fresh installs do not run `supabase/scripts/maintenance`; those are reviewed,
+  target-specific operator tools. `pnpm supabase:stop` stops the local stack.

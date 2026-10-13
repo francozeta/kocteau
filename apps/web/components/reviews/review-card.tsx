@@ -1,0 +1,464 @@
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import EntityCoverImage from "@/components/music/entity-cover-image";
+import { KocteauReviewsIcon } from "@/components/icons/kocteau-icons";
+import ReviewCardBody from "@/components/reviews/review-card-body";
+import UserAvatar from "@/components/profile/user-avatar";
+import { cn } from "@/lib/utils";
+
+export type ReviewCardEntity = {
+  id: string;
+  provider?: string;
+  provider_id?: string;
+  type?: string;
+  title: string;
+  artist_name: string | null;
+  cover_url: string | null;
+  deezer_url?: string | null;
+};
+
+export type ReviewCardAuthor = {
+  id?: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
+export type ReviewCardCopyTone = "default" | "balanced";
+
+export type ReviewCardData = {
+  id: string;
+  title: string | null;
+  body: string | null;
+  rating: number;
+  likes_count: number;
+  comments_count: number;
+  created_at: string;
+  is_pinned?: boolean;
+  viewer_has_liked?: boolean;
+  viewer_has_bookmarked?: boolean;
+};
+
+export type ReviewCardDisplayOptions = {
+  showAuthor?: boolean;
+  showEntity?: boolean;
+  showRatingBadge?: boolean;
+  entityMode?: "full" | "inline" | "cover";
+  entityHeadingLevel?: 1 | 2 | 3;
+  eyebrow?: string;
+  featured?: boolean;
+  imagePriority?: boolean;
+  bodyClampLines?: 3 | 4 | 5;
+};
+
+export type ReviewCardSlots = {
+  authorName?: ReactNode;
+  entity?: ReactNode;
+  entityCover?: ReactNode;
+  headerActions?: ReactNode;
+  footer?: ReactNode;
+};
+
+export type ReviewCardEntitySummaryProps = {
+  entity: ReviewCardEntity | null;
+  mode: "full" | "inline" | "cover";
+  interactive?: boolean;
+  className?: string;
+  priority?: boolean;
+  tone?: ReviewCardCopyTone;
+  headingLevel?: 1 | 2 | 3;
+};
+
+type ReviewCardProps = {
+  review: ReviewCardData;
+  entity: ReviewCardEntity | null;
+  author?: ReviewCardAuthor | null;
+  display?: ReviewCardDisplayOptions;
+  slots?: ReviewCardSlots;
+  rootProps?: ComponentPropsWithoutRef<"article">;
+  reviewHref?: string | null;
+  reviewLinkLabel?: string;
+};
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function getAuthorLabel(author: ReviewCardAuthor | null | undefined) {
+  return author?.display_name ?? (author ? `@${author.username}` : "Unknown user");
+}
+
+export function getReviewCardCopyTone(review: ReviewCardData): ReviewCardCopyTone {
+  const bodyLength = review.body?.trim().length ?? 0;
+  const titleLength = review.title?.trim().length ?? 0;
+
+  if (bodyLength > 240 || titleLength > 64) {
+    return "balanced";
+  }
+
+  return "default";
+}
+
+export function ReviewCardEntitySummary({
+  entity,
+  mode,
+  interactive = false,
+  className,
+  priority = false,
+  tone = "default",
+  headingLevel,
+}: ReviewCardEntitySummaryProps) {
+  if (!entity) {
+    return null;
+  }
+
+  if (mode === "cover") {
+    const EntityTitle =
+      headingLevel === 1 ? "h1" : headingLevel === 2 ? "h2" : headingLevel === 3 ? "h3" : "p";
+
+    return (
+      <div
+        className={cn(
+          "min-w-0 space-y-1 text-pretty",
+          className,
+        )}
+      >
+        <EntityTitle
+          className={cn(
+            "line-clamp-2 font-heading font-medium tracking-normal text-foreground",
+            tone === "balanced"
+              ? "text-[1.12rem] leading-[1.1] sm:text-[1.28rem]"
+              : "text-[1.2rem] leading-[1.08] sm:text-[1.38rem]",
+          )}
+        >
+          {entity.title}
+        </EntityTitle>
+        <p
+          className={cn(
+            "line-clamp-1 text-muted-foreground/88",
+            tone === "balanced" ? "text-[13.5px] sm:text-[14px]" : "text-[14px] sm:text-[14.5px]",
+          )}
+        >
+          {entity.artist_name ?? "Unknown artist"}
+        </p>
+      </div>
+    );
+  }
+
+  if (mode === "inline") {
+    return (
+      <div
+        className={cn(
+          "inline-flex max-w-full items-center gap-2 rounded-lg bg-background/30 px-2.5 py-1.5 text-sm text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] md:bg-background/24",
+          interactive && "transition-colors hover:bg-muted/22 hover:text-foreground active:bg-muted/28 md:hover:bg-muted/16 md:active:bg-muted/22",
+          className,
+        )}
+      >
+        <EntityCoverImage
+          src={entity.cover_url}
+          alt={entity.title}
+          sizes="24px"
+          priority={priority}
+          quality={56}
+        className="h-6 w-6 shrink-0 rounded-full bg-muted"
+          iconClassName="size-3"
+        />
+        <span className="truncate font-heading text-[15px] font-medium text-foreground">{entity.title}</span>
+        <span className="truncate text-muted-foreground/70">{entity.artist_name ?? "Unknown artist"}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "-mx-1 flex items-center gap-3 rounded-lg px-1 py-1.5",
+        interactive && "transition-colors hover:bg-muted/16 active:bg-muted/22",
+        className,
+      )}
+    >
+      <EntityCoverImage
+        src={entity.cover_url}
+        alt={entity.title}
+        sizes="44px"
+        priority={priority}
+        className="h-11 w-11 shrink-0 rounded-md border border-border/34 bg-muted/42 max-md:border-transparent md:border-border/28 md:bg-muted/34"
+        iconClassName="size-4"
+      />
+
+      <div className="min-w-0 space-y-0.5">
+        <p className="line-clamp-1 font-heading text-[1rem] font-medium text-foreground">{entity.title}</p>
+        <p className="line-clamp-1 text-[13px] text-muted-foreground">
+          {entity.artist_name ?? "Unknown artist"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function ReviewCardEntityCover({
+  entity,
+  className,
+  priority = false,
+}: {
+  entity: ReviewCardEntity | null;
+  className?: string;
+  priority?: boolean;
+}) {
+  if (!entity) {
+    return null;
+  }
+
+  return (
+    <EntityCoverImage
+      src={entity.cover_url}
+      alt={entity.title}
+      sizes="(max-width: 639px) 104px, (max-width: 1023px) 144px, 156px"
+      priority={priority}
+      quality={86}
+      variant="card"
+      className={cn(
+        "aspect-square w-full rounded-[0.78rem] border border-white/[0.055] bg-muted/16 shadow-none",
+        className,
+      )}
+      iconClassName="size-8"
+    />
+  );
+}
+
+function ReviewRatingStars({ rating, className }: { rating: number; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1 text-foreground tabular-nums",
+        className,
+      )}
+      aria-label={`Rating ${rating.toFixed(1)} out of 5`}
+    >
+      <span className="flex items-center gap-0.5" aria-hidden="true">
+        {Array.from({ length: 5 }).map((_, index) => {
+          const starNumber = index + 1;
+          const fillPercent =
+            rating >= starNumber ? 100 : rating >= starNumber - 0.5 ? 50 : 0;
+
+          return (
+            <span key={starNumber} className="relative block size-2.5 overflow-hidden sm:size-3 md:size-3.5">
+              <KocteauReviewsIcon
+                className="absolute inset-0 size-full text-muted-foreground/30"
+                weight="regular"
+              />
+              <span
+                className="absolute inset-y-0 left-0 overflow-hidden"
+                style={{ width: `${fillPercent}%` }}
+              >
+                <KocteauReviewsIcon
+                  className="size-2.5 text-foreground sm:size-3 md:size-3.5"
+                  weight="fill"
+                />
+              </span>
+            </span>
+          );
+        })}
+      </span>
+      <span className="text-[11px] font-medium leading-none text-muted-foreground/86 sm:text-[11.5px] md:text-xs">
+        {rating.toFixed(1)}
+      </span>
+    </div>
+  );
+}
+
+export default function ReviewCard({
+  review,
+  entity,
+  author = null,
+  display,
+  slots,
+  rootProps,
+  reviewHref = null,
+  reviewLinkLabel = "Open review",
+}: ReviewCardProps) {
+  const {
+    showAuthor = true,
+    showEntity = true,
+    showRatingBadge = true,
+    entityMode = "full",
+    entityHeadingLevel,
+    eyebrow,
+    featured = false,
+    bodyClampLines,
+  } = display ?? {};
+  const { className, ...articleProps } = rootProps ?? {};
+  const hasTitle = Boolean(review.title?.trim());
+  const authorLabel = getAuthorLabel(author);
+  const headerActions = slots?.headerActions;
+  const footer = slots?.footer;
+  const isCoverLedEntity = showEntity && entityMode === "cover" && entity;
+  const copyTone = getReviewCardCopyTone(review);
+  const usesBalancedCopy = copyTone === "balanced";
+
+  return (
+    <article
+      {...articleProps}
+      className={cn(
+        "kocteau-review-card kocteau-review-card-editorial relative isolate overflow-hidden rounded-[var(--kocteau-radius-card)]",
+        reviewHref && "cursor-pointer",
+        featured && "kocteau-review-card-featured",
+        className,
+      )}
+    >
+      {reviewHref ? (
+        <Link
+          href={reviewHref}
+          aria-label={reviewLinkLabel}
+          className="absolute inset-0 z-[1] rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-ring/38 focus-visible:ring-inset"
+        />
+      ) : null}
+
+      <div className="space-y-3.5 py-3.5 sm:py-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-2">
+            {eyebrow ? (
+              <p className="text-[12px] font-medium leading-none text-muted-foreground/70">
+                {eyebrow}
+              </p>
+            ) : null}
+
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+              {showAuthor ? (
+                <>
+                  <UserAvatar
+                    avatarUrl={author?.avatar_url}
+                    displayName={author?.display_name ?? null}
+                    username={author?.username ?? null}
+                    size="sm"
+                    sizes="24px"
+                    className="size-6"
+                  />
+
+                  {slots?.authorName ?? (
+                    <span className="text-[13px] font-medium text-foreground">{authorLabel}</span>
+                  )}
+
+                  <span className="text-muted-foreground/50">•</span>
+                </>
+              ) : null}
+
+              <span>{formatDate(review.created_at)}</span>
+              {review.is_pinned ? (
+                <Badge variant="outline" className="h-5 rounded-md border-border/40 px-1.5 text-[10px]">
+                  Pinned
+                </Badge>
+              ) : null}
+            </div>
+          </div>
+
+          {showRatingBadge || headerActions ? (
+            <div className="flex shrink-0 items-center gap-3 pr-1">
+              {showRatingBadge && !isCoverLedEntity ? (
+                <ReviewRatingStars rating={review.rating} className="hidden sm:flex" />
+              ) : null}
+              {headerActions ? (
+                <div data-prevent-review-link="true" className="relative z-[2] flex items-center">
+                  {headerActions}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        {isCoverLedEntity ? (
+          <>
+            <div
+              className={cn(
+                "grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-3.5 sm:grid-cols-[7.25rem_minmax(0,1fr)] lg:grid-cols-[7.75rem_minmax(0,1fr)] lg:gap-4",
+                featured && "grid-cols-[6.25rem_minmax(0,1fr)] sm:grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[8.5rem_minmax(0,1fr)]",
+              )}
+            >
+              <div className="min-w-0">
+                {slots?.entityCover ?? <ReviewCardEntityCover entity={entity} priority={featured} />}
+              </div>
+
+              <div className="flex min-w-0 items-center justify-start self-center">
+                <div className={cn("min-w-0 max-w-[26rem]", usesBalancedCopy ? "space-y-2.5" : "space-y-3")}>
+                  {slots?.entity ?? (
+                    <ReviewCardEntitySummary
+                      entity={entity}
+                      mode="cover"
+                      tone={copyTone}
+                      headingLevel={entityHeadingLevel}
+                    />
+                  )}
+                  {showRatingBadge ? (
+                    <ReviewRatingStars rating={review.rating} className="mt-2" />
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className={cn("space-y-2", usesBalancedCopy ? "pt-0.5" : "pt-1")}>
+              {hasTitle ? (
+                <h3
+                  className={cn(
+                    "font-heading text-pretty font-medium leading-tight text-foreground",
+                    usesBalancedCopy ? "text-[1.02rem] sm:text-[1.12rem]" : "text-[1.12rem] sm:text-[1.24rem]",
+                  )}
+                >
+                  {review.title}
+                </h3>
+              ) : null}
+
+              {review.body ? (
+                <ReviewCardBody
+                  body={review.body}
+                  clampLines={bodyClampLines}
+                  className={cn(
+                    "font-sans text-pretty text-foreground/84",
+                    usesBalancedCopy
+                      ? "text-[14px] leading-[1.62] sm:text-[14.45px]"
+                      : "text-[14.35px] leading-[1.6] sm:text-[14.8px]",
+                  )}
+                />
+              ) : (
+                <p className="text-[13.5px] leading-6 text-muted-foreground/78">Only a rating was left for this track.</p>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {showEntity ? slots?.entity ?? <ReviewCardEntitySummary entity={entity} mode={entityMode} /> : null}
+
+            {hasTitle ? (
+              <h3 className="font-heading text-[1.08rem] font-medium text-pretty text-foreground sm:text-[1.18rem]">
+                {review.title}
+              </h3>
+            ) : null}
+
+            {review.body ? (
+              <ReviewCardBody
+                body={review.body}
+                clampLines={bodyClampLines}
+                className="font-sans text-[14.45px] leading-[1.6] text-pretty text-foreground/84"
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground/78">Only a rating was left for this track.</p>
+            )}
+          </>
+        )}
+
+        {footer ? (
+          <div
+            data-prevent-review-link="true"
+            className="relative z-[2] flex w-full items-center gap-3 pt-0.5"
+          >
+            {footer}
+          </div>
+        ) : null}
+      </div>
+    </article>
+  );
+}
