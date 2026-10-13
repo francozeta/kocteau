@@ -7,7 +7,7 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 [Issue #206](https://github.com/francozeta/kocteau/issues/206) coordinates Studio phases.
 
-## Integrated And Local Work
+## Integrated And In-Review Work
 
 - PR #209 integrated selection-driven research and optional Gateway context;
   PR #210 added context progress motion. Human choices and the normal save
@@ -16,20 +16,21 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   `feat/studio-source-scout`; source scouting and direct routing are review work.
   [Release PR #202](https://github.com/francozeta/kocteau/pull/202) remains open;
   the released version is v0.3.15.
-- Maintenance commits 5c5e6fc and b014cb3 remain unpublished. Product components
-  have owning flow READMEs; public `/docs` builds from canonical Markdown.
-- Local commits a3383a3 and 1915e23 on `fix/app-audit-continuity` protect auth
+- [PR #212](https://github.com/francozeta/kocteau/pull/212) includes maintenance
+  commits 5c5e6fc and b014cb3 plus the app audit. Product components have owning
+  flow READMEs; public `/docs` builds from canonical Markdown.
+- Published commits a3383a3 and 1915e23 in PR #212 protect auth
   return paths and guest draft recovery, preserve responsive composer sessions,
   fix keyboard rating/shortcut behavior and URL-triggered composition, and remove
   four unused components/context files. The cleanup removes 269 net lines.
   [Audit and cleanup evidence](./.plan/app-audit-continuity.md) records the scope.
-  These changes are committed locally and have not been published or deployed.
+  The PR remains in review; remote checks and deployment verification are pending.
 
 ## Verification And Limits
 
 - 115 web unit tests, web lint, production build with TypeScript, documentation
   checks (33 guides, 148 repository links), and diff checks pass. Node and pnpm
-  match the pinned versions; installation and remote CI were not rerun.
+  match the pinned versions. Remote CI is running on the published PR.
 - Local production HTTP checks covered public pages, signed-out feed/Studio,
   private API denial, callback sanitization, and preservation of the draft return
   path. Browser checks at 1280px/390px covered composer state across breakpoints,
@@ -51,8 +52,8 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Next Priority
 
-Review and publish the local audit/maintenance work through the normal review
-flow. Verify guest draft → OTP/onboarding → restored composer → publish, plus
+Complete PR #212 checks and integration. Verify guest draft → OTP/onboarding →
+restored composer → publish, plus
 real authenticated editing, on a disposable local stack and matching deployment.
 
 Reconcile the unpublished failure-recovery migration and Studio file moves with

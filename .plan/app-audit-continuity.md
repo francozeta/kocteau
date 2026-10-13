@@ -1,7 +1,8 @@
 # App Audit And Working Context
 
 Baseline: `b014cb3`, based on integrated `origin/main` at `83fa943`.
-Local task: `fix/app-audit-continuity`; commits `a3383a3` and `1915e23`, pending publication and review.
+Task: `fix/app-audit-continuity`; commits `a3383a3` and `1915e23` are published in
+[PR #212](https://github.com/francozeta/kocteau/pull/212), pending integration.
 Verified evidence belongs in [CURRENT.md](../CURRENT.md). Studio coordination
 remains in [issue #206](https://github.com/francozeta/kocteau/issues/206).
 
