@@ -308,7 +308,7 @@ export default function AppSidebar({
                 </SidebarHeaderAction>
                 <SidebarHeaderAction
                   label="Create new review"
-                  shortcut="C"
+                  shortcut="N"
                   emphasis
                   onClick={openNewReview}
                 >

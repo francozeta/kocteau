@@ -12,20 +12,12 @@ import {
 import dynamic from "next/dynamic";
 import { FaDeezer } from "react-icons/fa";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import type { NewReviewFormProps, NewReviewFormStep } from "@/components/reviews/new-review-form";
-import { DialogDescription } from "@/components/ui/dialog";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ReviewComposerSession } from "./review-composer-session";
+import ReviewComposerSurface from "./review-composer-surface";
 import {
   ComposeChevronLeftIcon,
   ComposeDesktopChevronLeftIcon,
@@ -40,25 +32,21 @@ const NewReviewForm = dynamic<NewReviewFormProps>(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-full min-h-[20rem] items-center justify-center p-6">
-        <div className="size-5 animate-spin rounded-full border border-border/60 border-t-foreground" />
+      <div className="flex h-full min-h-[20rem] flex-col gap-6 p-5" aria-hidden="true">
+        <Skeleton className="h-11 w-full animate-none" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="size-16 shrink-0 animate-none rounded-lg" />
+          <Skeleton className="h-4 w-40 animate-none" />
+        </div>
+        <Skeleton className="h-7 w-36 animate-none" />
+        <Skeleton className="h-32 w-full animate-none" />
       </div>
     ),
   },
 );
 
-type InitialSelection = {
-  provider: "deezer";
-  provider_id: string;
-  type: "track";
-  title: string;
-  artist_name: string | null;
-  cover_url: string | null;
-  deezer_url: string | null;
-  entity_id?: string | null;
-};
+type InitialSelection = NonNullable<NewReviewFormProps["initialSelection"]>;
 
-type HeaderSelection = NonNullable<NewReviewFormProps["initialSelection"]>;
 type NewReviewDialogTriggerVariant = "default" | "search";
 type NewReviewDialogIntent = "review" | "search";
 
@@ -100,7 +88,6 @@ export default function NewReviewDialog({
   redirectToOnSuccess?: string | null;
 }) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -140,12 +127,12 @@ export default function NewReviewDialog({
   const [formStep, setFormStep] = useState<NewReviewFormStep>(
     isSearchIntent ? "search" : resolvedInitialSelection ? "compose" : "search",
   );
-  const [headerSelection, setHeaderSelection] = useState<HeaderSelection | null>(resolvedInitialSelection);
+  const [headerSelection, setHeaderSelection] = useState<InitialSelection | null>(resolvedInitialSelection);
   const headerBackActionRef = useRef<(() => void) | null>(null);
   const dialogTitle = isSearchIntent ? "Search" : formStep === "search" ? "Find a track" : "Write review";
   const resolvedTriggerShortcut =
     triggerShortcut === undefined && triggerVariant === "search" && !isSearchIntent
-      ? "C"
+      ? "N"
       : triggerShortcut;
 
   const clearComposeParams = useCallback(() => {
@@ -188,7 +175,7 @@ export default function NewReviewDialog({
     }
   }
 
-  const handleSelectionChange = useCallback((selection: HeaderSelection | null) => {
+  const handleSelectionChange = useCallback((selection: InitialSelection | null) => {
     setHeaderSelection(selection);
   }, []);
 
@@ -227,7 +214,7 @@ export default function NewReviewDialog({
     );
   }
 
-  const baseTrigger = trigger ?? (
+  const resolvedTrigger = trigger ?? (
     triggerVariant === "search" ? (
       <button
         type="button"
@@ -262,17 +249,6 @@ export default function NewReviewDialog({
     )
   );
 
-  const resolvedTrigger = baseTrigger;
-  const closeButton = (
-    <button
-      type="button"
-      onClick={() => handleOpenChange(false)}
-      className="inline-flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.065] px-2 text-[10px] font-medium text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/[0.11] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-      aria-label="Close review composer"
-    >
-      Esc
-    </button>
-  );
   const headerTrackAction =
     !isSearchIntent && formStep === "compose" && headerSelection?.deezer_url ? (
       <Button
@@ -303,111 +279,42 @@ export default function NewReviewDialog({
     </Button>
   ) : null;
 
-  if (isMobile) {
-    return (
-      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
-        {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
-
-        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border border-b-0 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none before:hidden data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
-          <div className="flex h-full min-h-0 flex-col">
-            <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
-              <div className="relative flex min-h-7 items-center">
-                <div className="z-10 flex min-w-9 items-center justify-start">
-                  {headerBackButton}
-                </div>
-                <DrawerTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
-                  {dialogTitle}
-                </DrawerTitle>
-                <div className="z-10 ml-auto flex items-center gap-3">
-                  {!isSearchIntent ? renderStepDots() : null}
-                </div>
-              </div>
-              <DrawerDescription className="sr-only">
-                {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="min-h-0 flex-1 overflow-hidden">
-              <NewReviewForm
-                intent={intent}
-                isAuthenticated={isAuthenticated}
-                onBackActionChange={handleBackActionChange}
-                onSelectionChange={handleSelectionChange}
-                onStepChange={setFormStep}
-                showCancelAction={false}
-                primaryActionFullWidth
-                initialQuery={resolvedInitialQuery}
-                initialSelection={resolvedInitialSelection}
-                initialRating={resolvedInitialRating}
-                initialTitle={resolvedInitialTitle}
-                initialBody={resolvedInitialBody}
-                redirectToOnSuccess={redirectToOnSuccess}
-                onSearchResultOpen={() => handleOpenChange(false)}
-                onCancel={() => handleOpenChange(false)}
-                onSuccess={(payload) => {
-                  handleOpenChange(false);
-                  onSuccess?.(payload);
-                }}
-              />
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
+  const formProps: NewReviewFormProps = {
+    intent,
+    isAuthenticated,
+    onBackActionChange: handleBackActionChange,
+    onSelectionChange: handleSelectionChange,
+    onStepChange: setFormStep,
+    showCancelAction: false,
+    initialQuery: resolvedInitialQuery,
+    initialSelection: resolvedInitialSelection,
+    initialRating: resolvedInitialRating,
+    initialTitle: resolvedInitialTitle,
+    initialBody: resolvedInitialBody,
+    redirectToOnSuccess,
+    onSearchResultOpen: () => handleOpenChange(false),
+    onCancel: () => handleOpenChange(false),
+    onSuccess: (payload) => {
+      handleOpenChange(false);
+      onSuccess?.(payload);
+    },
+  };
 
   return (
-    <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
-      {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
-
-      <DialogContent
-        showCloseButton={false}
-        className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none"
+    <ReviewComposerSession open={resolvedOpen} initial={formProps}>
+      <ReviewComposerSurface
+        open={resolvedOpen}
+        onOpenChange={handleOpenChange}
+        trigger={showTrigger ? resolvedTrigger : undefined}
+        title={dialogTitle}
+        description={isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
+        closeLabel="Close review composer"
+        leadingAction={headerBackButton}
+        trackAction={headerTrackAction}
+        progress={!isSearchIntent ? renderStepDots() : null}
       >
-        <div className="flex h-full min-h-0 flex-col">
-          <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
-            <div className="relative flex min-h-7 items-center">
-              <div className="z-10 flex min-w-9 items-center justify-start">
-                {headerBackButton}
-              </div>
-              <DialogTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
-                {dialogTitle}
-              </DialogTitle>
-              <div className="z-10 ml-auto flex items-center gap-3">
-                {headerTrackAction}
-                {!isSearchIntent ? renderStepDots() : null}
-                {closeButton}
-              </div>
-            </div>
-            <DialogDescription className="sr-only">
-              {isSearchIntent ? "Search for tracks on Kocteau." : "Create or publish a review."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <NewReviewForm
-              intent={intent}
-              isAuthenticated={isAuthenticated}
-              onBackActionChange={handleBackActionChange}
-              onSelectionChange={handleSelectionChange}
-              onStepChange={setFormStep}
-              showCancelAction={false}
-              initialQuery={resolvedInitialQuery}
-              initialSelection={resolvedInitialSelection}
-              initialRating={resolvedInitialRating}
-              initialTitle={resolvedInitialTitle}
-              initialBody={resolvedInitialBody}
-              redirectToOnSuccess={redirectToOnSuccess}
-              onSearchResultOpen={() => handleOpenChange(false)}
-              onCancel={() => handleOpenChange(false)}
-              onSuccess={(payload) => {
-                handleOpenChange(false);
-                onSuccess?.(payload);
-              }}
-            />
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        <NewReviewForm {...formProps} />
+      </ReviewComposerSurface>
+    </ReviewComposerSession>
   );
 }

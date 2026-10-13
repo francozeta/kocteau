@@ -4,25 +4,10 @@ import { startTransition, useState } from "react";
 import { FaDeezer } from "react-icons/fa";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PencilLine } from "@/components/ui/icons";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import NewReviewForm from "@/components/reviews/new-review-form";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ReviewComposerSession } from "./review-composer-session";
+import ReviewComposerSurface from "./review-composer-surface";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 
@@ -85,7 +70,6 @@ export default function EditReviewDialog({
   initialPinned = false,
 }: EditReviewDialogProps) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -121,16 +105,6 @@ export default function EditReviewDialog({
         {triggerLabel}
       </Button>
     );
-  const closeButton = (
-    <button
-      type="button"
-      onClick={() => handleOpenChange(false)}
-      className="inline-flex h-6 min-w-8 shrink-0 items-center justify-center rounded-md bg-foreground/[0.065] px-2 text-[10px] font-medium text-muted-foreground transition-colors duration-150 ease-out hover:bg-foreground/[0.11] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-      aria-label="Close review editor"
-    >
-      Esc
-    </button>
-  );
   const headerTrackAction = initialSelection.deezer_url ? (
     <Button
       asChild
@@ -146,74 +120,32 @@ export default function EditReviewDialog({
     </Button>
   ) : null;
 
-  if (isMobile) {
-    return (
-      <Drawer open={resolvedOpen} onOpenChange={handleOpenChange} repositionInputs={false}>
-        {showTrigger ? <DrawerTrigger asChild>{resolvedTrigger}</DrawerTrigger> : null}
-
-        <DrawerContent className="flex h-[100dvh] min-h-[100svh] max-h-[100dvh] flex-col overflow-hidden rounded-t-[1.1rem] border border-b-0 border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none before:hidden data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:bottom-auto data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
-          <DrawerHeader className="shrink-0 border-b border-border/20 px-4 py-3 text-left">
-            <div className="relative flex min-h-7 items-center">
-              <DrawerTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
-                Edit review
-              </DrawerTitle>
-            </div>
-            <DrawerDescription className="sr-only">Edit your review.</DrawerDescription>
-          </DrawerHeader>
-
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <NewReviewForm
-              mode="edit"
-              reviewId={reviewId}
-              initialSelection={initialSelection}
-              initialTitle={initialTitle}
-              initialBody={initialBody}
-              initialRating={initialRating}
-              initialPinned={initialPinned}
-              showCancelAction={false}
-              primaryActionFullWidth
-              onCancel={() => handleOpenChange(false)}
-              onSuccess={() => handleOpenChange(false)}
-            />
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
+  const formProps = {
+    mode: "edit" as const,
+    reviewId,
+    initialSelection,
+    initialTitle,
+    initialBody,
+    initialRating,
+    initialPinned,
+    showCancelAction: false,
+    onCancel: () => handleOpenChange(false),
+    onSuccess: () => handleOpenChange(false),
+  };
 
   return (
-    <Dialog open={resolvedOpen} onOpenChange={handleOpenChange}>
-      {showTrigger ? <DialogTrigger asChild>{resolvedTrigger}</DialogTrigger> : null}
-
-      <DialogContent showCloseButton={false} className="flex h-[min(88vh,46rem)] w-[min(100vw-1.5rem,44rem)] flex-col overflow-hidden rounded-[1rem] border border-border/24 bg-[var(--kocteau-surface)] p-0 shadow-none">
-        <DialogHeader className="border-b border-border/20 bg-[var(--kocteau-surface)] px-4 py-3">
-          <div className="relative flex min-h-7 items-center">
-            <DialogTitle className="pointer-events-none absolute left-1/2 max-w-[62%] -translate-x-1/2 truncate text-center text-sm font-semibold">
-              Edit review
-            </DialogTitle>
-            <div className="z-10 ml-auto flex items-center gap-3">
-              {headerTrackAction}
-              {closeButton}
-            </div>
-          </div>
-          <DialogDescription className="sr-only">Edit your review.</DialogDescription>
-        </DialogHeader>
-
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <NewReviewForm
-            mode="edit"
-            reviewId={reviewId}
-            initialSelection={initialSelection}
-            initialTitle={initialTitle}
-            initialBody={initialBody}
-            initialRating={initialRating}
-            initialPinned={initialPinned}
-            showCancelAction={false}
-            onCancel={() => handleOpenChange(false)}
-            onSuccess={() => handleOpenChange(false)}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ReviewComposerSession open={resolvedOpen} initial={formProps}>
+      <ReviewComposerSurface
+        open={resolvedOpen}
+        onOpenChange={handleOpenChange}
+        trigger={showTrigger ? resolvedTrigger : undefined}
+        title="Edit review"
+        description="Edit your review."
+        closeLabel="Close review editor"
+        trackAction={headerTrackAction}
+      >
+        <NewReviewForm {...formProps} />
+      </ReviewComposerSurface>
+    </ReviewComposerSession>
   );
 }

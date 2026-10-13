@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { KocteauReviewsIcon } from "@/components/icons/kocteau-icons";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ export default function RatingStars({
   max = 5,
 }: RatingStarsProps) {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
+  const starRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const activeValue = hoverValue ?? value ?? 0;
 
@@ -44,7 +45,8 @@ export default function RatingStars({
     starIndex: number
   ) => {
     if (disabled) return;
-    onChange(getValueFromPointer(e, starIndex));
+    setHoverValue(null);
+    onChange(e.detail === 0 ? starIndex + 1 : getValueFromPointer(e, starIndex));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -52,25 +54,17 @@ export default function RatingStars({
 
     const current = value ?? 0;
 
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
-      e.preventDefault();
-      onChange(Math.min(max, current + 0.5));
-    }
+    let next: number;
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") next = Math.min(max, current + 0.5);
+    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = Math.max(0.5, current - 0.5);
+    else if (e.key === "Home") next = 0.5;
+    else if (e.key === "End") next = max;
+    else return;
 
-    if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
-      e.preventDefault();
-      onChange(Math.max(0.5, current - 0.5));
-    }
-
-    if (e.key === "Home") {
-      e.preventDefault();
-      onChange(0.5);
-    }
-
-    if (e.key === "End") {
-      e.preventDefault();
-      onChange(max);
-    }
+    e.preventDefault();
+    setHoverValue(null);
+    onChange(next);
+    starRefs.current[Math.ceil(next) - 1]?.focus();
   };
 
   return (
@@ -94,10 +88,11 @@ export default function RatingStars({
           return (
             <button
               key={i}
+              ref={(node) => { starRefs.current[i] = node; }}
               type="button"
               disabled={disabled}
               className={cn(
-                "relative h-8 w-8 appearance-none overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform",
+                "relative h-8 w-8 appearance-none overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform focus-visible:ring-2 focus-visible:ring-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--kocteau-surface)]",
                 !disabled && "cursor-pointer hover:bg-transparent active:bg-transparent",
                 !disabled && "hover:scale-105",
                 disabled && "cursor-not-allowed opacity-60"
@@ -107,7 +102,8 @@ export default function RatingStars({
               onKeyDown={handleKeyDown}
               role="radio"
               aria-checked={value === starNumber || value === starNumber - 0.5}
-              aria-label={`${starNumber} estrellas`}
+              tabIndex={i === Math.max(0, Math.ceil(value ?? 1) - 1) ? 0 : -1}
+              aria-label={`${value === starNumber - 0.5 ? value : starNumber} ${starNumber === 1 && value !== 0.5 ? "star" : "stars"}`}
             >
               <KocteauReviewsIcon
                 className="absolute inset-0 h-8 w-8 text-muted-foreground/34 transition-colors"

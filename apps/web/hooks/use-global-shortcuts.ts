@@ -81,7 +81,7 @@ export function useGlobalShortcuts() {
         return;
       }
 
-      if (key === "c") {
+      if (key === "n" && !event.shiftKey) {
         event.preventDefault();
         handleOpenCompose();
       }

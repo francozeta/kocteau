@@ -3,9 +3,10 @@
 ## Entry Points
 
 - Composition: `app-shell.tsx`, `app-sidebar.tsx`, `header.tsx`, `mobile-bottom-bar.tsx`.
-- Route state: `route-header-context.tsx`, `secondary-rail-context.tsx`.
+- Route state: `route-header-context.tsx`.
 - Navigation: `nav-*`; loading geometry: `route-loading-skeletons.tsx`.
 - Shortcuts: `global-shortcuts.tsx`; route motion: `app-route-transition.tsx`.
+- The deferred composer mounts on the review event or `compose=1` URL state.
 
 ## Preserve
 

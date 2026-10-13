@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useId, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ComposeChevronRightIcon, LoaderCircle, Search, TrackDiscIcon, X } from "@/components/ui/icons";
@@ -19,6 +19,7 @@ import {
   getPendingReviewDraftLoginPath,
   readPendingReviewDraft,
   savePendingReviewDraft,
+  type PendingReviewDraftSelection,
 } from "@/lib/pending-review-draft";
 import { buildEntityCanonicalPath } from "@/lib/seo-routes";
 import type { StarterTrack } from "@/lib/starter";
@@ -32,24 +33,14 @@ import {
 } from "@/queries/viewer";
 import { feedKeys } from "@/queries/feed";
 import RatingStars from "./rating-stars";
+import {
+  getReviewComposerKey,
+  ReviewComposerSession,
+  useOptionalReviewComposerSession,
+  useReviewComposerSession,
+} from "./review-composer-session";
 
-type DeezerResult = {
-  provider: "deezer";
-  provider_id: string;
-  type: "track";
-  title: string;
-  artist_name: string | null;
-  artist_provider_id?: string | null;
-  artist_picture_url?: string | null;
-  album_provider_id?: string | null;
-  album_title?: string | null;
-  album_deezer_url?: string | null;
-  album_record_type?: string | null;
-  release_date?: string | null;
-  cover_url: string | null;
-  deezer_url: string | null;
-  entity_id?: string | null;
-};
+type DeezerResult = PendingReviewDraftSelection;
 
 type ReviewSubmitError = Error & {
   code?: string;
@@ -75,7 +66,6 @@ export type NewReviewFormProps = {
   onSelectionChange?: (selection: DeezerResult | null) => void;
   onStepChange?: (step: NewReviewFormStep) => void;
   showCancelAction?: boolean;
-  primaryActionFullWidth?: boolean;
   initialQuery?: string;
   initialSelection?: DeezerResult | null;
   initialRating?: number | null;
@@ -86,39 +76,6 @@ export type NewReviewFormProps = {
 };
 
 export type NewReviewFormStep = "search" | "compose";
-
-type ActiveResultState = {
-  key: string;
-  index: number;
-};
-
-function getSelectionKey(selection: DeezerResult | null | undefined) {
-  if (!selection) {
-    return "none";
-  }
-
-  return [
-    selection.provider,
-    selection.provider_id,
-    selection.entity_id ?? "",
-    selection.title,
-    selection.artist_name ?? "",
-  ].join(":");
-}
-
-function getNewReviewFormStateKey(props: NewReviewFormProps) {
-  return [
-    props.mode ?? "create",
-    props.intent ?? "review",
-    props.reviewId ?? "",
-    props.initialQuery ?? "",
-    getSelectionKey(props.initialSelection),
-    props.initialRating ?? "",
-    props.initialTitle ?? "",
-    props.initialBody ?? "",
-    props.initialPinned ? "pinned" : "unpinned",
-  ].join("|");
-}
 
 const defaultFallbackSuggestedSearches = [
   "Radiohead",
@@ -237,7 +194,9 @@ function TrackResultSkeleton() {
 }
 
 export default function NewReviewForm(props: NewReviewFormProps) {
-  return <NewReviewFormState key={getNewReviewFormStateKey(props)} {...props} />;
+  const session = useOptionalReviewComposerSession();
+  const form = <NewReviewFormState key={getReviewComposerKey(props)} {...props} />;
+  return session ? form : <ReviewComposerSession open initial={props}>{form}</ReviewComposerSession>;
 }
 
 function NewReviewFormState({
@@ -252,7 +211,6 @@ function NewReviewFormState({
   onSelectionChange,
   onStepChange,
   showCancelAction = true,
-  primaryActionFullWidth = false,
   initialQuery = "",
   initialSelection = null,
   initialRating = null,
@@ -264,38 +222,16 @@ function NewReviewFormState({
   const router = useRouter();
   const queryClient = useQueryClient();
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const searchInputId = useId();
   const isEditMode = mode === "edit" && Boolean(reviewId);
   const isSearchIntent = intent === "search" && !isEditMode;
 
-  const [step, setStep] = useState<NewReviewFormStep>(
-    isSearchIntent ? "search" : initialSelection ? "compose" : "search",
-  );
-  const [query, setQuery] = useState(initialQuery);
-  const [selected, setSelected] = useState<DeezerResult | null>(initialSelection);
-  const [activeResultState, setActiveResultState] = useState<ActiveResultState>({
-    key: "",
-    index: -1,
-  });
-
-  const [rating, setRating] = useState<number | null>(initialRating);
-  const [title, setTitle] = useState(initialTitle);
-  const [body, setBody] = useState(initialBody);
-  const [composeSuggestionSeed] = useState(() => {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return crypto.randomUUID().slice(0, 8);
-    }
-
-    return Math.random().toString(36).slice(2, 10);
-  });
-
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{
-    selected?: string;
-    rating?: string;
-    review_title?: string;
-    review_body?: string;
-  }>({});
-  const [saving, setSaving] = useState(false);
+  const {
+    step, setStep, query, setQuery, selected, setSelected,
+    activeResultState, setActiveResultState, rating, setRating,
+    title, setTitle, body, setBody, composeSuggestionSeed,
+    errorMsg, setErrorMsg, fieldErrors, setFieldErrors, saving, setSaving,
+  } = useReviewComposerSession();
 
   const searchEnabled = step === "search";
   const normalizedQuery = query.trim();
@@ -415,7 +351,7 @@ function NewReviewFormState({
     setSelected(null);
     setStep("search");
     setErrorMsg(null);
-  }, [initialSelection, isEditMode]);
+  }, [initialSelection, isEditMode, setErrorMsg, setSelected, setStep]);
 
   useEffect(() => {
     if (!onBackActionChange) {
@@ -739,7 +675,7 @@ function NewReviewFormState({
     step === "search" && activeResultIndex >= 0 ? (results[activeResultIndex] ?? null) : null;
   const canPublish = Boolean(selected) && rating !== null && !saving;
   const continueLabel = saving
-    ? (isEditMode ? "Saving..." : "Publishing...")
+    ? (isEditMode ? "Saving…" : "Publishing…")
     : isEditMode
         ? "Save"
         : "Publish";
@@ -767,10 +703,12 @@ function NewReviewFormState({
         className="t-page-slide min-h-0 flex-1 overflow-hidden"
         data-page={step === "search" ? "1" : "2"}
       >
-        <section className="t-page flex min-h-0 flex-col px-4 py-4 md:px-5" data-page-id="1">
+        <section className="t-page flex min-h-0 flex-col px-4 py-4 md:px-5" data-page-id="1" inert={step !== "search"}>
           <div className="relative mb-4 shrink-0">
             <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground/82" />
+            <label className="sr-only" htmlFor={searchInputId}>Search tracks to review</label>
             <Input
+              id={searchInputId}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
@@ -779,7 +717,7 @@ function NewReviewFormState({
               onKeyDown={handleSearchKeyDown}
               placeholder="Search tracks to review…"
               disabled={saving}
-              autoFocus
+              autoFocus={step === "search"}
               className="kocteau-compose-search-field h-11 shrink-0 rounded-full pr-12 pl-11 text-[13px] shadow-none placeholder:text-muted-foreground/76 focus-visible:ring-0"
               maxLength={80}
             />
@@ -921,7 +859,7 @@ function NewReviewFormState({
           </ScrollArea>
         </section>
 
-        <section className="t-page flex min-h-0 flex-col px-4 py-4 md:px-5" data-page-id="2">
+        <section className="t-page flex min-h-0 flex-col px-4 py-4 md:px-5" data-page-id="2" inert={step !== "compose"}>
           <div className="mb-5 flex shrink-0 items-center gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.95rem] border border-border/20 bg-foreground/[0.032] px-3 py-3">
               <EntityCoverImage
@@ -1033,8 +971,7 @@ function NewReviewFormState({
               onClick={handleContinue}
               disabled={!canPublish}
               className={cn(
-                "min-w-24 rounded-[0.72rem] bg-foreground px-4 text-background shadow-none hover:bg-foreground/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground",
-                primaryActionFullWidth && "w-full",
+                "min-w-24 rounded-[0.72rem] bg-foreground px-4 text-background shadow-none hover:bg-foreground/92 disabled:border-border/36 disabled:bg-card/32 disabled:text-muted-foreground max-md:w-full",
               )}
             >
               {continueLabel}

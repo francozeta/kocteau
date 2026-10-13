@@ -4,7 +4,7 @@
 
 - Route: `app/(main)/feed/page.tsx`; composition: `authenticated-feed-surface.tsx`.
 - Views and lists: `feed-view-tabs.tsx`, `feed-review-list.tsx`.
-- Starter shelves and `editorial-discovery-rail.tsx` support discovery.
+- Discovery: `feed-starter-layer.tsx`, `feed-starter-shelf.tsx`, `feed-in-rotation-shelf.tsx`.
 - Reads: `lib/queries/feed.ts`; client state: `queries/feed.ts`.
 
 ## Preserve

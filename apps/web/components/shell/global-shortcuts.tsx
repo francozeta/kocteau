@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useGlobalShortcuts } from "@/hooks/use-global-shortcuts";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   OPEN_NEW_REVIEW_SHORTCUT_EVENT,
   OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT,
+  useGlobalShortcuts,
   type ReviewComposerSelection,
 } from "@/hooks/use-global-shortcuts";
 
@@ -24,6 +24,8 @@ export default function GlobalShortcuts({
   const [reviewSelection, setReviewSelection] =
     useState<ReviewComposerSelection | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const composeFromUrl = searchParams.get("compose") === "1";
   useGlobalShortcuts();
 
   useEffect(() => {
@@ -58,15 +60,13 @@ export default function GlobalShortcuts({
     };
   }, [router]);
 
-  return reviewComposerMounted ? (
-    <>
-      <NewReviewDialog
-        isAuthenticated={isAuthenticated}
-        open={reviewOpen}
-        onOpenChange={setReviewOpen}
-        showTrigger={false}
-        initialSelection={reviewSelection}
-      />
-    </>
+  return reviewComposerMounted || composeFromUrl ? (
+    <NewReviewDialog
+      isAuthenticated={isAuthenticated}
+      open={reviewOpen}
+      onOpenChange={setReviewOpen}
+      showTrigger={false}
+      initialSelection={reviewSelection ?? undefined}
+    />
   ) : null;
 }
