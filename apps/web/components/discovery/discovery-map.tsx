@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import DiscoveryOrbit, {
   type DiscoveryOrbitItem,
 } from "@/components/discovery/discovery-orbit";
@@ -10,6 +10,7 @@ import DiscoveryActions from "@/components/discovery/discovery-actions";
 import { OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT } from "@/hooks/use-global-shortcuts";
 import type { SearchScope } from "@/lib/search-types";
 import { useDiscoveryCanvas } from "@/hooks/use-discovery-canvas";
+import { useMobileSearchViewport } from "@/hooks/use-mobile-search-viewport";
 import {
   useKocteauSearch,
   type KocteauSearchResult,
@@ -57,6 +58,8 @@ export default function DiscoveryMap({
   initialSeed = null,
   viewerId = null,
 }: DiscoveryMapProps) {
+  const surfaceRef = useRef<HTMLElement>(null);
+  useMobileSearchViewport(surfaceRef);
   const starterSeeds = useMemo(
     () =>
       seeds.map(
@@ -139,6 +142,7 @@ export default function DiscoveryMap({
 
   return (
     <section
+      ref={surfaceRef}
       className="relative flex h-svh min-h-0 flex-col overflow-hidden bg-transparent lg:h-[calc(100dvh-5.25rem)]"
       aria-labelledby="discovery-map-title"
       data-kocteau-full-width
@@ -149,7 +153,7 @@ export default function DiscoveryMap({
       </h2>
       <div
         data-kocteau-search-results-surface
-        className="pointer-events-none absolute inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+4rem)] z-30 md:top-0 [&>*]:pointer-events-auto"
+        className="pointer-events-none absolute inset-x-0 bottom-[var(--kocteau-search-viewport-inset,0px)] top-[max(calc(env(safe-area-inset-top)+4rem),var(--kocteau-search-viewport-top,0px))] z-30 md:top-0 [&>*]:pointer-events-auto"
       />
       <div
         className="kocteau-discovery-dither pointer-events-none absolute inset-0 z-0"

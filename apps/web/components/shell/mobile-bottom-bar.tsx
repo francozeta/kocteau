@@ -107,7 +107,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
         <BottomFade />
         <nav
           aria-label="Search controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-40 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem+var(--kocteau-search-viewport-inset,0px))] left-1/2 z-40 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
         >
           <div id="mobile-search-dock" />
         </nav>

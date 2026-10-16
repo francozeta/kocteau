@@ -1,6 +1,6 @@
 # Current Project State
 
-Last verified: 2026-10-13
+Last verified: 2026-10-16 (local Search; deployment evidence remains 2026-10-13)
 Integrated application baseline: main at 10af8eb ([PR #212](https://github.com/francozeta/kocteau/pull/212)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
@@ -9,6 +9,10 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Integrated And Pending Work
 
+- Safari/iOS Search fixes are prepared locally on `fix/safari-mobile-search`
+  from main `b9de271`: native close taps, immediate input focus, visual-viewport
+  bounds, result scroll clearance, and result-type contrast. Publication and
+  deployment remain pending. [Scope and verification](./.plan/safari-mobile-search.md).
 - PR #209 integrated selection-driven research and optional Gateway context;
   PR #210 added context progress motion. Human choices and the normal save
   boundary remain authoritative.
@@ -27,7 +31,17 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Verification And Limits
 
-- 115 web unit tests, web lint, production build with TypeScript, documentation
+- Local Search verification (2026-10-16): `pnpm check` passes all 115 unit tests,
+  docs, lint, and the production build with TypeScript. WebKit 26.5 and Chromium
+  151 pass at 320/390/768/844/1280px, including simulated keyboard resize/pan/
+  dismissal, result scrolling, rotation, zoom-inset reset, Back, empty/error
+  states, touch/keyboard focus, and the missing-VisualViewport fallback.
+  Inspected browser flows report no JavaScript exceptions; result-type contrast
+  improves from 3.47:1 to 5.09:1.
+- These local UI checks use catalog response fixtures and simulated viewport
+  changes. Native iPhone keyboard behavior, VoiceOver, live catalog/database
+  integration, authenticated writes, and deployment were not verified here.
+- Integrated audit (2026-10-13): 115 web unit tests, web lint, production build with TypeScript, documentation
   checks (33 guides, 150 repository links), and diff checks pass. Node and pnpm
   match the pinned versions. Remote Verify passed for PR head d3051ac and
   integrated main 10af8eb. The exact preview passed and served `/docs` and the
@@ -51,7 +65,7 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 - Isolated session checks covered pending state, delivered responses, reopening,
   stale state updates, and changed initial review. Real authenticated publication,
   editing, OTP/onboarding, SQL/RLS, and curator/cron flows remain unverified.
-  Docker is unavailable; no migrations or authenticated review writes were run.
+  Docker was unavailable in that audit; no migrations or authenticated review writes were run.
 - Earlier documentation verification (2026-10-04) covered desktop/390/320px,
   search/copy/navigation/overflow, and automated accessibility on inspected
   guides. Unknown static paths return 404 but log `NoFallbackError`
@@ -60,9 +74,12 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 - Linked history checked on 2026-10-04 confirmed all 33 main migrations applied.
   Cloud also contains `20260930225425_studio_research_failure_recovery`, whose SQL
   remains unpublished from another device. Reconcile its source before history
-  repair or baseline type regeneration. Today's audit did not recheck cloud history.
+  repair or baseline type regeneration. The 2026-10-13 audit did not recheck cloud history.
 
 ## Next Priority
+
+For mobile Search, review the prepared changes and confirm the native keyboard
+and safe areas on a physical iPhone.
 
 Verify guest draft → OTP/onboarding → restored composer → publish, plus real
 authenticated editing, on a disposable local stack and matching deployment.

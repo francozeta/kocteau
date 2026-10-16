@@ -16,6 +16,8 @@ Keep shell geometry stable and review/discovery actions reachable. Preserve lazy
 dialogs and server-rendered page content. Focus and motion rules live in
 [DESIGN.md](../../../../DESIGN.md); shortcut bindings live in
 [use-global-shortcuts.ts](../../hooks/use-global-shortcuts.ts).
+The mobile Search dock uses the viewport inset supplied by Discovery; other bottom
+navigation keeps its existing safe-area positioning.
 
 ## Check
 

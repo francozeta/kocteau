@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/icons/kocteau-icons";
 import { Input } from "@/components/ui/input";
@@ -128,7 +128,7 @@ export default function DiscoverySearch({
       className={cn(
         "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
         mobile
-          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+8rem)] pt-3 sm:px-6"
+          ? "bg-[var(--kocteau-shell)] scroll-pb-[calc(env(safe-area-inset-bottom)+8rem)] px-3 pb-[calc(env(safe-area-inset-bottom)+8rem)] pt-3 sm:px-6"
           : "bg-[var(--kocteau-shell)] px-6 pb-8 pt-5",
       )}
     >
@@ -188,7 +188,7 @@ export default function DiscoverySearch({
                     {getResultMetadataLabel(result)}
                   </span>
                 </span>
-                <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/48">
+                <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/62">
                   {getResultTypeLabel(result)}
                 </span>
               </button>
@@ -259,6 +259,9 @@ export default function DiscoverySearch({
           }}
           placeholder={`${searchLabel}…`}
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          enterKeyHint="search"
           maxLength={80}
           aria-expanded={showResults}
           aria-controls={resultListId}
@@ -277,7 +280,6 @@ export default function DiscoverySearch({
           aria-label="Close search"
           aria-hidden={!showClose}
           tabIndex={showClose ? 0 : -1}
-          onPointerDown={(event) => event.preventDefault()}
           onClick={() => closeSearch()}
           className={cn(
             "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 md:size-8",
@@ -302,8 +304,9 @@ export default function DiscoverySearch({
           aria-label="Search music"
           data-global-search-trigger
           onClick={() => {
-            setIsFocused(true);
-            requestAnimationFrame(() => inputRef.current?.focus());
+            // iOS needs focus inside the tap handler to open the keyboard.
+            flushSync(() => setIsFocused(true));
+            inputRef.current?.focus({ preventScroll: true });
           }}
           className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
