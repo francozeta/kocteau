@@ -1,6 +1,6 @@
 # Current Project State
 
-Last verified: 2026-10-17 (local Search; integrated deployment evidence remains 2026-10-13)
+Last verified: 2026-10-17 (local Search and Vercel Preview status; integrated deployment evidence remains 2026-10-13)
 Integrated application baseline: main at 10af8eb ([PR #212](https://github.com/francozeta/kocteau/pull/212)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
@@ -9,11 +9,12 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Integrated And Pending Work
 
-- Safari/iOS Search fixes are prepared locally on `fix/safari-mobile-search`
+- Safari/iOS Search fixes are published on `fix/safari-mobile-search`
   from main `b9de271`: native close taps, immediate input focus, visual-viewport
   bounds, and result scroll clearance. Search cards now omit entity-type labels
-  and redundant album metadata. Branch publication and a Vercel Preview are
-  authorized and pending. [Scope and verification](./.plan/safari-mobile-search.md).
+  and redundant album metadata. Vercel reports a successful Preview for
+  `c97f5a2`; access requires Vercel team sign-in. The branch remains separate
+  from main. [Scope and verification](./.plan/safari-mobile-search.md).
 - PR #209 integrated selection-driven research and optional Gateway context;
   PR #210 added context progress motion. Human choices and the normal save
   boundary remain authoritative.
@@ -42,7 +43,11 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   4.5:1 contrast.
 - These local UI checks use catalog response fixtures and simulated viewport
   changes. Native iPhone keyboard behavior, VoiceOver, live catalog/database
-  integration, authenticated writes, and deployment were not verified here.
+  integration, and authenticated writes were not verified here.
+- Vercel Preview (2026-10-17): GitHub deployment `7132885202` reports success
+  for Search code `c97f5a2`. Requests to `/search` and `/docs` redirect to Vercel
+  sign-in; deployed UI verification is blocked by access protection. The Vercel
+  connection returns 403 for this team and cannot create a temporary share link.
 - Integrated audit (2026-10-13): 115 web unit tests, web lint, production build with TypeScript, documentation
   checks (33 guides, 150 repository links), and diff checks pass. Node and pnpm
   match the pinned versions. Remote Verify passed for PR head d3051ac and
@@ -80,8 +85,8 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Next Priority
 
-For mobile Search, review the prepared changes and confirm the native keyboard
-and safe areas on a physical iPhone.
+For mobile Search, review the protected Preview while signed into Vercel and
+confirm the native keyboard and safe areas on a physical iPhone.
 
 Verify guest draft → OTP/onboarding → restored composer → publish, plus real
 authenticated editing, on a disposable local stack and matching deployment.

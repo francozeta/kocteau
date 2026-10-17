@@ -1,8 +1,8 @@
 # Safari/iOS Search
 
 Date: 2026-10-17. Baseline: main `b9de271`. Branch: `fix/safari-mobile-search`.
-Status: locally implemented and verified; branch publication and Vercel Preview
-authorized and pending.
+Status: branch published; Vercel Preview succeeded for Search code `c97f5a2`.
+Deployed UI verification requires Vercel team sign-in.
 
 ## Scope And Coverage
 
@@ -72,9 +72,22 @@ and use browser Back. Repeat with no matches and a failed search response.
 Catalog responses were fixtures. The missing local database returned no starter
 tracks; these checks establish client UI behavior, not live catalog or database
 correctness. Native iPhone keyboard/safe-area behavior, actual pinch gestures,
-VoiceOver, 200% browser zoom, authenticated flows, and deployment remain unverified.
+VoiceOver, 200% browser zoom, and authenticated flows remain unverified.
+
+## Preview Publication
+
+- Published both Safari fixes (`61ea6a5`) and card-label removal (`c97f5a2`) on
+  `fix/safari-mobile-search`; main remains at `b9de271` as checked on 2026-10-17.
+- Vercel commit status reports success for exact Search code
+  `c97f5a2aa1fbed030e76aa12dd85845787830b8a` at 01:14:42 UTC on 2026-10-17.
+  GitHub deployment `7132885202` is a successful Preview for the same SHA.
+- `/search` and `/docs` requests redirect to Vercel sign-in. The Vercel connection
+  returns 403 for the owning team and cannot create a temporary share link.
+  No deployed app or live backend behavior was verified behind that protection.
+- This publication record is a documentation-only follow-up to the verified
+  Search code; it does not change the application implementation.
 
 ## Verdict
 
-Approve for the inspected Search UI and simulated viewport cases. Physical iPhone
-coverage remains the next verification step; this is not a deployment claim.
+The inspected Search UI and simulated viewport cases pass locally. The Preview
+build succeeded; deployed UI and physical iPhone checks remain the next steps.

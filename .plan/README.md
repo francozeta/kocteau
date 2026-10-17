@@ -11,7 +11,8 @@ corrections and the remaining verification work. Studio coordination continues i
 [issue #206](https://github.com/francozeta/kocteau/issues/206).
 
 [Safari/iOS Search](./safari-mobile-search.md) records the focused mobile fixes,
-local verification, and remaining device coverage; publication is pending.
+card-label removal, local verification, successful protected Preview, and
+remaining deployed/device coverage.
 
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
