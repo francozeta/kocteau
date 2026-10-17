@@ -16,6 +16,7 @@ source boundaries live in [catalog research](../../../../docs/knowledge-layer.md
 Keep mobile input focus in the initiating tap handler, preserve native close-button
 clicks, and fit the search dock/results to the visual viewport without overriding pinch zoom.
 Reserve scroll padding so automatically scrolled results stay clear of the dock.
+Result cards show music identity and optional descriptive metadata, without entity-type labels.
 
 ## Check
 

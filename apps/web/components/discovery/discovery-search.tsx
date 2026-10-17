@@ -18,26 +18,6 @@ import { usePortalTarget } from "@/hooks/use-portal-target";
 import { cn } from "@/lib/utils";
 import type { SearchScope } from "@/lib/search-types";
 
-function getResultTypeLabel(result: KocteauSearchResult) {
-  if (result.type === "artist") return result.artist_type || "Artist";
-  if (result.type === "album") return result.album_record_type || "Album";
-  return "Song";
-}
-
-function getResultMetadataLabel(result: KocteauSearchResult) {
-  if (result.type === "artist") {
-    return result.disambiguation || "Artist";
-  }
-
-  if (result.type === "album") {
-    return [result.artist_name, result.album_record_type || "Album"]
-      .filter(Boolean)
-      .join(" · ");
-  }
-
-  return result.artist_name || "Unknown artist";
-}
-
 type DiscoverySearchProps = {
   actions?: ReactNode;
   scope: SearchScope;
@@ -143,56 +123,60 @@ export default function DiscoverySearch({
               <div
                 key={index}
                 aria-hidden="true"
-                className="grid min-h-16 grid-cols-[3.25rem_minmax(0,1fr)_3rem] items-center gap-3 px-2 py-1.5"
+                className="grid min-h-16 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-3 px-2 py-1.5"
               >
                 <Skeleton className="size-[3.25rem] rounded-[0.6rem] bg-muted-foreground/[0.1]" />
                 <div className="space-y-2">
                   <Skeleton className="h-3 w-[min(14rem,62%)] rounded-full bg-muted-foreground/[0.12]" />
                   <Skeleton className="h-2.5 w-[min(9rem,42%)] rounded-full bg-muted-foreground/[0.08]" />
                 </div>
-                <Skeleton className="h-2 w-10 justify-self-end rounded-full bg-muted-foreground/[0.08]" />
               </div>
             ))}
           </div>
         ) : results.length > 0 ? (
           <div className="grid gap-1">
-            {results.map((result) => (
-              <button
-                type="button"
-                key={`${result.provider}:${result.type}:${result.provider_id}`}
-                onClick={() => {
-                  onSelect(result);
-                  closeSearch(false);
-                }}
-                className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
-              >
-                <EntityCoverImage
-                  src={result.cover_url}
-                  alt=""
-                  sizes="52px"
-                  quality={70}
-                  variant="thumbnail"
-                  className={cn(
-                    "size-[3.25rem] bg-muted/30",
-                    result.type === "artist"
-                      ? "rounded-full"
-                      : "rounded-[0.6rem]",
-                  )}
-                  iconClassName="size-3.5"
-                />
-                <span className="min-w-0">
-                  <span className="block truncate font-pixel text-[12px] font-medium text-foreground/92">
-                    {result.title}
+            {results.map((result) => {
+              const metadata = result.type === "artist"
+                ? result.disambiguation
+                : result.artist_name || "Unknown artist";
+
+              return (
+                <button
+                  type="button"
+                  key={`${result.provider}:${result.type}:${result.provider_id}`}
+                  onClick={() => {
+                    onSelect(result);
+                    closeSearch(false);
+                  }}
+                  className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
+                >
+                  <EntityCoverImage
+                    src={result.cover_url}
+                    alt=""
+                    sizes="52px"
+                    quality={70}
+                    variant="thumbnail"
+                    className={cn(
+                      "size-[3.25rem] bg-muted/30",
+                      result.type === "artist"
+                        ? "rounded-full"
+                        : "rounded-[0.6rem]",
+                    )}
+                    iconClassName="size-3.5"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate font-pixel text-[12px] font-medium text-foreground/92">
+                      {result.title}
+                    </span>
+                    {metadata ? (
+                      <span className="mt-1 block truncate text-[11px] text-muted-foreground/62">
+                        {metadata}
+                      </span>
+                    ) : null}
                   </span>
-                  <span className="mt-1 block truncate text-[11px] text-muted-foreground/62">
-                    {getResultMetadataLabel(result)}
-                  </span>
-                </span>
-                <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/62">
-                  {getResultTypeLabel(result)}
-                </span>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         ) : (
           <p className="px-3 py-4 text-[11px] text-muted-foreground/58">

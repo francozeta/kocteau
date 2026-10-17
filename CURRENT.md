@@ -1,6 +1,6 @@
 # Current Project State
 
-Last verified: 2026-10-16 (local Search; deployment evidence remains 2026-10-13)
+Last verified: 2026-10-17 (local Search; integrated deployment evidence remains 2026-10-13)
 Integrated application baseline: main at 10af8eb ([PR #212](https://github.com/francozeta/kocteau/pull/212)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
@@ -11,8 +11,9 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 - Safari/iOS Search fixes are prepared locally on `fix/safari-mobile-search`
   from main `b9de271`: native close taps, immediate input focus, visual-viewport
-  bounds, result scroll clearance, and result-type contrast. Publication and
-  deployment remain pending. [Scope and verification](./.plan/safari-mobile-search.md).
+  bounds, and result scroll clearance. Search cards now omit entity-type labels
+  and redundant album metadata. Branch publication and a Vercel Preview are
+  authorized and pending. [Scope and verification](./.plan/safari-mobile-search.md).
 - PR #209 integrated selection-driven research and optional Gateway context;
   PR #210 added context progress motion. Human choices and the normal save
   boundary remain authoritative.
@@ -31,13 +32,14 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Verification And Limits
 
-- Local Search verification (2026-10-16): `pnpm check` passes all 115 unit tests,
+- Local Search verification (2026-10-17): `pnpm check` passes all 115 unit tests,
   docs, lint, and the production build with TypeScript. WebKit 26.5 and Chromium
   151 pass at 320/390/768/844/1280px, including simulated keyboard resize/pan/
   dismissal, result scrolling, rotation, zoom-inset reset, Back, empty/error
   states, touch/keyboard focus, and the missing-VisualViewport fallback.
-  Inspected browser flows report no JavaScript exceptions; result-type contrast
-  improves from 3.47:1 to 5.09:1.
+  Inspected browser flows report no JavaScript exceptions. Mixed song/album/artist
+  results omit type labels on mobile and desktop; remaining result text passes
+  4.5:1 contrast.
 - These local UI checks use catalog response fixtures and simulated viewport
   changes. Native iPhone keyboard behavior, VoiceOver, live catalog/database
   integration, authenticated writes, and deployment were not verified here.

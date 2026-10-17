@@ -1,7 +1,8 @@
 # Safari/iOS Search
 
-Date: 2026-10-16. Baseline: main `b9de271`. Branch: `fix/safari-mobile-search`.
-Status: locally implemented and verified; not published or deployed.
+Date: 2026-10-17. Baseline: main `b9de271`. Branch: `fix/safari-mobile-search`.
+Status: locally implemented and verified; branch publication and Vercel Preview
+authorized and pending.
 
 ## Scope And Coverage
 
@@ -17,9 +18,9 @@ and general navigation are outside this change.
 | --- | --- | --- |
 | Accessibility | Named controls, touch close, input focus, ArrowDown/Escape, options focus restoration, result visibility | Close/focus fixes verified; VoiceOver not verified |
 | Layout | Production render at 320/390/768/844/1280px; simulated keyboard resize/pan/dismissal, scroll clearance, rotation and fallback | Viewport and scroll fixes verified; physical safe areas not verified |
-| Writing | Search labels, empty/error messages, existing action terminology | Clear in inspected flow; copy preserved |
+| Writing | Search labels, empty/error messages, existing action terminology | Entity-type labels removed from result cards at maintainer request; other copy preserved |
 | Typography | Mobile input computed at 16px, result text, narrow layout and desktop render | Mobile input size preserved; reader text-size overrides not verified |
-| Colors | Rendered title/artist/type against the opaque results surface | Type label corrected to 5.09:1; other inspected result text passes 4.5:1 |
+| Colors | Rendered title/artist against the opaque results surface | Remaining result text passes 4.5:1; type labels removed |
 | UI polish | Existing controls, transitions, selected/unselected states and screenshots | Existing visual system retained; no new motion |
 
 ## Findings And Corrections
@@ -28,16 +29,20 @@ Severity describes the original behavior; each listed correction is implemented.
 
 | Severity | Domain | Location | Before | After | Why |
 | --- | --- | --- | --- | --- | --- |
-| HIGH | Accessibility | `apps/web/components/discovery/discovery-search.tsx:283` | Canceling `pointerdown` suppresses the synthesized close click in touch WebKit | Preserve the native pointer/click sequence | The X received pointer events but did not close Search |
+| HIGH | Accessibility | `apps/web/components/discovery/discovery-search.tsx:267` | Canceling `pointerdown` suppresses the synthesized close click in touch WebKit | Preserve the native pointer/click sequence | The X received pointer events but did not close Search |
 | HIGH | Layout | `apps/web/hooks/use-mobile-search-viewport.ts:20`, `apps/web/components/discovery/discovery-map.tsx:156`, `apps/web/components/shell/mobile-bottom-bar.tsx:110` | Fixed dock/results ignore the visual viewport; panning also clips the list start | Fit both result edges and the dock to visible bounds; clear adjustments during zoom and on cleanup | Keyboard occlusion makes controls/results unreachable |
-| HIGH | Layout | `apps/web/components/discovery/discovery-search.tsx:131` | An end-aligned result can scroll behind the dock | Match scroll padding to the existing bottom content padding | In a 440px viewport, the last result ended at 440px while the dock began at 332px |
-| HIGH | Colors | `apps/web/components/discovery/discovery-search.tsx:191` | Type-label opacity yields 3.47:1 contrast | Reuse the existing secondary-text opacity: 5.09:1 | Small text requires 4.5:1 against its rendered background |
-| MEDIUM | Accessibility | `apps/web/components/discovery/discovery-search.tsx:306` | Reopening defers focus to `requestAnimationFrame` | Mount synchronously and focus inside the tap handler, without scrolling | Preserve the synchronous iOS keyboard-activation path; native keyboard still needs device confirmation |
+| HIGH | Layout | `apps/web/components/discovery/discovery-search.tsx:111` | An end-aligned result can scroll behind the dock | Match scroll padding to the existing bottom content padding | In a 440px viewport, the last result ended at 440px while the dock began at 332px |
+| MEDIUM | Accessibility | `apps/web/components/discovery/discovery-search.tsx:292` | Reopening defers focus to `requestAnimationFrame` | Mount synchronously and focus inside the tap handler, without scrolling | Preserve the synchronous iOS keyboard-activation path; native keyboard still needs device confirmation |
 
 The geometry hook batches DOM reads/writes once per animation frame, avoids
 viewport-driven React renders, and removes its listeners, observer, pending frame,
 and scoped CSS properties on cleanup. It ignores pinch-zoom offsets. Keyboard
 hints request Search and disable automatic capitalization/correction for music names.
+
+Result cards now use two columns: artwork and music identity. Song/Album/Artist
+labels, their skeleton column, redundant album record types, and the generic
+artist fallback are removed. Actual artist disambiguation remains optional.
+This supersedes the initial type-label contrast adjustment.
 
 ## Verification
 
@@ -54,7 +59,9 @@ hints request Search and disable automatic capitalization/correction for music n
   results, and missing-VisualViewport fallback. No page exceptions were observed.
 - A separate focus check confirms reopening no longer focuses from an animation
   frame. Touch WebKit now delivers the close click and restores trigger focus.
-- Rendered result contrast in both engines: title 13.35:1; artist/type 5.09:1.
+- Mixed song/album/artist fixtures confirm that mobile and desktop result cards
+  omit type labels while retaining titles and artist names.
+- Rendered result contrast in both engines: title 13.35:1; artist 5.09:1.
   Screenshots were inspected at 320px and desktop. Raw local artifacts stay ignored.
 
 Reproduce the UI cases on a local production build: open Search, enter a catalog
