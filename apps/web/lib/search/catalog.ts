@@ -366,18 +366,32 @@ async function getEntityIdsByProviderId(providerIds: string[]) {
 
   if (error) {
     console.warn("[search.entity_links] lookup failed", error.message);
-    return new Map<string, string>();
+    throw new Error("Public catalog entity links unavailable");
   }
 
   return new Map(((data ?? []) as EntityLinkRow[]).map((row) => [row.provider_id, row.id]));
 }
 
+const getCachedEntityLinks = unstable_cache(
+  async (providerIds: string[]) =>
+    Array.from((await getEntityIdsByProviderId(providerIds)).entries()),
+  ["public-catalog-entity-links-v1"],
+  { revalidate: 60, tags: ["entities"] },
+);
+
 async function attachLocalEntityIds(candidates: KocteauTrackSearchCandidate[]) {
-  const entityIdsByProviderId = await getEntityIdsByProviderId(
-    candidates.flatMap((candidate) =>
-      candidate.entity_id ? [] : [candidate.provider_id],
-    ),
-  );
+  const providerIds = Array.from(new Set(candidates.flatMap((candidate) =>
+    candidate.entity_id ? [] : [candidate.provider_id],
+  ))).sort();
+  if (!providerIds.length) return candidates;
+
+  let entityIdsByProviderId: Map<string, string>;
+  try {
+    entityIdsByProviderId = new Map(await getCachedEntityLinks(providerIds));
+  } catch {
+    // Failed lookups never enter either cache; provider identities remain usable.
+    return candidates;
+  }
 
   return candidates.map((candidate) => ({
     ...candidate,
@@ -462,18 +476,11 @@ async function loadLocalCandidates(query: string, type: SearchScope) {
       ? result.value
       : result.reason instanceof LocalLookupFailure ? result.reason.candidates : [],
   );
-  const linkedTracks = await attachLocalEntityIds(
-    candidates.filter((candidate) => candidate.type === "track"),
-  );
-  const linked = [
-    ...linkedTracks,
-    ...candidates.filter((candidate) => candidate.type !== "track"),
-  ];
   // Return partial data to this request without caching a transient DB failure.
   if (results.some((result) => result.status === "rejected")) {
-    throw new LocalLookupFailure(linked);
+    throw new LocalLookupFailure(candidates);
   }
-  return linked;
+  return candidates;
 }
 
 // Only anonymous, public catalog data enters this cache. Arguments form part of
@@ -527,12 +534,12 @@ export async function searchCatalog(query: string, type: SearchScope, source: Se
       ? { candidates: [], errors: [] }
       : getRemoteCandidates(query, type),
   ]);
+  const unlinkedCandidates = [...local, ...remote.candidates];
   const linkedTracks = await attachLocalEntityIds(
-    remote.candidates.filter((candidate) => candidate.type === "track"),
+    unlinkedCandidates.filter((candidate) => candidate.type === "track"),
   );
   const candidates = [
-    ...local,
-    ...remote.candidates.filter((candidate) => candidate.type !== "track"),
+    ...unlinkedCandidates.filter((candidate) => candidate.type !== "track"),
     ...linkedTracks,
   ];
   const results = (source === "all" ? rankCatalogSearchResults({

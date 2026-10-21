@@ -16,6 +16,9 @@
 - Anonymous local catalog lookups and entity links are cached for 60 seconds,
   invalidated by `entities`, `artists`, and `starter-tracks`. Private data never
   enters this cache; transient lookup failures return partial data without caching it.
+  Entity links use a separate `entities`-tagged cache keyed by sorted provider IDs,
+  covering both phases and the combined API. Errors are caught outside the cache.
+  The live region announces partial results as soon as they become available.
 
 ## Preserve
 

@@ -265,7 +265,7 @@ export default function DiscoverySearch({
           className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]"
         />
         <span className="sr-only" role="status" aria-live="polite">
-          {hasQuery && !isSearching
+          {hasQuery && (!isSearching || results.length > 0)
             ? `${results.length} search results available.`
             : ""}
         </span>
