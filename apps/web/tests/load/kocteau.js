@@ -9,6 +9,7 @@ const previewCookie = (__ENV.K6_PREVIEW_COOKIE || "").trim();
 const vercelBypassSecret = (__ENV.K6_VERCEL_BYPASS_SECRET || "").trim();
 const searchSource = (__ENV.K6_SEARCH_SOURCE || "all").trim().toLowerCase();
 const searchOnly = __ENV.K6_SEARCH_ONLY === "1";
+const requireSearchMatches = __ENV.K6_SEARCH_REQUIRE_MATCHES === "1";
 const includeAuthenticatedFeed = Boolean(authCookie) && !searchOnly;
 const searchQueries = __ENV.K6_SEARCH_QUERIES
   ? JSON.parse(__ENV.K6_SEARCH_QUERIES)
@@ -113,8 +114,11 @@ export function searchSurface() {
     }
   }
   let validResults = false;
+  let resultCount = 0;
   try {
-    validResults = Array.isArray(apiResponse.json());
+    const results = apiResponse.json();
+    validResults = Array.isArray(results);
+    resultCount = validResults ? results.length : 0;
   } catch {
     // Invalid response bodies fail the check without hiding the remaining metrics.
   }
@@ -128,6 +132,7 @@ export function searchSurface() {
       (result.headers["Content-Type"] || "").includes("application/json"),
     "search API returns a result array": () => validResults,
     "search API reports stage timings": () => timingHeader.includes("total;dur="),
+    ...(requireSearchMatches ? { "search API returns known fixture matches": () => resultCount > 0 } : {}),
   });
   pause();
 }
@@ -160,6 +165,7 @@ export function handleSummary(data) {
         searchSource,
         searchQueryCount: searchQueries.length,
         searchOnly,
+        searchMatchesRequired: requireSearchMatches,
         protectedPreviewBypassIncluded: Boolean(previewCookie || vercelBypassSecret),
         data,
       },

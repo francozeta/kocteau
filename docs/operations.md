@@ -9,7 +9,7 @@ This file captures the production setup that lives outside the codebase.
 ## Function Region
 
 Root [vercel.json](../vercel.json) places Node.js functions in `gru1`, near the
-Supabase database in South America. Keeping application and database traffic in
+Supabase database in São Paulo (`sa-east-1`). Keeping application and database traffic in
 the same region reduces network time across the multiple catalog lookups; it
 does not change query execution or database capacity.
 

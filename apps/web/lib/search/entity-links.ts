@@ -16,6 +16,7 @@ export async function attachEntityIds<T extends EntityCandidate>(
     try {
       entityIds = new Map([...await lookup(unresolved), ...known]);
     } catch {
+      console.warn("[search.entity_links] lookup unavailable");
       // Preserve available identities when the shared lookup fails.
     }
   }

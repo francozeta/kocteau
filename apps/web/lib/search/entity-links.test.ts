@@ -43,7 +43,8 @@ describe("catalog entity links", () => {
       ["canonical-12", "canonical-30", "canonical-20", "canonical-30"]);
   });
 
-  it("retains known links and candidates when the shared lookup fails", async () => {
+  it("retains known links and candidates when the shared lookup fails", async (t) => {
+    const warn = t.mock.method(console, "warn", () => {});
     const results = await attachEntityIds([
       { provider_id: "12", entity_id: "canonical-12" },
       { provider_id: "12" },
@@ -51,12 +52,16 @@ describe("catalog entity links", () => {
     ], async () => { throw new Error("database unavailable"); });
     assert.equal(results.length, 3);
     assert.deepEqual(results.map((result) => result.entity_id), ["canonical-12", "canonical-12", null]);
+    assert.equal(warn.mock.callCount(), 1);
   });
 
   it("does not query the database for an empty candidate set", async () => {
+    let calls = 0;
     const results = await attachEntityIds([], async () => {
-      assert.fail("an empty candidate set must not issue a lookup");
+      calls += 1;
+      return new Map();
     });
     assert.deepEqual(results, []);
+    assert.equal(calls, 0);
   });
 });

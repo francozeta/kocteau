@@ -31,7 +31,7 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   timestamp handling; their test data is rolled back.
 - Search-only k6 smoke passes with per-stage timing and result-shape checks.
   [Load readiness](./docs/load-readiness.md) owns the reproducible procedure;
-  exact local/preview/deployment measurements are recorded in the PR.
+  the PR tracks measurement evidence and deployment status.
 - Lifecycle tests cover resource retry/fallback policy, cancellation before fetch and
   during fetch/backoff, timeouts, shared deadlines, listener/timer cleanup, and 16
   stalled concurrent searches without retry amplification. These controlled
