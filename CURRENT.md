@@ -1,11 +1,35 @@
 # Current Project State
 
-Last verified: 2026-10-13
-Integrated application baseline: main at 10af8eb ([PR #212](https://github.com/francozeta/kocteau/pull/212)).
+Last verified: 2026-10-21
+Previous integrated application baseline: main at 10af8eb ([PR #212](https://github.com/francozeta/kocteau/pull/212)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 [Issue #206](https://github.com/francozeta/kocteau/issues/206) coordinates Studio phases.
+
+## Search Performance Maintenance
+
+- Local and external catalog search run as independent phases. Local matches
+  remain visible and selectable during external loading or failure; stale
+  matches disappear immediately when the query changes.
+- The API now delegates to a server-only catalog module. Shared ranking preserves
+  provider identity, metadata merging, grouped quotas, and the Kocteau boost.
+  Anonymous local lookups and entity links use a 60-second tagged cache; failed
+  lookups do not populate it.
+- Restored `20260930225425_studio_research_failure_recovery.sql` from the
+  applied cloud history, verified read-only on 2026-10-21. This is source
+  reconciliation; no cloud migration or history repair was executed.
+- Verified locally: 120 unit tests, web lint, production build with TypeScript,
+  documentation checks (33 guides, 150 links), and whitespace checks.
+  Build uses pinned Node 24.15.0 and pnpm 11.21.0.
+- Browser checks at 1280px and 390px passed: local matches remain visible and
+  keyboard-selectable with the remote phase pending, duplicates merge, local
+  fallback survives upstream failure, and late responses cannot replace a new
+  query. No browser exceptions occurred in those scenarios.
+- Real read-only HTTP checks passed for local, remote, and combined search,
+  empty queries, and invalid parameters. Five repeated cached local requests
+  had a 3.6 ms median in the local production server; this is a smoke measurement,
+  not a production load-test result. Deployment checks run separately in the PR.
 
 ## Integrated And Pending Work
 
@@ -57,17 +81,18 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   guides. Unknown static paths return 404 but log `NoFallbackError`
   ([Next.js #90537](https://github.com/vercel/next.js/issues/90537)).
   A screen-reader session was not run.
-- Linked history checked on 2026-10-04 confirmed all 33 main migrations applied.
-  Cloud also contains `20260930225425_studio_research_failure_recovery`, whose SQL
-  remains unpublished from another device. Reconcile its source before history
-  repair or baseline type regeneration. Today's audit did not recheck cloud history.
+- Earlier linked-history checks found 33 repository migrations plus the cloud-only
+  failure-recovery migration. Its applied statements were checked again on
+  2026-10-21 and restored to version control; cloud history was not modified.
 
 ## Next Priority
 
 Verify guest draft → OTP/onboarding → restored composer → publish, plus real
 authenticated editing, on a disposable local stack and matching deployment.
 
-Reconcile the unpublished failure-recovery migration and Studio file moves with
-PR #211, then verify curator research/context and recovery.
+Measure search latency and database calls under representative load before adding
+indexes or splitting services. Check fresh-schema feed index parity and cursor
+validation next. Reconcile Studio file moves with PR #211, then verify curator
+research/context and recovery.
 Human decisions, collection destinations, and atomic acceptance remain later
 phases in issue #206.

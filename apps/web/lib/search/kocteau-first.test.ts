@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   isStrongArtistSearchMatch,
+  rankCatalogSearchResults,
   rankKocteauTrackSearchResults,
   type KocteauTrackSearchCandidate,
 } from "./kocteau-first.ts";
@@ -103,5 +104,62 @@ describe("kocteau-first search ranking", () => {
     assert.equal(isStrongArtistSearchMatch("The Cure", "The Cure"), true);
     assert.equal(isStrongArtistSearchMatch("cocteau tw", "Cocteau Twins"), true);
     assert.equal(isStrongArtistSearchMatch("cure", "The Cure"), false);
+  });
+});
+
+
+describe("progressive catalog search", () => {
+  it("keeps local results usable when the remote phase has no results", () => {
+    const local = candidate("local", { source: "local", entity_id: "entity", title: "Radiohead" });
+    const results = rankCatalogSearchResults({ query: "Radiohead", type: "all", candidates: [local] });
+    assert.equal(results[0]?.entity_id, "entity");
+    assert.equal(results[0]?.source_label, "Kocteau");
+  });
+
+  it("merges independently completed phases without losing local identity or remote metadata", () => {
+    const local = candidate("123", { source: "local", entity_id: "local-id", title: "Radiohead" });
+    const remote = candidate("123", { title: "Radiohead", album_provider_id: "album-1", rank: 500000 });
+    const results = rankCatalogSearchResults({ query: "Radiohead", type: "track", candidates: [remote, local] });
+    assert.equal(results.length, 1);
+    assert.equal(results[0]?.source, "local");
+    assert.equal(results[0]?.entity_id, "local-id");
+    assert.equal(results[0]?.album_provider_id, "album-1");
+    assert.equal(results[0]?.rank, 100);
+  });
+
+  it("preserves all-scope quotas and grouping after phase merging", () => {
+    const candidates = (["artist", "album", "track"] as const).flatMap((type) =>
+      Array.from({ length: 12 }, (_, index) =>
+        candidate(type + index, { type, title: "Radiohead " + index }),
+      ),
+    );
+    const results = rankCatalogSearchResults({ query: "Radiohead", type: "all", candidates });
+    assert.deepEqual(results.map((result) => result.type), [
+      ...Array(3).fill("artist"), ...Array(4).fill("album"), ...Array(8).fill("track"),
+    ]);
+  });
+
+  it("does not let an early phase quota discard a later enriched match", () => {
+    const local = Array.from({ length: 30 }, (_, index) =>
+      candidate(String(index), { source: "starter", title: "Track", source_index: index }),
+    );
+    const remote = candidate("29", { title: "Track", entity_id: "existing", rank: 900000 });
+    const merged = rankCatalogSearchResults({ query: "Track", type: "track", candidates: [...local, remote] });
+    assert.equal(merged.length, 28);
+    assert.equal(merged[0]?.provider_id, "29");
+    assert.equal(merged[0]?.entity_id, "existing");
+  });
+
+  it("keeps identical provider IDs distinct across entity types", () => {
+    const results = rankCatalogSearchResults({
+      query: "Music",
+      type: "all",
+      candidates: [
+        candidate("1", { type: "artist", title: "Music" }),
+        candidate("1", { type: "album", title: "Music" }),
+        candidate("1", { type: "track", title: "Music" }),
+      ],
+    });
+    assert.equal(results.length, 3);
   });
 });

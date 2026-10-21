@@ -6,6 +6,16 @@
 - Interaction: `hooks/use-discovery-canvas.ts`, `hooks/use-kocteau-search.ts`.
 - State/navigation: `lib/discovery`; search ordering: `lib/search/kocteau-first.ts`.
 - APIs: `app/api/search`, `app/api/discovery/map`.
+- Server catalog lookups and provider orchestration: `lib/search/catalog.ts`.
+  `/api/search` accepts `source=local|remote|all` (default `all` retains the
+  combined response). The hook requests local and remote phases in parallel;
+  available matches stay visible and selectable while the other phase loads.
+- Phase responses retain ranking metadata and all candidates; the client applies
+  the same grouping, quotas, identity merging, and Kocteau boost as the combined API.
+  Changing the input hides matches from the previous debounced query immediately.
+- Anonymous local catalog lookups and entity links are cached for 60 seconds,
+  invalidated by `entities`, `artists`, and `starter-tracks`. Private data never
+  enters this cache; transient lookup failures return partial data without caching it.
 
 ## Preserve
 

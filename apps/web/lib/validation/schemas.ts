@@ -4,7 +4,7 @@ import {
   getCanonicalAnalyticsEventType,
   isAllowedAnalyticsMetadataKey,
 } from "@/lib/analytics/events";
-import { searchableEntityTypes, searchScopes } from "@/lib/search-types";
+import { searchableEntityTypes, searchScopes, searchSources } from "@/lib/search-types";
 import { editorialCandidateStatuses } from "@/lib/starter/candidate-queue";
 import {
   curatorAvailabilityValues,
@@ -92,6 +92,7 @@ export const kocteauSearchQuerySchema = z.object({
     .optional()
     .transform((value) => value ?? ""),
   type: z.enum(searchScopes).optional().default("all"),
+  source: z.enum(searchSources).optional().default("all"),
 });
 
 export const starterCandidateQuerySchema = z.object({

@@ -119,7 +119,7 @@ export default function DiscoveryMap({
     );
   };
   const chooseFirst = () => {
-    if (!seedResults[0] || seedSearch.isFetching) return false;
+    if (!seedResults[0]) return false;
     chooseResult(seedResults[0]);
     return true;
   };

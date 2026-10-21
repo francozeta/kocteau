@@ -133,7 +133,7 @@ export default function DiscoverySearch({
       )}
     >
       <div id={resultListId} className="mx-auto w-full max-w-2xl">
-        {!hasQuery ? null : isSearching ? (
+        {!hasQuery ? null : isSearching && results.length === 0 ? (
           <div
             aria-busy="true"
             aria-label="Searching the catalog"
