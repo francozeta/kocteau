@@ -65,7 +65,7 @@ export async function generateMetadata({
 
   const title = entity.artist_name ? `${entity.title} — ${entity.artist_name}` : entity.title;
   const canonicalPath = buildEntityCanonicalPath(entity);
-  const publicBundle = await getTrackPublicBundle(entity.id);
+  const publicBundle = await getTrackPublicBundle(entity);
 
   return createPageMetadata({
     title,
@@ -104,7 +104,7 @@ export default async function TrackPage({
     permanentRedirect(canonicalPath);
   }
 
-  const publicBundlePromise = getTrackPublicBundle(entityPage.id);
+  const publicBundlePromise = getTrackPublicBundle(entityPage);
   const [bundle, artist, album] = await Promise.all([
     publicBundlePromise,
     entityPage.artist_id ? getArtistPageById(entityPage.artist_id) : Promise.resolve(null),

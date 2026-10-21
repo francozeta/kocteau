@@ -77,9 +77,9 @@ async function resolveSignalContext({
 }: {
   currentEntityId?: string | null;
   currentProviderId: string;
-  tags: EntityTasteTag[];
+  tags: EntityTasteTag[] | undefined;
 }) {
-  if (currentEntityId && tags.length > 0) {
+  if (currentEntityId && tags !== undefined) {
     return { entityId: currentEntityId, tags };
   }
 
@@ -106,8 +106,8 @@ async function resolveSignalContext({
     entityId = data?.id ?? null;
   }
 
-  if (!entityId || tags.length > 0) {
-    return { entityId, tags };
+  if (!entityId || tags !== undefined) {
+    return { entityId, tags: tags ?? [] };
   }
 
   return {
@@ -470,7 +470,7 @@ export async function getTrackRecommendations({
   currentProviderId,
   title,
   artistName,
-  tags = [],
+  tags,
   limit = defaultRecommendationLimit,
   includeLocalSignals = true,
   includeRelatedCandidates = true,
@@ -482,66 +482,69 @@ export async function getTrackRecommendations({
     "getTrackRecommendations",
     async () => {
       const requestedLimit = Math.max(1, Math.min(limit, 24));
-      const signalContext = includeLocalSignals
-        ? await resolveSignalContext({
+      const localSignalCandidatesPromise = includeLocalSignals
+        ? resolveSignalContext({
             currentEntityId,
             currentProviderId,
             tags,
-          })
-        : { entityId: currentEntityId ?? null, tags: [] };
-      const [catalogTrack, localSignalCandidates] = await Promise.all([
-        resolveCatalogContext
-          ? getDeezerTrack(currentProviderId).catch(() => null)
-          : Promise.resolve(null),
-        includeLocalSignals
-          ? getLocalSignalCandidates({
+          }).then((signalContext) =>
+            getLocalSignalCandidates({
               currentEntityId: signalContext.entityId,
               currentProviderId,
               tags: signalContext.tags,
               limit: requestedLimit,
-            })
-          : Promise.resolve([]),
-      ]);
-      const contextArtist = getContextArtistFromTrack(catalogTrack);
-      const queryLabel = getTrackRecommendationQueryLabel({
-        title,
-        artistName: contextArtist?.name ?? artistName,
-      });
-      const [relatedCandidates, deepCutCandidates] = await Promise.all([
-        includeRelatedCandidates
-          ? getDeezerCandidateRecommendations({
-              currentProviderId,
-              query: queryLabel,
-              limit: requestedLimit,
-              contextArtist,
-            }).catch((error) => {
-              console.warn(
-                "[track-recommendations.deezer] skipped related candidates",
-                {
+            }),
+          )
+        : Promise.resolve([]);
+      const catalogCandidatesPromise = (async () => {
+        const catalogTrack = resolveCatalogContext
+          ? await getDeezerTrack(currentProviderId).catch(() => null)
+          : null;
+        const contextArtist = getContextArtistFromTrack(catalogTrack);
+        const queryLabel = getTrackRecommendationQueryLabel({
+          title,
+          artistName: contextArtist?.name ?? artistName,
+        });
+        const [relatedCandidates, deepCutCandidates] = await Promise.all([
+          includeRelatedCandidates
+            ? getDeezerCandidateRecommendations({
+                currentProviderId,
+                query: queryLabel,
+                limit: requestedLimit,
+                contextArtist,
+              }).catch((error) => {
+                console.warn(
+                  "[track-recommendations.deezer] skipped related candidates",
+                  {
+                    currentProviderId,
+                    ...getDeezerErrorDetails(error),
+                  },
+                );
+
+                return [];
+              })
+            : Promise.resolve([]),
+          includeDeepCuts
+            ? getDeezerDeepCutRecommendations({
+                currentProviderId,
+                query: queryLabel,
+                limit: requestedLimit,
+                contextArtist,
+              }).catch((error) => {
+                console.warn("[track-recommendations.deezer] skipped deep-cut candidates", {
                   currentProviderId,
                   ...getDeezerErrorDetails(error),
-                },
-              );
+                });
 
-              return [];
-            })
-          : Promise.resolve([]),
-        includeDeepCuts
-          ? getDeezerDeepCutRecommendations({
-              currentProviderId,
-              query: queryLabel,
-              limit: requestedLimit,
-              contextArtist,
-            }).catch((error) => {
-              console.warn("[track-recommendations.deezer] skipped deep-cut candidates", {
-                currentProviderId,
-                ...getDeezerErrorDetails(error),
-              });
+                return [];
+              })
+            : Promise.resolve([]),
+        ]);
 
-              return [];
-            })
-          : Promise.resolve([]),
-      ]);
+        return [relatedCandidates, deepCutCandidates] as const;
+      })();
+      const [localSignalCandidates, [relatedCandidates, deepCutCandidates]] =
+        await Promise.all([localSignalCandidatesPromise, catalogCandidatesPromise]);
 
       const groups = selectTrackRecommendationGroups({
         currentProviderId,
@@ -556,7 +559,7 @@ export async function getTrackRecommendations({
     {
       currentEntityId,
       currentProviderId,
-      tagCount: tags.length,
+      tagCount: tags?.length ?? 0,
       limit,
       includeLocalSignals,
       includeRelatedCandidates,
