@@ -164,6 +164,7 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
     revalidate,
     scope,
     throwOnError = false,
+    retryDelays = throwOnError ? [] : deezerResourceRetryDelaysMs,
     signal,
   }: DeezerFetchOptions & { scope: string; throwOnError?: boolean },
 ): Promise<T | null> {
@@ -171,7 +172,7 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
     const json = await fetchDeezerJson<T>(url, {
       errorMessage,
       revalidate,
-      retryDelays: throwOnError ? [] : deezerResourceRetryDelaysMs,
+      retryDelays,
       signal,
     });
 
@@ -184,6 +185,7 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
 
     return json;
   } catch (error) {
+    signal?.throwIfAborted();
     if (error instanceof DeezerRequestError && error.status === 404) {
       return null;
     }
@@ -438,6 +440,7 @@ export async function getDeezerArtistTopTracks(
       scope: "artist_top_tracks",
       signal,
       throwOnError,
+      retryDelays: deezerResourceRetryDelaysMs,
     },
   );
 

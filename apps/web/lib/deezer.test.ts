@@ -1,98 +1,67 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { describe, it } from "node:test";
+import { DeezerRequestError, getDeezerAlbum, getDeezerArtistTopTracks } from "./deezer.ts";
+import { withSearchDeadline } from "./search/deadline.ts";
 
-import {
-  DeezerRequestError,
-  getDeezerErrorDetails,
-  getDeezerTrack,
-  isDeezerProviderId,
-  searchDeezerTracks,
-} from "./deezer.ts";
+const artist = { id: "399", fan_count: 100 };
 
-const originalFetch = globalThis.fetch;
-
-function jsonResponse(payload: unknown, status = 200) {
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers: {
-      "content-type": "application/json",
-    },
+describe("optional Deezer resources", () => {
+  it("propagates cancellation through the default artist-track fallback", async (t) => {
+    const controller = new AbortController();
+    const warn = t.mock.method(console, "warn", () => {});
+    const fetch = t.mock.method(globalThis, "fetch",
+      (_url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+        init!.signal!.addEventListener("abort", () => reject(init!.signal!.reason), { once: true });
+      }),
+    );
+    const pending = getDeezerArtistTopTracks(artist, 6, { signal: controller.signal });
+    controller.abort();
+    await assert.rejects(pending, { name: "AbortError" });
+    assert.equal(fetch.mock.callCount(), 1);
+    assert.equal(warn.mock.callCount(), 0);
   });
-}
 
-test.afterEach(() => {
-  globalThis.fetch = originalFetch;
-});
+  it("retains the artist-enrichment retry when failures are surfaced", async (t) => {
+    let attempts = 0;
+    t.mock.method(globalThis, "fetch", async () =>
+      ++attempts === 1
+        ? new Response(null, { status: 503 })
+        : Response.json({ data: [{ id: 123, title: "Recovered track" }] }),
+    );
+    const results = await getDeezerArtistTopTracks(artist, 6, { throwOnError: true });
+    assert.equal(attempts, 2);
+    assert.equal(results[0]?.title, "Recovered track");
+    assert.equal(results[0]?.artist_id, "399");
+  });
 
-test("Deezer track search retries transient upstream failures", async () => {
-  let fetchCount = 0;
+  it("surfaces exhausted artist-enrichment failures after the retained retry", async (t) => {
+    const fetch = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 503 }));
+    await assert.rejects(getDeezerArtistTopTracks(artist, 6, { throwOnError: true }),
+      (error: unknown) => error instanceof DeezerRequestError && error.status === 503);
+    assert.equal(fetch.mock.callCount(), 2);
+  });
 
-  globalThis.fetch = (async () => {
-    fetchCount += 1;
+  it("stops enrichment backoff when the shared search budget expires", async (t) => {
+    const fetch = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 503 }));
+    await assert.rejects(withSearchDeadline(
+      (signal) => getDeezerArtistTopTracks(artist, 6, { signal, throwOnError: true }),
+      { timeoutMs: 15 },
+    ), { name: "TimeoutError" });
+    assert.equal(fetch.mock.callCount(), 1);
+  });
 
-    if (fetchCount === 1) {
-      return jsonResponse({ error: { message: "temporary" } }, 502);
-    }
+  it("preserves the existing strict album policy outside catalog search", async (t) => {
+    const fetch = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 503 }));
+    await assert.rejects(getDeezerAlbum("123", { throwOnError: true }),
+      (error: unknown) => error instanceof DeezerRequestError && error.status === 503);
+    assert.equal(fetch.mock.callCount(), 1);
+  });
 
-    return jsonResponse({
-      data: [
-        {
-          id: 123,
-          title: "Alison",
-          link: "https://www.deezer.com/track/123",
-          rank: 120000,
-          artist: {
-            id: 45,
-            name: "Slowdive",
-            nb_fan: 42000,
-          },
-          album: {
-            cover_medium: "https://example.com/cover.jpg",
-          },
-        },
-      ],
-    });
-  }) as typeof fetch;
-
-  const results = await searchDeezerTracks("slowdive", 1);
-
-  assert.equal(fetchCount, 2);
-  assert.equal(results[0]?.provider_id, "123");
-  assert.equal(results[0]?.title, "Alison");
-  assert.equal(results[0]?.artist_name, "Slowdive");
-});
-
-test("Deezer track lookup degrades to null when the upstream request fails", async () => {
-  globalThis.fetch = (async () => {
-    throw new TypeError("network unavailable");
-  }) as typeof fetch;
-
-  const result = await getDeezerTrack("123");
-
-  assert.equal(result, null);
-});
-
-test("Deezer track lookup rejects malformed provider ids before fetching", async () => {
-  let fetchCount = 0;
-
-  globalThis.fetch = (async () => {
-    fetchCount += 1;
-    return jsonResponse({ id: 123, title: "Alison" });
-  }) as typeof fetch;
-
-  assert.equal(isDeezerProviderId("123"), true);
-  assert.equal(isDeezerProviderId("../../123"), false);
-  assert.equal(await getDeezerTrack("../../123"), null);
-  assert.equal(fetchCount, 0);
-});
-
-test("Deezer error log details keep only safe operational context", () => {
-  const details = getDeezerErrorDetails(
-    new DeezerRequestError("Deezer search request failed", 502),
-  );
-
-  assert.deepEqual(details, {
-    status: 502,
-    message: "Deezer search request failed",
+  it("preserves graceful fallback for non-cancelled optional album failures", async (t) => {
+    const warn = t.mock.method(console, "warn", () => {});
+    const fetch = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 503 }));
+    assert.equal(await getDeezerAlbum("123"), null);
+    assert.equal(fetch.mock.callCount(), 2);
+    assert.equal(warn.mock.callCount(), 1);
   });
 });

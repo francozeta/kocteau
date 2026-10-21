@@ -22,10 +22,10 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Verification And Limits
 
-- 132 unit tests, web lint, and the production build with TypeScript pass using
+- 134 unit tests, web lint, and the production build with TypeScript pass using
   pinned Node 24.15.0 and pnpm 11.21.0. Documentation and whitespace checks run
   before publication; exact deployment verification is recorded in the PR.
-- Lifecycle tests cover HTTP failure/retry policy, cancellation before fetch and
+- Lifecycle tests cover resource retry/fallback policy, cancellation before fetch and
   during fetch/backoff, timeouts, shared deadlines, listener/timer cleanup, and 16
   stalled concurrent searches without retry amplification. These controlled
   scenarios are not a production load benchmark.
