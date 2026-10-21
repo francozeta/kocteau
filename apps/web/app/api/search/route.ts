@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { measureServerTask } from "@/lib/perf";
 import { searchCatalog } from "@/lib/search/catalog";
 import { kocteauSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -18,14 +19,30 @@ export async function GET(req: Request) {
   const { q, type, source } = parsed.data;
   if (!q) return NextResponse.json([]);
 
-  const { results, hasProviderError } = await searchCatalog(q, type, source);
-  if (!results.length && hasProviderError) {
-    console.error("[search.catalog] failed with no fallback", { queryLength: q.length, type, source });
-    return NextResponse.json(
-      { error: "Music search is taking longer than usual. Try again in a moment." },
-      { status: 502 },
-    );
-  }
+  return measureServerTask("catalog.search", async () => {
+    const startedAt = performance.now();
+    try {
+      const { results, hasProviderError, timings } = await searchCatalog(q, type, source, {
+        signal: req.signal,
+      });
+      const headers = {
+        "Server-Timing": Object.entries({
+          ...timings,
+          total: performance.now() - startedAt,
+        }).map(([name, duration]) => `${name};dur=${duration.toFixed(1)}`).join(", "),
+      };
 
-  return NextResponse.json(results);
+      if (!results.length && hasProviderError) {
+        console.error("[search.catalog] failed with no fallback", { queryLength: q.length, type, source });
+        return NextResponse.json(
+          { error: "Music search is taking longer than usual. Try again in a moment." },
+          { status: 502, headers },
+        );
+      }
+      return NextResponse.json(results, { headers });
+    } catch (error) {
+      if (req.signal.aborted) return new Response(null, { status: 499 });
+      throw error;
+    }
+  }, { scope: type, source });
 }

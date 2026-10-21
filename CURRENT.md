@@ -1,7 +1,7 @@
 # Current Project State
 
 Last verified: 2026-10-21
-Previous integrated application baseline: main at 10af8eb ([PR #212](https://github.com/francozeta/kocteau/pull/212)).
+Maintenance baseline: main at b28050c ([PR #214](https://github.com/francozeta/kocteau/pull/214)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
@@ -9,92 +9,57 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Search Performance Maintenance
 
-- Local and external catalog search run as independent phases. Local matches
-  remain visible and selectable during external loading or failure; stale
-  matches disappear immediately when the query changes.
-- The API now delegates to a server-only catalog module. Shared ranking preserves
-  provider identity, metadata merging, grouped quotas, and the Kocteau boost.
-  Anonymous local lookups and entity links use a 60-second tagged cache; failed
-  lookups do not populate it. Screen readers hear partial result counts.
-  [Discovery's owning guide](./apps/web/components/discovery/README.md) documents
-  the cache boundaries and invalidation behavior.
-- Restored `20260930225425_studio_research_failure_recovery.sql` from the
-  applied cloud history, verified read-only on 2026-10-21. This is source
-  reconciliation; no cloud migration or history repair was executed.
-- Verified locally: 120 unit tests, web lint, production build with TypeScript,
-  documentation and whitespace checks.
-  Build uses pinned Node 24.15.0 and pnpm 11.21.0.
-- Browser checks at 1280px and 390px passed: local matches remain visible and
-  keyboard-selectable with the remote phase pending, duplicates merge, local
-  fallback survives upstream failure, and late responses cannot replace a new
-  query. No browser exceptions occurred in those scenarios.
-- Real read-only HTTP checks passed for local, remote, and combined search,
-  empty queries, and invalid parameters. Five repeated cached local requests
-  had a 3.6 ms median in the local production server; this is a smoke measurement,
-  not a production load-test result. Deployment checks run separately in the PR.
-
-## Integrated And Pending Work
-
-- PR #209 integrated selection-driven research and optional Gateway context;
-  PR #210 added context progress motion. Human choices and the normal save
-  boundary remain authoritative.
-- [PR #211](https://github.com/francozeta/kocteau/pull/211) remains open on
-  `feat/studio-source-scout`; source scouting and direct routing are review work.
-  [Release PR #202](https://github.com/francozeta/kocteau/pull/202) remains open;
-  the released version is v0.3.15.
-- PR #212 integrated the maintenance work and app audit. Product components have owning
-  flow READMEs; public `/docs` builds from canonical Markdown.
-- The integrated fixes protect auth
-  return paths and guest draft recovery, preserve responsive composer sessions,
-  fix keyboard rating/shortcut behavior and URL-triggered composition, and remove
-  four unused components/context files. The cleanup removes 269 net lines.
-  [Audit and cleanup evidence](./.plan/app-audit-continuity.md) records the scope.
-  Guest drafts are read before opening the session; returning to search restores focus.
+- Independent local/external phases preserve shared ranking, identity, metadata,
+  grouped quotas, and the Kocteau boost. Available matches stay selectable during
+  loading, stale matches disappear on input changes, and partial counts are announced.
+- Public catalog/link caches reduce repeated reads. Transient failures do not
+  populate them; private viewer data stays outside them.
+  [Discovery's owning guide](./apps/web/components/discovery/README.md) owns
+  cache invalidation, request budgets, cancellation, and timing semantics.
+- Continued hardening on `perf/search-request-budgets` adds a shared external
+  request budget, caller cancellation, and `Server-Timing` stages
+  (`local`, `catalog`, `links`, `rank`, `total`); the Discovery guide owns their semantics.
 
 ## Verification And Limits
 
-- Current maintenance passes 120 web unit tests, web lint, production build
-  with TypeScript, documentation checks (33 guides, 151 repository links), and
-  diff checks with pinned Node and pnpm. Remote Verify and the exact Vercel
-  preview passed for PR #214. Public search and documentation returned HTTP 200;
-  the private saved-reviews API returned 401 without an application session.
-- Deployment packaging/cache inputs retain documentation link targets.
-  Isolated fixtures reproduced and verified heading/image and shutdown fixes;
-  the analyzer generates docs before starting. Local desktop/mobile checks
-  verified the documentation skip link, table alignment, and overflow.
-- The earlier baseline deployment 10af8eb was verified on `kocteau.com`. That deployment
-  served `/docs` and the revised review guide with HTTP 200; the private saved
-  reviews API returned 401 without an application session.
-- Local production HTTP checks covered public pages, signed-out feed/Studio,
-  private API denial, callback sanitization, and preservation of the draft return
-  path. Browser checks at 1280px/390px covered composer state across breakpoints,
-  URL initialization, rating keyboard navigation, input shortcut isolation,
-  Escape/URL cleanup, mobile focus, and overflow. Inspected flows log no errors.
-- A real local guest action saved the draft and reached login with the feed
-  return path. Restoration on the public search surface retained its track,
-  rating, title, and note at desktop/mobile widths. Search-back focus passed at
-  both widths; the temporary draft was cleared without publishing.
-- Isolated session checks covered pending state, delivered responses, reopening,
-  stale state updates, and changed initial review. Real authenticated publication,
-  editing, OTP/onboarding, SQL/RLS, and curator/cron flows remain unverified.
-  Docker is unavailable; no migrations or authenticated review writes were run.
-- Earlier documentation verification (2026-10-04) covered desktop/390/320px,
-  search/copy/navigation/overflow, and automated accessibility on inspected
-  guides. Unknown static paths return 404 but log `NoFallbackError`
+- 134 unit tests, web lint, and the production build with TypeScript pass using
+  pinned Node 24.15.0 and pnpm 11.21.0. Documentation and whitespace checks run
+  before publication; exact deployment verification is recorded in the PR.
+- Lifecycle tests cover resource retry/fallback policy, cancellation before fetch and
+  during fetch/backoff, timeouts, shared deadlines, listener/timer cleanup, and 16
+  stalled concurrent searches without retry amplification. These controlled
+  scenarios are not a production load benchmark.
+- Controlled HTTP checks passed for stalled/failed providers, partial fallback,
+  upstream connection release after caller cancellation, timing headers, and zero
+  additional DB reads on a repeated cached local query. Desktop/mobile browser
+  checks at 1280px/390px cancelled old requests and displayed new local results
+  without exceptions.
+- PR #214 passed local and exact-preview checks at 1280px/390px for partial results,
+  keyboard selection, identity merging, provider failures, and stale responses.
+  Main b28050c passed remote Verify and production search/docs/private API checks.
+- Authenticated OTP/onboarding, publication/editing, SQL/RLS, and curator/cron flows
+  remain unverified. No authenticated review writes or cloud schema changes were
+  performed during search maintenance.
+- Restored `20260930225425_studio_research_failure_recovery.sql` from cloud statements
+  verified read-only on 2026-10-21; applied history was unchanged. Fresh-schema and
+  feed-index parity verification remains pending.
+- Unknown documentation paths can log `NoFallbackError` while returning 404
   ([Next.js #90537](https://github.com/vercel/next.js/issues/90537)).
-  A screen-reader session was not run.
-- Earlier linked-history checks found 33 repository migrations plus the cloud-only
-  failure-recovery migration. Its applied statements were checked again on
-  2026-10-21 and restored to version control; cloud history was not modified.
+
+## Other Active Work
+
+- PR #212 integrated app maintenance, auth return/draft recovery, responsive
+  composer sessions, keyboard fixes, and unused-component cleanup.
+  [Audit evidence](./.plan/app-audit-continuity.md) owns the detailed history.
+- Source scouting is tracked in [PR #211](https://github.com/francozeta/kocteau/pull/211);
+  release work is tracked in [PR #202](https://github.com/francozeta/kocteau/pull/202).
+  The released version is v0.3.15. Human research decisions and the normal save
+  boundary remain authoritative.
 
 ## Next Priority
 
-Verify guest draft → OTP/onboarding → restored composer → publish, plus real
-authenticated editing, on a disposable local stack and matching deployment.
-
-Measure search latency and database calls under representative load before adding
-indexes or splitting services. Check fresh-schema feed index parity and cursor
-validation next. Reconcile Studio file moves with PR #211, then verify curator
-research/context and recovery.
-Human decisions, collection destinations, and atomic acceptance remain later
-phases in issue #206.
+Measure search percentiles and database calls under representative load before
+consolidating local lookups into an RPC or adding indexes. Verify guest draft →
+OTP/onboarding → restored composer → publish/edit on a disposable stack and matching
+deployment. Reconcile Studio file moves with PR #211 and verify curator research
+and recovery before later human-decision/collection work in issue #206.

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { withSearchDeadline } from "./deadline";
 import type { SearchScope, SearchSource } from "@/lib/search-types";
 import {
   getDeezerArtistTopTracks,
@@ -402,12 +403,12 @@ async function attachLocalEntityIds(candidates: KocteauTrackSearchCandidate[]) {
   }));
 }
 
-async function getDeezerCandidates(query: string) {
+async function getDeezerCandidates(query: string, signal: AbortSignal) {
   const candidates: KocteauTrackSearchCandidate[] = [];
   const errors: unknown[] = [];
   const [tracksResult, artistsResult] = await Promise.allSettled([
-    searchDeezerTracks(query, deezerSearchLimit),
-    searchDeezerArtists(query, 3),
+    searchDeezerTracks(query, deezerSearchLimit, { signal }),
+    searchDeezerArtists(query, 3, { signal }),
   ]);
 
   if (tracksResult.status === "fulfilled") {
@@ -429,7 +430,7 @@ async function getDeezerCandidates(query: string) {
       isStrongArtistSearchMatch(query, result.name),
     );
 
-    if (artist) {
+    if (artist && !signal.aborted) {
       try {
         const tracks = await getDeezerArtistTopTracks(
           {
@@ -437,6 +438,7 @@ async function getDeezerCandidates(query: string) {
             fan_count: artist.fan_count,
           },
           artistMatchLimit,
+          { signal, throwOnError: true },
         );
 
         candidates.push(
@@ -491,24 +493,24 @@ const getLocalCandidates = unstable_cache(
   { revalidate: 60, tags: ["entities", "artists", "starter-tracks"] },
 );
 
-async function getRemoteCandidates(query: string, type: SearchScope) {
-  if (type === "track") return getDeezerCandidates(query);
+async function getRemoteCandidates(query: string, type: SearchScope, signal: AbortSignal) {
+  if (type === "track") return getDeezerCandidates(query, signal);
 
   const results = await Promise.allSettled([
     type === "all"
-      ? searchDeezerTracks(query, deezerSearchLimit).then((tracks) =>
+      ? searchDeezerTracks(query, deezerSearchLimit, { signal }).then((tracks) =>
           tracks.map((track, index) =>
             mapDeezerTrackCandidate({ track, source: "deezer", sourceIndex: index }),
           ),
         )
       : Promise.resolve([]),
     type === "all" || type === "album"
-      ? searchDeezerAlbums(query, deezerSearchLimit).then((albums) =>
+      ? searchDeezerAlbums(query, deezerSearchLimit, { signal }).then((albums) =>
           albums.map(mapDeezerAlbumCandidate),
         )
       : Promise.resolve([]),
     type === "all" || type === "artist"
-      ? searchDeezerArtists(query, deezerSearchLimit).then((artists) =>
+      ? searchDeezerArtists(query, deezerSearchLimit, { signal }).then((artists) =>
           artists.map(mapDeezerArtistCandidate),
         )
       : Promise.resolve([]),
@@ -524,24 +526,44 @@ async function getRemoteCandidates(query: string, type: SearchScope) {
   };
 }
 
-export async function searchCatalog(query: string, type: SearchScope, source: SearchSource) {
+export async function searchCatalog(
+  query: string,
+  type: SearchScope,
+  source: SearchSource,
+  { signal }: { signal?: AbortSignal } = {},
+) {
+  const timings = { local: 0, catalog: 0, links: 0, rank: 0 };
+  async function measure<T>(stage: keyof typeof timings, run: () => Promise<T>) {
+    const start = performance.now();
+    try {
+      return await run();
+    } finally {
+      timings[stage] = performance.now() - start;
+    }
+  }
   const [local, remote] = await Promise.all([
-    source === "remote" ? [] : getLocalCandidates(query, type).catch((error: unknown) => {
+    source === "remote" ? [] : measure("local", () => getLocalCandidates(query, type).catch((error: unknown) => {
       if (error instanceof LocalLookupFailure) return error.candidates;
       throw error;
-    }),
+    })),
     source === "local"
       ? { candidates: [], errors: [] }
-      : getRemoteCandidates(query, type),
+      : measure("catalog", () => withSearchDeadline(
+          (remoteSignal) => getRemoteCandidates(query, type, remoteSignal),
+          { signal },
+        )),
   ]);
+  signal?.throwIfAborted();
   const unlinkedCandidates = [...local, ...remote.candidates];
-  const linkedTracks = await attachLocalEntityIds(
+  const linkedTracks = await measure("links", () => attachLocalEntityIds(
     unlinkedCandidates.filter((candidate) => candidate.type === "track"),
-  );
+  ));
+  signal?.throwIfAborted();
   const candidates = [
     ...unlinkedCandidates.filter((candidate) => candidate.type !== "track"),
     ...linkedTracks,
   ];
+  const rankStartedAt = performance.now();
   const results = (source === "all" ? rankCatalogSearchResults({
     query,
     type,
@@ -553,6 +575,8 @@ export async function searchCatalog(query: string, type: SearchScope, source: Se
     limit: candidates.length,
   })).map(mapSearchResponse);
 
+  timings.rank = performance.now() - rankStartedAt;
+
   if (remote.errors.length) {
     console.warn("[search.catalog] provider failures", {
       queryLength: query.length,
@@ -562,5 +586,5 @@ export async function searchCatalog(query: string, type: SearchScope, source: Se
     });
   }
 
-  return { results, hasProviderError: remote.errors.length > 0 };
+  return { results, hasProviderError: remote.errors.length > 0, timings };
 }

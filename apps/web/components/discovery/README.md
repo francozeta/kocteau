@@ -21,6 +21,18 @@
   Entity links use a separate `entities`-tagged cache keyed by sorted provider IDs,
   covering both phases and the combined API. Errors are caught outside the cache.
   The live region announces partial results as soon as they become available.
+- Provider transport: `lib/deezer/request.ts`; external budget:
+  `lib/search/deadline.ts`. One three-second budget covers requests, retries,
+  backoff, and artist enrichment. Completed providers remain usable when another
+  reaches the deadline. This bounds provider work, not total HTTP time; local
+  catalog and entity-link lookups are measured separately.
+- Client cancellation reaches external requests and retry waits. Shared public
+  cache fills stay independent of a caller's signal. A cancelled caller receives
+  an empty 499 response without a server-failure log.
+- `Server-Timing` reports `local`, `catalog`, `links`, `rank`, and `total`
+  processing durations. Local and catalog work overlap, so durations are not
+  additive. Existing sampled performance logs use scope/source fields without
+  search text, identity, or credentials.
 
 ## Preserve
 
@@ -32,3 +44,6 @@ source boundaries live in [catalog research](../../../../docs/knowledge-layer.md
 
 Run discovery/search tests, lint, and the web build. Check selection, browser Back,
 refresh, empty results, long titles, keyboard use, and touch navigation.
+
+Check stalled providers, total provider failure, client cancellation, cache reuse,
+and timing headers with isolated upstream fixtures.
