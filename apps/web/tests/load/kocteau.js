@@ -18,8 +18,8 @@ if (!["all", "local", "remote"].includes(searchSource)) {
   throw new Error("K6_SEARCH_SOURCE must be all, local, or remote.");
 }
 if (!Array.isArray(searchQueries) || !searchQueries.length ||
-  searchQueries.some((query) => typeof query !== "string" || !query.trim() || query.length > 200)) {
-  throw new Error("K6_SEARCH_QUERIES must be a non-empty JSON array of queries up to 200 characters.");
+  searchQueries.some((query) => typeof query !== "string" || !query.trim() || query.length > 80)) {
+  throw new Error("K6_SEARCH_QUERIES must be a non-empty JSON array of queries up to 80 characters.");
 }
 const searchStageTimings = Object.fromEntries(
   ["local", "catalog", "links", "rank", "total"].map((stage) =>
