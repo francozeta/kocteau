@@ -15,14 +15,14 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 - The API now delegates to a server-only catalog module. Shared ranking preserves
   provider identity, metadata merging, grouped quotas, and the Kocteau boost.
   Anonymous local lookups and entity links use a 60-second tagged cache; failed
-  lookups do not populate it. Entity links for local and remote candidates use
-  a separate tagged cache keyed by sorted provider IDs; failed link lookups
-  are caught outside both caches. Screen readers hear partial result counts.
+  lookups do not populate it. Screen readers hear partial result counts.
+  [Discovery's owning guide](./apps/web/components/discovery/README.md) documents
+  the cache boundaries and invalidation behavior.
 - Restored `20260930225425_studio_research_failure_recovery.sql` from the
   applied cloud history, verified read-only on 2026-10-21. This is source
   reconciliation; no cloud migration or history repair was executed.
 - Verified locally: 120 unit tests, web lint, production build with TypeScript,
-  documentation checks (33 guides, 150 links), and whitespace checks.
+  documentation and whitespace checks.
   Build uses pinned Node 24.15.0 and pnpm 11.21.0.
 - Browser checks at 1280px and 390px passed: local matches remain visible and
   keyboard-selectable with the remote phase pending, duplicates merge, local
