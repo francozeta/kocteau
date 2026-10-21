@@ -1,7 +1,7 @@
 # Current Project State
 
 Last verified: 2026-10-21
-Maintenance baseline: main at c2e20a0 ([PR #216](https://github.com/francozeta/kocteau/pull/216)).
+Maintenance baseline: main at 1876959 ([PR #217](https://github.com/francozeta/kocteau/pull/217)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
@@ -20,10 +20,20 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   request budget, caller cancellation, and `Server-Timing` stages
   (`local`, `catalog`, `links`, `rank`, `total`); the Discovery guide owns their semantics.
 
+## Music Read Maintenance
+
+Track reads reuse resolved public entities and overlap independent local and
+catalog recommendation reads. The [Music guide](./apps/web/components/music/README.md)
+owns these boundaries. Ranking and viewer permissions are preserved; exact
+measurement and deployment evidence belongs in the PR.
+
 ## Verification And Limits
 
-- 143 unit tests, web lint, and the production build with TypeScript pass using
-  pinned Node 24.15.0 and pnpm 11.21.0. Documentation and whitespace checks run
+- 150 unit tests, web lint, and the production build with TypeScript pass using
+  pinned Node 24.15.0 and pnpm 11.21.0; Node types now match the runtime major.
+  Seven music I/O checks cover independent source execution, tag reuse, source
+  failures, resolved entity reuse, and ID-only/missing bundles.
+  Documentation and whitespace checks run
   before publication; exact deployment verification is recorded in the PR.
 - A fresh Docker-backed Supabase stack replayed migrations and seeds successfully.
   Database lint and all five SQL test files (13 checks) pass. Fixtures now respect
@@ -65,7 +75,9 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Next Priority
 
-Measure search percentiles and database calls with a representative catalog and
+Paginate entity discussions with database-backed aggregates before popular tracks
+outgrow an unbounded review response. Measure
+search percentiles and database calls with a representative catalog and
 authenticated traffic before consolidating local lookups into an RPC or adding
 indexes. Function placement is owned by [Operations](./docs/operations.md), and
 canonical identity reuse by the Discovery guide. Verify guest draft →

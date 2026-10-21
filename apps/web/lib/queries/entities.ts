@@ -423,13 +423,14 @@ export async function getEntityTasteTags(entityId: string) {
 }
 
 export const getTrackPublicBundle = cache(async function getTrackPublicBundle(
-  entityId: string,
+  entityOrId: EntityPage | string,
 ) {
+  const entityId = typeof entityOrId === "string" ? entityOrId : entityOrId.id;
   const [entity, reviews, tags] = await measureServerTask(
     "getTrackPublicBundle",
     async () =>
       Promise.all([
-        getEntityPageById(entityId),
+        typeof entityOrId === "string" ? getEntityPageById(entityId) : entityOrId,
         getReviewsForEntity(entityId),
         getEntityTasteTags(entityId),
       ]),
