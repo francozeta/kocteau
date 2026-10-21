@@ -1,13 +1,13 @@
 # Current Project State
 
 Last verified: 2026-10-21
-Maintenance baseline: main at e45e39a ([PR #215](https://github.com/francozeta/kocteau/pull/215)).
+Maintenance baseline: main at c2e20a0 ([PR #216](https://github.com/francozeta/kocteau/pull/216)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 [Issue #206](https://github.com/francozeta/kocteau/issues/206) coordinates Studio phases.
 
-## Search Performance Maintenance
+## Search And Database Maintenance
 
 - Independent local/external phases preserve shared ranking, identity, metadata,
   grouped quotas, and the Kocteau boost. Available matches stay selectable during
@@ -22,9 +22,16 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Verification And Limits
 
-- 138 unit tests, web lint, and the production build with TypeScript pass using
+- 143 unit tests, web lint, and the production build with TypeScript pass using
   pinned Node 24.15.0 and pnpm 11.21.0. Documentation and whitespace checks run
   before publication; exact deployment verification is recorded in the PR.
+- A fresh Docker-backed Supabase stack replayed migrations and seeds successfully.
+  Database lint and all five SQL test files (13 checks) pass. Fixtures now respect
+  provider constraints, explicit profile creation, enrichment triggers, and
+  timestamp handling; their test data is rolled back.
+- Search-only k6 smoke passes with per-stage timing and result-shape checks.
+  [Load readiness](./docs/load-readiness.md) owns the reproducible procedure;
+  exact local/preview/deployment measurements are recorded in the PR.
 - Lifecycle tests cover resource retry/fallback policy, cancellation before fetch and
   during fetch/backoff, timeouts, shared deadlines, listener/timer cleanup, and 16
   stalled concurrent searches without retry amplification. These controlled
@@ -37,12 +44,12 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 - PR #214 passed local and exact-preview checks at 1280px/390px for partial results,
   keyboard selection, identity merging, provider failures, and stale responses.
   Main e45e39a passed remote Verify and production search/docs/private API checks.
-- Authenticated OTP/onboarding, publication/editing, SQL/RLS, and curator/cron flows
-  remain unverified. No authenticated review writes or cloud schema changes were
-  performed during search maintenance.
+- Authenticated OTP/onboarding, publication/editing, manual SQL/RLS user flows,
+  and curator/cron execution remain unverified. Local SQL fixtures passed; no
+  authenticated review writes or schema changes were made to cloud environments.
 - Restored `20260930225425_studio_research_failure_recovery.sql` from cloud statements
-  verified read-only on 2026-10-21; applied history was unchanged. Fresh-schema and
-  feed-index parity verification remains pending.
+  verified read-only on 2026-10-21; applied history was unchanged. Fresh local schema
+  replay passed; cloud feed-index parity verification remains pending.
 - Unknown documentation paths can log `NoFallbackError` while returning 404
   ([Next.js #90537](https://github.com/vercel/next.js/issues/90537)).
 
@@ -58,8 +65,10 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Next Priority
 
-Measure search percentiles and database calls under representative load before
-consolidating local lookups into an RPC or adding indexes. Verify guest draft →
+Measure search percentiles and database calls with a representative catalog and
+authenticated traffic before consolidating local lookups into an RPC or adding
+indexes. Function placement is owned by [Operations](./docs/operations.md), and
+canonical identity reuse by the Discovery guide. Verify guest draft →
 OTP/onboarding → restored composer → publish/edit on a disposable stack and matching
 deployment. Reconcile Studio file moves with PR #211 and verify curator research
 and recovery before later human-decision/collection work in issue #206.

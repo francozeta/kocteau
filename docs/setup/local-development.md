@@ -17,6 +17,11 @@ Check `node --version` and `pnpm --version` before installation. Use an existing
 Corepack setup or install the specified pnpm version; do not regenerate the lockfile
 with a different package manager to get an install past an error.
 
+Next.js runs directly with Node and pnpm; Docker runs the local Supabase services.
+The same checkout and commands work on a developer machine or a disposable
+development environment. Search measurements use the optional k6 tool documented
+in [load readiness](../load-readiness.md).
+
 ## New Checkout
 
 From the repository root, install dependencies and start local services:

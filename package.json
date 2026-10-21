@@ -47,7 +47,9 @@
     "build": "turbo run build",
     "test": "pnpm --filter web test",
     "lint": "turbo run lint",
-    "check": "pnpm docs:check && pnpm test && pnpm lint && pnpm --filter web build"
+    "check": "pnpm docs:check && pnpm test && pnpm lint && pnpm --filter web build",
+    "perf:search:smoke": "k6 run -e K6_PROFILE=smoke -e K6_SEARCH_ONLY=1 -e K6_SEARCH_SOURCE=local apps/web/tests/load/kocteau.js",
+    "perf:search:baseline": "k6 run -e K6_PROFILE=baseline -e K6_SEARCH_ONLY=1 -e K6_SEARCH_SOURCE=local apps/web/tests/load/kocteau.js"
   },
   "devDependencies": {
     "eslint": "9.39.4",

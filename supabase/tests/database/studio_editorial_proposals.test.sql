@@ -19,7 +19,9 @@ BEGIN
   ASSERT has_column_privilege('service_role', 'public.editorial_proposals', 'result', 'UPDATE');
 
   INSERT INTO public.entities(provider, provider_id, type, title) VALUES ('deezer', '998881', 'track', 'Proposal fixture') RETURNING id INTO v_entity;
-  INSERT INTO public.catalog_enrichment_jobs(target_type, target_id) VALUES ('entity', v_entity) RETURNING id INTO v_job;
+  SELECT id INTO v_job FROM public.catalog_enrichment_jobs
+    WHERE target_type = 'entity' AND target_id = v_entity;
+  ASSERT v_job IS NOT NULL, 'entity creation queues enrichment';
   INSERT INTO public.catalog_source_observations(job_id, source, source_entity_type, source_entity_id, status, lookup)
     VALUES (v_job, 'deezer', 'track', '998881', 'resolved', '{}') RETURNING id INTO v_observation;
 

@@ -1,12 +1,30 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
+import { Trend } from "k6/metrics";
 
 const profile = (__ENV.K6_PROFILE || "smoke").toLowerCase();
 const baseUrl = normalizeBaseUrl(__ENV.K6_BASE_URL || "http://127.0.0.1:3000");
 const authCookie = (__ENV.K6_AUTH_COOKIE || "").trim();
 const previewCookie = (__ENV.K6_PREVIEW_COOKIE || "").trim();
 const vercelBypassSecret = (__ENV.K6_VERCEL_BYPASS_SECRET || "").trim();
-const searchQuery = (__ENV.K6_SEARCH_QUERY || "cocteau").trim();
+const searchSource = (__ENV.K6_SEARCH_SOURCE || "all").trim().toLowerCase();
+const searchOnly = __ENV.K6_SEARCH_ONLY === "1";
+const includeAuthenticatedFeed = Boolean(authCookie) && !searchOnly;
+const searchQueries = __ENV.K6_SEARCH_QUERIES
+  ? JSON.parse(__ENV.K6_SEARCH_QUERIES)
+  : [(__ENV.K6_SEARCH_QUERY || "cocteau").trim()];
+
+if (!["all", "local", "remote"].includes(searchSource)) {
+  throw new Error("K6_SEARCH_SOURCE must be all, local, or remote.");
+}
+if (!Array.isArray(searchQueries) || !searchQueries.length ||
+  searchQueries.some((query) => typeof query !== "string" || !query.trim() || query.length > 200)) {
+  throw new Error("K6_SEARCH_QUERIES must be a non-empty JSON array of queries up to 200 characters.");
+}
+const searchStageTimings = Object.fromEntries(
+  ["local", "catalog", "links", "rank", "total"].map((stage) =>
+    [stage, new Trend(`search_stage_${stage}`, true)]),
+);
 const explicitTrackPath = normalizePath(__ENV.K6_TRACK_PATH || "");
 const summaryPath = (__ENV.K6_SUMMARY_PATH || "").trim();
 
@@ -19,24 +37,28 @@ const defaultHeaders = {
     : {}),
 };
 
-const publicSurfaces = {
+const publicSurfaces = searchOnly ? {
+  search: scenario("searchSurface", profile),
+} : {
   landing: scenario("landingSurface", profile),
   canonical_track: scenario("canonicalTrackSurface", profile),
   search: scenario("searchSurface", profile),
 };
 
-if (authCookie) {
+if (includeAuthenticatedFeed) {
   publicSurfaces.authenticated_feed = scenario("authenticatedFeedSurface", profile);
 }
 
 export const options = {
   discardResponseBodies: true,
-  summaryTrendStats: ["avg", "med", "p(75)", "p(90)", "p(95)", "max"],
+  summaryTrendStats: ["avg", "med", "p(75)", "p(90)", "p(95)", "p(99)", "max"],
   scenarios: publicSurfaces,
-  thresholds: buildThresholds(Boolean(authCookie)),
+  thresholds: buildThresholds(includeAuthenticatedFeed, searchOnly),
 };
 
 export function setup() {
+  if (searchOnly) return {};
+
   if (explicitTrackPath) {
     return { trackPath: explicitTrackPath };
   }
@@ -77,11 +99,25 @@ export function canonicalTrackSurface(data) {
 }
 
 export function searchSurface() {
-  const encodedQuery = encodeURIComponent(searchQuery);
+  const query = searchQueries[(__VU - 1 + __ITER) % searchQueries.length];
+  const encodedQuery = encodeURIComponent(query.trim());
   const pageResponse = get(`/search?q=${encodedQuery}`, "search_page");
-  const apiResponse = get(`/api/search?q=${encodedQuery}`, "search_api", {
+  const apiResponse = get(`/api/search?q=${encodedQuery}&source=${searchSource}`, "search_api", {
     Accept: "application/json",
   });
+  const timingHeader = apiResponse.headers["Server-Timing"] || "";
+  for (const entry of timingHeader.split(",")) {
+    const match = entry.trim().match(/^([a-z]+);dur=([\d.]+)/);
+    if (match && searchStageTimings[match[1]]) {
+      searchStageTimings[match[1]].add(Number(match[2]));
+    }
+  }
+  let validResults = false;
+  try {
+    validResults = Array.isArray(apiResponse.json());
+  } catch {
+    // Invalid response bodies fail the check without hiding the remaining metrics.
+  }
 
   check(pageResponse, {
     "search page returns 200": (result) => result.status === 200,
@@ -90,6 +126,8 @@ export function searchSurface() {
     "search API returns 200": (result) => result.status === 200,
     "search API is JSON": (result) =>
       (result.headers["Content-Type"] || "").includes("application/json"),
+    "search API returns a result array": () => validResults,
+    "search API reports stage timings": () => timingHeader.includes("total;dur="),
   });
   pause();
 }
@@ -118,7 +156,10 @@ export function handleSummary(data) {
         generatedAt: new Date().toISOString(),
         target: baseUrl,
         profile,
-        authenticatedFeedIncluded: Boolean(authCookie),
+        authenticatedFeedIncluded: includeAuthenticatedFeed,
+        searchSource,
+        searchQueryCount: searchQueries.length,
+        searchOnly,
         protectedPreviewBypassIncluded: Boolean(previewCookie || vercelBypassSecret),
         data,
       },
@@ -134,6 +175,7 @@ function get(path, surface, extraHeaders = {}) {
   return http.get(`${baseUrl}${path}`, {
     headers: { ...defaultHeaders, ...extraHeaders },
     redirects: 0,
+    ...(surface === "search_api" ? { responseType: "text" } : {}),
     tags: { surface },
   });
 }
@@ -168,7 +210,7 @@ function scenario(exec, selectedProfile) {
   };
 }
 
-function buildThresholds(includeAuthenticatedFeed) {
+function buildThresholds(includeAuthenticatedFeed, onlySearch) {
   const thresholds = {
     checks: ["rate>0.99"],
     "http_req_failed{surface:landing}": ["rate<0.01"],
@@ -183,6 +225,13 @@ function buildThresholds(includeAuthenticatedFeed) {
     "http_req_failed{surface:search_api}": ["rate<0.02"],
     "http_req_duration{surface:search_api}": ["p(75)<1500", "p(95)<3000"],
   };
+
+  if (onlySearch) {
+    delete thresholds["http_req_failed{surface:landing}"];
+    delete thresholds["http_req_duration{surface:landing}"];
+    delete thresholds["http_req_failed{surface:canonical_track}"];
+    delete thresholds["http_req_duration{surface:canonical_track}"];
+  }
 
   if (includeAuthenticatedFeed) {
     thresholds["http_req_failed{surface:authenticated_feed}"] = ["rate<0.01"];
@@ -231,7 +280,8 @@ function formatSummary(data) {
     "",
     `Kocteau load-readiness (${profile})`,
     `Target: ${baseUrl}`,
-    `Authenticated feed: ${authCookie ? "included" : "skipped"}`,
+    `Authenticated feed: ${includeAuthenticatedFeed ? "included" : "skipped"}`,
+    `Search source: ${searchSource}; query count: ${searchQueries.length}`,
     "",
   ];
 
@@ -250,8 +300,15 @@ function formatSummary(data) {
     }
 
     lines.push(
-      `${surface}: p75=${round(duration["p(75)"])}ms p95=${round(duration["p(95)"])}ms failures=${percent(failures?.rate)}`,
+      `${surface}: p75=${round(duration["p(75)"])}ms p95=${round(duration["p(95)"])}ms p99=${round(duration["p(99)"])}ms failures=${percent(failures?.rate)}`,
     );
+  }
+
+  for (const stage of Object.keys(searchStageTimings)) {
+    const duration = data.metrics[`search_stage_${stage}`]?.values;
+    if (duration) {
+      lines.push(`search ${stage}: p95=${round(duration["p(95)"])}ms p99=${round(duration["p(99)"])}ms`);
+    }
   }
 
   lines.push("");

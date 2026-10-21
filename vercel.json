@@ -4,5 +4,8 @@
       "path": "/api/cron/enrich-catalog",
       "schedule": "0 4 * * *"
     }
+  ],
+  "regions": [
+    "gru1"
   ]
 }

@@ -6,6 +6,18 @@ Load testing and launch thresholds are documented in [Load readiness](./load-rea
 
 This file captures the production setup that lives outside the codebase.
 
+## Function Region
+
+Root [vercel.json](../vercel.json) places Node.js functions in `gru1`, near the
+Supabase database in South America. Keeping application and database traffic in
+the same region reduces network time across the multiple catalog lookups; it
+does not change query execution or database capacity.
+
+Verify the deployment's resolved `regions` and search `Server-Timing` after a
+region change. Compare cold and repeated queries separately, and preserve the
+existing catalog-enrichment cron. Revisit this configuration if the database
+moves. CDN delivery remains managed by Vercel.
+
 ## Catalog Evidence Rollout
 
 Apply `20260928051000_catalog_source_observations.sql` through the
