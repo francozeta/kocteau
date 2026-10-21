@@ -92,7 +92,9 @@ application measurements, use `pnpm --filter web build` followed by
 the same gradual zero-to-three-user profile; run it after smoke passes. It
 measures the current fixture catalog, not production capacity.
 
-Use a known query set with matches instead of measuring only one warm cache key:
+Smoke executes three iterations, so a longer query list is not guaranteed full
+coverage. Use a known query set with matches instead of measuring only one warm
+cache key:
 
 ```powershell
 $env:K6_SEARCH_QUERIES = '["cocteau", "burial", "FKA twigs"]'
@@ -105,7 +107,7 @@ Additional controls for the existing `perf:load:*` commands:
 | Variable | Meaning |
 | --- | --- |
 | `K6_SEARCH_ONLY=1` | Run only search page/API traffic; skip canonical-route discovery and feed traffic. |
-| `K6_SEARCH_REQUIRE_MATCHES=1` | Require every configured query to return at least one result. The search-only commands enable this; use known seeded queries. |
+| `K6_SEARCH_REQUIRE_MATCHES=1` | Require each executed query to return at least one result. The search-only commands enable this; use known seeded queries. |
 | `K6_SEARCH_SOURCE` | `local`, `remote`, or `all`; defaults to `all`. The search-only commands select `local`. |
 | `K6_SEARCH_QUERIES` | Non-empty JSON array of query strings, rotated across virtual users and iterations. |
 | `K6_SEARCH_QUERY` | Existing single-query fallback when an array is absent. |
