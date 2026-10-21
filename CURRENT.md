@@ -1,7 +1,7 @@
 # Current Project State
 
 Last verified: 2026-10-21
-Maintenance baseline: main at b28050c ([PR #214](https://github.com/francozeta/kocteau/pull/214)).
+Maintenance baseline: main at e45e39a ([PR #215](https://github.com/francozeta/kocteau/pull/215)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
@@ -16,13 +16,13 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   populate them; private viewer data stays outside them.
   [Discovery's owning guide](./apps/web/components/discovery/README.md) owns
   cache invalidation, request budgets, cancellation, and timing semantics.
-- Continued hardening on `perf/search-request-budgets` adds a shared external
+- [PR #215](https://github.com/francozeta/kocteau/pull/215) adds a shared external
   request budget, caller cancellation, and `Server-Timing` stages
   (`local`, `catalog`, `links`, `rank`, `total`); the Discovery guide owns their semantics.
 
 ## Verification And Limits
 
-- 134 unit tests, web lint, and the production build with TypeScript pass using
+- 138 unit tests, web lint, and the production build with TypeScript pass using
   pinned Node 24.15.0 and pnpm 11.21.0. Documentation and whitespace checks run
   before publication; exact deployment verification is recorded in the PR.
 - Lifecycle tests cover resource retry/fallback policy, cancellation before fetch and
@@ -36,7 +36,7 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   without exceptions.
 - PR #214 passed local and exact-preview checks at 1280px/390px for partial results,
   keyboard selection, identity merging, provider failures, and stale responses.
-  Main b28050c passed remote Verify and production search/docs/private API checks.
+  Main e45e39a passed remote Verify and production search/docs/private API checks.
 - Authenticated OTP/onboarding, publication/editing, SQL/RLS, and curator/cron flows
   remain unverified. No authenticated review writes or cloud schema changes were
   performed during search maintenance.
