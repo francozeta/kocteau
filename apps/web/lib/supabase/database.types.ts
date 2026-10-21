@@ -1696,6 +1696,13 @@ export type Database = {
         Args: { p_days?: number }
         Returns: Json
       }
+      get_entity_review_summary: {
+        Args: { p_entity_id: string }
+        Returns: {
+          average_rating: number
+          review_count: number
+        }[]
+      }
       get_recommended_review_ids: {
         Args: {
           p_cursor_created_at?: string

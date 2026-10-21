@@ -6,19 +6,28 @@ import type { EntityPage, EntityTasteTag } from "./entities";
 import type { DeezerTrackResult } from "../deezer";
 
 const calls: string[] = [];
+const requests: URL[] = [];
+const collectionRequests: string[][] = [];
 let loadTags = async (): Promise<EntityTasteTag[]> => [];
 let loadSource = async (mode: string) => {
   calls.push(mode);
   return { seedLabel: "Artist", tracks: [] as DeezerTrackResult[] };
 };
 let queryRows: (table: string) => unknown = () => [];
+let queryStatus = 200;
 const client = createClient("https://music.test", "sb_publishable_test", {
   auth: { persistSession: false, autoRefreshToken: false },
   global: {
     fetch: async (input) => {
-      const table = new URL(String(input)).pathname.split("/").at(-1) ?? "";
+      const url = new URL(String(input));
+      requests.push(url);
+      const table = url.pathname.split("/").at(-1) ?? "";
       calls.push(table);
-      return new Response(JSON.stringify(queryRows(table)), {
+      const rows = queryStatus >= 400 ? queryRows(table) : table === "get_entity_review_summary"
+        ? { review_count: 0, average_rating: null }
+        : queryRows(table);
+      return new Response(JSON.stringify(rows), {
+        status: queryStatus,
         headers: { "Content-Type": "application/json" },
       });
     },
@@ -29,7 +38,11 @@ const stubs = {
   cache: { unstable_cache: (run: unknown) => run },
   perf: { measureServerTask: (_name: string, run: () => unknown) => run() },
   public: { supabasePublic: () => client },
-  viewer: {},
+  server: { supabaseServer: async () => client },
+  viewer: { getViewerReviewCollectionState: async (_viewer: string, reviewIds: string[]) => {
+    collectionRequests.push(reviewIds);
+    return { likedReviewIds: new Set<string>(), bookmarkedReviewIds: new Set<string>() };
+  } },
   tags: { getEntityTasteTags: () => { calls.push("tags"); return loadTags(); } },
   deezer: {
     getDeezerTrack: async () => {
@@ -48,6 +61,7 @@ const modules = new Map([
   ["next/cache", "cache"],
   ["@/lib/perf", "perf"],
   ["@/lib/supabase/public", "public"],
+  ["@/lib/supabase/server", "server"],
   ["@/lib/queries/viewer", "viewer"],
   ["@/lib/queries/entities", "tags"],
   ["@/lib/deezer", "deezer"],
@@ -85,6 +99,9 @@ before(async () => {
 after(() => { Reflect.deleteProperty(globalThis, stubKey); });
 beforeEach(() => {
   calls.length = 0;
+  requests.length = 0;
+  collectionRequests.length = 0;
+  queryStatus = 200;
   loadTags = async () => [];
   loadSource = async (mode) => {
     calls.push(mode);
@@ -177,14 +194,84 @@ const entity: EntityPage = {
 test("a resolved public entity avoids another entity query", async () => {
   const bundle = await entities.getTrackPublicBundle(entity);
   assert.equal(bundle?.entity, entity);
-  assert.deepEqual(calls.sort(), ["entity_preference_tags", "reviews"]);
+  assert.deepEqual(calls.sort(), ["entity_preference_tags", "get_entity_review_summary", "reviews"]);
 });
 
 test("id-only callers still load the public entity and preserve missing results", async () => {
   queryRows = (table) => table === "entities" ? entity : [];
   const bundle = await entities.getTrackPublicBundle(entity.id);
   assert.deepEqual(bundle?.entity, entity);
-  assert.deepEqual(calls.sort(), ["entities", "entity_preference_tags", "reviews"]);
+  assert.deepEqual(calls.sort(), ["entities", "entity_preference_tags", "get_entity_review_summary", "reviews"]);
   queryRows = (table) => table === "entities" ? null : [];
   assert.equal(await entities.getTrackPublicBundle("00000000-0000-4000-8000-000000000002"), null);
+});
+
+test("track summaries skip review bodies and taste tags", async () => {
+  queryRows = (table) => table === "entities" ? entity : [];
+  const bundle = await entities.getTrackSummaryBundle(entity.id);
+  assert.deepEqual(bundle?.reviewSummary, { reviewCount: 0, averageRating: null });
+  assert.deepEqual(calls.sort(), ["entities", "get_entity_review_summary"]);
+});
+
+test("review pages enforce their bound and deterministic cursor filters", async () => {
+  const { encodeEntityReviewCursor, decodeEntityReviewCursor } = await import("../reviews/entity-pagination");
+  const rows = Array.from({ length: 13 }, (_, i) => ({
+    id: `75000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
+    created_at: "2026-10-21T12:00:00.123456+00:00",
+    title: null, body: null, rating: 4, likes_count: 0, comments_count: 0,
+    is_pinned: false, author: null,
+  }));
+  queryRows = () => rows;
+  const cursor = encodeEntityReviewCursor(rows[12]);
+  const page = await entities.getEntityReviewsPage(entity.id, cursor);
+  assert.equal(page.reviews.length, 12);
+  assert.deepEqual(decodeEntityReviewCursor(page.nextCursor), {
+    id: rows[11].id, created_at: rows[11].created_at,
+  });
+  const params = requests[0].searchParams;
+  assert.equal(params.get("limit"), "13");
+  assert.equal(params.get("order"), "created_at.desc,id.desc");
+  assert.equal(params.get("created_at"), "lte." + rows[12].created_at);
+  assert.ok(params.get("or")?.includes("id.lt." + rows[12].id));
+  await assert.rejects(entities.getEntityReviewsPage(entity.id, "invalid"), /Invalid review cursor/);
+  assert.equal(requests.length, 1);
+});
+
+test("the viewer can edit an older review outside the visible page", async () => {
+  const own = { id: "own-review", title: "My title", body: "Older note", rating: 4, is_pinned: false };
+  queryRows = () => own;
+  const state = await entities.getTrackViewerState("viewer", entity.id, []);
+  assert.equal(state.viewerReviewId, own.id);
+  assert.deepEqual(state.viewerReview, own);
+  assert.equal(requests[0].searchParams.get("author_id"), "eq.viewer");
+  assert.equal(requests[0].searchParams.get("entity_id"), "eq." + entity.id);
+  assert.deepEqual(collectionRequests, [[]]);
+});
+
+test("a visible own review avoids a second read and guests do no private work", async () => {
+  const review = {
+    id: "own-review", title: null, body: null, rating: 4, likes_count: 0, comments_count: 0,
+    created_at: "2026-10-21T12:00:00Z", is_pinned: false,
+    author: { id: "viewer", username: "viewer", display_name: null, avatar_url: null },
+  };
+  const state = await entities.getTrackViewerState("viewer", entity.id, [review]);
+  assert.equal(state.viewerReviewId, review.id);
+  assert.equal(requests.length, 0);
+  assert.deepEqual(collectionRequests, [[review.id]]);
+  const guest = await entities.getTrackViewerState(null, entity.id, [review]);
+  assert.equal(guest.viewerReviewId, null);
+  assert.equal(requests.length, 0);
+  assert.equal(collectionRequests.length, 1);
+});
+
+test("temporary read failures propagate instead of becoming empty review pages", async () => {
+  queryStatus = 503;
+  queryRows = () => ({ code: "TEST_UNAVAILABLE", message: "temporarily unavailable" });
+  await assert.rejects(entities.getEntityReviewsPage(entity.id));
+  const failedAttempts = requests.length;
+  assert.ok(failedAttempts > 0);
+  queryStatus = 200;
+  queryRows = () => [];
+  assert.deepEqual(await entities.getEntityReviewsPage(entity.id), { reviews: [], nextCursor: null });
+  assert.equal(requests.length, failedAttempts + 1);
 });

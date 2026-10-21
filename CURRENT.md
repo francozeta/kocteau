@@ -1,7 +1,7 @@
 # Current Project State
 
 Last verified: 2026-10-21
-Maintenance baseline: main at 1876959 ([PR #217](https://github.com/francozeta/kocteau/pull/217)).
+Maintenance baseline: main at 35d2512 ([PR #218](https://github.com/francozeta/kocteau/pull/218)).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
@@ -27,18 +27,32 @@ catalog recommendation reads. The [Music guide](./apps/web/components/music/READ
 owns these boundaries. Ranking and viewer permissions are preserved; exact
 measurement and deployment evidence belongs in the PR.
 
+## Review Pagination — Awaiting Database Delivery
+
+The proposed change bounds track discussions and calculates complete review
+aggregates in Postgres. The Music guide owns the cursor, cache, metadata, and
+viewer-edit boundaries. Local implementation and verification are complete;
+the cloud summary migration and matching deployment remain pending. The CLI
+reported missing authentication, so this change must not be merged or treated
+as active in production until database delivery is verified through the
+[maintainer workflow](./docs/maintainers/supabase-workflow.md).
+
 ## Verification And Limits
 
-- 150 unit tests, web lint, and the production build with TypeScript pass using
+- 159 unit tests, web lint, and the production build with TypeScript pass using
   pinned Node 24.15.0 and pnpm 11.21.0; Node types now match the runtime major.
-  Seven music I/O checks cover independent source execution, tag reuse, source
-  failures, resolved entity reuse, and ID-only/missing bundles.
+  Music checks cover independent sources, identity reuse, summary reads,
+  bounded pages, cursor validation, and private access to an off-page own review.
   Documentation and whitespace checks run
   before publication; exact deployment verification is recorded in the PR.
 - A fresh Docker-backed Supabase stack replayed migrations and seeds successfully.
-  Database lint and all five SQL test files (13 checks) pass. Fixtures now respect
+  Database lint and all six SQL test files (24 checks) pass. Fixtures now respect
   provider constraints, explicit profile creation, enrichment triggers, and
   timestamp handling; their test data is rolled back.
+- A disposable 3,000-review catalog traversed 250 pages without omissions or
+  duplicates. Desktop/mobile checks at 1280px/390px preserve complete aggregates,
+  older/latest navigation, and off-page own-review editing; a later guest session
+  receives no private viewer state. Measurement evidence belongs in the PR.
 - Search-only k6 smoke passes with per-stage timing and result-shape checks.
   [Load readiness](./docs/load-readiness.md) owns the reproducible procedure;
   the PR tracks measurement evidence and deployment status.
@@ -54,8 +68,9 @@ measurement and deployment evidence belongs in the PR.
 - PR #214 passed local and exact-preview checks at 1280px/390px for partial results,
   keyboard selection, identity merging, provider failures, and stale responses.
   Main e45e39a passed remote Verify and production search/docs/private API checks.
-- Authenticated OTP/onboarding, publication/editing, manual SQL/RLS user flows,
-  and curator/cron execution remain unverified. Local SQL fixtures passed; no
+- Authenticated OTP/onboarding, publication, cloud editing, manual SQL/RLS user flows,
+  and curator/cron execution remain unverified. Local SQL fixtures and disposable
+  authenticated edit persistence passed; no
   authenticated review writes or schema changes were made to cloud environments.
 - Restored `20260930225425_studio_research_failure_recovery.sql` from cloud statements
   verified read-only on 2026-10-21; applied history was unchanged. Fresh local schema
@@ -75,8 +90,8 @@ measurement and deployment evidence belongs in the PR.
 
 ## Next Priority
 
-Paginate entity discussions with database-backed aggregates before popular tracks
-outgrow an unbounded review response. Measure
+Apply and verify the pending summary migration, then validate its matching preview
+before merging pagination. Measure
 search percentiles and database calls with a representative catalog and
 authenticated traffic before consolidating local lookups into an RPC or adding
 indexes. Function placement is owned by [Operations](./docs/operations.md), and
