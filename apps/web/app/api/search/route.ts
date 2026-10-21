@@ -20,6 +20,7 @@ export async function GET(req: Request) {
 
   const { results, hasProviderError } = await searchCatalog(q, type, source);
   if (!results.length && hasProviderError) {
+    console.error("[search.catalog] failed with no fallback", { queryLength: q.length, type, source });
     return NextResponse.json(
       { error: "Music search is taking longer than usual. Try again in a moment." },
       { status: 502 },

@@ -14,7 +14,9 @@
   the same grouping, quotas, identity merging, and Kocteau boost as the combined API.
   Changing the input hides matches from the previous debounced query immediately.
 - Anonymous local catalog lookups and entity links are cached for 60 seconds,
-  invalidated by `entities`, `artists`, and `starter-tracks`. Private data never
+  tagged with `entities`, `artists`, and `starter-tracks`. Review mutations
+  invalidate `entities`; artist and starter updates currently refresh through
+  the 60-second TTL. Private data never
   enters this cache; transient lookup failures return partial data without caching it.
   Entity links use a separate `entities`-tagged cache keyed by sorted provider IDs,
   covering both phases and the combined API. Errors are caught outside the cache.

@@ -484,7 +484,7 @@ async function loadLocalCandidates(query: string, type: SearchScope) {
 }
 
 // Only anonymous, public catalog data enters this cache. Arguments form part of
-// the key; existing entity/starter invalidations also refresh search results.
+// the key. Review mutations invalidate entities; the TTL bounds artist/starter staleness.
 const getLocalCandidates = unstable_cache(
   loadLocalCandidates,
   ["public-catalog-search-v1"],

@@ -48,7 +48,8 @@ export function useKocteauSearch({
       : [],
     [isCurrentQuery, searchEnabled, debouncedQuery, type, local.data, remote.data],
   );
-  const error = isCurrentQuery && searchEnabled && data.length === 0
+  const error = isCurrentQuery && searchEnabled && data.length === 0 &&
+    !local.isFetching && !remote.isFetching
     ? local.error ?? remote.error
     : null;
 

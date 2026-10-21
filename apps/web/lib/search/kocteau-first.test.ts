@@ -117,14 +117,14 @@ describe("progressive catalog search", () => {
   });
 
   it("merges independently completed phases without losing local identity or remote metadata", () => {
-    const local = candidate("123", { source: "local", entity_id: "local-id", title: "Radiohead" });
+    const local = candidate("123", { source: "local", entity_id: "local-id", title: "Radiohead", rank: null });
     const remote = candidate("123", { title: "Radiohead", album_provider_id: "album-1", rank: 500000 });
     const results = rankCatalogSearchResults({ query: "Radiohead", type: "track", candidates: [remote, local] });
     assert.equal(results.length, 1);
     assert.equal(results[0]?.source, "local");
     assert.equal(results[0]?.entity_id, "local-id");
     assert.equal(results[0]?.album_provider_id, "album-1");
-    assert.equal(results[0]?.rank, 100);
+    assert.equal(results[0]?.rank, 500000);
   });
 
   it("preserves all-scope quotas and grouping after phase merging", () => {
