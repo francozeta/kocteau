@@ -16,12 +16,9 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
   populate them; private viewer data stays outside them.
   [Discovery's owning guide](./apps/web/components/discovery/README.md) owns
   cache invalidation, request budgets, cancellation, and timing semantics.
-- Continued hardening on `perf/search-request-budgets`: one three-second budget
-  covers external calls, retries, and artist enrichment. Completed sources survive
-  another provider's timeout; client cancellation stops external work while shared
-  public cache fills remain independent.
-- Timing headers distinguish catalog, provider, link lookup, ranking, and total
-  processing. Existing sampled logs use non-identifying scope/source fields.
+- Continued hardening on `perf/search-request-budgets` adds a shared external
+  request budget, caller cancellation, and `Server-Timing` stages
+  (`local`, `catalog`, `links`, `rank`, `total`); the Discovery guide owns their semantics.
 
 ## Verification And Limits
 
