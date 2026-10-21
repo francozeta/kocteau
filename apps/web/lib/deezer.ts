@@ -1,3 +1,12 @@
+import {
+  DeezerRequestError,
+  fetchDeezerJson,
+  getDeezerErrorDetails,
+  type DeezerFetchOptions,
+} from "./deezer/request";
+
+export { DeezerRequestError, getDeezerErrorDetails } from "./deezer/request";
+
 export type DeezerTrackResult = {
   provider: "deezer";
   provider_id: string;
@@ -134,104 +143,18 @@ type DeezerTrackMapOptions = {
   cover_url?: string | null;
 };
 
-const deezerRequestTimeoutMs = 8_000;
 const deezerSearchRetryDelaysMs = [250, 700] as const;
 const deezerResourceRetryDelaysMs = [300] as const;
 const deezerResourceRevalidateSeconds = 24 * 60 * 60;
+
+type DeezerSearchOptions = { signal?: AbortSignal };
 
 export function isDeezerProviderId(value: string) {
   return /^[1-9]\d{0,19}$/.test(value);
 }
 
-type DeezerFetchOptions = {
-  errorMessage: string;
-  revalidate: number;
-  retryDelays?: readonly number[];
-};
-
-export class DeezerRequestError extends Error {
-  status: number | null;
-  cause?: unknown;
-
-  constructor(message: string, status: number | null = null, cause?: unknown) {
-    super(message);
-    this.name = "DeezerRequestError";
-    this.status = status;
-    this.cause = cause;
-  }
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function shouldRetryDeezerError(error: unknown) {
-  if (error instanceof DeezerRequestError && error.status !== null) {
-    return error.status === 429 || error.status >= 500;
-  }
-
-  return true;
-}
-
 function hasDeezerApiError(payload: { error?: unknown }) {
   return Object.prototype.hasOwnProperty.call(payload, "error");
-}
-
-export function getDeezerErrorDetails(error: unknown) {
-  return {
-    status: error instanceof DeezerRequestError ? error.status : null,
-    message: error instanceof Error ? error.message : "Unknown Deezer error",
-  };
-}
-
-async function fetchDeezerJson<T>(
-  url: string,
-  {
-    errorMessage,
-    revalidate,
-    retryDelays = [],
-  }: DeezerFetchOptions,
-): Promise<T> {
-  let lastError: unknown = null;
-  const maxAttempts = retryDelays.length + 1;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), deezerRequestTimeoutMs);
-
-    try {
-      const response = await fetch(url, {
-        next: { revalidate },
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        throw new DeezerRequestError(errorMessage, response.status);
-      }
-
-      return (await response.json()) as T;
-    } catch (error) {
-      lastError = error;
-
-      if (attempt >= retryDelays.length || !shouldRetryDeezerError(error)) {
-        break;
-      }
-
-      await sleep(retryDelays[attempt] ?? 0);
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }
-
-  if (lastError instanceof Error) {
-    if (lastError instanceof DeezerRequestError) {
-      throw lastError;
-    }
-
-    throw new DeezerRequestError(errorMessage, null, lastError);
-  }
-
-  throw new DeezerRequestError(errorMessage);
 }
 
 async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
@@ -241,6 +164,7 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
     revalidate,
     scope,
     throwOnError = false,
+    signal,
   }: DeezerFetchOptions & { scope: string; throwOnError?: boolean },
 ): Promise<T | null> {
   try {
@@ -248,6 +172,7 @@ async function fetchOptionalDeezerJson<T extends { error?: unknown }>(
       errorMessage,
       revalidate,
       retryDelays: throwOnError ? [] : deezerResourceRetryDelaysMs,
+      signal,
     });
 
     if (hasDeezerApiError(json)) {
@@ -302,12 +227,17 @@ function mapDeezerTrack(
   };
 }
 
-export async function searchDeezerTracks(query: string, limit = 12): Promise<DeezerTrackResult[]> {
+export async function searchDeezerTracks(
+  query: string,
+  limit = 12,
+  { signal }: DeezerSearchOptions = {},
+): Promise<DeezerTrackResult[]> {
   const url = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=${limit}`;
   const json = await fetchDeezerJson<DeezerSearchResponse>(url, {
     errorMessage: "Deezer search request failed",
     revalidate: 60,
     retryDelays: deezerSearchRetryDelaysMs,
+    signal,
   });
 
   if (hasDeezerApiError(json)) {
@@ -335,12 +265,14 @@ function mapDeezerArtist(item: DeezerArtistApiItem): DeezerArtistResult | null {
 export async function searchDeezerArtists(
   query: string,
   limit = 3,
+  { signal }: DeezerSearchOptions = {},
 ): Promise<DeezerArtistResult[]> {
   const url = `https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=${limit}`;
   const json = await fetchDeezerJson<DeezerArtistSearchResponse>(url, {
     errorMessage: "Deezer artist request failed",
     revalidate: 300,
     retryDelays: deezerSearchRetryDelaysMs,
+    signal,
   });
 
   if (hasDeezerApiError(json)) {
@@ -375,12 +307,14 @@ function mapDeezerAlbum(item: DeezerAlbumApiItem): DeezerAlbumResult | null {
 export async function searchDeezerAlbums(
   query: string,
   limit = 12,
+  { signal }: DeezerSearchOptions = {},
 ): Promise<DeezerAlbumResult[]> {
   const url = `https://api.deezer.com/search/album?q=${encodeURIComponent(query)}&limit=${limit}`;
   const json = await fetchDeezerJson<DeezerAlbumSearchResponse>(url, {
     errorMessage: "Deezer album search request failed",
     revalidate: 300,
     retryDelays: deezerSearchRetryDelaysMs,
+    signal,
   });
 
   if (hasDeezerApiError(json)) {
@@ -493,6 +427,7 @@ export async function getDeezerArtistAlbums(
 export async function getDeezerArtistTopTracks(
   artist: Pick<DeezerArtistResult, "id" | "fan_count">,
   limit = 6,
+  { signal, throwOnError = false }: DeezerSearchOptions & { throwOnError?: boolean } = {},
 ): Promise<DeezerTrackResult[]> {
   const url = `https://api.deezer.com/artist/${encodeURIComponent(artist.id)}/top?limit=${limit}`;
   const json = await fetchOptionalDeezerJson<DeezerArtistTopTracksResponse & { error?: unknown }>(
@@ -501,6 +436,8 @@ export async function getDeezerArtistTopTracks(
       errorMessage: "Deezer artist top tracks request failed",
       revalidate: 300,
       scope: "artist_top_tracks",
+      signal,
+      throwOnError,
     },
   );
 
