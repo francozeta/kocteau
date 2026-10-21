@@ -11,3 +11,6 @@ export function isSearchEntityType(value: string | null | undefined): value is S
 export function isSearchScope(value: string | null | undefined): value is SearchScope {
   return searchScopes.includes(value as SearchScope);
 }
+
+export const searchSources = ["all", "local", "remote"] as const;
+export type SearchSource = (typeof searchSources)[number];

@@ -1,3 +1,5 @@
+import type { SearchScope } from "../search-types";
+
 export type KocteauSearchSource = "local" | "starter" | "artist-match" | "deezer";
 
 export type KocteauTrackSearchCandidate = {
@@ -231,4 +233,31 @@ export function rankKocteauTrackSearchResults({
       return (a.source_index ?? Number.MAX_SAFE_INTEGER) - (b.source_index ?? Number.MAX_SAFE_INTEGER);
     })
     .slice(0, limit);
+}
+
+/** Keep phase merging identical to the combined API's type quotas and ranking. */
+export function rankCatalogSearchResults({
+  query,
+  type,
+  candidates,
+}: {
+  query: string;
+  type: SearchScope;
+  candidates: KocteauTrackSearchCandidate[];
+}): KocteauTrackSearchResult[] {
+  if (type !== "all") {
+    return rankKocteauTrackSearchResults({ query, candidates, limit: 28 });
+  }
+
+  return ([
+    ["artist", 3],
+    ["album", 4],
+    ["track", 8],
+  ] as const).flatMap(([entityType, limit]) =>
+    rankKocteauTrackSearchResults({
+      query,
+      candidates: candidates.filter((candidate) => candidate.type === entityType),
+      limit,
+    }),
+  );
 }

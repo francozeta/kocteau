@@ -1,8 +1,9 @@
 "use client";
 
-import { useDeferredValue } from "react";
+import { useDeferredValue, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { rankCatalogSearchResults } from "@/lib/search/kocteau-first";
 import type { SearchScope } from "@/lib/search-types";
 import { kocteauTrackSearchQueryOptions } from "@/queries/tracks";
 
@@ -25,8 +26,40 @@ export function useKocteauSearch({
   const deferredQuery = useDeferredValue(trimmedQuery);
   const debouncedQuery = useDebouncedValue(deferredQuery, debounceMs);
 
-  return useQuery({
-    ...kocteauTrackSearchQueryOptions(debouncedQuery, type),
-    enabled: enabled && debouncedQuery.length >= 2,
+  const searchEnabled = enabled && debouncedQuery.length >= 2;
+  const local = useQuery({
+    ...kocteauTrackSearchQueryOptions(debouncedQuery, type, "local"),
+    enabled: searchEnabled,
   });
+  const remote = useQuery({
+    ...kocteauTrackSearchQueryOptions(debouncedQuery, type, "remote"),
+    enabled: searchEnabled,
+  });
+  const isCurrentQuery = trimmedQuery === debouncedQuery;
+  const data = useMemo(
+    () => isCurrentQuery && searchEnabled
+      ? rankCatalogSearchResults({
+          query: debouncedQuery,
+          type,
+          candidates: [...(local.data ?? []), ...(remote.data ?? [])].map(
+            (result) => ({ ...result, source: result.source ?? "deezer" }),
+          ),
+        })
+      : [],
+    [isCurrentQuery, searchEnabled, debouncedQuery, type, local.data, remote.data],
+  );
+  const error = isCurrentQuery && searchEnabled && data.length === 0 &&
+    !local.isFetching && !remote.isFetching
+    ? local.error ?? remote.error
+    : null;
+
+  return {
+    data,
+    // Results remain selectable while the other source is still loading.
+    isFetching: enabled && trimmedQuery.length >= 2 && (!isCurrentQuery || local.isFetching || remote.isFetching),
+    isPlaceholderData: false,
+    error,
+    isError: Boolean(error),
+    refetch: () => Promise.all([local.refetch(), remote.refetch()]),
+  };
 }

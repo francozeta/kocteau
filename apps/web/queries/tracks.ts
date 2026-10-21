@@ -1,6 +1,6 @@
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import type { DiscoveryTrack } from "@/lib/types/discovery";
-import type { SearchEntityType, SearchScope } from "@/lib/search-types";
+import type { SearchEntityType, SearchScope, SearchSource } from "@/lib/search-types";
 import { fetchJson, isRetryableFetchJsonError } from "@/queries/http";
 
 export type DeezerSearchResult = {
@@ -31,6 +31,8 @@ export type KocteauSearchResult = Omit<DeezerSearchResult, "type"> & {
   source?: "local" | "starter" | "artist-match" | "deezer";
   source_label?: string;
   score?: number;
+  rank?: number | null;
+  source_index?: number;
 };
 
 export const trackKeys = {
@@ -38,8 +40,8 @@ export const trackKeys = {
   recent: (limit: number) => ["tracks", "recent", limit] as const,
   search: (type: SearchEntityType, query: string) =>
     ["tracks", "search", type, query] as const,
-  kocteauSearch: (type: SearchScope, query: string) =>
-    ["tracks", "kocteau-search", type, query] as const,
+  kocteauSearch: (type: SearchScope, query: string, source: SearchSource = "all") =>
+    ["tracks", "kocteau-search", type, query, source] as const,
 };
 
 export function recentTracksQueryOptions(limit = 12) {
@@ -82,14 +84,16 @@ export function deezerTrackSearchQueryOptions(
 export function kocteauTrackSearchQueryOptions(
   query: string,
   type: SearchScope = "track",
+  source: SearchSource = "all",
 ) {
   const params = new URLSearchParams({
     q: query,
     type,
+    source,
   });
 
   return queryOptions({
-    queryKey: trackKeys.kocteauSearch(type, query),
+    queryKey: trackKeys.kocteauSearch(type, query, source),
     queryFn: async ({ signal }) => {
       const payload = await fetchJson<KocteauSearchResult[]>(
         `/api/search?${params.toString()}`,
@@ -100,7 +104,6 @@ export function kocteauTrackSearchQueryOptions(
     },
     staleTime: 60_000,
     gcTime: 10 * 60_000,
-    placeholderData: keepPreviousData,
     retry: (failureCount, error) =>
       failureCount < 1 && isRetryableFetchJsonError(error),
   });
