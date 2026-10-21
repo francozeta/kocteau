@@ -76,6 +76,58 @@ Override discovery when a known canonical track should be measured:
 $env:K6_TRACK_PATH = "/tracks/sea-swallow-me/known-short-id"
 ```
 
+## Search And Database Isolation
+
+The search-only commands skip landing/track discovery and authenticated feed
+traffic, and measure the local catalog without calling the external provider:
+
+```bash
+pnpm perf:search:smoke
+pnpm perf:search:baseline
+```
+
+They default to the running app at `http://127.0.0.1:3000`. For repeatable
+application measurements, use `pnpm --filter web build` followed by
+`pnpm --filter web start` against disposable local Supabase. The baseline keeps
+the same gradual zero-to-three-user profile; run it after smoke passes. It
+measures the current fixture catalog, not production capacity.
+
+Smoke executes three iterations, so a longer query list is not guaranteed full
+coverage. Use a known query set with matches instead of measuring only one warm
+cache key:
+
+```powershell
+$env:K6_SEARCH_QUERIES = '["cocteau", "burial", "FKA twigs"]'
+pnpm perf:search:baseline
+Remove-Item Env:K6_SEARCH_QUERIES
+```
+
+Additional controls for the existing `perf:load:*` commands:
+
+| Variable | Meaning |
+| --- | --- |
+| `K6_SEARCH_ONLY=1` | Run only search page/API traffic; skip canonical-route discovery and feed traffic. |
+| `K6_SEARCH_REQUIRE_MATCHES=1` | Require each executed query to return at least one result. The search-only commands enable this; use known seeded queries. |
+| `K6_SEARCH_SOURCE` | `local`, `remote`, or `all`; defaults to `all`. The search-only commands select `local`. |
+| `K6_SEARCH_QUERIES` | Non-empty JSON array of query strings, rotated across virtual users and iterations. |
+| `K6_SEARCH_QUERY` | Existing single-query fallback when an array is absent. |
+
+Reports include P99, source/query-count metadata, and `search_stage_local`,
+`search_stage_catalog`, `search_stage_links`, `search_stage_rank`, and
+`search_stage_total` from the API's timing header. Local/provider stages overlap;
+do not add their durations. Result-array and timing-header checks prevent an
+unrelated successful response from passing as a search measurement. Search-only
+commands also require matches, so an empty fallback cannot pass the smoke check.
+
+A warm cached result alone does not prove database connectivity. For database
+failure checks, use a fresh cache key with a known fixture match or fresh local
+state and verify the database call delta. Repeated queries can reuse the server data cache. A mixed query set does not
+guarantee cache misses, and adding an unused URL parameter does not bypass that
+cache. Use fresh disposable state or known fresh query keys, compare repeated
+requests, and record database call deltas alongside timings. Smoke percentiles
+have too few samples to establish latency or capacity targets. Keep production
+checks on the smoke profile; gradual runs belong on local/preview/staging.
+
 ## Authenticated feed
 
 Copy the complete `Cookie` request header from an intentionally-created test session. Keep it only in the current shell and never commit it:

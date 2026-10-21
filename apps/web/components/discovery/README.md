@@ -20,6 +20,9 @@
   enters this cache; transient lookup failures return partial data without caching it.
   Entity links use a separate `entities`-tagged cache keyed by sorted provider IDs,
   covering both phases and the combined API. Errors are caught outside the cache.
+  `lib/search/entity-links.ts` reuses canonical identities already present in a
+  response before looking up only unresolved provider IDs. Failed lookups retain
+  those known identities and available candidates.
   The live region announces partial results as soon as they become available.
 - Provider transport: `lib/deezer/request.ts`; external budget:
   `lib/search/deadline.ts`. One three-second budget covers requests, retries,

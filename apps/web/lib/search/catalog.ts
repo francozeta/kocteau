@@ -2,6 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { withSearchDeadline } from "./deadline";
+import { attachEntityIds } from "./entity-links";
 import type { SearchScope, SearchSource } from "@/lib/search-types";
 import {
   getDeezerArtistTopTracks,
@@ -380,27 +381,10 @@ const getCachedEntityLinks = unstable_cache(
   { revalidate: 60, tags: ["entities"] },
 );
 
-async function attachLocalEntityIds(candidates: KocteauTrackSearchCandidate[]) {
-  const providerIds = Array.from(new Set(candidates.flatMap((candidate) =>
-    candidate.entity_id ? [] : [candidate.provider_id],
-  ))).sort();
-  if (!providerIds.length) return candidates;
-
-  let entityIdsByProviderId: Map<string, string>;
-  try {
-    entityIdsByProviderId = new Map(await getCachedEntityLinks(providerIds));
-  } catch {
-    // Failed lookups never enter either cache; provider identities remain usable.
-    return candidates;
-  }
-
-  return candidates.map((candidate) => ({
-    ...candidate,
-    entity_id:
-      candidate.entity_id ??
-      entityIdsByProviderId.get(candidate.provider_id) ??
-      null,
-  }));
+function attachLocalEntityIds(candidates: KocteauTrackSearchCandidate[]) {
+  return attachEntityIds(candidates, async (providerIds) =>
+    new Map(await getCachedEntityLinks(providerIds)),
+  );
 }
 
 async function getDeezerCandidates(query: string, signal: AbortSignal) {

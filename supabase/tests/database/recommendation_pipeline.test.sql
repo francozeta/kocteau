@@ -66,17 +66,19 @@ values
     now()
   );
 
-update public.profiles
-set
-  username = 'rec_test_' || right(id::text, 1),
-  onboarded = true,
-  taste_onboarded = true
+insert into public.profiles (id, username, onboarded, taste_onboarded)
+select id, 'rec_test_' || right(id::text, 1), true, true
+from auth.users
 where id in (
   '10000000-0000-4000-8000-000000000001',
   '10000000-0000-4000-8000-000000000002',
   '10000000-0000-4000-8000-000000000003',
   '10000000-0000-4000-8000-000000000004'
-);
+)
+on conflict (id) do update set
+  username = excluded.username,
+  onboarded = excluded.onboarded,
+  taste_onboarded = excluded.taste_onboarded;
 
 insert into public.entities (
   id,
@@ -90,7 +92,7 @@ values
   (
     '20000001-0000-4000-8000-000000000001',
     'track',
-    'test',
+    'deezer',
     'recommendation-entity-taste',
     'Entity taste fixture',
     'Kocteau tests'
@@ -98,7 +100,7 @@ values
   (
     '20000002-0000-4000-8000-000000000002',
     'track',
-    'test',
+    'deezer',
     'recommendation-own-review',
     'Own review fixture',
     'Kocteau tests'
@@ -106,7 +108,7 @@ values
   (
     '20000003-0000-4000-8000-000000000003',
     'track',
-    'test',
+    'deezer',
     'recommendation-author-signals',
     'Author signals fixture',
     'Kocteau tests'

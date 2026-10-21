@@ -43,7 +43,10 @@ BEGIN
   ASSERT NOT EXISTS (SELECT 1 FROM public.claim_catalog_enrichment_job(second_job)), 'targeted claims preserve backoff';
   UPDATE public.catalog_enrichment_jobs SET next_attempt_at = now(), attempts = 5 WHERE id = second_job;
   ASSERT NOT EXISTS (SELECT 1 FROM public.claim_catalog_enrichment_job(second_job)), 'targeted claims preserve exhausted attempts';
+  -- Backdate the fixture without the timestamp trigger replacing its stale time.
+  ALTER TABLE public.catalog_enrichment_jobs DISABLE TRIGGER set_catalog_enrichment_jobs_updated_at;
   UPDATE public.catalog_enrichment_jobs SET status = 'processing', attempts = 2, updated_at = now() - interval '16 minutes' WHERE id = second_job;
+  ALTER TABLE public.catalog_enrichment_jobs ENABLE TRIGGER set_catalog_enrichment_jobs_updated_at;
   SELECT job_id INTO claimed FROM public.claim_catalog_enrichment_job(second_job);
   ASSERT claimed = second_job, 'interrupted work can be reclaimed';
 END;
