@@ -53,16 +53,16 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 
 ## Verification And Limits
 
-- 115 web unit tests, web lint, production build with TypeScript, documentation
-  checks (33 guides, 150 repository links), and diff checks pass. Node and pnpm
-  match the pinned versions. Remote Verify passed for PR head d3051ac and
-  integrated main 10af8eb. The exact preview passed and served `/docs` and the
-  revised review guide with HTTP 200.
+- Current maintenance passes 120 web unit tests, web lint, production build
+  with TypeScript, documentation checks (33 guides, 151 repository links), and
+  diff checks with pinned Node and pnpm. Remote Verify and the exact Vercel
+  preview passed for PR #214. Public search and documentation returned HTTP 200;
+  the private saved-reviews API returned 401 without an application session.
 - Deployment packaging/cache inputs retain documentation link targets.
   Isolated fixtures reproduced and verified heading/image and shutdown fixes;
   the analyzer generates docs before starting. Local desktop/mobile checks
   verified the documentation skip link, table alignment, and overflow.
-- Production 10af8eb is READY and assigned to `kocteau.com`. Its exact deployment
+- The earlier baseline deployment 10af8eb was verified on `kocteau.com`. That deployment
   served `/docs` and the revised review guide with HTTP 200; the private saved
   reviews API returned 401 without an application session.
 - Local production HTTP checks covered public pages, signed-out feed/Studio,
