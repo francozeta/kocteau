@@ -6,6 +6,8 @@ import type { EntityPage, EntityTasteTag } from "./entities";
 import type { DeezerTrackResult } from "../deezer";
 
 const calls: string[] = [];
+let retainTasteCache = false;
+const tasteCache = new Map<string, unknown>();
 const requests: URL[] = [];
 const collectionRequests: string[][] = [];
 let loadTags = async (): Promise<EntityTasteTag[]> => [];
@@ -38,7 +40,14 @@ const client = createClient("https://music.test", "sb_publishable_test", {
 });
 const stubs = {
   empty: {},
-  cache: { unstable_cache: (run: unknown) => run },
+  cache: { unstable_cache: (run: () => Promise<unknown>, keys: string[]) => async () => {
+    const key = JSON.stringify(keys);
+    const retain = retainTasteCache && keys[0] === "entity-taste-tags";
+    if (retain && tasteCache.has(key)) return tasteCache.get(key);
+    const result = await run();
+    if (retain) tasteCache.set(key, result);
+    return result;
+  } },
   perf: { measureServerTask: (_name: string, run: () => unknown) => run() },
   public: { supabasePublic: () => client },
   server: { supabaseServer: async () => client },
@@ -101,6 +110,8 @@ before(async () => {
 });
 after(() => { Reflect.deleteProperty(globalThis, stubKey); });
 beforeEach(() => {
+  retainTasteCache = false;
+  tasteCache.clear();
   calls.length = 0;
   requests.length = 0;
   collectionRequests.length = 0;
@@ -312,4 +323,22 @@ test("temporary read failures propagate instead of becoming empty review pages",
   queryRows = () => [];
   assert.deepEqual(await entities.getEntityReviewsPage(entityId), { reviews: [], nextCursor: null });
   assert.equal(requests.length, failedAttempts + 1);
+});
+
+
+test("a failed taste-tag lookup does not cache its empty fallback", async (t) => {
+  t.mock.method(console, "warn", () => {});
+  retainTasteCache = true;
+  queryStatus = 400;
+  queryRows = () => ({ message: "temporary fixture failure", code: "fixture" });
+  const id = "00000000-0000-4000-8000-000000000099";
+  assert.deepEqual(await entities.getEntityTasteTags(id), []);
+  queryStatus = 200;
+  queryRows = () => [{
+    source: "human", weight: 1,
+    preference_tags: { id: "dream-pop", kind: "genre", slug: "dream-pop", label: "Dream pop" },
+  }];
+  const recovered = await entities.getEntityTasteTags(id);
+  assert.equal(recovered[0]?.label, "Dream pop");
+  assert.equal(calls.filter((call) => call === "entity_preference_tags").length, 2);
 });

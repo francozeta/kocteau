@@ -189,6 +189,16 @@ For the same test window, record from Vercel Observability:
 
 The k6 summary measures client-visible latency; Vercel and Supabase observations identify where that time was spent.
 
+## Source readiness
+
+The search API reports `X-Kocteau-Search-Status` and per-source readiness. The
+suite rejects missing readiness and aborts on detected degraded responses,
+including HTTP 200 fallbacks. Gradual runs require more than 99% fresh responses;
+normal stale-while-revalidate transitions count against that budget. Smoke records
+freshness without treating one normal refresh as a capacity estimate.
+Observe backend refresh errors alongside HTTP status and shape; cached success
+alone cannot establish dependency health.
+
 ## Stop and rollback criteria
 
 Stop a run when any of the following occurs:
@@ -232,3 +242,23 @@ Supabase remained stable across the window:
 - the cumulative query outliers were Supabase Dashboard introspection queries, not Kocteau application queries.
 
 The isolated maximums on canonical track and search page show a cold-tail opportunity, but they did not persist through P95 under gradual load. Investigate those paths separately before raising concurrency or changing database capacity.
+
+
+## Isolated Public-Read Regression
+
+`pnpm perf:reads:fixture` starts a loopback HTTP fixture on port 54321.
+It emulates Data API/catalog responses, 503 errors, and stalled connections;
+it does not execute SQL or establish database capacity.
+
+Build separate candidate and baseline checkouts with the pinned runtime, frozen
+installs, `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` and a fixture-only
+publishable key. Start their production servers on ports 3000 and 3001.
+For each server set `NODE_OPTIONS=--import=<absolute-path-to-fixtures/isolate-upstreams.mjs>`.
+This verification preload blocks non-loopback data fetches and intercepts provider
+requests. Keep it out of deployment configuration.
+
+Run `pnpm perf:reads:verify`. Its targets are fixed loopback origins. It checks
+expected identities, request amplification, deadline cancellation, and recovery.
+The fixture returns deterministic rows rather than implementing PostgreSQL
+filtering. These measurements do not establish production capacity, authenticated
+permissions, SQL plans, or performance on a representative catalog.

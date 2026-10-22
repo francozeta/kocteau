@@ -121,13 +121,30 @@ evidence is recorded in [PR #219](https://github.com/francozeta/kocteau/pull/219
   The released version is v0.3.15. Human research decisions and the normal save
   boundary remain authoritative.
 
+## Public Read Reliability
+
+Branch `perf/public-read-reliability` builds on the documentation audit in
+[PR #220](https://github.com/francozeta/kocteau/pull/220); runtime delivery is pending.
+Public Data API reads use bounded concurrency/body deadlines and explicit no-retry
+PostgREST behavior. Search normalizes ASCII casing, coalesces per-process fills,
+bounds local/link reads, and exposes stale/degraded source readiness. Legacy search
+shares the provider deadline. Taste-tag failures stay outside their cache.
+
+171 tests, lint, and the production build pass. Native Next.js baseline/candidate
+checks use isolated HTTP fixtures: 16 casing variants issue 112 versus seven data
+requests, preserve identities, and avoid default retry amplification during 503s.
+Desktop/mobile search preserves local results during provider stalls without
+browser exceptions. The [implementation record](./.plan/public-read-reliability.md)
+owns measurements, reproduction, and limits. No cloud load, migration, production
+deployment, or authenticated write was performed for this work.
+
 ## Next Priority
 
 Investigate the recovered Supabase data-plane incident, then address OG asset URL validation,
 affected runtime dependencies, and search refresh concurrency/deadlines before
 another capacity run. Repeat stronger tests on an isolated staging database.
 
-Measure search percentiles and database calls with a representative catalog and
+Deliver the reviewed public-read changes, then measure search percentiles and database calls with a representative catalog and
 authenticated traffic before consolidating local lookups into an RPC or adding
 indexes. Function placement is owned by [Operations](./docs/operations.md), and
 canonical identity reuse by the Discovery guide. Verify guest draft →

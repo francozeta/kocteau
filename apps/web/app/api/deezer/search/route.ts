@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { getDeezerErrorDetails, searchDeezerTracks } from "@/lib/deezer";
-import { supabasePublic } from "@/lib/supabase/public";
+import { attachSearchEntityIds } from "@/lib/search/catalog";
+import { withSearchDeadline } from "@/lib/search/deadline";
+import { searchReadinessHeaders } from "@/lib/search/readiness";
 import { deezerSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
-
-type ExistingEntity = {
-  id: string;
-  provider_id: string;
-};
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -16,58 +13,39 @@ export async function GET(req: Request) {
     type: searchParams.get("type") ?? undefined,
   });
 
-  if (!parsed.success) {
-    return validationErrorResponse(parsed.error, "Search query is invalid.");
-  }
-
+  if (!parsed.success) return validationErrorResponse(parsed.error, "Search query is invalid.");
   const { q, type } = parsed.data;
-
-  if (!q) return NextResponse.json([], { status: 200 });
+  if (!q) return NextResponse.json([]);
   if (type !== "track") {
     return NextResponse.json(
-      { error: `Search for ${type} is not available in this demo yet.` },
-      { status: 501 }
+      { error: "Search for " + type + " is not available in this demo yet." },
+      { status: 501 },
     );
   }
 
   try {
-    const results = await searchDeezerTracks(q, 12);
-    const providerIds = results.map((result) => result.provider_id);
-
-    if (providerIds.length === 0) {
-      return NextResponse.json([], { status: 200 });
-    }
-
-    const supabase = supabasePublic();
-    const { data: entities } = await supabase
-      .from("entities")
-      .select("id, provider_id")
-      .eq("provider", "deezer")
-      .eq("type", "track")
-      .in("provider_id", providerIds);
-
-    const entityByProviderId = new Map(
-      ((entities ?? []) as ExistingEntity[]).map((entity) => [entity.provider_id, entity.id])
+    const results = await withSearchDeadline(
+      (signal) => searchDeezerTracks(q, 12, { signal }),
+      { signal: req.signal },
     );
-
-    return NextResponse.json(
-      results.map((result) => ({
-        ...result,
-        entity_id: entityByProviderId.get(result.provider_id) ?? null,
-      }))
-    );
-  } catch (error) {
-    console.error("[deezer.search] failed", {
-      type,
-      queryLength: q.length,
-      ...getDeezerErrorDetails(error),
+    req.signal.throwIfAborted();
+    const linked = await attachSearchEntityIds(results);
+    req.signal.throwIfAborted();
+    return NextResponse.json(linked.candidates, {
+      headers: searchReadinessHeaders({
+        local: "skipped", links: linked.status, provider: "fresh",
+      }),
     });
-
+  } catch (error) {
+    if (req.signal.aborted) return new Response(null, { status: 499 });
+    console.error("[deezer.search] failed", {
+      type, queryLength: q.length, ...getDeezerErrorDetails(error),
+    });
     return NextResponse.json(
-      {
-        error: "Music search is taking longer than usual. Try again in a moment.",
-      },
-      { status: 502 },
+      { error: "Music search is taking longer than usual. Try again in a moment." },
+      { status: 502, headers: searchReadinessHeaders({
+        local: "skipped", links: "skipped", provider: "degraded",
+      }) },
     );
   }
 }

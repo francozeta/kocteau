@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { measureServerTask } from "@/lib/perf";
+import { searchReadinessHeaders } from "@/lib/search/readiness";
 import { searchCatalog } from "@/lib/search/catalog";
 import { kocteauSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
@@ -22,17 +23,18 @@ export async function GET(req: Request) {
   return measureServerTask("catalog.search", async () => {
     const startedAt = performance.now();
     try {
-      const { results, hasProviderError, timings } = await searchCatalog(q, type, source, {
+      const { results, hasProviderError, readiness, timings } = await searchCatalog(q, type, source, {
         signal: req.signal,
       });
       const headers = {
+        ...searchReadinessHeaders(readiness),
         "Server-Timing": Object.entries({
           ...timings,
           total: performance.now() - startedAt,
         }).map(([name, duration]) => `${name};dur=${duration.toFixed(1)}`).join(", "),
       };
 
-      if (!results.length && hasProviderError) {
+      if (!results.length && (hasProviderError || readiness.local === "degraded")) {
         console.error("[search.catalog] failed with no fallback", { queryLength: q.length, type, source });
         return NextResponse.json(
           { error: "Music search is taking longer than usual. Try again in a moment." },

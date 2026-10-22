@@ -1,0 +1,43 @@
+import { createServer } from "node:http";
+let db="healthy", provider="healthy";
+const stats={db:0,provider:0,active:0,peak:0,closed:0};
+const row={
+ id:"00000000-0000-4000-8000-000000000001",short_id:"000000000000",
+ provider:"deezer",provider_id:"951796",type:"track",title:"Sea, Swallow Me",
+ artist_name:"Cocteau Twins",artist_id:null,parent_album_id:null,cover_url:null,deezer_url:null,
+ release_date:null,record_type:null,disambiguation:null,musicbrainz_recording_id:null,
+ musicbrainz_release_group_id:null,first_release_date:null,genres:[],
+};
+const track={
+ id:951796,title:"Sea, Swallow Me",title_short:"Sea, Swallow Me",link:"https://www.deezer.com/track/951796",rank:100000,
+ artist:{id:1041,name:"Cocteau Twins"},album:{id:107083,title:"The Moon and the Melodies",record_type:"album"},
+};
+createServer((req,res)=>{
+ const u=new URL(req.url,"http://fixture");
+ if(u.pathname==="/__fixture/config"){
+  db=u.searchParams.get("db")||db;provider=u.searchParams.get("provider")||provider;
+  res.setHeader("Content-Type","application/json");res.end(JSON.stringify({db,provider,stats}));return;
+ }
+ if(u.pathname==="/__fixture/stats"){res.end(JSON.stringify({db,provider,stats}));return;}
+ const external=u.pathname.startsWith("/provider");
+ stats[external?"provider":"db"]++;stats.active++;stats.peak=Math.max(stats.peak,stats.active);
+ let timer;
+ res.once("close",()=>{stats.active--;stats.closed++;clearTimeout(timer);});
+ const mode=external?provider:db;
+ if(mode==="stall")return;
+ timer=setTimeout(()=>{
+  res.setHeader("Content-Type","application/json");
+  if(mode==="fail"){res.writeHead(503,{"Retry-After":"0"});res.end(JSON.stringify({message:"fixture unavailable"}));return;}
+  if(external){
+   const p=u.pathname.slice(9);
+   const data=p==="/search/artist"?[{id:1041,name:"Cocteau Twins",nb_fan:100000}]:p==="/search/album"?[]:[track];
+   res.end(JSON.stringify({data}));return;
+  }
+  const table=u.pathname.split("/").at(-1);
+  let result=[];
+  if(table==="entities"&&u.searchParams.get("type")!=="eq.album")result=[row];
+  if(table==="get_entity_review_summary")result=[{review_count:0,average_rating:null}];
+  const single=String(req.headers.accept||"").includes("application/vnd.pgrst.object");
+  res.end(JSON.stringify(single?result[0]||null:result));
+ },30);
+}).listen(54321,"127.0.0.1",()=>console.log("isolated fixture ready"));

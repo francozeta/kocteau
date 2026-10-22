@@ -15,3 +15,5 @@ cloud measurement, data-plane incident and recovery, and prioritized follow-up.
 
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
+
+- [Public read reliability](./public-read-reliability.md): measured implementation following the capacity audit; runtime delivery pending.
