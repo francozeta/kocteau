@@ -1,7 +1,8 @@
 # Current Project State
 
-Last verified: 2026-10-21
-Maintenance baseline: main at 35d2512 ([PR #218](https://github.com/francozeta/kocteau/pull/218)).
+Last verified: 2026-10-22
+Maintenance baseline: [PR #218](https://github.com/francozeta/kocteau/pull/218),
+continued by [PR #219](https://github.com/francozeta/kocteau/pull/219).
 
 Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
@@ -27,15 +28,16 @@ catalog recommendation reads. The [Music guide](./apps/web/components/music/READ
 owns these boundaries. Ranking and viewer permissions are preserved; exact
 measurement and deployment evidence belongs in the PR.
 
-## Review Pagination — Awaiting Database Delivery
+## Review Pagination
 
-The proposed change bounds track discussions and calculates complete review
-aggregates in Postgres. The Music guide owns the cursor, cache, metadata, and
-viewer-edit boundaries. Local implementation and verification are complete;
-the cloud summary migration and matching deployment remain pending. The CLI
-reported missing authentication, so this change must not be merged or treated
-as active in production until database delivery is verified through the
-[maintainer workflow](./docs/maintainers/supabase-workflow.md).
+Track discussions use bounded pages and complete Postgres aggregates. The Music
+guide owns cursor validation, public-cache boundaries, sharing-image reads, and
+private access to an off-page own review.
+
+The summary migration is delivered through the pinned CLI and all 35 linked
+migration versions match. Permission checks and public Data API reads verify
+complete counts, averages, and the empty case. Preview and production deployment
+evidence is recorded in [PR #219](https://github.com/francozeta/kocteau/pull/219).
 
 ## Verification And Limits
 
@@ -71,10 +73,15 @@ as active in production until database delivery is verified through the
 - Authenticated OTP/onboarding, publication, cloud editing, manual SQL/RLS user flows,
   and curator/cron execution remain unverified. Local SQL fixtures and disposable
   authenticated edit persistence passed; no
-  authenticated review writes or schema changes were made to cloud environments.
+  authenticated review writes were made to cloud environments. The additive
+  summary migration and public Data API reads are verified in cloud.
 - Restored `20260930225425_studio_research_failure_recovery.sql` from cloud statements
   verified read-only on 2026-10-21; applied history was unchanged. Fresh local schema
   replay passed; cloud feed-index parity verification remains pending.
+- Linked database lint reports an error in the existing
+  `extensions.index_advisor` function because `hypopg_reset()` is unresolved.
+  Advisors complete with warnings. This extension issue is outside the summary
+  migration; diagnose it before changing extension configuration.
 - Unknown documentation paths can log `NoFallbackError` while returning 404
   ([Next.js #90537](https://github.com/vercel/next.js/issues/90537)).
 
@@ -90,9 +97,7 @@ as active in production until database delivery is verified through the
 
 ## Next Priority
 
-Apply and verify the pending summary migration, then validate its matching preview
-before merging pagination. Measure
-search percentiles and database calls with a representative catalog and
+Measure search percentiles and database calls with a representative catalog and
 authenticated traffic before consolidating local lookups into an RPC or adding
 indexes. Function placement is owned by [Operations](./docs/operations.md), and
 canonical identity reuse by the Discovery guide. Verify guest draft →

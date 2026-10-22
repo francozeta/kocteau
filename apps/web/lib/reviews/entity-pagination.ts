@@ -3,7 +3,9 @@ import { z } from "zod";
 export const ENTITY_REVIEW_PAGE_SIZE = 12;
 
 const cursorSchema = z.object({
-  created_at: z.iso.datetime({ offset: true }),
+  created_at: z.iso.datetime({ offset: true }).refine((value) =>
+    !value.startsWith("0000-") && (value.endsWith("Z") || Number(value.slice(-5, -3)) < 16),
+  ),
   id: z.uuid(),
 }).strict();
 

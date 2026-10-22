@@ -13,7 +13,7 @@ let loadSource = async (mode: string) => {
   calls.push(mode);
   return { seedLabel: "Artist", tracks: [] as DeezerTrackResult[] };
 };
-let queryRows: (table: string) => unknown = () => [];
+let queryRows: (table: string, url: URL) => unknown = () => [];
 let queryStatus = 200;
 const client = createClient("https://music.test", "sb_publishable_test", {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -23,9 +23,9 @@ const client = createClient("https://music.test", "sb_publishable_test", {
       requests.push(url);
       const table = url.pathname.split("/").at(-1) ?? "";
       calls.push(table);
-      const rows = queryStatus >= 400 ? queryRows(table) : table === "get_entity_review_summary"
+      const rows = queryStatus >= 400 ? queryRows(table, url) : table === "get_entity_review_summary"
         ? { review_count: 0, average_rating: null }
-        : queryRows(table);
+        : queryRows(table, url);
       return new Response(JSON.stringify(rows), {
         status: queryStatus,
         headers: { "Content-Type": "application/json" },
@@ -206,35 +206,61 @@ test("id-only callers still load the public entity and preserve missing results"
   assert.equal(await entities.getTrackPublicBundle("00000000-0000-4000-8000-000000000002"), null);
 });
 
-test("track summaries skip review bodies and taste tags", async () => {
-  queryRows = (table) => table === "entities" ? entity : [];
-  const bundle = await entities.getTrackSummaryBundle(entity.id);
-  assert.deepEqual(bundle?.reviewSummary, { reviewCount: 0, averageRating: null });
-  assert.deepEqual(calls.sort(), ["entities", "get_entity_review_summary"]);
+test("review summaries preserve a null average for an empty discussion", async () => {
+  const summary = await entities.getEntityReviewSummary(entity.id);
+  assert.deepEqual(summary, { reviewCount: 0, averageRating: null });
+  assert.deepEqual(calls, ["get_entity_review_summary"]);
 });
 
-test("review pages enforce their bound and deterministic cursor filters", async () => {
-  const { encodeEntityReviewCursor, decodeEntityReviewCursor } = await import("../reviews/entity-pagination");
-  const rows = Array.from({ length: 13 }, (_, i) => ({
-    id: `75000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
-    created_at: "2026-10-21T12:00:00.123456+00:00",
+test("review cursors traverse equal timestamps without omissions or duplicates", async () => {
+  const { decodeEntityReviewCursor } = await import("../reviews/entity-pagination");
+  const rows = Array.from({ length: 35 }, (_, i) => ({
+    id: `75000000-0000-4000-8000-${String(35 - i).padStart(12, "0")}`,
+    created_at: `2026-10-${21 - Math.floor(i / 15)}T12:00:00.123456+00:00`,
     title: null, body: null, rating: 4, likes_count: 0, comments_count: 0,
     is_pinned: false, author: null,
   }));
-  queryRows = () => rows;
-  const cursor = encodeEntityReviewCursor(rows[12]);
-  const page = await entities.getEntityReviewsPage(entity.id, cursor);
-  assert.equal(page.reviews.length, 12);
-  assert.deepEqual(decodeEntityReviewCursor(page.nextCursor), {
-    id: rows[11].id, created_at: rows[11].created_at,
-  });
-  const params = requests[0].searchParams;
-  assert.equal(params.get("limit"), "13");
-  assert.equal(params.get("order"), "created_at.desc,id.desc");
-  assert.equal(params.get("created_at"), "lte." + rows[12].created_at);
-  assert.ok(params.get("or")?.includes("id.lt." + rows[12].id));
+  queryRows = (table, url) => {
+    assert.equal(table, "reviews");
+    const params = url.searchParams;
+    assert.equal(params.get("entity_id"), "eq." + entity.id);
+    assert.equal(params.get("limit"), "13");
+    assert.equal(params.get("order"), "created_at.desc,id.desc");
+    let filtered = rows;
+    const filter = params.get("or");
+    if (filter) {
+      const match = filter.match(/^\(created_at\.lt\.([^,]+),and\(created_at\.eq\.([^,]+),id\.lt\.([^)]+)\)\)$/);
+      assert.ok(match, "cursor filter must keep timestamp and UUID comparisons");
+      const [, olderThan, sameTime, id] = match;
+      assert.equal(olderThan, sameTime);
+      assert.equal(params.get("created_at"), "lte." + olderThan);
+      filtered = rows.filter((row) => row.created_at < olderThan
+        || (row.created_at === sameTime && row.id < id));
+    }
+    return filtered.slice(0, Number(params.get("limit")));
+  };
+  const ids: string[] = [];
+  let cursor: string | null = null;
+  let pages = 0;
+  do {
+    const page = await entities.getEntityReviewsPage(entity.id, cursor);
+    assert.ok(page.reviews.length <= 12);
+    ids.push(...page.reviews.map((review) => review.id));
+    if (page.nextCursor) {
+      const last = page.reviews.at(-1)!;
+      assert.deepEqual(decodeEntityReviewCursor(page.nextCursor), {
+        id: last.id, created_at: last.created_at,
+      });
+    }
+    cursor = page.nextCursor;
+    assert.ok(++pages <= 3, "pagination must terminate");
+  } while (cursor);
+  assert.equal(pages, 3);
+  assert.deepEqual(ids, rows.map((row) => row.id));
+  assert.equal(new Set(ids).size, rows.length);
+  const completedRequests = requests.length;
   await assert.rejects(entities.getEntityReviewsPage(entity.id, "invalid"), /Invalid review cursor/);
-  assert.equal(requests.length, 1);
+  assert.equal(requests.length, completedRequests);
 });
 
 test("the viewer can edit an older review outside the visible page", async () => {
@@ -265,13 +291,14 @@ test("a visible own review avoids a second read and guests do no private work", 
 });
 
 test("temporary read failures propagate instead of becoming empty review pages", async () => {
+  const entityId = "00000000-0000-4000-8000-000000000003";
   queryStatus = 503;
   queryRows = () => ({ code: "TEST_UNAVAILABLE", message: "temporarily unavailable" });
-  await assert.rejects(entities.getEntityReviewsPage(entity.id));
+  await assert.rejects(entities.getEntityReviewsPage(entityId));
   const failedAttempts = requests.length;
   assert.ok(failedAttempts > 0);
   queryStatus = 200;
   queryRows = () => [];
-  assert.deepEqual(await entities.getEntityReviewsPage(entity.id), { reviews: [], nextCursor: null });
+  assert.deepEqual(await entities.getEntityReviewsPage(entityId), { reviews: [], nextCursor: null });
   assert.equal(requests.length, failedAttempts + 1);
 });

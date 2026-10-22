@@ -34,6 +34,8 @@ test("malformed cursors cannot enter database filter syntax", () => {
     encode({ ...row(1), id: "x),rating.gt.0" }),
     encode({ ...row(1), created_at: "2026-10-21T12:00:00Z),id.gt.0" }),
     encode({ ...row(1), created_at: "2026-02-31T12:00:00Z" }),
+    encode({ ...row(1), created_at: "0000-10-21T12:00:00Z" }),
+    encode({ ...row(1), created_at: "2026-10-21T12:00:00+16:00" }),
     encode({ ...row(1), unexpected: "extra" }),
     encode(null), encode([]),
   ]) assert.equal(decodeEntityReviewCursor(cursor), null, cursor);

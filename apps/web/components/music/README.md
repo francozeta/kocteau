@@ -34,8 +34,8 @@ cursors are rejected. Older/latest links keep the canonical track route and
 the caller's permissions and existing RLS. Public pages and summaries share the
 60-second review cache tags. Query failures propagate rather than being cached as empty pages.
 
-Metadata uses the summary; sharing images use `getTrackSummaryBundle` and do not
-download review bodies or taste tags. JSON-LD keeps bounded review excerpts while
+Metadata uses the summary. Sharing images read only the entity identity and cover;
+they do not request review bodies, summaries, or taste tags. JSON-LD keeps bounded review excerpts while
 its count and average describe the full discussion.
 
 The viewer's own review is resolved privately when absent from the current page.

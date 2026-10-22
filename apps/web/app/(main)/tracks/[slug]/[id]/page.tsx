@@ -89,7 +89,7 @@ export default async function TrackPage({
 }) {
   const [routeParams, query] = await Promise.all([params, searchParams]);
 
-  if (query.reviewsAfter && !decodeEntityReviewCursor(query.reviewsAfter)) notFound();
+  if (query.reviewsAfter !== undefined && !decodeEntityReviewCursor(query.reviewsAfter)) notFound();
 
   if (!isSeoRouteId(routeParams.id)) {
     notFound();
@@ -257,7 +257,7 @@ export default async function TrackPage({
           />
         </Suspense>
 
-        <div id="reviews" className="space-y-4 scroll-mt-6" aria-labelledby="track-reviews-title">
+        <div id="reviews" role="region" className="space-y-4 scroll-mt-6" aria-labelledby="track-reviews-title">
           <h2 id="track-reviews-title" className="sr-only">Track reviews</h2>
           {trackReviews.length > 0 ? (
             <div className="space-y-4">

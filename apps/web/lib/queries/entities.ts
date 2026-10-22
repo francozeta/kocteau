@@ -365,7 +365,7 @@ export async function getEntityReviewsPage(entityId: string, after: string | nul
   )();
 }
 
-export const getEntityReviewSummary = cache(async function getEntityReviewSummary(entityId: string) {
+export const getEntityReviewSummary = cache(async function getEntityReviewSummary(entityId: string): Promise<EntityReviewSummary> {
   return getOrCreateLoader(
     entityReviewSummaryLoaders,
     ["entity-review-summary", entityId],
@@ -384,14 +384,6 @@ export const getEntityReviewSummary = cache(async function getEntityReviewSummar
       { revalidate: 60, tags: ["reviews", `entity:${entityId}:reviews`] },
     ),
   )();
-});
-
-export const getTrackSummaryBundle = cache(async function getTrackSummaryBundle(entityId: string) {
-  const [entity, reviewSummary] = await Promise.all([
-    getEntityPageById(entityId),
-    getEntityReviewSummary(entityId),
-  ]);
-  return entity ? { entity, reviewSummary } : null;
 });
 
 export async function getEntityTasteTags(entityId: string) {
