@@ -35,13 +35,14 @@ guide owns cursor validation, public-cache boundaries, sharing-image reads, and
 private access to an off-page own review.
 
 The summary migration is delivered through the pinned CLI and all 35 linked
-migration versions match. Permission checks and public Data API reads verify
+migration versions match. Generated types preserve nullable aggregate results on
+regeneration. Permission checks and public Data API reads verify
 complete counts, averages, and the empty case. Preview and production deployment
 evidence is recorded in [PR #219](https://github.com/francozeta/kocteau/pull/219).
 
 ## Verification And Limits
 
-- 159 unit tests, web lint, and the production build with TypeScript pass using
+- 160 unit tests, web lint, and the production build with TypeScript pass using
   pinned Node 24.15.0 and pnpm 11.21.0; Node types now match the runtime major.
   Music checks cover independent sources, identity reuse, summary reads,
   bounded pages, cursor validation, and private access to an off-page own review.

@@ -1695,7 +1695,7 @@ export type Database = {
       get_entity_review_summary: {
         Args: { p_entity_id: string }
         Returns: {
-          average_rating: number
+          average_rating: number | null
           review_count: number
         }[]
       }

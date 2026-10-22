@@ -15,6 +15,9 @@ let loadSource = async (mode: string) => {
 };
 let queryRows: (table: string, url: URL) => unknown = () => [];
 let queryStatus = 200;
+let summaryResult: { review_count: number; average_rating: number | null } = {
+  review_count: 0, average_rating: null,
+};
 const client = createClient("https://music.test", "sb_publishable_test", {
   auth: { persistSession: false, autoRefreshToken: false },
   global: {
@@ -24,7 +27,7 @@ const client = createClient("https://music.test", "sb_publishable_test", {
       const table = url.pathname.split("/").at(-1) ?? "";
       calls.push(table);
       const rows = queryStatus >= 400 ? queryRows(table, url) : table === "get_entity_review_summary"
-        ? { review_count: 0, average_rating: null }
+        ? summaryResult
         : queryRows(table, url);
       return new Response(JSON.stringify(rows), {
         status: queryStatus,
@@ -102,6 +105,7 @@ beforeEach(() => {
   requests.length = 0;
   collectionRequests.length = 0;
   queryStatus = 200;
+  summaryResult = { review_count: 0, average_rating: null };
   loadTags = async () => [];
   loadSource = async (mode) => {
     calls.push(mode);
@@ -209,6 +213,13 @@ test("id-only callers still load the public entity and preserve missing results"
 test("review summaries preserve a null average for an empty discussion", async () => {
   const summary = await entities.getEntityReviewSummary(entity.id);
   assert.deepEqual(summary, { reviewCount: 0, averageRating: null });
+  assert.deepEqual(calls, ["get_entity_review_summary"]);
+});
+
+test("review summaries preserve the complete count and fractional average", async () => {
+  summaryResult = { review_count: 17, average_rating: 4.25 };
+  const summary = await entities.getEntityReviewSummary("00000000-0000-4000-8000-000000000004");
+  assert.deepEqual(summary, { reviewCount: 17, averageRating: 4.25 });
   assert.deepEqual(calls, ["get_entity_review_summary"]);
 });
 

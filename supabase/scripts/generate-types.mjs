@@ -50,7 +50,14 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-const output = result.stdout.replace(/\r\n/gu, "\n").replace(/(?:\n)+$/u, "\n");
+// SQL-function result metadata omits aggregate nullability.
+const output = result.stdout
+  .replace(/\r\n/gu, "\n")
+  .replace(
+    /(get_entity_review_summary: \{[\s\S]*?average_rating:) number(?: \| null)?/u,
+    "$1 number | null",
+  )
+  .replace(/(?:\n)+$/u, "\n");
 
 writeFileSync(
   resolve(repoRoot, "apps", "web", "lib", "supabase", "database.types.ts"),
