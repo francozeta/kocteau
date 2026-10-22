@@ -193,9 +193,10 @@ The k6 summary measures client-visible latency; Vercel and Supabase observations
 
 The search API reports `X-Kocteau-Search-Status` and per-source readiness. The
 suite rejects missing readiness and aborts on detected degraded responses,
-including HTTP 200 fallbacks. Gradual runs require more than 99% fresh responses;
-normal stale-while-revalidate transitions count against that budget. Smoke records
-freshness without treating one normal refresh as a capacity estimate.
+including HTTP 200 fallbacks. Fresh and stale responses are
+reported separately. Normal stale-while-revalidate transitions are not dependency
+failures; choose a freshness budget for the workload before making capacity claims.
+Smoke does not turn its few samples into a capacity estimate.
 Observe backend refresh errors alongside HTTP status and shape; cached success
 alone cannot establish dependency health.
 

@@ -225,7 +225,6 @@ function scenario(exec, selectedProfile) {
 function buildThresholds(includeAuthenticatedFeed, onlySearch) {
   const thresholds = {
     search_response_degraded: [{ threshold: "rate==0", abortOnFail: true }],
-    ...(profile === "baseline" ? { search_response_fresh: ["rate>0.99"] } : {}),
     checks: ["rate>0.99"],
     "http_req_failed{surface:landing}": ["rate<0.01"],
     "http_req_duration{surface:landing}": ["p(75)<800", "p(95)<1500"],
