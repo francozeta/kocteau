@@ -437,8 +437,6 @@ export async function createTrackOgImage({
   title: string;
   artistName?: string | null;
   coverUrl?: string | null;
-  reviewCount?: number;
-  averageRating?: number | null;
 }) {
   const coverArt = await CoverArt({
     src: coverUrl,

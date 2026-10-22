@@ -4,8 +4,13 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
-import { runReviewListQuery } from "@/lib/queries/review-likes";
 import { supabasePublic } from "@/lib/supabase/public";
+import { supabaseServer } from "@/lib/supabase/server";
+import {
+  decodeEntityReviewCursor,
+  ENTITY_REVIEW_PAGE_SIZE,
+  getEntityReviewPage,
+} from "@/lib/reviews/entity-pagination";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
 import { measureServerTask } from "@/lib/perf";
@@ -64,7 +69,21 @@ export type TrackPagePublicBundle = {
   entity: EntityPage;
   tags: EntityTasteTag[];
   reviews: EntityReview[];
+  reviewSummary: EntityReviewSummary;
+  nextReviewCursor: string | null;
 };
+
+export type EntityReviewSummary = {
+  reviewCount: number;
+  averageRating: number | null;
+};
+
+type EntityReviewsPage = {
+  reviews: EntityReview[];
+  nextCursor: string | null;
+};
+
+type ViewerEntityReview = Pick<EntityReview, "id" | "title" | "body" | "rating" | "is_pinned">;
 
 function getHydratedAuthorId(author: EntityReview["author"]) {
   return author?.id ?? null;
@@ -73,7 +92,8 @@ function getHydratedAuthorId(author: EntityReview["author"]) {
 const entityPageLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityPageByProviderLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | null>>();
-const entityReviewLoaders = new Map<string, () => Promise<EntityReview[]>>();
+const entityReviewLoaders = new Map<string, () => Promise<EntityReviewsPage>>();
+const entityReviewSummaryLoaders = new Map<string, () => Promise<EntityReviewSummary>>();
 const entityTasteTagLoaders = new Map<string, () => Promise<EntityTasteTag[]>>();
 
 const entityPageSelect = "id, provider, provider_id, title, artist_name, artist_id, parent_album_id, cover_url, deezer_url, release_date, record_type, disambiguation, musicbrainz_recording_id, musicbrainz_release_group_id, first_release_date, genres, type";
@@ -304,40 +324,39 @@ export async function findEntityByProvider(
   }
 }
 
-export async function getReviewsForEntity(entityId: string) {
+export async function getEntityReviewsPage(entityId: string, after: string | null = null) {
+  const cursor = decodeEntityReviewCursor(after);
+  if (after && !cursor) throw new Error("Invalid review cursor");
+
   return getOrCreateLoader(
     entityReviewLoaders,
-    ["entity-reviews", entityId],
+    ["entity-reviews-page", entityId, after],
     () =>
       unstable_cache(
-        async () =>
-          measureServerTask(
-            "getReviewsForEntity",
-            async () => {
-              const supabase = supabasePublic();
-
-              const reviews = await runReviewListQuery<EntityReview>(async (mode) =>
-                supabase
-                  .from("reviews")
-                  .select(
-                    buildReviewHydrationSelect(mode, {
-                      includeAuthor: true,
-                      includePinned: true,
-                    }),
-                  )
-                  .eq("entity_id", entityId)
-                  .order("created_at", { ascending: false }),
-              );
-
-              return reviews.map((review) => ({
-                ...review,
-                author: normalizeRelation(review.author),
-                is_pinned: Boolean(review.is_pinned),
-              }));
-            },
-            { entityId },
-          ),
-        ["entity-reviews", entityId],
+        async () => {
+          const supabase = supabasePublic();
+          let query = supabase
+            .from("reviews")
+            .select(buildReviewHydrationSelect("all", { includeAuthor: true, includePinned: true }))
+            .eq("entity_id", entityId)
+            .order("created_at", { ascending: false })
+            .order("id", { ascending: false })
+            .limit(ENTITY_REVIEW_PAGE_SIZE + 1);
+          if (cursor) {
+            query = query.lte("created_at", cursor.created_at).or(
+              `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`,
+            );
+          }
+          const { data, error } = await query.returns<EntityReview[]>();
+          if (error) throw error;
+          const reviews = (data ?? []).map((review) => ({
+            ...review,
+            author: normalizeRelation(review.author),
+            is_pinned: Boolean(review.is_pinned),
+          }));
+          return getEntityReviewPage(reviews);
+        },
+        ["entity-reviews-page", entityId, after ?? "first"],
         {
           revalidate: 60,
           tags: ["reviews", `entity:${entityId}:reviews`],
@@ -345,6 +364,27 @@ export async function getReviewsForEntity(entityId: string) {
       ),
   )();
 }
+
+export const getEntityReviewSummary = cache(async function getEntityReviewSummary(entityId: string): Promise<EntityReviewSummary> {
+  return getOrCreateLoader(
+    entityReviewSummaryLoaders,
+    ["entity-review-summary", entityId],
+    () => unstable_cache(
+      async () => {
+        const { data, error } = await supabasePublic().rpc("get_entity_review_summary", {
+          p_entity_id: entityId,
+        }).single();
+        if (error) throw error;
+        return {
+          reviewCount: data.review_count,
+          averageRating: data.average_rating,
+        };
+      },
+      ["entity-review-summary", entityId],
+      { revalidate: 60, tags: ["reviews", `entity:${entityId}:reviews`] },
+    ),
+  )();
+});
 
 export async function getEntityTasteTags(entityId: string) {
   return getOrCreateLoader(
@@ -424,15 +464,17 @@ export async function getEntityTasteTags(entityId: string) {
 
 export const getTrackPublicBundle = cache(async function getTrackPublicBundle(
   entityOrId: EntityPage | string,
+  reviewsAfter: string | null = null,
 ) {
   const entityId = typeof entityOrId === "string" ? entityOrId : entityOrId.id;
-  const [entity, reviews, tags] = await measureServerTask(
+  const [entity, page, tags, reviewSummary] = await measureServerTask(
     "getTrackPublicBundle",
     async () =>
       Promise.all([
         typeof entityOrId === "string" ? getEntityPageById(entityId) : entityOrId,
-        getReviewsForEntity(entityId),
+        getEntityReviewsPage(entityId, reviewsAfter),
         getEntityTasteTags(entityId),
+        getEntityReviewSummary(entityId),
       ]),
     { entityId },
   );
@@ -444,71 +486,50 @@ export const getTrackPublicBundle = cache(async function getTrackPublicBundle(
   return {
     entity,
     tags,
-    reviews,
+    reviews: page.reviews,
+    nextReviewCursor: page.nextCursor,
+    reviewSummary,
   } satisfies TrackPagePublicBundle;
 });
+
+async function getViewerEntityReview(viewerId: string, entityId: string): Promise<ViewerEntityReview | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("reviews")
+    .select("id, title, body, rating, is_pinned")
+    .eq("entity_id", entityId)
+    .eq("author_id", viewerId)
+    .maybeSingle<ViewerEntityReview>();
+  if (error) throw error;
+  return data;
+}
 
 export async function getTrackViewerState(
   viewerId: string | null | undefined,
   entityId: string,
   reviews: EntityReview[],
 ) {
-  if (!viewerId || reviews.length === 0) {
+  if (!viewerId) {
     return {
       likedReviewIds: new Set<string>(),
       bookmarkedReviewIds: new Set<string>(),
       viewerReviewId: null as string | null,
+      viewerReview: null as ViewerEntityReview | null,
     };
   }
 
-  const reviewIds = reviews.map((review) => review.id);
-  const viewerReviewId =
-    reviews.find((review) => getHydratedAuthorId(review.author) === viewerId)?.id ?? null;
-
-  const { likedReviewIds, bookmarkedReviewIds } = await measureServerTask(
+  const visibleReview = reviews.find((review) => getHydratedAuthorId(review.author) === viewerId);
+  const [collectionState, viewerReview] = await measureServerTask(
     "getTrackViewerState",
-    async () => getViewerReviewCollectionState(viewerId, reviewIds),
-    { viewerId, entityId, reviewCount: reviewIds.length },
+    () => Promise.all([
+      getViewerReviewCollectionState(viewerId, reviews.map((review) => review.id)),
+      visibleReview ? Promise.resolve(visibleReview) : getViewerEntityReview(viewerId, entityId),
+    ]),
+    { viewerId, entityId, reviewCount: reviews.length },
   );
 
   return {
-    likedReviewIds,
-    bookmarkedReviewIds,
-    viewerReviewId,
-  };
-}
-
-export async function getTrackPageBundle(
-  entityId: string,
-  viewerId?: string | null,
-) {
-  const publicBundle = await getTrackPublicBundle(entityId);
-
-  if (!publicBundle) {
-    return null;
-  }
-
-  if (!viewerId || publicBundle.reviews.length === 0) {
-    return {
-      entity: publicBundle.entity,
-      reviews: publicBundle.reviews,
-      likedReviewIds: new Set<string>(),
-      bookmarkedReviewIds: new Set<string>(),
-      viewerReviewId: null as string | null,
-    };
-  }
-
-  const { likedReviewIds, bookmarkedReviewIds, viewerReviewId } = await getTrackViewerState(
-    viewerId,
-    entityId,
-    publicBundle.reviews,
-  );
-
-  return {
-    entity: publicBundle.entity,
-    reviews: publicBundle.reviews,
-    likedReviewIds,
-    bookmarkedReviewIds,
-    viewerReviewId,
+    ...collectionState,
+    viewerReviewId: viewerReview?.id ?? null,
+    viewerReview,
   };
 }

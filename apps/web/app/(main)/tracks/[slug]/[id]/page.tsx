@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { decodeEntityReviewCursor, getEntityReviewPageHref } from "@/lib/reviews/entity-pagination";
 import { Music2 } from "@/components/ui/icons";
 import { notFound, permanentRedirect } from "next/navigation";
 import JsonLd from "@/components/shared/json-ld";
@@ -16,6 +19,7 @@ import {
   getEntityPageByRouteId,
   getEntityPageById,
   getTrackPublicBundle,
+  getEntityReviewSummary,
   getTrackViewerState,
 } from "@/lib/queries/entities";
 import { getArtistPageById } from "@/lib/queries/artists";
@@ -65,14 +69,14 @@ export async function generateMetadata({
 
   const title = entity.artist_name ? `${entity.title} — ${entity.artist_name}` : entity.title;
   const canonicalPath = buildEntityCanonicalPath(entity);
-  const publicBundle = await getTrackPublicBundle(entity);
+  const reviewSummary = await getEntityReviewSummary(entity.id);
 
   return createPageMetadata({
     title,
     description: createTrackDescription(entity.title, entity.artist_name),
     path: canonicalPath,
     image: `/api/og/track/${entity.id}`,
-    noIndex: !publicBundle || publicBundle.reviews.length === 0,
+    noIndex: reviewSummary.reviewCount === 0,
   });
 }
 
@@ -81,9 +85,11 @@ export default async function TrackPage({
   searchParams,
 }: {
   params: Promise<TrackRouteParams>;
-  searchParams: Promise<{ editReview?: string }>;
+  searchParams: Promise<{ editReview?: string; reviewsAfter?: string }>;
 }) {
   const [routeParams, query] = await Promise.all([params, searchParams]);
+
+  if (query.reviewsAfter !== undefined && !decodeEntityReviewCursor(query.reviewsAfter)) notFound();
 
   if (!isSeoRouteId(routeParams.id)) {
     notFound();
@@ -104,7 +110,7 @@ export default async function TrackPage({
     permanentRedirect(canonicalPath);
   }
 
-  const publicBundlePromise = getTrackPublicBundle(entityPage);
+  const publicBundlePromise = getTrackPublicBundle(entityPage, query.reviewsAfter ?? null);
   const [bundle, artist, album] = await Promise.all([
     publicBundlePromise,
     entityPage.artist_id ? getArtistPageById(entityPage.artist_id) : Promise.resolve(null),
@@ -128,9 +134,10 @@ export default async function TrackPage({
     likedReviewIds: new Set<string>(),
     bookmarkedReviewIds: new Set<string>(),
     viewerReviewId: null as string | null,
+    viewerReview: null,
   };
   const [viewerState, libraryStates] = await Promise.all([
-    userId && bundle.reviews.length > 0
+    userId
       ? getTrackViewerState(userId, entityPage.id, bundle.reviews)
       : Promise.resolve(emptyViewerState),
     userId
@@ -145,7 +152,6 @@ export default async function TrackPage({
   const trackData = {
     entity: bundle.entity,
     tags: bundle.tags,
-    viewerReviewId: viewerState.viewerReviewId,
     reviews: bundle.reviews.map((review) => ({
       ...review,
       viewer_has_liked: viewerState.likedReviewIds.has(review.id),
@@ -154,27 +160,20 @@ export default async function TrackPage({
   };
 
   const { entity, reviews: trackReviews } = trackData;
-  const { viewerReviewId } = trackData;
-  const viewerReview =
-    viewerReviewId
-      ? trackReviews.find((review) => review.id === viewerReviewId) ?? null
-      : null;
+  const viewerReview = viewerState.viewerReview;
   const shouldOpenViewerEditor = Boolean(
     viewerReview &&
       query.editReview &&
       query.editReview === viewerReview.id,
   );
-  const averageRating =
-    trackReviews.length > 0
-      ? trackReviews.reduce((sum, review) => sum + review.rating, 0) / trackReviews.length
-      : null;
+  const averageRating = bundle.reviewSummary.averageRating;
 
   return (
     <>
       <JsonLd
         data={buildTrackPageJsonLd({
           entity,
-          reviewCount: trackReviews.length,
+          reviewCount: bundle.reviewSummary.reviewCount,
           averageRating,
           reviews: trackReviews.slice(0, 12).map((review) => ({
             id: review.id,
@@ -258,7 +257,8 @@ export default async function TrackPage({
           />
         </Suspense>
 
-        <div className="space-y-4">
+        <div id="reviews" role="region" className="space-y-4 scroll-mt-6" aria-labelledby="track-reviews-title">
+          <h2 id="track-reviews-title" className="sr-only">Track reviews</h2>
           {trackReviews.length > 0 ? (
             <div className="space-y-4">
               {trackReviews.map((review) => {
@@ -282,11 +282,33 @@ export default async function TrackPage({
                 <EmptyMedia variant="icon">
                   <Music2 className="size-4" />
                 </EmptyMedia>
-                <EmptyTitle>No notes yet</EmptyTitle>
-                <EmptyDescription>This track is still waiting for the first review.</EmptyDescription>
+                <EmptyTitle>{bundle.reviewSummary.reviewCount > 0 ? "No more notes" : "No notes yet"}</EmptyTitle>
+                <EmptyDescription>
+                  {bundle.reviewSummary.reviewCount > 0
+                    ? "Return to the latest reviews for this track."
+                    : "This track is still waiting for the first review."}
+                </EmptyDescription>
               </EmptyHeader>
             </Empty>
           )}
+          {query.reviewsAfter || bundle.nextReviewCursor ? (
+            <nav aria-label="Review pages" className="flex flex-wrap items-center justify-between gap-2">
+              {query.reviewsAfter ? (
+                <Button asChild variant="ghost" className="min-h-10">
+                  <Link href={getEntityReviewPageHref(canonicalPath)} prefetch={false}>
+                    Latest reviews
+                  </Link>
+                </Button>
+              ) : null}
+              {bundle.nextReviewCursor ? (
+                <Button asChild variant="ghost" className="ml-auto min-h-10">
+                  <Link href={getEntityReviewPageHref(canonicalPath, bundle.nextReviewCursor)} prefetch={false}>
+                    Older reviews
+                  </Link>
+                </Button>
+              ) : null}
+            </nav>
+          ) : null}
         </div>
       </section>
     </>

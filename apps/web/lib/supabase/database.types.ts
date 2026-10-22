@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.4"
   }
   graphql_public: {
     Tables: {
@@ -1691,6 +1691,13 @@ export type Database = {
       enqueue_catalog_enrichment_target: {
         Args: { p_target_id: string; p_target_type: string }
         Returns: undefined
+      }
+      get_entity_review_summary: {
+        Args: { p_entity_id: string }
+        Returns: {
+          average_rating: number | null
+          review_count: number
+        }[]
       }
       get_recommendation_health_snapshot: {
         Args: { p_days?: number }

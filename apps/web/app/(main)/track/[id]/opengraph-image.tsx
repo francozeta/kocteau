@@ -4,7 +4,7 @@ import {
   ogContentType,
   ogSize,
 } from "@/lib/og";
-import { getTrackPublicBundle } from "@/lib/queries/entities";
+import { getEntityPageById } from "@/lib/queries/entities";
 
 export const runtime = "nodejs";
 export const revalidate = 300;
@@ -18,23 +18,15 @@ export default async function OpenGraphImage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const bundle = await getTrackPublicBundle(id);
+  const entity = await getEntityPageById(id);
 
-  if (!bundle) {
+  if (!entity) {
     notFound();
   }
 
-  const averageRating =
-    bundle.reviews.length > 0
-      ? bundle.reviews.reduce((sum, review) => sum + review.rating, 0) /
-        bundle.reviews.length
-      : null;
-
   return createTrackOgImage({
-    title: bundle.entity.title,
-    artistName: bundle.entity.artist_name,
-    coverUrl: bundle.entity.cover_url,
-    reviewCount: bundle.reviews.length,
-    averageRating,
+    title: entity.title,
+    artistName: entity.artist_name,
+    coverUrl: entity.cover_url,
   });
 }

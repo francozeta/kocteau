@@ -22,7 +22,29 @@ partial fallback behavior.
 Known cover dimensions keep layout stable. Catalog decisions
 live in [catalog research](../../../../docs/knowledge-layer.md).
 
+## Track Discussion Reads
+
+Track discussions render 12 reviews per page, with one lookahead row. The
+`reviewsAfter` URL cursor includes the full timestamp and UUID; queries use
+`created_at DESC, id DESC` with the existing entity/date/id index. Invalid
+cursors are rejected. Older/latest links keep the canonical track route and
+`#reviews` anchor; automatic prefetch is disabled for these links.
+
+`get_entity_review_summary` computes the full count and average in Postgres using
+the caller's permissions and existing RLS. Public pages and summaries share the
+60-second review cache tags. Query failures propagate rather than being cached as empty pages.
+
+Metadata uses the summary. Sharing images read only the entity identity and cover;
+they do not request review bodies, summaries, or taste tags. JSON-LD keeps bounded review excerpts while
+its count and average describe the full discussion.
+
+The viewer's own review is resolved privately when absent from the current page.
+Editing therefore remains available for older reviews without adding viewer state
+to public caches. Migration delivery follows the [Supabase workflow](../../../../docs/maintainers/supabase-workflow.md).
+
 ## Check
 
 Run catalog tests, lint, and the web build. Check canonical links, unresolved
 provider routes, missing covers, long titles, rating-only discussion, and mobile tiles.
+Check older/latest navigation, equal timestamps, invalid cursors, empty pages,
+full-discussion aggregates, and an authenticated viewer whose review is off-page.
