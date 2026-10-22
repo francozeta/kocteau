@@ -123,14 +123,15 @@ evidence is recorded in [PR #219](https://github.com/francozeta/kocteau/pull/219
 
 ## Public Read Reliability
 
-Branch `perf/public-read-reliability` builds on the documentation audit in
+[PR #221](https://github.com/francozeta/kocteau/pull/221), branch
+`perf/public-read-reliability`, builds on the documentation audit in
 [PR #220](https://github.com/francozeta/kocteau/pull/220); runtime delivery is pending.
 Public Data API reads use bounded concurrency/body deadlines and explicit no-retry
 PostgREST behavior. Search normalizes ASCII casing, coalesces per-process fills,
 bounds local/link reads, and exposes stale/degraded source readiness. Legacy search
 shares the provider deadline. Taste-tag failures stay outside their cache.
 
-171 tests, lint, and the production build pass. Native Next.js baseline/candidate
+172 tests, lint, and the production build pass. Native Next.js baseline/candidate
 checks use isolated HTTP fixtures: 16 casing variants issue 112 versus seven data
 requests, preserve identities, and avoid default retry amplification during 503s.
 Desktop/mobile search preserves local results during provider stalls without

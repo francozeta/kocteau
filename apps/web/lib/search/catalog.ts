@@ -384,7 +384,7 @@ const getCachedEntityLinks = createPublicLookup(
   async (signal, providerIds: string[]) =>
     Array.from((await getEntityIdsByProviderId(providerIds, signal)).entries()),
   ["public-catalog-entity-links-v2"],
-  { tags: ["entities"], timeoutMs: 750 },
+  { tags: ["entities"] },
 );
 
 export async function attachSearchEntityIds<T extends { provider_id: string; entity_id?: string | null }>(

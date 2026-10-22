@@ -44,7 +44,7 @@ try {
   const candidate = targets[1][1], q = "stalled-" + unique;
   await configure("stall");
   const stalled = await get(search(candidate, q));
-  assert.equal(stalled.status, 502); assert.ok(stalled.ms < 2_500);
+  assert.equal(stalled.status, 502); assert.ok(stalled.ms < 4_000);
   await pause(100); assert.equal((await stats()).active, 0);
   reports.push({ scenario: "stalled_db", ...stalled });
   await configure("healthy", "stall");

@@ -22,7 +22,7 @@
   covering both phases and the combined API. Errors are caught outside the cache.
   ASCII query casing shares the same local cache key; original text still controls
   ranking. Concurrent fills for one key share a promise within a process. Fills
-  retain their own 1.5-second deadline (750 ms for canonical links), independent
+  retain their own three-second deadline for local results and canonical links, independent
   of one caller cancelling. A failed key has a one-second retry cooldown; pending
   refresh and failure maps are bounded. Cache tags and the 60-second TTL remain
   authoritative across instances.
@@ -34,7 +34,7 @@
   `lib/search/deadline.ts`. One three-second budget covers requests, retries,
   backoff, and artist enrichment. Completed providers remain usable when another
   reaches the deadline. Local catalog and entity-link lookups have separate finite budgets, so the
-  external phase plus canonical links occupies at most about 3.75 seconds of
+  external phase plus canonical links occupies at most about six seconds of
   dependency work, excluding runtime scheduling and response serialization.
   The legacy `/api/deezer/search` route uses the same provider deadline and
   canonical-link resolver.

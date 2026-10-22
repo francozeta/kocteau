@@ -14,7 +14,7 @@ export function normalizeCatalogQuery(query: string) {
 export function createPublicLookup<Args extends unknown[], Value>(
   load: (signal: AbortSignal, ...args: Args) => Promise<Value>,
   keyParts: string[],
-  { tags, timeoutMs = 1_500 }: { tags: string[]; timeoutMs?: number },
+  { tags, timeoutMs = 3_000 }: { tags: string[]; timeoutMs?: number },
 ) {
   const inFlight = new Map<string, Promise<Snapshot<Value>>>();
   const failures = new Map<string, { error: unknown; until: number }>();

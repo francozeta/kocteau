@@ -14,8 +14,8 @@ Its three-second deadline includes queue time, response headers and body.
 Authenticated/admin clients retain their existing session and permission paths.
 
 Search shares concurrent normalized ASCII-case lookups, retaining original text
-for ranking. Shared fills have independent finite deadlines (1.5 seconds local,
-750 ms links), bounded maps and a one-second failure cooldown. Their tagged
+for ranking. Shared fills have independent finite deadlines (three seconds for local results
+and canonical links), bounded maps and a one-second failure cooldown. Their tagged
 Next.js cache retains its 60-second refresh policy. Source readiness reports
 fresh, stale or degraded results even when cached data returns HTTP 200.
 Cold unavailable local reads return 502. Legacy provider search uses the existing
@@ -34,13 +34,13 @@ identities were asserted. Shared production data was not contacted.
 | Scenario | Baseline | Candidate |
 | --- | ---: | ---: |
 | Healthy Data API requests | 112 | 7 |
-| Healthy search P95 | 241.7 ms | 62.0 ms |
+| Healthy search P95 | 263 ms | 80 ms |
 | Returned expected matches | 16 | 16 |
 | Data API requests during HTTP 503 | 448 | 7 |
 | Unavailable cold local response | HTTP 200, empty array | HTTP 502, degraded |
-| Stalled local dependency | Previously unbounded by search | 1,511 ms, connections released |
-| Stalled legacy provider | Previously outside shared budget | 3,012 ms |
-| Same-key recovery | not measured here | HTTP 200/fresh, 45.7 ms |
+| Stalled local dependency | Previously unbounded by search | 3,015 ms, connections released |
+| Stalled legacy provider | Previously outside shared budget | 3,014 ms |
+| Same-key recovery | not measured here | HTTP 200/fresh, 47.5 ms |
 
 This is a 93.75% reduction in requests for equivalent concurrent healthy keys and
 98.44% during the fixture's 503 failure. It is not a maximum-user or production
@@ -50,7 +50,7 @@ The cause of the earlier cloud incident remains unresolved.
 
 ## Verification and reproduction
 
-171 unit/integration tests pass, including actual SDK retry behavior, queue bounds,
+172 unit/integration tests pass, including actual SDK retry behavior, queue bounds,
 native header/body cancellation, cache coalescing, source readiness, failed-fill
 recovery and taste-tag cache recovery. Production builds, lint and documentation
 checks pass. Browser checks at 1280 px and 390 px preserve result rendering and
@@ -65,3 +65,19 @@ authentication change, fake cloud engagement, merge or deployment is included.
 
 The audit's OG asset policy, dependency advisories and authoritative mutation
 quotas remain separate follow-up work; this implementation does not resolve them.
+
+
+## Cloud cold-start correction
+
+The first preview check exceeded the initial 1.5-second local fill deadline.
+A direct read-only control found all seven cloud Data API reads succeeded in
+2,007-2,076 ms, while management SQL remained responsive. The final public
+transport and shared local/link fill budgets are three seconds each. This also
+protects valid cold canonical lookups from the initial sub-second cutoff.
+Provider work and canonical linking can occupy about six seconds of dependency
+work in the worst case; local and remote UI phases remain independent.
+
+This corrects fixture-derived deadlines that were too aggressive for real cold
+network work. It does not establish SQL saturation or explain the earlier shared
+incident. Final local checks and exact-preview verification use the corrected
+budgets. No gradual cloud load was run.

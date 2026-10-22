@@ -155,5 +155,16 @@ test("stalled database reads abort within the shared fill deadline without extra
   assert.equal(started, 7);
   assert.equal(aborted, 7);
   assert.equal(result.readiness.local, "degraded");
-  assert.ok(performance.now() - start < 2_500);
+  assert.ok(performance.now() - start < 4_000);
+});
+
+
+test("a cold canonical lookup keeps valid identities beyond a sub-second budget", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1_100));
+    return Response.json([{ id: row.id, provider_id: "888" }]);
+  });
+  const result = await catalog.attachSearchEntityIds([{ provider_id: "888" }]);
+  assert.equal(result.status, "fresh");
+  assert.equal(result.candidates[0]?.entity_id, row.id);
 });
