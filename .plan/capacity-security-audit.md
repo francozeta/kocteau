@@ -3,6 +3,8 @@
 Verified on 2026-10-22. Application baseline: `0ebf3d9`, following
 [PR #219](https://github.com/francozeta/kocteau/pull/219).
 This is measurement and implementation feedback, not a deployment or capacity certification.
+Investigation handoff: [PR #220](https://github.com/francozeta/kocteau/pull/220),
+branch `docs/capacity-security-audit`.
 
 ## Immediate reliability finding
 
