@@ -8,6 +8,25 @@ Stable contracts: [AGENTS.md](./AGENTS.md), [PRODUCT.md](./PRODUCT.md),
 [DESIGN.md](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 [Issue #206](https://github.com/francozeta/kocteau/issues/206) coordinates Studio phases.
 
+## Reliability Audit And Recovery
+
+A bounded read-only audit on 2026-10-22 used a protected preview whose tree
+matches production `0ebf3d9`. A 24-VU run returned 1,440 matching cached search
+responses at about 20 requests/second, but background cache revalidation failed
+and Supabase returned 503/522 responses. Successful cached HTTP responses do not
+establish healthy backend capacity. Load generators stopped; direct Data API
+and management SQL reads subsequently timed out. Production routes also recorded
+upstream failures/timeouts. Recovery was verified without restart at 16:45 UTC:
+SQL returned 22/60 connections with no lock waits, and a fresh production search
+returned all three expected matches in 845 ms. The root cause remains unresolved. The
+[load guide](./docs/load-readiness.md) now requires isolated databases for gradual
+tests and stopping on background/dependency failures.
+
+The same audit reproduced an unrestricted OG asset fetch in an isolated local
+fixture and identified affected dependency versions. No cloud data writes or
+recovery operations were performed. [Audit evidence and follow-up](./.plan/capacity-security-audit.md)
+records the measured boundaries, incident caveats, and remediation order.
+
 ## Search And Database Maintenance
 
 - Independent local/external phases preserve shared ranking, identity, metadata,
@@ -97,6 +116,10 @@ evidence is recorded in [PR #219](https://github.com/francozeta/kocteau/pull/219
   boundary remain authoritative.
 
 ## Next Priority
+
+Investigate the recovered Supabase data-plane incident, then address OG asset URL validation,
+affected runtime dependencies, and search refresh concurrency/deadlines before
+another capacity run. Repeat stronger tests on an isolated staging database.
 
 Measure search percentiles and database calls with a representative catalog and
 authenticated traffic before consolidating local lookups into an RPC or adding

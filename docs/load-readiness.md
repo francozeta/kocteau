@@ -2,7 +2,7 @@
 
 [Operations](./operations.md) | [Environment and secrets](./security/environment.md)
 
-Kocteau uses a small, reproducible k6 suite to catch application, database, and platform regressions before traffic grows. Run the gradual profile against a Vercel preview or staging environment. Production should receive only the smoke profile and only during an intentional maintainer check.
+Kocteau uses a small, reproducible k6 suite to catch application, database, and platform regressions before traffic grows. Run the gradual profile against a Vercel preview or staging environment connected to an isolated, disposable database. Verify the database target first: a preview URL alone does not isolate Supabase pressure from production. Production, including previews that share its database, should receive only the smoke profile and only during an intentional maintainer check.
 
 ## Covered surfaces
 
@@ -37,6 +37,10 @@ pnpm perf:load:smoke
 ## Gradual baseline
 
 The baseline ramps each public surface from zero to three virtual users over 80 seconds. Run it only after smoke passes:
+
+Confirm that both the application and its database are isolated from production.
+Keep provider traffic bounded separately; local search checks do not need to
+generate external catalog traffic.
 
 ```powershell
 $env:K6_BASE_URL = "https://preview.example.com"
@@ -189,11 +193,19 @@ The k6 summary measures client-visible latency; Vercel and Supabase observations
 
 Stop a run when any of the following occurs:
 
+- background cache refreshes or dependency health checks fail, even when cached
+  application requests still return HTTP 200;
+- upstream Data API 5xx responses or administrative connection timeouts appear;
 - error rate reaches 5% for one minute;
 - P95 exceeds twice its threshold for one minute;
 - database connections approach 80% of the available pool;
 - lock waits, CPU saturation, or memory pressure continue rising after load stops;
 - external API failures cascade into application errors.
+
+Successful nonempty result arrays are insufficient to certify capacity. Check
+expected result identities/completeness, freshness, upstream status, and runtime
+errors throughout the same window. Stop before increasing load when the health
+signal is unavailable. Record recovery separately from client-visible timings.
 
 Roll back the application change under test when the regression reproduces against the previous deployment with the same profile and data conditions. Otherwise open a focused issue for the responsible layer: application, query/index, cache/external API, or platform capacity.
 
