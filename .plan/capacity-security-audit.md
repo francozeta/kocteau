@@ -56,6 +56,19 @@ The provider's global status page reported operational when checked.
 
 ## Measurements and limits
 
+### Interpreting the 24-VU result
+
+Twenty-four VUs was the highest tested concurrency, not a measured maximum user
+count or a demonstrated saturation threshold. Each synthetic client repeatedly
+searched with a one-second pause; the sustained run generated about 20 requests
+per second. Registered users, people reading reviews, and continuously searching
+test clients are different workloads. Do not convert this result into a daily,
+monthly, or simultaneous human-user limit.
+
+The shared backend incident invalidates a healthy-capacity claim, while its
+unresolved cause prevents attributing the failure to a specific concurrency
+level. The stable capacity of the complete product remains unknown.
+
 | Preview scenario | Measured matching responses | P95 | P99 | HTTP/shape failures |
 | --- | ---: | ---: | ---: | ---: |
 | 3 VUs, prepared cache | 36 | 160 ms | 680 ms | 0% |
@@ -209,6 +222,41 @@ tests or prove safety of every SECURITY DEFINER function.
    sessions, expected result identities, and application/dependency telemetry.
 5. Increase concurrency only after latency, backend health, and error budgets all
    pass. Measure writes/OTP separately; no maximum user count is established here.
+
+## Investigation handoff
+
+Start with `AGENTS.md`, `CURRENT.md`, this report, and the linked PR. Fetch current
+main and reconcile later fixes with the `0ebf3d9` audit baseline before changing
+code. This branch contains documentation only; none of the listed remediations
+has been implemented or deployed by this audit.
+
+1. Correlate the 2026-10-22 16:28–16:45 UTC incident window across application
+   requests, cache revalidation, Supabase gateway errors, database/pool pressure,
+   and provider events. Distinguish observations from hypotheses. If historical
+   telemetry has expired or is unavailable, record that limit explicitly.
+2. Inspect `apps/web/lib/search/catalog.ts`, the Discovery flow guide, and
+   `apps/web/app/api/deezer/search/route.ts` for cache-key normalization,
+   cross-request refresh coalescing, bounded concurrency, local-query deadlines,
+   cancellation, and degraded-success visibility. Reproduce amplification and
+   dependency failures on a disposable stack before selecting a fix.
+3. Review the OG helper and public profile OG route, update affected dependencies
+   against the current lockfile, and verify fixes with focused local fixtures.
+   Recheck advisory applicability rather than treating advisory counts as proof
+   of exploitation. Follow up on database-enforced mutation quotas and headers.
+4. Use the load guide to prepare isolated staging with representative data and
+   test sessions. Measure cached and uncached reads, track/feed navigation, and
+   authenticated writes separately before a realistic mixed workload. Increase
+   load only while application and dependency telemetry remain healthy.
+5. Report the exact commit, environment isolation, data size, workload, duration,
+   throughput, latency percentiles, error/freshness budgets, peak resources, and
+   recovery behavior. A capacity claim must name those conditions and a sustained
+   healthy boundary; it must not reuse "24 users" as an established ceiling.
+
+The tables and timeline above are the portable evidence. Raw diagnostics and
+one-off harnesses remain in ignored local working notes and are not available
+from a cloud checkout. Recreate bounded fixtures using the repository's load
+commands; do not repeat this shared-production-database experiment to recover
+missing artifacts. No restart is currently required or pending.
 
 The [load guide](../docs/load-readiness.md) now requires an isolated database for
 gradual tests and treats background/dependency errors as immediate stop signals.

@@ -27,6 +27,12 @@ fixture and identified affected dependency versions. No cloud data writes or
 recovery operations were performed. [Audit evidence and follow-up](./.plan/capacity-security-audit.md)
 records the measured boundaries, incident caveats, and remediation order.
 
+The audit handoff on `docs/capacity-security-audit` is documentation for review;
+fixes remain pending. Twenty-four synthetic search clients were the highest
+tested concurrency, not an established user ceiling. Healthy product capacity
+remains unknown. The report includes a cross-device investigation brief; raw
+diagnostics remain ignored locally.
+
 ## Search And Database Maintenance
 
 - Independent local/external phases preserve shared ranking, identity, metadata,
