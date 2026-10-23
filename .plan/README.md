@@ -16,6 +16,8 @@ cloud measurement, data-plane incident and recovery, and prioritized follow-up.
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
 
-- [Public read reliability](./public-read-reliability.md): measured implementation following the capacity audit; runtime delivery pending.
+- [Public read reliability](./public-read-reliability.md): measured implementation following the capacity audit; merged in PR #221; cold-read reliability remains under investigation.
 
 - [Scale readiness stages](./scale-readiness.md): cold reads, feed I/O, shared coordination and mixed-load verification; implementation in progress.
+
+- [Search recovery](./search-recovery.md): typing amplification, recoverable errors and history/session continuity after the production incident.

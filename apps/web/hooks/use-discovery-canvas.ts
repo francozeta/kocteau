@@ -217,9 +217,9 @@ export function useDiscoveryCanvas(
   }, [attempt, focus, frameId, memory, queryClient, ready, resolved]);
 
   const explore = (seed: DiscoverySeed, restart = false) => {
-    if (!ready) return;
+    if (!ready) return false;
     const next = focusCanvasNode(session, seed, crypto.randomUUID(), restart);
-    if (next === session) return;
+    if (next === session) return true;
     const historyDepth =
       (window.history.state?.discovery?.historyDepth ?? 0) + 1;
     window.history.pushState(
@@ -232,6 +232,7 @@ export function useDiscoveryCanvas(
     );
     setSession(next);
     setMemory(recordDiscoveryVisit(memory, seed, Date.now()));
+    return true;
   };
 
   const back = () => {

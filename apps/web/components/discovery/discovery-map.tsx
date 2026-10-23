@@ -8,7 +8,7 @@ import DiscoverySearch from "@/components/discovery/discovery-search";
 import DiscoveryNavigation from "@/components/discovery/discovery-navigation";
 import DiscoveryActions from "@/components/discovery/discovery-actions";
 import { OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT } from "@/hooks/use-global-shortcuts";
-import type { SearchScope } from "@/lib/search-types";
+import { useDiscoverySearchState } from "@/hooks/use-discovery-search-state";
 import { useDiscoveryCanvas } from "@/hooks/use-discovery-canvas";
 import {
   useKocteauSearch,
@@ -75,14 +75,18 @@ export default function DiscoveryMap({
   );
   const canvas = useDiscoveryCanvas(starterSeeds, initialSeed, viewerId);
   const selectedSeed = canvas.frame.focus;
-  const [searchScope, setSearchScope] = useState<SearchScope>("all");
-  const [seedQuery, setSeedQuery] = useState(initialQuery);
+  const searchState = useDiscoverySearchState(initialQuery, viewerId);
+  const {
+    query: seedQuery,
+    scope: searchScope,
+    setQuery: setSeedQuery,
+    setScope: setSearchScope,
+  } = searchState;
   const [desktopSearchActive, setDesktopSearchActive] = useState(false);
   const seedSearch = useKocteauSearch({
     query: seedQuery,
     type: searchScope,
-    enabled: seedQuery.trim().length >= 2,
-    debounceMs: 80,
+    enabled: searchState.ready && seedQuery.trim().length >= 2,
   });
   const seedResults = seedSearch.isPlaceholderData
     ? []
@@ -97,8 +101,7 @@ export default function DiscoveryMap({
   );
 
   const chooseResult = (result: KocteauSearchResult) => {
-    setDesktopSearchActive(false);
-    canvas.explore(
+    const accepted = canvas.explore(
       {
         id: `${result.type}:${result.provider_id}`,
         entityId: result.entity_id ?? null,
@@ -111,17 +114,19 @@ export default function DiscoveryMap({
       },
       true,
     );
+    if (!accepted) return false;
+    setDesktopSearchActive(false);
     setSeedQuery("");
     requestAnimationFrame(() =>
       document
         .querySelector<HTMLElement>("[data-discovery-focus]")
         ?.focus({ preventScroll: true }),
     );
+    return true;
   };
   const chooseFirst = () => {
     if (!seedResults[0]) return false;
-    chooseResult(seedResults[0]);
-    return true;
+    return chooseResult(seedResults[0]);
   };
   const selectCover = (item: DiscoveryOrbitItem) => {
     setDesktopSearchActive(false);
@@ -165,6 +170,7 @@ export default function DiscoveryMap({
           results={seedResults}
           isSearching={seedSearch.isFetching}
           hasError={seedSearch.isError}
+          onRetry={() => { void seedSearch.refetch(); }}
           onQueryChange={setSeedQuery}
           onSelect={chooseResult}
           onSubmit={chooseFirst}
