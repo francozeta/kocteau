@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const calls: URL[] = [];
 const snapshots = new Map<string, { value: unknown; at: number }>();
+const backgroundRefreshes = new Set<Promise<unknown>>();
 let cacheEnabled = false;
 const key = Symbol.for("kocteau.catalog-io.test");
 const stubs = {
@@ -20,7 +21,14 @@ const stubs = {
           return value;
         });
         if (!saved) return refresh();
-        if (Date.now() - saved.at >= 60_000) void refresh().catch(() => {});
+        if (Date.now() - saved.at >= 60_000) {
+          const pending = refresh();
+          backgroundRefreshes.add(pending);
+          void pending.then(
+            () => backgroundRefreshes.delete(pending),
+            () => backgroundRefreshes.delete(pending),
+          );
+        }
         return saved.value;
       },
   },
@@ -61,6 +69,7 @@ after(() => { Reflect.deleteProperty(globalThis, key); });
 beforeEach(() => {
   calls.length = 0;
   snapshots.clear();
+  backgroundRefreshes.clear();
   cacheEnabled = false;
 });
 const row = {
@@ -138,7 +147,7 @@ test("expired cached success exposes stale then degraded background refresh stat
   t.mock.method(globalThis, "fetch", async () => new Response("unavailable", { status: 503 }));
   const stale = await catalog.searchCatalog(q, "all", "local");
   assert.equal(stale.readiness.local, "stale");
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  await Promise.allSettled([...backgroundRefreshes]);
   const degraded = await catalog.searchCatalog(q, "all", "local");
   assert.equal(degraded.readiness.local, "degraded");
   assert.equal(degraded.results[0]?.entity_id, row.id);
@@ -153,7 +162,7 @@ test("expired cached success exposes stale then degraded background refresh stat
   const retrying = await catalog.searchCatalog(q, "all", "local");
   assert.equal(retrying.readiness.local, "degraded");
   release();
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  await Promise.allSettled([...backgroundRefreshes]);
   const recovered = await catalog.searchCatalog(q, "all", "local");
   assert.equal(recovered.readiness.local, "fresh");
   assert.equal(recovered.results[0]?.entity_id, row.id);
@@ -241,7 +250,10 @@ test("canonical-link callers cancel independently while a shared fill completes"
   assert.equal(reads, 1);
 });
 
-test("empty and invalid search responses cannot be cached", async () => {
+test("empty and invalid search responses cannot be cached", async (t) => {
+  const upstream = t.mock.method(globalThis, "fetch", async () => {
+    throw new Error("Early search responses must not perform dependency reads");
+  });
   for (const [path, route] of [
     ["/api/search", searchRoute],
     ["/api/deezer/search", legacySearchRoute],
@@ -254,5 +266,5 @@ test("empty and invalid search responses cannot be cached", async () => {
     assert.equal(invalid.status, 400);
     assert.equal(invalid.headers.get("Cache-Control"), "no-store");
   }
-  assert.equal(calls.length, 0);
+  assert.equal(upstream.mock.callCount(), 0);
 });

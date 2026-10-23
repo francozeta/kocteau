@@ -35,6 +35,9 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
   regression checks and desktop/mobile search. Its reproduction now enforces
   request counts and connection release. Exact published revision, CI and preview
   evidence belong in the PR. Isolated timings are not user-capacity evidence.
+- A real cold preview read hit the three-second deadline and returned 502;
+  a later read returned 200/fresh. Cold-read reliability remains a delivery
+  caveat, recorded in the [implementation evidence](./.plan/public-read-reliability.md).
 - A disposable Supabase stack replayed migrations/seeds, passed six SQL test files
   (24 checks), and traversed a 3,000-review catalog without omissions or duplicates.
   Disposable edit persistence passed. Cloud authenticated publication, OTP,
@@ -47,7 +50,8 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Next Priority
 
-Deliver the public-read changes under review. Then constrain OG asset fetching
+Characterize cold Data API waits before delivering the public-read changes.
+Then constrain OG asset fetching
 and patch affected runtime dependencies. Preserve the unresolved incident evidence.
 Measure a representative isolated catalog and authenticated traffic before
 choosing search RPCs, indexes or infrastructure upgrades. Verify the guest draft,

@@ -1,5 +1,5 @@
 const configured = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321");
-if (configured.protocol !== "http:" || configured.hostname !== "127.0.0.1") {
+if (configured.href !== "http://127.0.0.1:54321/") {
   throw new Error("Isolated verification requires the IPv4 loopback Data API fixture");
 }
 

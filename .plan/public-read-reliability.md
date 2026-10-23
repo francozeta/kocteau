@@ -114,3 +114,27 @@ All 175 tests, lint, production build/TypeScript, documentation and whitespace
 checks pass. Desktop/mobile search at 1280/390 px returned both phases successfully
 with visible expected results, no page exceptions and no horizontal overflow.
 No production load, migration or authenticated cloud write was performed.
+
+## Exact runtime preview and delivery caveat
+
+Runtime revision `fe2ebb4` passed GitHub Verify (run 519) and its Vercel build.
+The first exact-preview local track search on 2026-10-23 returned 502/degraded at
+3,085 ms. Logs show all four local reads reached the shared deadline. A later
+request to the same query returned 200/fresh with the expected track in 1,501 ms.
+The preceding runtime preview returned the same track in 113 ms; those observations
+have different cache/connection warmth and do not establish a comparative latency
+gain. Empty and invalid legacy requests verified no-store with 200/400 responses.
+
+A separate anonymous single Data API control returned 200 in 792 ms. Management
+SQL observed nine client connections out of 60, one active query and no lock
+waits. These controls do not identify the cause of the earlier cold deadline
+failure or rule out transient infrastructure/network waits. Production delivery
+still needs a justified cold-read latency budget; no deadline was increased merely
+to make the subsequent check pass, and no further cloud load was generated.
+
+A full native Next.js cache lifecycle check waited beyond the actual 60-second TTL
+on isolated fixtures. It observed 200/fresh, then stale during revalidation,
+degraded after failure, still degraded after cooldown expiry with a stalled retry,
+and finally 200/fresh after a successful refresh. Expected results stayed available,
+and active fixture connections returned to zero. This verifies real stale-while-
+revalidate behavior in addition to the unit cache model.
