@@ -73,8 +73,10 @@ Review follow-up bounds the guest verifier and asserts private/no-store headers,
 corrects existing fixture-file permissions, and preserves optional guest active
 profiles. Local auth.uid() reads both the individual sub GUC and JSON claims;
 all 40 SQL checks pass with the JSON claim setup used by the regression tests.
-PR #222 is ready for exact-head CI/review and integration. Cloud publication/OTP
-and a real authenticated browser session remain separate verification limits.
+PR #222 has a published review follow-up and is synchronized with search recovery.
+Application rollout is held during search-incident observation; its database
+delivery is complete. Cloud publication/OTP and production-authenticated browser
+behavior remain separate verification limits.
 
 Shared cooldown, distributed admission, durable jobs and 10,000-user mixed traffic
 remain subsequent work; this change does not establish that capacity.

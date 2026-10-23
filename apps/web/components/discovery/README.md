@@ -82,3 +82,47 @@ refresh, empty results, long titles, keyboard use, and touch navigation.
 
 Check stalled providers, total provider failure, client cancellation, cache reuse,
 and timing headers with isolated upstream fixtures.
+
+## Search recovery regression
+
+The shared hook waits 300 ms after typing settles. Query observers follow the
+current input immediately, so both old HTTP requests are cancelled while the next
+query waits. Catalog search does not retry failed requests automatically or refetch
+on window focus. Partial results and the cache for the same query remain usable;
+a complete failure offers **Retry search** without replacing the canvas.
+
+The input and scope have separate, validated history/session snapshots, scoped by
+account or guest, bounded to 80 characters and eight hours. Each history entry
+keeps its draft so Back restores the previous query; selecting a result clears only
+the new entry after the canvas accepts it. Storage remains optional. Explicitly
+closing search, restarting, or clearing memory clears the current input.
+
+For browser regression checks, use an isolated local Supabase stack and its local
+environment values, following [local setup](../../../../docs/setup/local-development.md).
+Build and start the app with
+`NODE_OPTIONS="--import=$PWD/apps/web/tests/load/fixtures/search-recovery-upstreams.mjs"`
+on both commands. This preload blocks external fetches and provides the disposable
+artist used by the browser fixture. The baseline may use the normal isolated
+upstream preload. Never point these fixtures at a linked cloud database.
+
+Install Playwright 1.64.1 outside the repository and its Chromium/WebKit browsers.
+Set `KOCTEAU_PLAYWRIGHT_MODULE` to that installation's absolute
+`node_modules/playwright` path, then run from the repository root:
+
+```bash
+SEARCH_RECOVERY_URL=http://127.0.0.1:3002 \
+  node apps/web/tests/load/verify-search-recovery.mjs
+SEARCH_RECOVERY_BROWSER=webkit SEARCH_RECOVERY_URL=http://127.0.0.1:3002 \
+  node apps/web/tests/load/verify-search-recovery.mjs
+```
+
+`SEARCH_RECOVERY_DESKTOP=1` checks the desktop surface.
+`SEARCH_RECOVERY_BASELINE=1` reports the old build without asserting the new
+behavior. The fixture requires IPv4 loopback and blocks outbound browser requests.
+It checks typing request counts, immediate cancellation, no automatic failure
+retry, manual recovery, Back/reload, selected-canvas survival, and disabled storage.
+For an existing disposable authenticated session,
+`SEARCH_RECOVERY_COOKIE_FILE` accepts a private JSON file containing its `cookie`
+header. Keep it out of Git; the fixture creates no accounts or activity.
+This is a browser regression check with simulated API failures, not a load test or
+a test on a physical iPhone/TikTok browser.

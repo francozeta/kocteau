@@ -1,66 +1,57 @@
 # Current Project State
 
-Last verified: 2026-10-23. Production main: `93baae3` (PR #221).
+Last verified runtime: 2026-10-23, production `578f59e` (PR #223).
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
 ## Active Work
 
-Production search recovery takes priority in [PR #223](https://github.com/francozeta/kocteau/pull/223).
-Its CI and preview deployment pass; integration and production verification are pending.
-The separate shared-read cooldown stays unpublished during this correction.
+Observe search recovery after the production incident and investigate remaining
+cold Data API waits. [Search evidence](./.plan/search-recovery.md) owns the
+correction, verification and limits. The feed application rollout is held for a
+separate stage during incident observation; its schema is already delivered.
+The shared-read cooldown experiment remains local and unpublished.
+Ten-thousand-user capacity remains unverified.
 
-Stage 1 is merged: bounded anonymous reads, independent cancellation, shared
-search fills, explicit degraded responses and sampled queue/header/body diagnostics.
-Production returned three fresh search results in 2.82 seconds; cold-read
-latency remains close to the three-second deadline. The cause of the earlier
-shared Supabase incident remains unresolved. Ten-thousand-user capacity is unverified.
+## In Review
 
-[PR #222](https://github.com/francozeta/kocteau/pull/222), stage 2, combines authenticated For You ranking,
-card hydration and private viewer state into one Data API RPC. It also corrects
-the repository's viewer-state correlation so fresh local replays match the
-already-correct cloud behavior.
-Local verification is recorded in the
-[feed stage evidence](./.plan/authenticated-feed-read-bundle.md).
-The pinned CLI applied both migrations after linked-target and dry-run review.
-Cloud history has 37 versions; role permissions, an existing author read and private
-flags passed, and linked type generation matches the committed snapshot.
-Linked lint for the affected public schema also passes. PR #222 is ready for
-final integration. Stage 3 shared cooldown work is in a
-separate task branch; its 191 tests and lint pass, with native verification pending.
-The [scale stages](./.plan/scale-readiness.md) own subsequent delivery gates.
-
-## Related Work
-
-- [PR #220](https://github.com/francozeta/kocteau/pull/220) audit content is included
-  in PR #221's merged history. [Audit evidence](./.plan/capacity-security-audit.md)
-  records incident limits and remediation order.
-- Studio scouting: [PR #211](https://github.com/francozeta/kocteau/pull/211)
-  and [issue #206](https://github.com/francozeta/kocteau/issues/206).
-- Release work: [PR #202](https://github.com/francozeta/kocteau/pull/202);
-  released version v0.3.15.
+- [PR #222](https://github.com/francozeta/kocteau/pull/222) bundles authenticated
+  For You reads. Pinned-CLI delivery applied its two migrations and verified all
+  37 local/remote versions, linked types, privileges and an authenticated cloud
+  read. Review follow-up is published; application integration remains pending.
+- Studio scouting remains in [PR #211](https://github.com/francozeta/kocteau/pull/211)
+  under [issue #206](https://github.com/francozeta/kocteau/issues/206).
+  Release work remains in [PR #202](https://github.com/francozeta/kocteau/pull/202);
+  the released version is v0.3.15.
 
 ## Verified Baseline And Limits
 
-- PR #219 paginates discussions and computes complete review aggregates.
-  Its 35 migration versions matched cloud history before the current local stage.
-- Stage 1 passed 180 web tests, lint, build, native transport checks and desktop/mobile
-  search. [Read evidence](./.plan/public-read-reliability.md) owns reproduction.
-- Stage 2 passed 40 SQL checks in seven files and authenticated desktop/mobile
-  rendering. Two real local sessions traversed three pages each with matching
-  cards, cursors and private state; first-page requests fell from four to one.
-  These local measurements establish behavior and request counts, not capacity.
-- The linked database has an existing `extensions.index_advisor` lint failure
-  involving `hypopg_reset()`; cloud feed-index parity remains pending.
-- Cloud authenticated publication, OTP, curator/cron flows and representative
-  sustained write load remain unverified.
-- Unknown documentation paths may log `NoFallbackError` while returning 404
-  ([Next.js #90537](https://github.com/vercel/next.js/issues/90537)).
+- PR #223 is merged and deployed. Search waits 300 ms for settled typing, cancels
+  obsolete source requests immediately, offers manual error recovery and restores
+  query/scope through history and optional session storage. Canvas selection is
+  retained during search failures.
+- Verification passes 182 web tests, lint, production build and docs checks.
+  Mobile Chromium/WebKit, desktop Chromium and a disposable authenticated session
+  pass failure/retry, Back/reload, full canvas-session preservation and disabled
+  storage. A fixture typing cadence reduces 14 requests to 2; this is not a load
+  result. A read-only guest WebKit session on production received both sources'
+  200 responses, selected Slowdive and restored its query on Back without page
+  errors. Physical iPhone/TikTok behavior is not yet confirmed.
+- PRs #220/#221 provide bounded anonymous reads and phase diagnostics. Distinct
+  shared fills still have separate origin work; cold-read reliability and the
+  underlying historical Supabase data-plane cause remain unresolved.
+- Feed verification passes seven real local SQL files (40 checks). Two disposable
+  sessions retain complete payloads over three pages with Data API calls reduced
+  from 4 to 1 initially and 3 to 1 later. Cloud affected public-schema lint passes;
+  existing advisor WARN findings and the all-schema index-advisor caveat remain.
+  Production authenticated application behavior is not yet verified.
+- The [Discovery guide](./apps/web/components/discovery/README.md) owns the
+  reproducible browser checks. The earlier 24-user run does not establish a
+  healthy-user ceiling.
 
 ## Next Priority
 
-Complete PR #222 integration after the exact-head checks and review. Continue the
-shared failure cooldown in its separate branch before distributed admission work.
-Then measure cross-instance refresh contention and secondary write work on an
-isolated target, following the [load guide](./docs/load-readiness.md).
-Preserve guest drafts, private viewer state, ranking and the publish/edit loop.
+Characterize cold-read queue/header waits and observe the search fix in real use.
+Deliver the feed consumer independently after incident observation, then reassess
+shared backoff. Use representative isolated authenticated traffic before search
+RPC, index or infrastructure decisions; retain the unresolved incident evidence.

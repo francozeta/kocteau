@@ -53,3 +53,14 @@ match, affected public-schema lint passes, and role/read/type checks pass.
 Stage 3 begins with regional shared failure cooldowns; durable admission quotas
 remain separate because an evictable cache cannot enforce a global concurrency
 ceiling. Durable jobs and representative staging load remain later gates.
+
+## Incident sequencing
+
+PR #223 is merged and its production search flow passes a read-only mobile WebKit
+check. Stage 2 application rollout is held during incident observation; its schema
+is delivered and the consumer remains in PR #222. The regional shared-cooldown
+experiment stays local and unpublished. On its separate base, 191 tests, lint and
+build pass; a four-process loopback SDK fixture observes zero origin calls from a
+second worker during the pause, recovery after expiry, and fail-open behavior for
+an unavailable coordination cache. These are isolated regressions, not a deployed
+quota, a fix for the initial typing burst, or a 10,000-user capacity result.
