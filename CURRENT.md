@@ -1,7 +1,7 @@
 # Current Project State
 
-Last checked: 2026-10-23. PR #223 is merged; its production deployment is ready
-and a read-only production smoke check passed.
+Last checked: 2026-10-23. PR #223 is merged; deployment `578f59e` was observed READY.
+A read-only production smoke check passed without recording the served commit.
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
