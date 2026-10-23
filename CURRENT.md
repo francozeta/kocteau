@@ -6,11 +6,11 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-Observe public-read cache recovery from [PR #239](https://github.com/francozeta/kocteau/pull/239),
-under [#147](https://github.com/francozeta/kocteau/issues/147).
-[Cache evidence](./.plan/public-read-cache-recovery.md) owns reproduction and limits.
-Keep observing [search recovery](./.plan/search-recovery.md). Feed PR #222 and the
-unpublished shared cooldown remain separate.
+Restore anonymous review lists under [#240](https://github.com/francozeta/kocteau/issues/240).
+[Review recovery](./.plan/review-read-recovery.md) owns the confirmed cache/error
+boundary and reproduction. The earlier navigation smoke did not assert review
+content. Review recovery takes priority over #228; feed PR #222 and the unpublished
+shared cooldown remain separate.
 
 ## Verified Delivery
 
@@ -26,6 +26,10 @@ port binding and pinned pre-change comparison were also reproduced locally.
 
 ## In Review
 
+- Public review recovery on `fix/review-feed-recovery` addresses #240. Failed
+  list reads escape the shared cache, old empty entries are retired, and routes
+  offer manual recovery. Local 190 tests, guest WebKit recovery, lint and the
+  isolated build pass. CI/preview and production rollout remain pending.
 - [PR #222](https://github.com/francozeta/kocteau/pull/222) contains the feed read
   bundle and published review fixes, synchronized with search recovery.
   Its schema is delivered through the pinned CLI; all 37 migration versions,
@@ -44,7 +48,7 @@ not yet confirmed. Existing advisor warnings and the global index-advisor lint
 caveat remain; isolated timings and the earlier 24-user run do not establish
 healthy capacity. Ten-thousand-user capacity is unverified.
 
-Next, address catalog-write invalidation in
+After review recovery is delivered, address catalog-write invalidation in
 [#228](https://github.com/francozeta/kocteau/issues/228). #147 orders progressive
 rendering, measured starter SQL work and suggestion budgets. Characterize cold
 Data API waits and deliver the feed consumer independently; use representative

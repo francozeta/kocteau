@@ -44,11 +44,13 @@ export async function runReviewListQuery<
   T extends { likes_count?: number | null; comments_count?: number | null },
 >(
   run: (mode: ReviewMetricsMode) => Promise<QueryResult<unknown>>,
+  options: { throwOnError?: boolean } = {},
 ) {
   const result = await run("all");
 
   if (result.error) {
     logReviewMetricsQueryError("runReviewListQuery", result.error);
+    if (options.throwOnError) throw result.error;
     return [];
   }
 

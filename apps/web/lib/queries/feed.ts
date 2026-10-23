@@ -198,7 +198,7 @@ async function queryFeedPage({
       return query
         .order("created_at", { ascending: false })
         .order("id", { ascending: false });
-    }),
+    }, { throwOnError: true }),
     includeActiveUsers ? getRecentlyActiveProfiles(4) : Promise.resolve([]),
   ]);
   const normalizedFeed = feed
@@ -469,7 +469,7 @@ export async function getFeedPage({
   return getOrCreateLoader(
     feedPageLoaders,
     [
-      "feed-page",
+      "feed-page-v2",
       view,
       cursor ?? "first",
       limit,
@@ -493,7 +493,7 @@ export async function getFeedPage({
             { view, cursor: Boolean(cursor), limit, includeActiveUsers, publicOnly },
           ),
         [
-          "feed-page",
+          "feed-page-v2",
           view,
           cursor ?? "first",
           String(limit),

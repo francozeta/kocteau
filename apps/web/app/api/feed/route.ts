@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
-import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
+import { getFeedPage, getFeedViewerState, type FeedPageData } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { measureServerTask } from "@/lib/perf";
 
@@ -11,12 +11,20 @@ async function getFeedResponse(req: Request) {
   const cursor = url.searchParams.get("cursor");
   const userId = await getCurrentUserId();
   const activeView = isFeedView(viewParam) ? viewParam : userId ? "for-you" : "latest";
-  const bundle = await getFeedPage({
-    view: activeView,
-    viewerId: userId,
-    cursor,
-    includeActiveUsers: false,
-  });
+  let bundle: FeedPageData;
+  try {
+    bundle = await getFeedPage({
+      view: activeView,
+      viewerId: userId,
+      cursor,
+      includeActiveUsers: false,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Reviews are temporarily unavailable. Please try again." },
+      { status: 503, headers: { "Cache-Control": "private, no-store", "Retry-After": "5" } },
+    );
+  }
   const activeUsers = bundle.activeUsers.filter((profile) => profile.id !== userId);
   const viewerState =
     userId && bundle.feed.length > 0

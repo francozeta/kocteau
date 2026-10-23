@@ -23,3 +23,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Search recovery](./search-recovery.md): typing amplification, recoverable errors and history/session continuity after the production incident.
 
 - [Public read cache recovery](./public-read-cache-recovery.md): starter failure boundaries and render-scoped provider lookup reuse; isolated evidence and rollout limits.
+
+- [Anonymous review recovery](./review-read-recovery.md): failed public list fills, explicit recovery and content-based guest verification under issue #240.

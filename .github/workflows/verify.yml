@@ -52,6 +52,8 @@ jobs:
 
       - name: Build
         run: pnpm --filter web build
+        env:
+          NODE_OPTIONS: --import=${{ github.workspace }}/apps/web/tests/load/fixtures/build-public-reads.mjs
 
       - name: Check whitespace
         run: git diff --check

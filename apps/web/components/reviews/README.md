@@ -34,3 +34,23 @@ Cross 768px while searching, writing, and submitting, then close/reopen and swit
 the initial review. Confirm retained state, intentional resets, and modal focus.
 Check URL-triggered composition before pressing a launcher key; `compose=1`
 must load the deferred composer and read its initial selection or saved draft.
+
+## Public read recovery
+
+Public feed queries propagate origin errors out of their tagged cache. Failed
+fills remain retryable and failed refreshes cannot replace valid lists with empty
+results. A successful empty response remains cacheable. A namespace change retires
+empty entries made by the earlier error path; tags and TTL are unchanged.
+
+The public reviews route distinguishes successful emptiness from a read failure.
+Reviews, feed and public-home error boundaries offer **Retry reviews**; retry
+refreshes server data. Feed API failures return private, no-store HTTP 503, allowing
+client query state to retain available data rather than accepting a false empty
+success. Authentication and viewer state remain outside public caches.
+
+Run `pnpm test` for the cache regression. The isolated browser verifier uses the
+actual app with a loopback Data API and no production environment files.
+See [reproduction and limits](../../../../.plan/review-read-recovery.md) for mobile
+and desktop WebKit commands and [discovery setup](../discovery/README.md) for the
+external Playwright installation. CI builds use an explicit placeholder-only
+successful-empty fixture; production builds keep their actual data source.
