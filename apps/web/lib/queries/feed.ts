@@ -217,13 +217,6 @@ async function queryFeedPage({
   };
 }
 
-type RecommendedReviewRow = {
-  review_id: string;
-  score: number | string | null;
-  reason: string | null;
-  created_at: string;
-};
-
 function normalizeRecommendationReason(value: string | null | undefined): RecommendationReason {
   return value === "entity_taste" ||
     value === "taste_match" ||
@@ -236,38 +229,12 @@ function normalizeRecommendationReason(value: string | null | undefined): Recomm
     : "popular_recent";
 }
 
-async function queryViewerRecentReviews({
-  viewerId,
-  limit,
-}: {
-  viewerId: string;
-  limit: number;
-}) {
-  const supabase = supabasePublic();
+type RecommendedFeedRow = FeedReview & {
+  viewer_has_liked: boolean;
+  viewer_has_bookmarked: boolean;
+};
 
-  const reviews = await runReviewListQuery<FeedReview>(async (mode) =>
-    supabase
-      .from("reviews")
-      .select(
-        buildReviewHydrationSelect(mode, {
-          includeAuthor: true,
-          includeEntity: true,
-        }),
-      )
-      .eq("author_id", viewerId)
-      .order("created_at", { ascending: false })
-      .order("id", { ascending: false })
-      .limit(Math.max(1, Math.min(limit, 3))),
-  );
-
-  return reviews.map((review) => ({
-    ...normalizeFeedReview(review),
-    recommendation_score: 1000,
-    recommendation_reason: "own_review" as const,
-  }));
-}
-
-async function queryRecommendedFeedPage({
+async function queryRecommendedFeedBundle({
   viewerId,
   cursor,
   limit,
@@ -277,142 +244,58 @@ async function queryRecommendedFeedPage({
   cursor: string | null | undefined;
   limit: number;
   includeActiveUsers: boolean;
-}): Promise<FeedPageData> {
+}): Promise<FeedPageBundle> {
   const pageLimit = Math.max(1, Math.min(limit, 30));
   const decodedCursor = decodeFeedCursor(cursor);
-
   if (!viewerId) {
-    const activeUsers = includeActiveUsers ? await getRecentlyActiveProfiles(4) : [];
-
     return {
       feed: [],
-      activeUsers,
-      nextCursor: null,
-      view: "for-you",
+      activeUsers: includeActiveUsers ? await getRecentlyActiveProfiles(4) : [],
+      nextCursor: null, view: "for-you",
+      likedReviewIds: new Set<string>(), bookmarkedReviewIds: new Set<string>(),
     };
   }
 
   const supabase = await supabaseServer();
-  const [recommendationsResult, viewerReviews, activeUsers] = await Promise.all([
-    supabase.rpc("get_recommended_review_ids", {
-      p_limit: pageLimit + 1,
+  const [result, activeUsers] = await Promise.all([
+    supabase.rpc("get_recommended_feed_bundle", {
+      p_limit: pageLimit,
       p_cursor_score: decodedCursor?.score,
       p_cursor_created_at: decodedCursor?.created_at,
       p_cursor_id: decodedCursor?.id,
-    }),
-    decodedCursor
-      ? Promise.resolve([])
-      : queryViewerRecentReviews({
-          viewerId,
-          limit: 2,
-        }),
+    }).returns<RecommendedFeedRow[]>(),
     includeActiveUsers ? getRecentlyActiveProfiles(4) : Promise.resolve([]),
   ]);
-
-  if (recommendationsResult.error) {
-    console.error("[feed.getRecommendedFeedPage] failed", {
-      code: recommendationsResult.error.code ?? null,
-      message: recommendationsResult.error.message ?? null,
+  if (result.error) {
+    console.error("[feed.getRecommendedFeedBundle] failed", {
+      code: result.error.code ?? null,
+      message: result.error.message ?? null,
     });
-
     await trackServerAnalyticsEvent(supabase, {
-      userId: viewerId,
-      eventType: "recommendation_fallback",
-      source: "feed:server",
-      metadata: {
-        code: recommendationsResult.error.code ?? null,
-        cursor: Boolean(cursor),
-      },
+      userId: viewerId, eventType: "recommendation_fallback", source: "feed:server",
+      metadata: { code: result.error.code ?? null, cursor: Boolean(cursor) },
     });
-
-    const fallbackPage = await queryFeedPage({
-      view: "latest",
-      cursor,
-      limit,
-      includeActiveUsers,
-      publicOnly: false,
+    const fallback = await queryFeedPage({
+      view: "latest", cursor, limit, includeActiveUsers: false, publicOnly: false,
     });
-
-    return {
-      ...fallbackPage,
-      view: "for-you",
-    };
+    const state = await getFeedViewerState(viewerId, fallback.feed.map((review) => review.id));
+    return { ...fallback, activeUsers, view: "for-you", ...state };
   }
 
-  const recommendationRows =
-    ((recommendationsResult.data ?? []) as RecommendedReviewRow[])
-      .filter((row) => row.review_id)
-      .map((row) => ({
-        ...row,
-        score: Number(row.score ?? 0),
-        reason: normalizeRecommendationReason(row.reason),
-      }));
-  const reviewIds = recommendationRows.map((row) => row.review_id);
-
-  if (reviewIds.length === 0 && viewerReviews.length === 0) {
-    return {
-      feed: [],
-      activeUsers,
-      nextCursor: null,
-      view: "for-you",
-    };
-  }
-
-  const recommendationByReviewId = new Map(
-    recommendationRows.map((row) => [row.review_id, row]),
-  );
-  const feed = reviewIds.length
-    ? await runReviewListQuery<FeedReview>(async (mode) =>
-        supabase
-          .from("reviews")
-          .select(
-            buildReviewHydrationSelect(mode, {
-              includeAuthor: true,
-              includeEntity: true,
-            }),
-          )
-          .in("id", reviewIds),
-      )
-    : [];
-  const feedById = new Map(
-    feed.map((review) => [review.id, normalizeFeedReview(review)]),
-  );
-  const recommendedFeed = recommendationRows.flatMap((row) => {
-    const review = feedById.get(row.review_id);
-
-    if (!review) {
-      return [];
-    }
-
-    const recommendation = recommendationByReviewId.get(row.review_id);
-
-    return [
-      {
-        ...review,
-        recommendation_score: recommendation?.score ?? null,
-        recommendation_reason: recommendation?.reason ?? "popular_recent",
-      },
-    ];
-  });
-  const seenReviewIds = new Set<string>();
-  const orderedFeed = [...viewerReviews, ...recommendedFeed].filter((review) => {
-    if (seenReviewIds.has(review.id)) {
-      return false;
-    }
-
-    seenReviewIds.add(review.id);
-    return true;
-  });
-  const pageFeed = orderedFeed.slice(0, pageLimit);
+  const rows = (result.data ?? []).map((row) => ({
+    ...normalizeFeedReview(row),
+    recommendation_score: Number(row.recommendation_score ?? 0),
+    recommendation_reason: normalizeRecommendationReason(row.recommendation_reason),
+  }));
+  const pageRows = (result.data ?? []).slice(0, pageLimit);
+  const pageFeed = rows.slice(0, pageLimit);
   const lastReview = pageFeed.at(-1) ?? null;
-
   return {
-    feed: pageFeed,
-    activeUsers,
-    nextCursor: orderedFeed.length > pageLimit && lastReview
-      ? encodeFeedCursor(lastReview, "for-you")
-      : null,
-    view: "for-you",
+    feed: pageFeed, activeUsers, view: "for-you",
+    nextCursor: rows.length > pageLimit && lastReview
+      ? encodeFeedCursor(lastReview, "for-you") : null,
+    likedReviewIds: new Set(pageRows.filter((row) => row.viewer_has_liked).map((row) => row.id)),
+    bookmarkedReviewIds: new Set(pageRows.filter((row) => row.viewer_has_bookmarked).map((row) => row.id)),
   };
 }
 
@@ -428,13 +311,12 @@ export async function getFeedPage({
   if (view === "for-you") {
     return measureServerTask(
       "getRecommendedFeedPage",
-      async () =>
-        queryRecommendedFeedPage({
-          viewerId,
-          cursor,
-          limit,
-          includeActiveUsers,
-        }),
+      async () => {
+        const { feed, activeUsers, nextCursor, view } = await queryRecommendedFeedBundle({
+          viewerId, cursor, limit, includeActiveUsers,
+        });
+        return { feed, activeUsers, nextCursor, view };
+      },
       {
         viewerId,
         cursor: Boolean(cursor),
@@ -537,8 +419,15 @@ export async function getFeedViewerState(
 export async function getFeedPageBundle(
   viewerId?: string | null,
   view: FeedView = "latest",
+  options: Pick<FeedPageOptions, "cursor" | "limit" | "includeActiveUsers"> = {},
 ): Promise<FeedPageBundle> {
-  const page = await getFeedPage({ view, viewerId });
+  if (view === "for-you") {
+    return measureServerTask("getRecommendedFeedPageBundle", () => queryRecommendedFeedBundle({
+      viewerId, cursor: options.cursor, limit: options.limit ?? FEED_PAGE_SIZE,
+      includeActiveUsers: options.includeActiveUsers ?? false,
+    }), { view, cursor: Boolean(options.cursor) });
+  }
+  const page = await getFeedPage({ ...options, view, viewerId });
 
   if (!viewerId || page.feed.length === 0) {
     return {

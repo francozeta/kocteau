@@ -20,6 +20,19 @@ pnpm supabase:version
 
 Do not rely on a global `supabase` binary. Use `pnpm` scripts so everyone runs the version pinned by the repo lockfile.
 
+## CLI Credential Compatibility
+
+CLI 2.109.1 contains both newer management commands and legacy database commands.
+On Linux, a browser login stored in the keyring can work for project/history
+reads while a legacy database command reports a missing token. A successful
+project listing alone does not verify migration credentials.
+
+For that case, provide the authenticated credential through the supported
+SUPABASE_ACCESS_TOKEN environment variable using a private secret store.
+Keep its value out of command arguments, repository files and diagnostics.
+Re-run the pinned dry run before applying any migration; missing credentials
+still mean delivery is pending.
+
 ## Environment Model
 
 Use separate Supabase Cloud projects:

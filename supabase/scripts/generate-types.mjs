@@ -50,12 +50,20 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-// SQL-function result metadata omits aggregate nullability.
+// SQL-function result metadata omits aggregate and nullable review text results.
 const output = result.stdout
   .replace(/\r\n/gu, "\n")
   .replace(
     /(get_entity_review_summary: \{[\s\S]*?average_rating:) number(?: \| null)?/u,
     "$1 number | null",
+  )
+  .replace(
+    /(get_recommended_feed_bundle: \{[\s\S]*?body:) string(?: \| null)?/u,
+    "$1 string | null",
+  )
+  .replace(
+    /(get_recommended_feed_bundle: \{[\s\S]*?title:) string(?: \| null)?/u,
+    "$1 string | null",
   )
   .replace(/(?:\n)+$/u, "\n");
 

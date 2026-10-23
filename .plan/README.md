@@ -21,3 +21,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Scale readiness stages](./scale-readiness.md): cold reads, feed I/O, shared coordination and mixed-load verification; implementation in progress.
 
 - [Search recovery](./search-recovery.md): typing amplification, recoverable errors and history/session continuity after the production incident.
+
+- [Authenticated feed bundle](./authenticated-feed-read-bundle.md): schema delivered and read parity verified; application rollout held during search-incident observation.

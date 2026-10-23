@@ -20,7 +20,7 @@ Ten thousand active users is a target to validate, not established capacity.
    cache misses, hot items, writes, dependency failures and sustained recovery.
    Record latency, errors, queue growth and cost. Shared production is excluded.
 
-## Active stage
+## Delivered and active stages
 
 Stage 1 now separates queue, headers and body for anonymous Data API reads.
 Failures retain their phase/status, including a stalled body after HTTP 200 headers.
@@ -32,8 +32,9 @@ GitHub Verify run 522. Its exact preview returned three expected results in
 Seven read records show header waits of 1,188–1,232 ms, queue waits of 1–18 ms,
 and body reads of 1–37 ms. Header time includes network, framework and upstream
 processing; SQL time and the cause of the historical timeout remain unresolved.
-The existing cold-read caveat stays open. Disposable local services are being
-prepared for authenticated and SQL verification. Raw diagnostics remain ignored.
+The existing cold-read caveat stays open. Disposable local Supabase services now
+pass authenticated HTTP/browser checks and 40 SQL checks after a fresh replay.
+Raw diagnostics remain ignored.
 The owning status is [CURRENT](../CURRENT.md).
 
 ## Rollout boundaries
@@ -42,3 +43,24 @@ Each stage must have a reviewable change, relevant checks and truthful delivery
 status. Existing behavior and services remain authoritative until replacement paths
 are verified. New paid resources require a concrete cost and target decision.
 A staging test is required before any ten-thousand-user capacity claim.
+
+Stage 1 merged as PR #221, production main 93baae3; a production search returned
+three fresh matches in 2.82 seconds. Cold header latency remains unresolved.
+[PR #222](https://github.com/francozeta/kocteau/pull/222), stage 2, has a verified
+read bundle and delivered schema: both CLI migrations applied, 37 history versions
+match, affected public-schema lint passes, and role/read/type checks pass.
+[Feed evidence](./authenticated-feed-read-bundle.md) owns verification and limits.
+Stage 3 begins with regional shared failure cooldowns; durable admission quotas
+remain separate because an evictable cache cannot enforce a global concurrency
+ceiling. Durable jobs and representative staging load remain later gates.
+
+## Incident sequencing
+
+PR #223 is merged and its production search flow passes a read-only mobile WebKit
+check. Stage 2 application rollout is held during incident observation; its schema
+is delivered and the consumer remains in PR #222. The regional shared-cooldown
+experiment stays local and unpublished. On its separate base, 191 tests, lint and
+build pass; a four-process loopback SDK fixture observes zero origin calls from a
+second worker during the pause, recovery after expiry, and fail-open behavior for
+an unavailable coordination cache. These are isolated regressions, not a deployed
+quota, a fix for the initial typing burst, or a 10,000-user capacity result.
