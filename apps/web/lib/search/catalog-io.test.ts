@@ -28,6 +28,7 @@ const stubs = {
 };
 let catalog: typeof import("./catalog");
 let searchRoute: typeof import("../../app/api/search/route");
+let legacySearchRoute: typeof import("../../app/api/deezer/search/route");
 let publicClient: typeof import("../supabase/public");
 
 before(async () => {
@@ -52,6 +53,7 @@ before(async () => {
   try {
     catalog = await import("./catalog");
     searchRoute = await import("../../app/api/search/route");
+    legacySearchRoute = await import("../../app/api/deezer/search/route");
     publicClient = await import("../supabase/public");
   } finally { hooks.deregister(); }
 });
@@ -140,6 +142,21 @@ test("expired cached success exposes stale then degraded background refresh stat
   const degraded = await catalog.searchCatalog(q, "all", "local");
   assert.equal(degraded.readiness.local, "degraded");
   assert.equal(degraded.results[0]?.entity_id, row.id);
+  // Expiring the retry cooldown must not imply that the dependency recovered.
+  t.mock.method(Date, "now", () => now + 63_000);
+  let release!: () => void;
+  const blocked = new Promise<void>((resolve) => { release = resolve; });
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    await blocked;
+    return matched(input);
+  });
+  const retrying = await catalog.searchCatalog(q, "all", "local");
+  assert.equal(retrying.readiness.local, "degraded");
+  release();
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  const recovered = await catalog.searchCatalog(q, "all", "local");
+  assert.equal(recovered.readiness.local, "fresh");
+  assert.equal(recovered.results[0]?.entity_id, row.id);
 });
 
 test("stalled database reads abort within the shared fill deadline without extra attempts", async (t) => {
@@ -167,4 +184,75 @@ test("a cold canonical lookup keeps valid identities beyond a sub-second budget"
   const result = await catalog.attachSearchEntityIds([{ provider_id: "888" }]);
   assert.equal(result.status, "fresh");
   assert.equal(result.candidates[0]?.entity_id, row.id);
+});
+
+test("cancelling one local caller returns promptly while another reuses its fill", async (t) => {
+  cacheEnabled = true;
+  let started!: () => void;
+  const ready = new Promise<void>((resolve) => { started = resolve; });
+  let release!: () => void;
+  const blocked = new Promise<void>((resolve) => { release = resolve; });
+  let reads = 0;
+  t.mock.method(globalThis, "fetch", (input: RequestInfo | URL, init?: RequestInit) =>
+    new Promise<Response>((resolve, reject) => {
+      if (++reads === 7) started();
+      init!.signal!.addEventListener("abort", () => reject(init!.signal!.reason), { once: true });
+      void blocked.then(() => resolve(matched(input)));
+    }));
+  const controller = new AbortController();
+  const url = "https://kocteau.test/api/search?q=caller-cancel-case&source=local";
+  const cancelled = searchRoute.GET(new Request(url, { signal: controller.signal }));
+  const survivor = searchRoute.GET(new Request(url));
+  await ready;
+  const start = performance.now();
+  controller.abort();
+  try {
+    assert.equal((await cancelled).status, 499);
+    assert.ok(performance.now() - start < 500, "the caller must not wait for the three-second shared deadline");
+  } finally { release(); }
+  const completed = await survivor;
+  assert.equal(completed.status, 200);
+  assert.equal((await completed.json())[0].entity_id, row.id);
+  assert.equal(reads, 7, "cancelling one waiter must not restart the shared fill");
+});
+
+test("canonical-link callers cancel independently while a shared fill completes", async (t) => {
+  let started!: () => void;
+  const ready = new Promise<void>((resolve) => { started = resolve; });
+  let release!: () => void;
+  const blocked = new Promise<void>((resolve) => { release = resolve; });
+  let reads = 0;
+  t.mock.method(globalThis, "fetch", (_input: RequestInfo | URL, init?: RequestInit) =>
+    new Promise<Response>((resolve, reject) => {
+      reads++;
+      started();
+      init!.signal!.addEventListener("abort", () => reject(init!.signal!.reason), { once: true });
+      void blocked.then(() => resolve(Response.json([{ id: row.id, provider_id: "cancel-link" }])));
+    }));
+  const controller = new AbortController();
+  const candidates = [{ provider_id: "cancel-link" }];
+  const cancelled = catalog.attachSearchEntityIds(candidates, { signal: controller.signal });
+  const survivor = catalog.attachSearchEntityIds(candidates);
+  await ready;
+  controller.abort();
+  try { await assert.rejects(cancelled, { name: "AbortError" }); }
+  finally { release(); }
+  assert.equal((await survivor).candidates[0]?.entity_id, row.id);
+  assert.equal(reads, 1);
+});
+
+test("empty and invalid search responses cannot be cached", async () => {
+  for (const [path, route] of [
+    ["/api/search", searchRoute],
+    ["/api/deezer/search", legacySearchRoute],
+  ] as const) {
+    const empty = await route.GET(new Request("https://kocteau.test" + path));
+    assert.equal(empty.status, 200);
+    assert.deepEqual(await empty.json(), []);
+    assert.equal(empty.headers.get("Cache-Control"), "no-store");
+    const invalid = await route.GET(new Request("https://kocteau.test" + path + "?type=unknown"));
+    assert.equal(invalid.status, 400);
+    assert.equal(invalid.headers.get("Cache-Control"), "no-store");
+  }
+  assert.equal(calls.length, 0);
 });

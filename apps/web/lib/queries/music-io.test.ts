@@ -327,12 +327,16 @@ test("temporary read failures propagate instead of becoming empty review pages",
 
 
 test("a failed taste-tag lookup does not cache its empty fallback", async (t) => {
-  t.mock.method(console, "warn", () => {});
+  const warning = t.mock.method(console, "warn", () => {});
   retainTasteCache = true;
   queryStatus = 400;
   queryRows = () => ({ message: "temporary fixture failure", code: "fixture" });
   const id = "00000000-0000-4000-8000-000000000099";
   assert.deepEqual(await entities.getEntityTasteTags(id), []);
+  assert.deepEqual(warning.mock.calls[0]?.arguments, [
+    "[entities.getEntityTasteTags] lookup unavailable",
+    { entityId: id, name: "fixture", message: "temporary fixture failure" },
+  ]);
   queryStatus = 200;
   queryRows = () => [{
     source: "human", weight: 1,

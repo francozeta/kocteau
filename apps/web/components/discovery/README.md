@@ -25,7 +25,8 @@
   retain their own three-second deadline for local results and canonical links, independent
   of one caller cancelling. A failed key has a one-second retry cooldown; pending
   refresh and failure maps are bounded. Cache tags and the 60-second TTL remain
-  authoritative across instances.
+  authoritative across instances. Observed failures remain degraded until a successful
+  refresh; the cooldown controls retry timing only.
   `lib/search/entity-links.ts` reuses canonical identities already present in a
   response before looking up only unresolved provider IDs. Failed lookups retain
   those known identities and available candidates.
@@ -40,7 +41,7 @@
   canonical-link resolver.
 - Client cancellation reaches external requests and retry waits. Shared public
   cache fills stay independent of a caller's signal. A cancelled caller receives
-  an empty 499 response without a server-failure log.
+  an empty 499 response without waiting for the shared fill or logging a server failure.
 - `Server-Timing` reports `local`, `catalog`, `links`, `rank`, and `total`
   processing durations. Local and catalog work overlap, so durations are not
   additive. Existing sampled performance logs use scope/source fields without
@@ -58,7 +59,8 @@
   and `Provider` headers under the same prefix. Stale cached data and detected
   background refresh failures are observable even with HTTP 200. Missing local
   data during an outage returns 502; partial sources remain usable. These responses
-  use `Cache-Control: no-store`; only the tagged public data cache is reused.
+  use `Cache-Control: no-store`; server-side local data and provider fetch caches
+  may still be reused. Empty-query responses use the same no-store policy.
 
 ## Preserve
 

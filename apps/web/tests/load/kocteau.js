@@ -24,6 +24,7 @@ if (!Array.isArray(searchQueries) || !searchQueries.length ||
 }
 const searchDegraded = new Rate("search_response_degraded");
 const searchFresh = new Rate("search_response_fresh");
+const searchStale = new Rate("search_response_stale");
 const searchStageTimings = Object.fromEntries(
   ["local", "catalog", "links", "rank", "total"].map((stage) =>
     [stage, new Trend(`search_stage_${stage}`, true)]),
@@ -111,6 +112,7 @@ export function searchSurface() {
   const readiness = apiResponse.headers["X-Kocteau-Search-Status"] || "";
   searchDegraded.add(readiness === "degraded");
   searchFresh.add(readiness === "fresh");
+  searchStale.add(readiness === "stale");
   const timingHeader = apiResponse.headers["Server-Timing"] || "";
   for (const entry of timingHeader.split(",")) {
     const match = entry.trim().match(/^([a-z]+);dur=([\d.]+)/);
@@ -322,6 +324,11 @@ function formatSummary(data) {
     if (duration) {
       lines.push(`search ${stage}: p95=${round(duration["p(95)"])}ms p99=${round(duration["p(99)"])}ms`);
     }
+  }
+
+  for (const status of ["fresh", "stale", "degraded"]) {
+    const rate = data.metrics["search_response_" + status]?.values.rate;
+    if (rate !== undefined) lines.push("search " + status + ": " + percent(rate));
   }
 
   lines.push("");

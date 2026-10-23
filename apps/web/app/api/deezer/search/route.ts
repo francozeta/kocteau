@@ -13,13 +13,17 @@ export async function GET(req: Request) {
     type: searchParams.get("type") ?? undefined,
   });
 
-  if (!parsed.success) return validationErrorResponse(parsed.error, "Search query is invalid.");
+  if (!parsed.success) {
+    const response = validationErrorResponse(parsed.error, "Search query is invalid.");
+    response.headers.set("Cache-Control", "no-store");
+    return response;
+  }
   const { q, type } = parsed.data;
-  if (!q) return NextResponse.json([]);
+  if (!q) return NextResponse.json([], { headers: { "Cache-Control": "no-store" } });
   if (type !== "track") {
     return NextResponse.json(
       { error: "Search for " + type + " is not available in this demo yet." },
-      { status: 501 },
+      { status: 501, headers: { "Cache-Control": "no-store" } },
     );
   }
 
@@ -29,7 +33,7 @@ export async function GET(req: Request) {
       { signal: req.signal },
     );
     req.signal.throwIfAborted();
-    const linked = await attachSearchEntityIds(results);
+    const linked = await attachSearchEntityIds(results, { signal: req.signal });
     req.signal.throwIfAborted();
     return NextResponse.json(linked.candidates, {
       headers: searchReadinessHeaders({
@@ -37,7 +41,7 @@ export async function GET(req: Request) {
       }),
     });
   } catch (error) {
-    if (req.signal.aborted) return new Response(null, { status: 499 });
+    if (req.signal.aborted) return new Response(null, { status: 499, headers: { "Cache-Control": "no-store" } });
     console.error("[deezer.search] failed", {
       type, queryLength: q.length, ...getDeezerErrorDetails(error),
     });

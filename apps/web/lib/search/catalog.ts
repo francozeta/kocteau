@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createPublicLookup, normalizeCatalogQuery, type LookupStatus } from "./public-lookup";
+import { createPublicLookup, normalizeCatalogQuery, waitForSharedLookup, type LookupStatus } from "./public-lookup";
 import { withSearchDeadline } from "./deadline";
 import { attachEntityIds } from "./entity-links";
 import type { SearchScope, SearchSource } from "@/lib/search-types";
@@ -389,9 +389,10 @@ const getCachedEntityLinks = createPublicLookup(
 
 export async function attachSearchEntityIds<T extends { provider_id: string; entity_id?: string | null }>(
   candidates: readonly T[],
+  { signal }: { signal?: AbortSignal } = {},
 ) {
   let status: LookupStatus = "skipped";
-  const linked = await attachEntityIds(candidates, async (providerIds) => {
+  const linked = await waitForSharedLookup(() => attachEntityIds(candidates, async (providerIds) => {
     try {
       const lookup = await getCachedEntityLinks(providerIds);
       status = lookup.status;
@@ -400,7 +401,7 @@ export async function attachSearchEntityIds<T extends { provider_id: string; ent
       status = "degraded";
       throw error;
     }
-  });
+  }), signal);
   return { candidates: linked, status };
 }
 
@@ -533,6 +534,7 @@ export async function searchCatalog(
   source: SearchSource,
   { signal }: { signal?: AbortSignal } = {},
 ) {
+  signal?.throwIfAborted();
   const timings = { local: 0, catalog: 0, links: 0, rank: 0 };
   async function measure<T>(stage: keyof typeof timings, run: () => Promise<T>) {
     const start = performance.now();
@@ -547,9 +549,12 @@ export async function searchCatalog(
       ? { candidates: [] as KocteauTrackSearchCandidate[], status: "skipped" as LookupStatus }
       : measure("local", async () => {
           try {
-            const lookup = await getLocalCandidates(normalizeCatalogQuery(query), type);
+            const lookup = await waitForSharedLookup(
+              () => getLocalCandidates(normalizeCatalogQuery(query), type), signal,
+            );
             return { candidates: lookup.value, status: lookup.status };
           } catch (error) {
+            signal?.throwIfAborted();
             console.warn("[search.local] lookup unavailable");
             return {
               candidates: error instanceof LocalLookupFailure ? error.candidates : [],
@@ -568,6 +573,7 @@ export async function searchCatalog(
   const unlinkedCandidates = [...local.candidates, ...remote.candidates];
   const linkedTracks = await measure("links", () => attachSearchEntityIds(
     unlinkedCandidates.filter((candidate) => candidate.type === "track"),
+    { signal },
   ));
   signal?.throwIfAborted();
   const candidates = [

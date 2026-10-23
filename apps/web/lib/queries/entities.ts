@@ -455,8 +455,13 @@ export async function getEntityTasteTags(entityId: string) {
   );
   try {
     return await loader();
-  } catch {
-    console.warn("[entities.getEntityTasteTags] lookup unavailable");
+  } catch (error) {
+    const details = error instanceof Error ? error : error as { code?: string; message?: string } | null;
+    console.warn("[entities.getEntityTasteTags] lookup unavailable", {
+      entityId,
+      name: details instanceof Error ? details.name : details?.code ?? "unknown",
+      message: details?.message ?? null,
+    });
     return [];
   }
 }

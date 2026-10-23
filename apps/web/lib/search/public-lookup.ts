@@ -49,9 +49,27 @@ export function createPublicLookup<Args extends unknown[], Value>(
     const failure = failures.get(JSON.stringify(args));
     return {
       ...snapshot,
-      status: failure && failure.until > Date.now()
+      status: failure
         ? "degraded"
         : Date.now() - snapshot.refreshedAt >= refreshMs ? "stale" : "fresh",
     };
   };
+}
+
+/** Stop waiting for a shared fill without cancelling work needed by other callers. */
+export async function waitForSharedLookup<T>(
+  run: () => Promise<T>,
+  signal?: AbortSignal,
+): Promise<T> {
+  signal?.throwIfAborted();
+  if (!signal) return run();
+
+  const cancelled = Promise.withResolvers<never>();
+  const onAbort = () => cancelled.reject(signal.reason);
+  signal.addEventListener("abort", onAbort, { once: true });
+  try {
+    return await Promise.race([run(), cancelled.promise]);
+  } finally {
+    signal.removeEventListener("abort", onAbort);
+  }
 }

@@ -21,6 +21,8 @@ function search(origin, q) { return origin + "/api/search?" + new URLSearchParam
 const reports = [];
 try {
   await configure();
+  assert.equal((await fetch(fixture + "/rest/v1/unknown_table")).status, 404);
+  assert.equal((await fetch(fixture + "/rest/v1/rpc/unknown_rpc")).status, 404);
   for (const [, target] of targets) await get(search(target, "warm-" + unique));
   for (const scenario of ["healthy", "fail"]) {
     for (const [mode, target] of targets) {
@@ -36,6 +38,7 @@ try {
       } else if (mode === "candidate") {
         for (const r of results) { assert.equal(r.status, 502); assert.equal(r.readiness, "degraded"); }
       }
+      if (mode === "candidate") assert.equal(after.db - before.db, 7, "one shared fill must issue exactly seven reads");
       reports.push({ mode, scenario, queries: 16, dbHttpRequests: after.db - before.db,
         p95Ms: Math.round(results.map((r) => r.ms).sort((a, b) => a - b)[15]),
         statuses: results.map((r) => r.status), matches: results.map((r) => r.ids.length) });
@@ -50,6 +53,7 @@ try {
   await configure("healthy", "stall");
   const legacy = await get(candidate + "/api/deezer/search?" + new URLSearchParams({ q: "legacy-" + unique, type: "track" }));
   assert.equal(legacy.status, 502); assert.ok(legacy.ms < 4_000);
+  await pause(100); assert.equal((await stats()).active, 0, "the stalled provider must release all connections");
   reports.push({ scenario: "stalled_legacy_provider", ...legacy });
   await configure(); await pause(1_050);
   const recovered = await get(search(candidate, q));

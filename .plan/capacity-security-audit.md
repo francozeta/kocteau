@@ -229,8 +229,10 @@ tests or prove safety of every SECURITY DEFINER function.
 
 Start with `AGENTS.md`, `CURRENT.md`, this report, and the linked PR. Fetch current
 main and reconcile later fixes with the `0ebf3d9` audit baseline before changing
-code. This branch contains documentation only; none of the listed remediations
-has been implemented or deployed by this audit.
+code. The historical audit branch (`docs/capacity-security-audit`, PR #220)
+contains documentation only; the audit itself implemented or deployed none of the
+listed remediations. [Public-read follow-up](./public-read-reliability.md) records
+subsequent implementation work and its delivery status.
 
 1. Correlate the 2026-10-22 16:28–16:45 UTC incident window across application
    requests, cache revalidation, Supabase gateway errors, database/pool pressure,

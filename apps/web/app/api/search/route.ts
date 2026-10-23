@@ -14,11 +14,13 @@ export async function GET(req: Request) {
   });
 
   if (!parsed.success) {
-    return validationErrorResponse(parsed.error, "Search query is invalid.");
+    const response = validationErrorResponse(parsed.error, "Search query is invalid.");
+    response.headers.set("Cache-Control", "no-store");
+    return response;
   }
 
   const { q, type, source } = parsed.data;
-  if (!q) return NextResponse.json([]);
+  if (!q) return NextResponse.json([], { headers: { "Cache-Control": "no-store" } });
 
   return measureServerTask("catalog.search", async () => {
     const startedAt = performance.now();
@@ -43,7 +45,7 @@ export async function GET(req: Request) {
       }
       return NextResponse.json(results, { headers });
     } catch (error) {
-      if (req.signal.aborted) return new Response(null, { status: 499 });
+      if (req.signal.aborted) return new Response(null, { status: 499, headers: { "Cache-Control": "no-store" } });
       throw error;
     }
   }, { scope: type, source });

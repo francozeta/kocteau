@@ -8,8 +8,10 @@ let origin: string;
 let active = 0;
 let peak = 0;
 let closed = 0;
+const requests = new Map<string, number>();
 before(async () => {
   server = createServer((req, res) => {
+    requests.set(req.url!, (requests.get(req.url!) ?? 0) + 1);
     active++;
     peak = Math.max(peak, active);
     res.on("close", () => { active--; closed++; });
@@ -60,13 +62,15 @@ test("cancelled queued work does not reach upstream and releases its queue entry
   const read = createPublicReadFetch({ concurrency: 1, maxPending: 1, timeoutMs: 100 });
   const first = read(origin + "/body");
   const controller = new AbortController();
-  const queued = read(origin, { signal: controller.signal });
+  const before = requests.get("/cancelled") ?? 0;
+  const queued = read(origin + "/cancelled", { signal: controller.signal });
   controller.abort();
   await assert.rejects(queued, { name: "AbortError" });
   await new Promise((resolve) => setTimeout(resolve, 40));
   const next = read(origin);
   await assert.rejects(first, { name: "TimeoutError" });
   assert.equal((await next).status, 200);
+  assert.equal(requests.get("/cancelled") ?? 0, before, "cancelled queued work must never reach upstream");
 });
 
 test("a pre-cancelled read never calls fetch", async (t) => {

@@ -2,7 +2,8 @@
 
 Verified 2026-10-22 against application baseline `0ebf3d9` and the documentation
 handoff in [PR #220](https://github.com/francozeta/kocteau/pull/220).
-Implementation branch: `perf/public-read-reliability`. Deployment is pending.
+Implementation branch: `perf/public-read-reliability`, [PR #221](https://github.com/francozeta/kocteau/pull/221).
+Production delivery remains pending; exact preview and CI evidence belongs in the PR.
 
 ## Implementation
 
@@ -50,7 +51,7 @@ The cause of the earlier cloud incident remains unresolved.
 
 ## Verification and reproduction
 
-172 unit/integration tests pass, including actual SDK retry behavior, queue bounds,
+175 unit/integration tests pass, including actual SDK retry behavior, queue bounds,
 native header/body cancellation, cache coalescing, source readiness, failed-fill
 recovery and taste-tag cache recovery. Production builds, lint and documentation
 checks pass. Browser checks at 1280 px and 390 px preserve result rendering and
@@ -81,3 +82,35 @@ This corrects fixture-derived deadlines that were too aggressive for real cold
 network work. It does not establish SQL saturation or explain the earlier shared
 incident. Final local checks and exact-preview verification use the corrected
 budgets. No gradual cloud load was run.
+
+## Review follow-up (2026-10-23)
+
+Caller cancellation now stops waiting immediately for shared local and canonical
+link fills, while another caller can receive the same completed work. Tests assert
+a cancelled local request returns 499 in less than 500 ms without restarting the
+seven reads; a surviving caller still receives the expected entity. Shared fills
+retain their independent three-second deadlines.
+
+A detected refresh failure remains degraded after the one-second retry cooldown
+expires and while the retry is pending. Only a successful refresh clears that
+failure entry (subject to the bounded, process-local map). This prevents cooldown
+expiry from being mistaken for recovery. No cross-instance health guarantee is
+implied.
+
+The native regression now enforces exactly seven candidate Data API reads for
+both healthy and 503 scenarios, checks connection release after stalled legacy
+provider work, and rejects unknown fixture table/RPC paths. The fixture requires
+its actual IPv4 binding. Search early responses carry no-store, and k6 reports
+fresh, stale and degraded rates explicitly. Taste-tag fallback logs retain error
+name/message and entity ID without caching the empty fallback.
+
+The repeated isolated native comparison observed 112 versus seven healthy reads
+(P95 270 ms versus 82 ms) and 448 versus seven reads during 503s. Stalled local and
+legacy provider requests completed in 3,011 ms and 3,010 ms; active upstream
+connections returned to zero in both cases. Same-key recovery was 200/fresh in
+46 ms. These are repeated fixture observations, not production benchmarks.
+
+All 175 tests, lint, production build/TypeScript, documentation and whitespace
+checks pass. Desktop/mobile search at 1280/390 px returned both phases successfully
+with visible expected results, no page exceptions and no horizontal overflow.
+No production load, migration or authenticated cloud write was performed.
