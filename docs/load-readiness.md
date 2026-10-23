@@ -2,7 +2,7 @@
 
 [Operations](./operations.md) | [Environment and secrets](./security/environment.md)
 
-Kocteau uses a small, reproducible k6 suite to catch application, database, and platform regressions before traffic grows. Run the gradual profile against a Vercel preview or staging environment. Production should receive only the smoke profile and only during an intentional maintainer check.
+Kocteau uses a small, reproducible k6 suite to catch application, database, and platform regressions before traffic grows. Run the gradual profile against a Vercel preview or staging environment connected to an isolated, disposable database. Verify the database target first: a preview URL alone does not isolate Supabase pressure from production. Production, including previews that share its database, should receive only the smoke profile and only during an intentional maintainer check.
 
 ## Covered surfaces
 
@@ -37,6 +37,10 @@ pnpm perf:load:smoke
 ## Gradual baseline
 
 The baseline ramps each public surface from zero to three virtual users over 80 seconds. Run it only after smoke passes:
+
+Confirm that both the application and its database are isolated from production.
+Keep provider traffic bounded separately; local search checks do not need to
+generate external catalog traffic.
 
 ```powershell
 $env:K6_BASE_URL = "https://preview.example.com"
@@ -185,15 +189,34 @@ For the same test window, record from Vercel Observability:
 
 The k6 summary measures client-visible latency; Vercel and Supabase observations identify where that time was spent.
 
+## Source readiness
+
+The search API reports `X-Kocteau-Search-Status` and per-source readiness. The
+suite rejects missing readiness and aborts on detected degraded responses,
+including HTTP 200 fallbacks. Fresh and stale responses are
+reported separately. Normal stale-while-revalidate transitions are not dependency
+failures; choose a freshness budget for the workload before making capacity claims.
+Smoke does not turn its few samples into a capacity estimate.
+Observe backend refresh errors alongside HTTP status and shape; cached success
+alone cannot establish dependency health.
+
 ## Stop and rollback criteria
 
 Stop a run when any of the following occurs:
 
+- background cache refreshes or dependency health checks fail, even when cached
+  application requests still return HTTP 200;
+- upstream Data API 5xx responses or administrative connection timeouts appear;
 - error rate reaches 5% for one minute;
 - P95 exceeds twice its threshold for one minute;
 - database connections approach 80% of the available pool;
 - lock waits, CPU saturation, or memory pressure continue rising after load stops;
 - external API failures cascade into application errors.
+
+Successful nonempty result arrays are insufficient to certify capacity. Check
+expected result identities/completeness, freshness, upstream status, and runtime
+errors throughout the same window. Stop before increasing load when the health
+signal is unavailable. Record recovery separately from client-visible timings.
 
 Roll back the application change under test when the regression reproduces against the previous deployment with the same profile and data conditions. Otherwise open a focused issue for the responsible layer: application, query/index, cache/external API, or platform capacity.
 
@@ -220,3 +243,23 @@ Supabase remained stable across the window:
 - the cumulative query outliers were Supabase Dashboard introspection queries, not Kocteau application queries.
 
 The isolated maximums on canonical track and search page show a cold-tail opportunity, but they did not persist through P95 under gradual load. Investigate those paths separately before raising concurrency or changing database capacity.
+
+
+## Isolated Public-Read Regression
+
+`pnpm perf:reads:fixture` starts a loopback HTTP fixture on port 54321.
+It emulates Data API/catalog responses, 503 errors, and stalled connections;
+it does not execute SQL or establish database capacity.
+
+Build separate candidate and baseline checkouts with the pinned runtime, frozen
+installs, `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` and a fixture-only
+publishable key. Start their production servers on ports 3000 and 3001.
+For each server set `NODE_OPTIONS=--import=<absolute-path-to-fixtures/isolate-upstreams.mjs>`.
+This verification preload blocks non-loopback data fetches and intercepts provider
+requests. Keep it out of deployment configuration.
+
+Run `pnpm perf:reads:verify`. Its targets are fixed loopback origins. It checks
+expected identities, request amplification, deadline cancellation, and recovery.
+The fixture returns deterministic rows rather than implementing PostgreSQL
+filtering. These measurements do not establish production capacity, authenticated
+permissions, SQL plans, or performance on a representative catalog.

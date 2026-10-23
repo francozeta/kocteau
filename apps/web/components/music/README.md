@@ -48,3 +48,9 @@ Run catalog tests, lint, and the web build. Check canonical links, unresolved
 provider routes, missing covers, long titles, rating-only discussion, and mobile tiles.
 Check older/latest navigation, equal timestamps, invalid cursors, empty pages,
 full-discussion aggregates, and an authenticated viewer whose review is off-page.
+
+
+Public database reads use the bounded transport described in the
+[Discovery guide](../discovery/README.md). Taste-tag lookup failures return their
+empty optional fallback outside the tagged cache, so recovery can populate the
+same key immediately instead of persisting a false empty result.

@@ -10,5 +10,12 @@ Promote durable decisions to their owning document and mark superseded plans his
 corrections and the remaining verification work. Studio coordination continues in
 [issue #206](https://github.com/francozeta/kocteau/issues/206).
 
+[Capacity and security audit](./capacity-security-audit.md) records the bounded
+cloud measurement, data-plane incident and recovery, and prioritized follow-up.
+
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
+
+- [Public read reliability](./public-read-reliability.md): measured implementation following the capacity audit; runtime delivery pending.
+
+- [Scale readiness stages](./scale-readiness.md): cold reads, feed I/O, shared coordination and mixed-load verification; implementation in progress.

@@ -1,6 +1,6 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
-import { Trend } from "k6/metrics";
+import { Rate, Trend } from "k6/metrics";
 
 const profile = (__ENV.K6_PROFILE || "smoke").toLowerCase();
 const baseUrl = normalizeBaseUrl(__ENV.K6_BASE_URL || "http://127.0.0.1:3000");
@@ -22,6 +22,9 @@ if (!Array.isArray(searchQueries) || !searchQueries.length ||
   searchQueries.some((query) => typeof query !== "string" || !query.trim() || query.length > 80)) {
   throw new Error("K6_SEARCH_QUERIES must be a non-empty JSON array of queries up to 80 characters.");
 }
+const searchDegraded = new Rate("search_response_degraded");
+const searchFresh = new Rate("search_response_fresh");
+const searchStale = new Rate("search_response_stale");
 const searchStageTimings = Object.fromEntries(
   ["local", "catalog", "links", "rank", "total"].map((stage) =>
     [stage, new Trend(`search_stage_${stage}`, true)]),
@@ -106,6 +109,10 @@ export function searchSurface() {
   const apiResponse = get(`/api/search?q=${encodedQuery}&source=${searchSource}`, "search_api", {
     Accept: "application/json",
   });
+  const readiness = apiResponse.headers["X-Kocteau-Search-Status"] || "";
+  searchDegraded.add(readiness === "degraded");
+  searchFresh.add(readiness === "fresh");
+  searchStale.add(readiness === "stale");
   const timingHeader = apiResponse.headers["Server-Timing"] || "";
   for (const entry of timingHeader.split(",")) {
     const match = entry.trim().match(/^([a-z]+);dur=([\d.]+)/);
@@ -128,6 +135,7 @@ export function searchSurface() {
   });
   check(apiResponse, {
     "search API returns 200": (result) => result.status === 200,
+    "search API reports source readiness": () => ["fresh", "stale", "degraded"].includes(readiness),
     "search API is JSON": (result) =>
       (result.headers["Content-Type"] || "").includes("application/json"),
     "search API returns a result array": () => validResults,
@@ -218,6 +226,7 @@ function scenario(exec, selectedProfile) {
 
 function buildThresholds(includeAuthenticatedFeed, onlySearch) {
   const thresholds = {
+    search_response_degraded: [{ threshold: "rate==0", abortOnFail: true }],
     checks: ["rate>0.99"],
     "http_req_failed{surface:landing}": ["rate<0.01"],
     "http_req_duration{surface:landing}": ["p(75)<800", "p(95)<1500"],
@@ -315,6 +324,11 @@ function formatSummary(data) {
     if (duration) {
       lines.push(`search ${stage}: p95=${round(duration["p(95)"])}ms p99=${round(duration["p(99)"])}ms`);
     }
+  }
+
+  for (const status of ["fresh", "stale", "degraded"]) {
+    const rate = data.metrics["search_response_" + status]?.values.rate;
+    if (rate !== undefined) lines.push("search " + status + ": " + percent(rate));
   }
 
   lines.push("");

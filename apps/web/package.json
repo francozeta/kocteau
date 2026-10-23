@@ -25,6 +25,7 @@
     "@outpacelabs/avatars": "^0.4.0",
     "@paper-design/shaders-react": "^0.0.77",
     "@sentry/nextjs": "10",
+    "@supabase/postgrest-js": "2.110.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.0",
     "@tanstack/react-query": "^5.101.2",

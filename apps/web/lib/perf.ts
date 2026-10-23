@@ -1,4 +1,5 @@
 import "server-only";
+import type { PublicReadObservation } from "@/lib/supabase/public-fetch";
 
 const DEFAULT_SLOW_TASK_THRESHOLD_MS = 750;
 const DEFAULT_PRODUCTION_SAMPLE_RATE = 0.01;
@@ -100,4 +101,41 @@ export async function measureServerTask<T>(
     });
     throw error;
   }
+}
+
+let publicReadLogWindow = 0;
+let publicReadLogCount = 0;
+let suppressedPublicReadLogs = 0;
+
+/** Bounded, sampled diagnostics with no query text, URLs, headers, or credentials. */
+export function reportPublicRead(read: PublicReadObservation) {
+  if (!PERF_ENABLED) return;
+  const failed = read.outcome !== "success" && read.outcome !== "cancelled";
+  if (!failed && !shouldLogCompletedTask(read.totalMs)) return;
+
+  const now = Date.now();
+  if (now - publicReadLogWindow >= 1_000) {
+    publicReadLogWindow = now;
+    publicReadLogCount = 0;
+  }
+  if (publicReadLogCount >= 10) {
+    suppressedPublicReadLogs++;
+    return;
+  }
+  publicReadLogCount++;
+  const log = failed ? console.warn : console.info;
+  log({
+    event: "public_data_read",
+    operation: read.operation,
+    outcome: read.outcome,
+    phase: read.phase,
+    status: read.status,
+    queue_ms: roundDuration(read.queueMs),
+    headers_ms: roundDuration(read.headersMs),
+    body_ms: roundDuration(read.bodyMs),
+    total_ms: roundDuration(read.totalMs),
+    bytes: read.bytes,
+    suppressed: suppressedPublicReadLogs,
+  });
+  suppressedPublicReadLogs = 0;
 }

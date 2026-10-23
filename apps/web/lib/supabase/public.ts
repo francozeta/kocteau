@@ -1,25 +1,24 @@
 import "server-only";
 
-import { createClient } from "@supabase/supabase-js";
+import { PostgrestClient } from "@supabase/postgrest-js";
+import { createPublicReadFetch } from "./public-fetch";
+import { reportPublicRead } from "@/lib/perf";
 import type { Database } from "./database.types";
 import { getSupabasePublishableKey, getSupabaseUrl } from "./env";
 
-let publicClient: ReturnType<typeof createClient<Database>> | undefined;
+let publicClient: PostgrestClient<Database> | undefined;
 
 export function supabasePublic() {
   if (!publicClient) {
-    publicClient = createClient<Database>(
-      getSupabaseUrl(),
-      getSupabasePublishableKey(),
+    const key = getSupabasePublishableKey();
+    publicClient = new PostgrestClient<Database>(
+      getSupabaseUrl().replace(/\/+$/, "") + "/rest/v1",
       {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-          detectSessionInUrl: false,
-        },
+        headers: { apikey: key, Authorization: "Bearer " + key },
+        retry: false,
+        fetch: createPublicReadFetch({ onRead: reportPublicRead }),
       },
     );
   }
-
   return publicClient;
 }

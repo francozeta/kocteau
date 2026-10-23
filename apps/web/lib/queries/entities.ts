@@ -387,7 +387,7 @@ export const getEntityReviewSummary = cache(async function getEntityReviewSummar
 });
 
 export async function getEntityTasteTags(entityId: string) {
-  return getOrCreateLoader(
+  const loader = getOrCreateLoader(
     entityTasteTagLoaders,
     ["entity-taste-tags", entityId],
     () =>
@@ -427,14 +427,7 @@ export async function getEntityTasteTags(entityId: string) {
                 .order("weight", { ascending: false })
                 .returns<EntityPreferenceTagRow[]>();
 
-              if (error) {
-                console.error("[entities.getEntityTasteTags] failed", {
-                  code: error.code ?? null,
-                  message: error.message ?? null,
-                  entityId,
-                });
-                return [];
-              }
+              if (error) throw error;
 
               return (data ?? []).flatMap((row) =>
                 row.preference_tags
@@ -459,7 +452,18 @@ export async function getEntityTasteTags(entityId: string) {
           tags: ["entities", `entity:${entityId}`, `entity:${entityId}:taste-tags`],
         },
       ),
-  )();
+  );
+  try {
+    return await loader();
+  } catch (error) {
+    const details = error instanceof Error ? error : error as { code?: string; message?: string } | null;
+    console.warn("[entities.getEntityTasteTags] lookup unavailable", {
+      entityId,
+      name: details instanceof Error ? details.name : details?.code ?? "unknown",
+      message: details?.message ?? null,
+    });
+    return [];
+  }
 }
 
 export const getTrackPublicBundle = cache(async function getTrackPublicBundle(

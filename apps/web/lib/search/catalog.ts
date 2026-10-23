@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { createPublicLookup, normalizeCatalogQuery, waitForSharedLookup, type LookupStatus } from "./public-lookup";
 import { withSearchDeadline } from "./deadline";
 import { attachEntityIds } from "./entity-links";
 import type { SearchScope, SearchSource } from "@/lib/search-types";
@@ -253,7 +253,7 @@ function mapSearchResponse(result: ReturnType<typeof rankKocteauTrackSearchResul
   };
 }
 
-async function getLocalEntityCandidates(query: string, type: "track" | "album") {
+async function getLocalEntityCandidates(query: string, type: "track" | "album", signal: AbortSignal) {
   const supabase = supabasePublic();
   const pattern = toIlikePattern(query);
   const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url, release_date, record_type, disambiguation, first_release_date, genres";
@@ -265,14 +265,16 @@ async function getLocalEntityCandidates(query: string, type: "track" | "album") 
       .eq("provider", "deezer")
       .eq("type", type)
       .ilike("title", pattern)
-      .limit(localSearchLimit),
+      .limit(localSearchLimit)
+      .abortSignal(signal),
     supabase
       .from("entities")
       .select(baseSelect)
       .eq("provider", "deezer")
       .eq("type", type)
       .ilike("artist_name", pattern)
-      .limit(localSearchLimit),
+      .limit(localSearchLimit)
+      .abortSignal(signal),
   ]);
 
   if (titleResult.error) {
@@ -291,7 +293,7 @@ async function getLocalEntityCandidates(query: string, type: "track" | "album") 
   return candidates;
 }
 
-async function getLocalArtistCandidates(query: string) {
+async function getLocalArtistCandidates(query: string, signal: AbortSignal) {
   const supabase = supabasePublic();
   const pattern = toIlikePattern(query);
   const { data, error } = await supabase
@@ -299,7 +301,8 @@ async function getLocalArtistCandidates(query: string) {
     .select("id, provider, provider_id, name, image_url, deezer_url, artist_type, country_code, disambiguation, genres")
     .eq("provider", "deezer")
     .ilike("name", pattern)
-    .limit(localSearchLimit);
+    .limit(localSearchLimit)
+    .abortSignal(signal);
 
   if (error) {
     console.warn("[search.local_artists] lookup failed", error.message);
@@ -309,7 +312,7 @@ async function getLocalArtistCandidates(query: string) {
   return ((data ?? []) as LocalArtistRow[]).map(mapLocalArtistCandidate);
 }
 
-async function getStarterTrackCandidates(query: string) {
+async function getStarterTrackCandidates(query: string, signal: AbortSignal) {
   const supabase = supabasePublic();
   const pattern = toIlikePattern(query);
   const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url";
@@ -323,7 +326,8 @@ async function getStarterTrackCandidates(query: string) {
       .eq("is_active", true)
       .ilike("title", pattern)
       .order("sort_order", { ascending: true })
-      .limit(localSearchLimit),
+      .limit(localSearchLimit)
+      .abortSignal(signal),
     supabase
       .from("starter_tracks")
       .select(baseSelect)
@@ -332,7 +336,8 @@ async function getStarterTrackCandidates(query: string) {
       .eq("is_active", true)
       .ilike("artist_name", pattern)
       .order("sort_order", { ascending: true })
-      .limit(localSearchLimit),
+      .limit(localSearchLimit)
+      .abortSignal(signal),
   ]);
 
   if (titleResult.error) {
@@ -351,7 +356,7 @@ async function getStarterTrackCandidates(query: string) {
   return candidates;
 }
 
-async function getEntityIdsByProviderId(providerIds: string[]) {
+async function getEntityIdsByProviderId(providerIds: string[], signal: AbortSignal) {
   const uniqueProviderIds = Array.from(new Set(providerIds));
 
   if (uniqueProviderIds.length === 0) {
@@ -364,7 +369,8 @@ async function getEntityIdsByProviderId(providerIds: string[]) {
     .select("id, provider_id")
     .eq("provider", "deezer")
     .eq("type", "track")
-    .in("provider_id", uniqueProviderIds);
+    .in("provider_id", uniqueProviderIds)
+    .abortSignal(signal);
 
   if (error) {
     console.warn("[search.entity_links] lookup failed", error.message);
@@ -374,17 +380,29 @@ async function getEntityIdsByProviderId(providerIds: string[]) {
   return new Map(((data ?? []) as EntityLinkRow[]).map((row) => [row.provider_id, row.id]));
 }
 
-const getCachedEntityLinks = unstable_cache(
-  async (providerIds: string[]) =>
-    Array.from((await getEntityIdsByProviderId(providerIds)).entries()),
-  ["public-catalog-entity-links-v1"],
-  { revalidate: 60, tags: ["entities"] },
+const getCachedEntityLinks = createPublicLookup(
+  async (signal, providerIds: string[]) =>
+    Array.from((await getEntityIdsByProviderId(providerIds, signal)).entries()),
+  ["public-catalog-entity-links-v2"],
+  { tags: ["entities"] },
 );
 
-function attachLocalEntityIds(candidates: KocteauTrackSearchCandidate[]) {
-  return attachEntityIds(candidates, async (providerIds) =>
-    new Map(await getCachedEntityLinks(providerIds)),
-  );
+export async function attachSearchEntityIds<T extends { provider_id: string; entity_id?: string | null }>(
+  candidates: readonly T[],
+  { signal }: { signal?: AbortSignal } = {},
+) {
+  let status: LookupStatus = "skipped";
+  const linked = await waitForSharedLookup(() => attachEntityIds(candidates, async (providerIds) => {
+    try {
+      const lookup = await getCachedEntityLinks(providerIds);
+      status = lookup.status;
+      return new Map(lookup.value);
+    } catch (error) {
+      status = "degraded";
+      throw error;
+    }
+  }), signal);
+  return { candidates: linked, status };
 }
 
 async function getDeezerCandidates(query: string, signal: AbortSignal) {
@@ -449,12 +467,12 @@ async function getDeezerCandidates(query: string, signal: AbortSignal) {
 }
 
 
-async function loadLocalCandidates(query: string, type: SearchScope) {
+async function loadLocalCandidates(query: string, type: SearchScope, signal: AbortSignal) {
   const results = await Promise.allSettled([
-    type === "all" || type === "track" ? getLocalEntityCandidates(query, "track") : [],
-    type === "all" || type === "album" ? getLocalEntityCandidates(query, "album") : [],
-    type === "all" || type === "artist" ? getLocalArtistCandidates(query) : [],
-    type === "all" || type === "track" ? getStarterTrackCandidates(query) : [],
+    type === "all" || type === "track" ? getLocalEntityCandidates(query, "track", signal) : [],
+    type === "all" || type === "album" ? getLocalEntityCandidates(query, "album", signal) : [],
+    type === "all" || type === "artist" ? getLocalArtistCandidates(query, signal) : [],
+    type === "all" || type === "track" ? getStarterTrackCandidates(query, signal) : [],
   ]);
 
   const candidates = results.flatMap((result) =>
@@ -471,10 +489,10 @@ async function loadLocalCandidates(query: string, type: SearchScope) {
 
 // Only anonymous, public catalog data enters this cache. Arguments form part of
 // the key. Review mutations invalidate entities; the TTL bounds artist/starter staleness.
-const getLocalCandidates = unstable_cache(
-  loadLocalCandidates,
-  ["public-catalog-search-v1"],
-  { revalidate: 60, tags: ["entities", "artists", "starter-tracks"] },
+const getLocalCandidates = createPublicLookup(
+  (signal, query: string, type: SearchScope) => loadLocalCandidates(query, type, signal),
+  ["public-catalog-search-v2"],
+  { tags: ["entities", "artists", "starter-tracks"] },
 );
 
 async function getRemoteCandidates(query: string, type: SearchScope, signal: AbortSignal) {
@@ -516,6 +534,7 @@ export async function searchCatalog(
   source: SearchSource,
   { signal }: { signal?: AbortSignal } = {},
 ) {
+  signal?.throwIfAborted();
   const timings = { local: 0, catalog: 0, links: 0, rank: 0 };
   async function measure<T>(stage: keyof typeof timings, run: () => Promise<T>) {
     const start = performance.now();
@@ -526,10 +545,23 @@ export async function searchCatalog(
     }
   }
   const [local, remote] = await Promise.all([
-    source === "remote" ? [] : measure("local", () => getLocalCandidates(query, type).catch((error: unknown) => {
-      if (error instanceof LocalLookupFailure) return error.candidates;
-      throw error;
-    })),
+    source === "remote"
+      ? { candidates: [] as KocteauTrackSearchCandidate[], status: "skipped" as LookupStatus }
+      : measure("local", async () => {
+          try {
+            const lookup = await waitForSharedLookup(
+              () => getLocalCandidates(normalizeCatalogQuery(query), type), signal,
+            );
+            return { candidates: lookup.value, status: lookup.status };
+          } catch (error) {
+            signal?.throwIfAborted();
+            console.warn("[search.local] lookup unavailable");
+            return {
+              candidates: error instanceof LocalLookupFailure ? error.candidates : [],
+              status: "degraded" as LookupStatus,
+            };
+          }
+        }),
     source === "local"
       ? { candidates: [], errors: [] }
       : measure("catalog", () => withSearchDeadline(
@@ -538,14 +570,15 @@ export async function searchCatalog(
         )),
   ]);
   signal?.throwIfAborted();
-  const unlinkedCandidates = [...local, ...remote.candidates];
-  const linkedTracks = await measure("links", () => attachLocalEntityIds(
+  const unlinkedCandidates = [...local.candidates, ...remote.candidates];
+  const linkedTracks = await measure("links", () => attachSearchEntityIds(
     unlinkedCandidates.filter((candidate) => candidate.type === "track"),
+    { signal },
   ));
   signal?.throwIfAborted();
   const candidates = [
     ...unlinkedCandidates.filter((candidate) => candidate.type !== "track"),
-    ...linkedTracks,
+    ...linkedTracks.candidates,
   ];
   const rankStartedAt = performance.now();
   const results = (source === "all" ? rankCatalogSearchResults({
@@ -570,5 +603,15 @@ export async function searchCatalog(
     });
   }
 
-  return { results, hasProviderError: remote.errors.length > 0, timings };
+  return {
+    results,
+    hasProviderError: remote.errors.length > 0,
+    readiness: {
+      local: local.status,
+      links: linkedTracks.status,
+      provider: source === "local" ? "skipped" as const
+        : remote.errors.length ? "degraded" as const : "fresh" as const,
+    },
+    timings,
+  };
 }
