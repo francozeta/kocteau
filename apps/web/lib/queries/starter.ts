@@ -90,7 +90,7 @@ export async function getPublicStarterTracks({
   const requestedLimit = Math.max(1, Math.min(limit, 32));
   const rotationSeed = `${seed ?? createStarterRotationSeed()}:${contextKey ?? "public"}`;
 
-  return getOrCreateLoader(
+  const loader = getOrCreateLoader(
     publicStarterLoaders,
     ["public-starter-tracks", requestedLimit, rotationSeed],
     () =>
@@ -134,7 +134,7 @@ export async function getPublicStarterTracks({
                   message: error.message ?? null,
                 });
 
-                return [];
+                throw error;
               }
 
               return rotateStarterTracks(
@@ -153,7 +153,14 @@ export async function getPublicStarterTracks({
           tags: ["starter-tracks"],
         },
       ),
-  )();
+  );
+
+  try {
+    return await loader();
+  } catch {
+    // A failed fill must not become a reusable empty catalog.
+    return [];
+  }
 }
 
 export async function getStarterTracks({
