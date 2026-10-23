@@ -51,7 +51,7 @@ The cause of the earlier cloud incident remains unresolved.
 
 ## Verification and reproduction
 
-175 unit/integration tests pass, including actual SDK retry behavior, queue bounds,
+180 unit/integration tests pass, including actual SDK retry behavior, queue bounds,
 native header/body cancellation, cache coalescing, source readiness, failed-fill
 recovery and taste-tag cache recovery. Production builds, lint and documentation
 checks pass. Browser checks at 1280 px and 390 px preserve result rendering and
@@ -110,7 +110,7 @@ legacy provider requests completed in 3,011 ms and 3,010 ms; active upstream
 connections returned to zero in both cases. Same-key recovery was 200/fresh in
 46 ms. These are repeated fixture observations, not production benchmarks.
 
-All 175 tests, lint, production build/TypeScript, documentation and whitespace
+All 180 tests, lint, production build/TypeScript, documentation and whitespace
 checks pass. Desktop/mobile search at 1280/390 px returned both phases successfully
 with visible expected results, no page exceptions and no horizontal overflow.
 No production load, migration or authenticated cloud write was performed.
@@ -138,3 +138,18 @@ degraded after failure, still degraded after cooldown expiry with a stalled retr
 and finally 200/fresh after a successful refresh. Expected results stayed available,
 and active fixture connections returned to zero. This verifies real stale-while-
 revalidate behavior in addition to the unit cache model.
+
+## Read-stage diagnostics (2026-10-23)
+
+The tracing extension adds five tests, bringing the current suite to 180.
+Native HTTP tests distinguish queue exhaustion, header timeout, body timeout after
+HTTP 200 headers, completed HTTP errors and successful body reads. Observer failures
+cannot retain a read slot or alter its response; query values never enter records.
+Logger tests verify the per-process burst cap and suppression count.
+
+Runtime `efa6e5b` passed local checks and GitHub Verify run 522. Its exact preview
+returned three expected local matches fresh in 1,359 ms, then in 6.9 ms for an
+equivalent repeated key. Emitted phase timings are recorded in
+[scale readiness](./scale-readiness.md). They identify header wait as the dominant
+component in that observation, not its underlying cause. The historical timeout
+and production capacity remain unproven.

@@ -54,11 +54,12 @@
   reads and 32 waiting reads per process, with a three-second deadline covering
   queue time, headers, and the complete response body. This is a process-local
   guard, not a deployment-wide quota.
-  Sampled `public_data_read` diagnostics split queue, response-header and body
-  time; timeout records identify the unfinished phase. Only logical table/RPC
-  names, status, size and timings are recorded. The existing performance controls
-  apply, with at most ten diagnostic records per second per process and a count
-  of suppressed records. Header time includes transport/framework waits and is
+  `public_data_read` diagnostics split queue, response-header and body time;
+  timeout records identify the unfinished phase. Successful/cancelled reads follow
+  performance sampling; failures are recorded subject to the process cap. Records
+  contain logical table/RPC names, outcome, phase, status, size, timings and the
+  suppression count. The existing performance controls apply, with at most ten
+  diagnostic records per second per process. Header time includes transport/framework waits and is
   not a measurement of SQL execution.
 - Search responses preserve their result-array contract and expose
   `X-Kocteau-Search-Status` (`fresh`, `stale`, `degraded`) plus `Local`, `Links`,

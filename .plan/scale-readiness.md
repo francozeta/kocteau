@@ -1,7 +1,7 @@
 # Scale readiness stages
 
 Requested staged integration on 2026-10-23. Baseline main: `0ebf3d9`;
-public-read branch: `ffc8e5a` ([PR #221](https://github.com/francozeta/kocteau/pull/221)).
+previous public-read review base: `ffc8e5a` ([PR #221](https://github.com/francozeta/kocteau/pull/221)).
 Ten thousand active users is a target to validate, not established capacity.
 
 1. Diagnose cold public reads: separate queue, headers and body time, bound diagnostic
@@ -26,8 +26,13 @@ Stage 1 now separates queue, headers and body for anonymous Data API reads.
 Failures retain their phase/status, including a stalled body after HTTP 200 headers.
 Diagnostics omit raw URLs/query values, use existing performance sampling, and
 cap emitted records at ten per second per process with suppression counts.
-180 tests, lint and production build pass. Exact-preview evidence remains pending;
-the existing cold-read caveat stays open. Disposable local services are being
+Tracing runtime revision `efa6e5b` passes 180 tests, lint, production build and
+GitHub Verify run 522. Its exact preview returned three expected results in
+1,359 ms for a cold cache key and 6.9 ms for an equivalent repeated key.
+Seven read records show header waits of 1,188–1,232 ms, queue waits of 1–18 ms,
+and body reads of 1–37 ms. Header time includes network, framework and upstream
+processing; SQL time and the cause of the historical timeout remain unresolved.
+The existing cold-read caveat stays open. Disposable local services are being
 prepared for authenticated and SQL verification. Raw diagnostics remain ignored.
 The owning status is [CURRENT](../CURRENT.md).
 

@@ -6,8 +6,8 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-Staged scale-readiness integration is in progress, starting with public-read
-queue/header/body diagnostics and an authenticated-feed baseline. The
+Staged scale-readiness integration is verifying public-read queue/header/body
+diagnostics. The authenticated-feed baseline is the next delivery stage. The
 [stage record](./.plan/scale-readiness.md) owns the sequence and delivery gates.
 Ten-thousand-user capacity remains unverified.
 
