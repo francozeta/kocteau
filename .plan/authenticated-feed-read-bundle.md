@@ -13,13 +13,17 @@ empty search path, preserves existing table policies, clamps requested pages to
 The server route and initial page use the same bundle. Other views retain their
 existing read path. Private state is never put in a public cache.
 
-An interaction fixture exposed an existing defect in
+An interaction fixture on a fresh local replay exposed a repository defect in
 `get_viewer_review_collection_state`: its inner `review_id` resolved to the
 interaction table, making the comparison self-referential. One interaction
 could mark every requested card. A separate migration qualifies the outer ID;
 the function keeps its signature, privileges and SECURITY DEFINER mode,
 with an empty search path and caller-only predicates. Regression checks cover
-selected and unrelated cards.
+selected and unrelated cards. A subsequent read-only cloud definition check found
+production already uses correctly qualified joins for this function, although that
+behavior is absent from the repository's 35-version migration history. This migration
+aligns fresh local semantics with cloud and hardens the search path; it does not
+claim to newly fix production likes. The new feed-bundle RPC is absent from cloud.
 
 The type generator preserves nullable rating-only review titles and bodies.
 The committed type update is additive; local generation has unrelated differences

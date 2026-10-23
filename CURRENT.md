@@ -14,7 +14,8 @@ shared Supabase incident remains unresolved. Ten-thousand-user capacity is unver
 
 [PR #222](https://github.com/francozeta/kocteau/pull/222), stage 2, combines authenticated For You ranking,
 card hydration and private viewer state into one Data API RPC. It also corrects
-the shared viewer-state function's unqualified review-ID correlation.
+the repository's viewer-state correlation so fresh local replays match the
+already-correct cloud behavior.
 Local verification is recorded in the
 [feed stage evidence](./.plan/authenticated-feed-read-bundle.md).
 Cloud schema delivery is pending CLI authentication; both migrations are local only.
