@@ -81,6 +81,9 @@ export default async function ReviewsPage() {
       </header>
 
       <div className="space-y-4">
+        {reviews.length === 0 ? (
+          <p className="py-6 text-sm text-muted-foreground">No public reviews yet.</p>
+        ) : null}
         {reviews.map((review, index) => {
           const entity = review.entities;
           const author = review.author;
