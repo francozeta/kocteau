@@ -1,5 +1,67 @@
 # Changelog
 
+## [0.3.16](https://github.com/francozeta/kocteau/compare/v0.3.15...v0.3.16) (2026-10-23)
+
+
+### Features
+
+* **catalog:** preserve source evidence and retry history ([#205](https://github.com/francozeta/kocteau/issues/205)) ([ce7eb76](https://github.com/francozeta/kocteau/commit/ce7eb7604fb906a8c1f62faeb8e109a691d13a66))
+* **perf:** trace public read queue and response stages ([efa6e5b](https://github.com/francozeta/kocteau/commit/efa6e5ba2fb8a9cbd458213b1cc5a8457f4e8835))
+* polish search action dock and improve mobile navigation experience ([2c8c444](https://github.com/francozeta/kocteau/commit/2c8c444c146d052789c3415484e4234a31c4f375))
+* **studio:** clarify context progress ([#210](https://github.com/francozeta/kocteau/issues/210)) ([83fa943](https://github.com/francozeta/kocteau/commit/83fa943840b3a9ba3d19671dfe410b971b6a7da8))
+* **studio:** connect drafts to catalog research ([#207](https://github.com/francozeta/kocteau/issues/207)) ([96af63b](https://github.com/francozeta/kocteau/commit/96af63b93150cc5dfb94efc459042dbc7520d9d2))
+* **studio:** integrate source-backed curation ([#209](https://github.com/francozeta/kocteau/issues/209)) ([67403df](https://github.com/francozeta/kocteau/commit/67403df3e9c6d4d9da22961f82f79d08c73909d6))
+* **web:** clarify search discovery and navigation ([#204](https://github.com/francozeta/kocteau/issues/204)) ([7ddbf7b](https://github.com/francozeta/kocteau/commit/7ddbf7b703cb7b61ce305c164686cf9914eb5e8a))
+
+
+### Bug Fixes
+
+* **cache:** preserve public reads and reuse provider lookups ([#239](https://github.com/francozeta/kocteau/issues/239)) ([bdcc1e6](https://github.com/francozeta/kocteau/commit/bdcc1e6ffad90d5671b1d786a05a04258ecee77b))
+* **public-reads:** allow measured cloud cold-start latency ([b471653](https://github.com/francozeta/kocteau/commit/b4716532c6dad3f014f25e61ed6a2038f453a970))
+* **reviews:** recover anonymous lists after read failures ([#241](https://github.com/francozeta/kocteau/issues/241)) ([aedac0d](https://github.com/francozeta/kocteau/commit/aedac0d15d1731ccae89e2a935c33fe12a954980))
+* **search:** bound typing requests and recover discovery state ([e372b81](https://github.com/francozeta/kocteau/commit/e372b81625e88781fe08f8aec2417ac58c164a29))
+* **search:** preserve refresh health and cancel independent waiters ([fe2ebb4](https://github.com/francozeta/kocteau/commit/fe2ebb4fa61812eb00b412be1a2cbd8b45061642))
+* **search:** recover discovery state and bound typing requests ([#223](https://github.com/francozeta/kocteau/issues/223)) ([578f59e](https://github.com/francozeta/kocteau/commit/578f59e02265b28ca74e8476129e2f0727e5d495))
+* **search:** refine mobile fades and filter controls ([#203](https://github.com/francozeta/kocteau/issues/203)) ([a0de952](https://github.com/francozeta/kocteau/commit/a0de952ce9c38390a911298d52a422d1042da1a1))
+* **web:** preserve review drafts and organize product flows ([10af8eb](https://github.com/francozeta/kocteau/commit/10af8ebe57fd266af75b379ee555ebba3f765f28))
+
+
+### Performance
+
+* bound external search work and expose stage timings ([e45e39a](https://github.com/francozeta/kocteau/commit/e45e39ac458c5444d213609f08c75541552dee3d))
+* colocate backend with Supabase and reuse catalog links ([1876959](https://github.com/francozeta/kocteau/commit/187695914138ac06932626d2e4ff643817aec88b))
+* display local search results while the external catalog loads ([#214](https://github.com/francozeta/kocteau/issues/214)) ([b28050c](https://github.com/francozeta/kocteau/commit/b28050c208ae6845a8b7cc1ad9318392b2f6e39d))
+* **music:** paginate discussions and aggregate review ratings ([#219](https://github.com/francozeta/kocteau/issues/219)) ([0ebf3d9](https://github.com/francozeta/kocteau/commit/0ebf3d9e53f658a5b9cd6e4b457807fc53077212))
+* **music:** reuse track reads and overlap recommendation sources ([35d2512](https://github.com/francozeta/kocteau/commit/35d2512fddce04e67a9b0c1c7048448c7927ea18))
+* **public-reads:** bound data work and coalesce catalog refreshes ([93baae3](https://github.com/francozeta/kocteau/commit/93baae317f55571b6408bee4257a930bfe263ed7))
+* **public-reads:** bound data work and coalesce catalog refreshes ([e508968](https://github.com/francozeta/kocteau/commit/e5089686c46782dabcf0518315e1444af76b5e6c))
+* **public-reads:** bound data work and trace read stages ([93baae3](https://github.com/francozeta/kocteau/commit/93baae317f55571b6408bee4257a930bfe263ed7))
+
+
+### Documentation
+
+* **cache:** record integrated production verification ([b66930d](https://github.com/francozeta/kocteau/commit/b66930d5b9317398e0fa5181327c25d933b5af04))
+* link reliability investigation pull request ([18ac8dd](https://github.com/francozeta/kocteau/commit/18ac8dda0e50a3f9d4d65be8762caa6c02a3c362))
+* **perf:** clarify capacity limits and investigation handoff ([a461be3](https://github.com/francozeta/kocteau/commit/a461be3a823dfbbadbbde82c6d4cea3fa69a9a5d))
+* **perf:** record capacity audit and recovery ([e373277](https://github.com/francozeta/kocteau/commit/e373277f2be0135a8e2f62fe174907f536011a3e))
+* **perf:** record read-stage evidence and staged delivery ([472dab9](https://github.com/francozeta/kocteau/commit/472dab93f0aa734e044606487aac3319e1cb26dd))
+* **repo:** record integrated audit and deployment verification ([b9de271](https://github.com/francozeta/kocteau/commit/b9de271554a0defbeb2032ddff44cf873f617c73))
+* **reviews:** record verified anonymous production recovery ([35be7d9](https://github.com/francozeta/kocteau/commit/35be7d9a71b46925dedcc4db7c332a31aa3cd914))
+* **search:** distinguish deployment status from smoke evidence ([fe0a679](https://github.com/francozeta/kocteau/commit/fe0a67954b0123f82f279dadf4b187c338e91f42))
+* **search:** record production recovery and staged rollout status ([7a85b3a](https://github.com/francozeta/kocteau/commit/7a85b3a5a13c2e596c11e4de5995ed102b3dd222))
+* **search:** record verified production recovery ([#224](https://github.com/francozeta/kocteau/issues/224)) ([8c1dd93](https://github.com/francozeta/kocteau/commit/8c1dd936e94762abb625ca509af6e6c4aa9ce813))
+* **search:** separate deployment and smoke evidence ([#225](https://github.com/francozeta/kocteau/issues/225)) ([f695d7f](https://github.com/francozeta/kocteau/commit/f695d7f5a97373899fda4739380260ff8b6bf69f))
+* **search:** state deployment and unversioned smoke observations separately ([d58dc38](https://github.com/francozeta/kocteau/commit/d58dc3841c072b69f484a4409bbb46c5f764569e))
+* **web:** draft public changelog for v0.3.15 ([#201](https://github.com/francozeta/kocteau/issues/201)) ([78194d1](https://github.com/francozeta/kocteau/commit/78194d1fb95122d571f9584293a8636256e7741f))
+
+
+### Tests
+
+* **load:** distinguish normal cache refresh from degraded reads ([6635577](https://github.com/francozeta/kocteau/commit/66355776f7c1fea501a486c5586b7cbf0b4ff1cb))
+* restore Deezer public contract coverage ([c2e20a0](https://github.com/francozeta/kocteau/commit/c2e20a0e194b3bc72b5c0b16dea52342e3e86556))
+* **search:** await refresh completion and record cold-read limits ([7742d66](https://github.com/francozeta/kocteau/commit/7742d66551e3cf8321fd11a19212a05e72b05680))
+* **search:** require healthy readiness in native comparisons ([ffc8e5a](https://github.com/francozeta/kocteau/commit/ffc8e5ab10a8d9e65ad303c0ff4bef6cd3d2c5da))
+
 ## [0.3.15](https://github.com/francozeta/kocteau/compare/v0.3.14...v0.3.15) (2026-09-21)
 
 
