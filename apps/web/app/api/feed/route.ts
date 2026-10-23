@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth/server";
 import { isFeedView } from "@/lib/feed-view";
-import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
+import { getFeedPageBundle } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { measureServerTask } from "@/lib/perf";
 
@@ -11,23 +11,15 @@ async function getFeedResponse(req: Request) {
   const cursor = url.searchParams.get("cursor");
   const userId = await getCurrentUserId();
   const activeView = isFeedView(viewParam) ? viewParam : userId ? "for-you" : "latest";
-  const bundle = await getFeedPage({
-    view: activeView,
-    viewerId: userId,
+  const bundle = await getFeedPageBundle(userId, activeView, {
     cursor,
     includeActiveUsers: false,
   });
   const activeUsers = bundle.activeUsers.filter((profile) => profile.id !== userId);
-  const viewerState =
-    userId && bundle.feed.length > 0
-      ? await getFeedViewerState(
-          userId,
-          bundle.feed.map((review) => review.id),
-        )
-      : {
-          likedReviewIds: new Set<string>(),
-          bookmarkedReviewIds: new Set<string>(),
-        };
+  const viewerState = {
+    likedReviewIds: bundle.likedReviewIds,
+    bookmarkedReviewIds: bundle.bookmarkedReviewIds,
+  };
   const followedProfileIds =
     userId && activeUsers.length > 0
       ? await getViewerFollowingProfileIds(

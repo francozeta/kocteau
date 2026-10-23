@@ -64,8 +64,8 @@ function shouldRetryFeedRequest(failureCount: number, error: unknown) {
 export function feedInfiniteQueryOptions(view: FeedView = "latest") {
   return infiniteQueryOptions({
     queryKey: feedKeys.infinite(view),
-    queryFn: ({ pageParam }) =>
-      fetchJson<FeedBundleQueryData>(getFeedUrl(view, pageParam)),
+    queryFn: ({ pageParam, signal }) =>
+      fetchJson<FeedBundleQueryData>(getFeedUrl(view, pageParam), { signal }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: getFeedStaleTime(view),

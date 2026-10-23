@@ -20,7 +20,7 @@ Ten thousand active users is a target to validate, not established capacity.
    cache misses, hot items, writes, dependency failures and sustained recovery.
    Record latency, errors, queue growth and cost. Shared production is excluded.
 
-## Active stage
+## Delivered and active stages
 
 Stage 1 now separates queue, headers and body for anonymous Data API reads.
 Failures retain their phase/status, including a stalled body after HTTP 200 headers.
@@ -42,3 +42,9 @@ Each stage must have a reviewable change, relevant checks and truthful delivery
 status. Existing behavior and services remain authoritative until replacement paths
 are verified. New paid resources require a concrete cost and target decision.
 A staging test is required before any ten-thousand-user capacity claim.
+
+Stage 1 merged as PR #221, production main 93baae3; a production search returned
+three fresh matches in 2.82 seconds. Cold header latency remains unresolved.
+Stage 2 has a locally verified authenticated read bundle and viewer-state fix.
+[Feed evidence](./authenticated-feed-read-bundle.md) owns measurements and the CLI
+authentication gate. Stages 3–6 remain planned.

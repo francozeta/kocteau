@@ -6,7 +6,7 @@ import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
 import { getAuthenticatedFeedView } from "@/lib/feed-view";
 import { createPageMetadata } from "@/lib/metadata";
 import { measureServerTask } from "@/lib/perf";
-import { getFeedPage, getFeedViewerState } from "@/lib/queries/feed";
+import { getFeedPageBundle } from "@/lib/queries/feed";
 import { getStarterTracksForSurface } from "@/lib/queries/starter";
 
 export const dynamic = "force-dynamic";
@@ -37,9 +37,7 @@ export default async function FeedPage({
     await measureServerTask(
       "getAuthenticatedFeedData",
       async () => {
-        const feedPagePromise = getFeedPage({
-          view: activeView,
-          viewerId: userId,
+        const feedPagePromise = getFeedPageBundle(userId, activeView, {
           includeActiveUsers: false,
         });
         const starterTracksPromise = getStarterTracksForSurface({
@@ -49,29 +47,23 @@ export default async function FeedPage({
           contextKey: "home",
         });
         const viewerProfilePromise = getCurrentViewerProfile();
-        const feedPage = await feedPagePromise;
-        const viewerStatePromise =
-          feedPage.feed.length > 0
-            ? getFeedViewerState(
-                userId,
-                feedPage.feed.map((review) => review.id),
-              )
-            : Promise.resolve({
-                likedReviewIds: new Set<string>(),
-                bookmarkedReviewIds: new Set<string>(),
-              });
-        const [starterTracks, viewerProfile, viewerState] = await Promise.all([
+        const [feedPage, starterTracks, viewerProfile] = await Promise.all([
+          feedPagePromise,
           starterTracksPromise,
           viewerProfilePromise,
-          viewerStatePromise,
         ]);
+        const viewerState = {
+          likedReviewIds: feedPage.likedReviewIds,
+          bookmarkedReviewIds: feedPage.bookmarkedReviewIds,
+        };
 
         return { feedPage, starterTracks, viewerProfile, viewerState };
       },
       { route: "/feed", view: activeView },
     );
   const feedData = {
-    ...feedPage,
+    view: feedPage.view,
+    nextCursor: feedPage.nextCursor,
     activeUsers: [],
     feed: feedPage.feed.map((review) => ({
       ...review,
