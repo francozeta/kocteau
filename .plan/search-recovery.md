@@ -1,6 +1,6 @@
 # Search recovery
 
-Status: implemented and verified locally; pull-request checks and production delivery pending.
+Status: merged in PR #223 and verified on production runtime `578f59e`.
 
 ## Incident and scope
 
@@ -55,8 +55,13 @@ result visibility from a recovered non-empty query. Final verification passes 18
 Mobile Chromium/WebKit and desktop Chromium pass typing, cancellation, failure/retry,
 Back, document return, query reload and blocked-storage checks without page errors.
 A disposable authenticated WebKit session also passes; complete canvas-session
-equality survives document return. CI, preview and production evidence remain
-pending. Playwright WebKit is not a physical iOS/TikTok test.
+equality survives document return. Verify run 529 passed on exact head `e372b816`; its preview deployed successfully.
+Read-only preview probes returned 200/fresh for both sources and 15 remote artist
+results. Production deployment of merge `578f59e` is ready. A guest mobile WebKit
+session on kocteau.com received one local and one remote 200, selected Slowdive,
+and restored the input on browser Back without page errors. This is a small
+read-only smoke check, not a capacity measurement. Playwright WebKit is not a
+physical iOS/TikTok test.
 
 The [Discovery guide](../apps/web/components/discovery/README.md) owns the reusable
 regression procedure. Raw browser captures and logs remain private.
