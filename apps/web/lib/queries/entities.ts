@@ -220,7 +220,7 @@ export const getEntityPageByRouteId = cache(async function getEntityPageByRouteI
   );
 });
 
-export async function getEntityPageByProvider(
+export const getEntityPageByProvider = cache(async function getEntityPageByProvider(
   provider: string,
   type: EntityPage["type"],
   providerId: string,
@@ -270,7 +270,7 @@ export async function getEntityPageByProvider(
     );
     return null;
   }
-}
+});
 
 export async function findEntityByProvider(
   provider: string,

@@ -7,14 +7,20 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-Observe search recovery and investigate remaining cold Data API waits.
-[Search evidence](./.plan/search-recovery.md) owns verification and limits;
-the [Discovery guide](./apps/web/components/discovery/README.md) owns behavior
-and reproduction. The feed application and shared-read cooldown rollouts stay
-separate during incident observation. The cooldown experiment is unpublished.
+Review public-read cache recovery in [PR #239](https://github.com/francozeta/kocteau/pull/239),
+under [#147](https://github.com/francozeta/kocteau/issues/147).
+[Cache evidence](./.plan/public-read-cache-recovery.md) owns reproduction and limits.
+Keep observing [search recovery](./.plan/search-recovery.md). Feed PR #222 and the
+unpublished shared cooldown remain separate.
 
 ## In Review
 
+- [PR #239](https://github.com/francozeta/kocteau/pull/239) addresses #226/#227:
+  failed starter reads stay outside the cache and provider lookups share a render.
+  Local 186 tests, seven Next scenarios, lint, docs and isolated build pass.
+  CI and preview passed at `1964bf2`. Review follow-up makes the verifier bind
+  directly and documents the pinned baseline checkout; final checks and the
+  authorized main/production rollout remain pending.
 - [PR #222](https://github.com/francozeta/kocteau/pull/222) contains the feed read
   bundle and published review fixes, synchronized with search recovery.
   Its schema is delivered through the pinned CLI; all 37 migration versions,
@@ -33,6 +39,8 @@ not yet confirmed. Existing advisor warnings and the global index-advisor lint
 caveat remain; isolated timings and the earlier 24-user run do not establish
 healthy capacity. Ten-thousand-user capacity is unverified.
 
-Observe the search fix in real use, characterize cold-read waits, then deliver
-the feed consumer independently and reassess shared backoff. Use representative
-isolated authenticated traffic before search RPC, index or infrastructure choices.
+After the cache fixes, address catalog-write invalidation in
+[#228](https://github.com/francozeta/kocteau/issues/228). #147 orders progressive
+rendering, measured starter SQL work and suggestion budgets. Characterize cold
+Data API waits and deliver the feed consumer independently; use representative
+isolated authenticated traffic before SQL or infrastructure choices.

@@ -14,6 +14,14 @@ product identity. Track bundles accept the already resolved public entity so the
 route and metadata do not repeat its database lookup. ID-only image/bundle callers
 still resolve it internally. Viewer state stays outside public caches.
 
+Provider identity lookups also share metadata/page work through React cache,
+using primitive provider/type/id arguments. This lasts for one server render;
+the existing tagged cache remains responsible for reuse across requests.
+Public-read AbortSignal deadlines remain in place. A failed lookup does not
+persist its null fallback, so another render can recover. The isolated
+[provider verifier](../../tests/load/verify-provider-cache.mjs) checks cold/warm
+reads, distinct identities, successful absence and failure recovery.
+
 Recommendation sources run in independent local/catalog lanes and join before the
 existing ranking and canonical-link resolution. Passing `tags: []` means tags were
 already resolved; omit `tags` to request a lookup. Source failures keep the existing

@@ -21,3 +21,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Scale readiness stages](./scale-readiness.md): cold reads, feed I/O, shared coordination and mixed-load verification; implementation in progress.
 
 - [Search recovery](./search-recovery.md): typing amplification, recoverable errors and history/session continuity after the production incident.
+
+- [Public read cache recovery](./public-read-cache-recovery.md): starter failure boundaries and render-scoped provider lookup reuse; isolated evidence and rollout limits.
