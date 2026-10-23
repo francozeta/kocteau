@@ -94,6 +94,7 @@ export function kocteauTrackSearchQueryOptions(
 
   return queryOptions({
     queryKey: trackKeys.kocteauSearch(type, query, source),
+    refetchOnWindowFocus: false,
     queryFn: async ({ signal }) => {
       const payload = await fetchJson<KocteauSearchResult[]>(
         `/api/search?${params.toString()}`,
@@ -104,7 +105,6 @@ export function kocteauTrackSearchQueryOptions(
     },
     staleTime: 60_000,
     gcTime: 10 * 60_000,
-    retry: (failureCount, error) =>
-      failureCount < 1 && isRetryableFetchJsonError(error),
+    retry: false,
   });
 }

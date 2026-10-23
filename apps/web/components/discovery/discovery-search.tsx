@@ -46,7 +46,8 @@ type DiscoverySearchProps = {
   isSearching: boolean;
   onQueryChange: (query: string) => void;
   onSubmit: () => boolean;
-  onSelect: (result: KocteauSearchResult) => void;
+  onSelect: (result: KocteauSearchResult) => boolean;
+  onRetry: () => void;
   onFocusChange?: (focused: boolean) => void;
   hasError: boolean;
   mobile?: boolean;
@@ -61,6 +62,7 @@ export default function DiscoverySearch({
   onQueryChange,
   onSubmit,
   onSelect,
+  onRetry,
   onFocusChange,
   hasError,
   mobile = false,
@@ -83,7 +85,8 @@ export default function DiscoverySearch({
   );
   const hasQuery = query.trim().length >= 2;
   const isActiveViewport = mobile === isMobileViewport;
-  const showResults = isActiveViewport && isFocused && (mobile ? hasQuery : true);
+  const showResults =
+    isActiveViewport && (isFocused || query.length > 0) && (mobile ? hasQuery : true);
   const showClose = isFocused || query.length > 0;
   const resultListId = mobile
     ? "mobile-discovery-seed-results"
@@ -161,8 +164,7 @@ export default function DiscoverySearch({
                 type="button"
                 key={`${result.provider}:${result.type}:${result.provider_id}`}
                 onClick={() => {
-                  onSelect(result);
-                  closeSearch(false);
+                  if (onSelect(result)) closeSearch(false);
                 }}
                 className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
               >
@@ -195,11 +197,22 @@ export default function DiscoverySearch({
             ))}
           </div>
         ) : (
-          <p className="px-3 py-4 text-[11px] text-muted-foreground/58">
-            {hasError
-              ? "Search is unavailable. Try again shortly."
-              : "No matches. Try another name."}
-          </p>
+          <div className="px-3 py-4 text-xs text-muted-foreground">
+            <p id={`${resultListId}-error`}>
+              {hasError
+                ? "Search couldn’t load. Your canvas is still here."
+                : "No matches. Try another name."}
+            </p>
+            {hasError ? (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-2 min-h-11 rounded-lg px-3 text-foreground hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Retry search
+              </button>
+            ) : null}
+          </div>
         )}
       </div>
     </div>
@@ -260,14 +273,17 @@ export default function DiscoverySearch({
           placeholder={`${searchLabel}…`}
           autoComplete="off"
           maxLength={80}
+          aria-describedby={hasError ? `${resultListId}-error` : undefined}
           aria-expanded={showResults}
           aria-controls={resultListId}
           className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]"
         />
         <span className="sr-only" role="status" aria-live="polite">
-          {hasQuery && (!isSearching || results.length > 0)
-            ? `${results.length} search results available.`
-            : ""}
+          {hasError
+            ? "Search couldn’t load. Retry search to try again."
+            : hasQuery && (!isSearching || results.length > 0)
+              ? `${results.length} search results available.`
+              : ""}
         </span>
       </div>
 

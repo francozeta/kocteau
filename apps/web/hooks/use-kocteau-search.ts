@@ -20,22 +20,22 @@ export function useKocteauSearch({
   query,
   type = "track",
   enabled = true,
-  debounceMs = 250,
+  debounceMs = 300,
 }: UseKocteauSearchOptions) {
   const trimmedQuery = query.trim();
   const deferredQuery = useDeferredValue(trimmedQuery);
   const debouncedQuery = useDebouncedValue(deferredQuery, debounceMs);
 
-  const searchEnabled = enabled && debouncedQuery.length >= 2;
+  const isCurrentQuery = trimmedQuery === debouncedQuery;
+  const searchEnabled = enabled && debouncedQuery.length >= 2 && isCurrentQuery;
   const local = useQuery({
-    ...kocteauTrackSearchQueryOptions(debouncedQuery, type, "local"),
+    ...kocteauTrackSearchQueryOptions(trimmedQuery, type, "local"),
     enabled: searchEnabled,
   });
   const remote = useQuery({
-    ...kocteauTrackSearchQueryOptions(debouncedQuery, type, "remote"),
+    ...kocteauTrackSearchQueryOptions(trimmedQuery, type, "remote"),
     enabled: searchEnabled,
   });
-  const isCurrentQuery = trimmedQuery === debouncedQuery;
   const data = useMemo(
     () => isCurrentQuery && searchEnabled
       ? rankCatalogSearchResults({
