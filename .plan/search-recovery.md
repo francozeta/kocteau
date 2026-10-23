@@ -1,6 +1,6 @@
 # Search recovery
 
-Status: merged in PR #223 and verified on production runtime `578f59e`.
+Status: PR #223 is merged. Deployment `578f59e` was observed READY. A read-only production smoke check passed without recording the served commit.
 
 ## Incident and scope
 
