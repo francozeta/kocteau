@@ -18,7 +18,9 @@ unpublished shared cooldown remain separate.
 - [PR #239](https://github.com/francozeta/kocteau/pull/239) addresses #226/#227:
   failed starter reads stay outside the cache and provider lookups share a render.
   Local 186 tests, seven Next scenarios, lint, docs and isolated build pass.
-  CI/preview and production rollout remain pending.
+  CI and preview passed at `1964bf2`. Review follow-up makes the verifier bind
+  directly and documents the pinned baseline checkout; final checks and the
+  authorized main/production rollout remain pending.
 - [PR #222](https://github.com/francozeta/kocteau/pull/222) contains the feed read
   bundle and published review fixes, synchronized with search recovery.
   Its schema is delivered through the pinned CLI; all 37 migration versions,

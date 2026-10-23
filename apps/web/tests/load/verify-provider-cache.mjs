@@ -8,6 +8,7 @@ import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
+import { stripVTControlCharacters } from "node:util";
 
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const repositoryRoot = resolve(webRoot, "../..");
@@ -41,14 +42,11 @@ const listen = async (server) => {
   await once(server, "listening");
   return server.address().port;
 };
-const nextPortServer = createServer();
-const appPort = await listen(nextPortServer);
-await new Promise((done) => nextPortServer.close(done));
 const upstreamPort = await listen(upstream);
 const root = join(repositoryRoot, ".plan/local");
 await mkdir(root, { recursive: true });
 const fixture = await mkdtemp(join(root, "provider-cache-"));
-const appUrl = "http://127.0.0.1:" + appPort;
+let appUrl;
 let child;
 let output = "";
 const results = [];
@@ -98,7 +96,7 @@ try {
   ].join("\n"));
   child = spawn(process.execPath, [
     require.resolve("next/dist/bin/next"), "dev",
-    "--hostname", "127.0.0.1", "--port", String(appPort),
+    "--hostname", "127.0.0.1", "--port", "0",
   ], {
     cwd: fixture,
     detached: true,
@@ -115,15 +113,19 @@ try {
   }
   const readyUntil = Date.now() + 45_000;
   while (true) {
-    if (child.exitCode !== null) throw new Error(output);
-    try {
-      const response = await fetch(appUrl + "/favicon.ico", { signal: AbortSignal.timeout(2000) });
-      await response.body?.cancel();
-      break;
-    } catch {
-      if (Date.now() >= readyUntil) throw new Error("Next startup timed out\n" + output);
-      await delay(200);
+    if (child.exitCode !== null || child.signalCode !== null) throw new Error(output);
+    appUrl ??= stripVTControlCharacters(output).match(/- Local:\s+(http:\/\/127\.0\.0\.1:\d+)/)?.[1];
+    if (appUrl) {
+      try {
+        const response = await fetch(appUrl + "/favicon.ico", { signal: AbortSignal.timeout(2000) });
+        await response.body?.cancel();
+        break;
+      } catch {
+        // The listener can be announced before the app is ready to serve.
+      }
     }
+    if (Date.now() >= readyUntil) throw new Error("Next startup timed out\n" + output);
+    await delay(200);
   }
   const key = randomUUID();
   state.reads = 0;

@@ -39,15 +39,34 @@ the platform's distributed cache backend or production stale-while-revalidate.
 The provider verifier starts a disposable Next server and a loopback Data API,
 imports the actual entity loader, and renders metadata plus a page. It needs
 installed dependencies, creates no users/activity and requires no credentials or
-database. It starts its server with only fixture configuration and stops it after
+database. Next binds an OS-assigned port directly; readiness uses its announced
+loopback URL. It starts with only fixture configuration and stops after
 the checks. Generated files belong to ignored `.plan/local/`.
 
 ```bash
 node apps/web/tests/load/verify-provider-cache.mjs
 ```
 
-`PROVIDER_CACHE_BASELINE=1` reports an older checkout without applying the new
-read-count assertions. It does not change source files.
+`PROVIDER_CACHE_BASELINE=1` only disables the new read-count assertions. It does
+not select an older implementation: running it in the changed checkout measures
+the changed loader. The baseline column below was measured with the loader from
+main `f695d7f`, before React memoization, and is reproducible in a separate
+checkout. Copy the verifier there because that revision predates the harness:
+
+```bash
+git worktree add --detach .plan/local/provider-baseline f695d7f5a97373899fda4739380260ff8b6bf69f
+cp apps/web/tests/load/verify-provider-cache.mjs .plan/local/provider-baseline/apps/web/tests/load/
+pnpm --dir .plan/local/provider-baseline install --frozen-lockfile
+(
+  cd .plan/local/provider-baseline
+  PROVIDER_CACHE_BASELINE=1 node apps/web/tests/load/verify-provider-cache.mjs
+)
+```
+
+The copied harness imports the baseline checkout's actual loader and pinned
+dependencies. It leaves the active checkout unchanged. Keep that worktree for
+comparisons, or remove the copied verifier and then remove the worktree with
+`git worktree remove .plan/local/provider-baseline`.
 
 | Scenario | Baseline origin reads | Changed origin reads |
 | --- | ---: | ---: |
