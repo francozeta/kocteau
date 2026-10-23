@@ -32,8 +32,9 @@ GitHub Verify run 522. Its exact preview returned three expected results in
 Seven read records show header waits of 1,188–1,232 ms, queue waits of 1–18 ms,
 and body reads of 1–37 ms. Header time includes network, framework and upstream
 processing; SQL time and the cause of the historical timeout remain unresolved.
-The existing cold-read caveat stays open. Disposable local services are being
-prepared for authenticated and SQL verification. Raw diagnostics remain ignored.
+The existing cold-read caveat stays open. Disposable local Supabase services now
+pass authenticated HTTP/browser checks and 40 SQL checks after a fresh replay.
+Raw diagnostics remain ignored.
 The owning status is [CURRENT](../CURRENT.md).
 
 ## Rollout boundaries
@@ -45,6 +46,7 @@ A staging test is required before any ten-thousand-user capacity claim.
 
 Stage 1 merged as PR #221, production main 93baae3; a production search returned
 three fresh matches in 2.82 seconds. Cold header latency remains unresolved.
-Stage 2 has a locally verified authenticated read bundle and viewer-state fix.
+[PR #222](https://github.com/francozeta/kocteau/pull/222), stage 2, has a locally
+verified authenticated read bundle and viewer-state fix.
 [Feed evidence](./authenticated-feed-read-bundle.md) owns measurements and the CLI
 authentication gate. Stages 3–6 remain planned.

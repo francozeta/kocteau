@@ -12,7 +12,7 @@ Production returned three fresh search results in 2.82 seconds; cold-read
 latency remains close to the three-second deadline. The cause of the earlier
 shared Supabase incident remains unresolved. Ten-thousand-user capacity is unverified.
 
-Stage 2, on `perf/feed-read-bundle`, combines authenticated For You ranking,
+[PR #222](https://github.com/francozeta/kocteau/pull/222), stage 2, combines authenticated For You ranking,
 card hydration and private viewer state into one Data API RPC. It also corrects
 the shared viewer-state function's unqualified review-ID correlation.
 Local verification is recorded in the
