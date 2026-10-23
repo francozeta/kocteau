@@ -4,6 +4,13 @@ Last verified: 2026-10-23. Production main remains `0ebf3d9` (PR #219).
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
+## Active Work
+
+Staged scale-readiness integration is in progress, starting with public-read
+queue/header/body diagnostics and an authenticated-feed baseline. The
+[stage record](./.plan/scale-readiness.md) owns the sequence and delivery gates.
+Ten-thousand-user capacity remains unverified.
+
 ## In Review
 
 - [PR #220](https://github.com/francozeta/kocteau/pull/220) records the capacity
@@ -31,7 +38,7 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
   match, and generated types preserve nullable aggregate results.
   The [Music guide](./apps/web/components/music/README.md) owns read boundaries;
   the [Discovery guide](./apps/web/components/discovery/README.md) owns search.
-- PR #221 review follow-up passes 175 tests, lint, production build, native HTTP
+- PR #221 review follow-up passes 180 tests, lint, production build, native HTTP
   regression checks and desktop/mobile search. Its reproduction now enforces
   request counts and connection release. Exact published revision, CI and preview
   evidence belong in the PR. Isolated timings are not user-capacity evidence.

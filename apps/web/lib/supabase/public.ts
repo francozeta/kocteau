@@ -2,6 +2,7 @@ import "server-only";
 
 import { PostgrestClient } from "@supabase/postgrest-js";
 import { createPublicReadFetch } from "./public-fetch";
+import { reportPublicRead } from "@/lib/perf";
 import type { Database } from "./database.types";
 import { getSupabasePublishableKey, getSupabaseUrl } from "./env";
 
@@ -15,7 +16,7 @@ export function supabasePublic() {
       {
         headers: { apikey: key, Authorization: "Bearer " + key },
         retry: false,
-        fetch: createPublicReadFetch(),
+        fetch: createPublicReadFetch({ onRead: reportPublicRead }),
       },
     );
   }
