@@ -42,13 +42,15 @@ reviews, likes and bookmarks and leaves them in that local database.
 2. Start baseline on port 3001 and candidate on port 3000 with
    `NODE_OPTIONS="--import=<candidate>/apps/web/tests/load/fixtures/isolate-upstreams.mjs --import=<candidate>/apps/web/tests/load/fixtures/observe-feed-reads.mjs"`.
    Replace `<candidate>` with its absolute repository path.
-   Set `FEED_READ_TRACE_FILE` respectively to the absolute candidate paths
-   `.codex-private/feed/baseline.jsonl` and `.codex-private/feed/candidate.jsonl`.
+   Set `FEED_READ_TRACE_FILE` respectively to
+   `<candidate>/.codex-private/feed/baseline.jsonl` and
+   `<candidate>/.codex-private/feed/candidate.jsonl`.
    Create that ignored directory and empty trace files first.
    Both servers need the same local Supabase URL and publishable key at runtime.
 3. From the candidate root, run `pnpm perf:feed:seed`. The helper verifies the
    exact loopback API and Docker project label, creates/reuses marked local
-   accounts, and writes login cookies to a mode-600 ignored fixture file.
+   accounts, resets those fixture actors’ likes/bookmarks, and writes login cookies
+   to a mode-600 ignored fixture file.
    It seeds 10 profiles, 108 reviews, rating-only content and one selected card.
 4. With no other traffic hitting those two builds, run `pnpm perf:feed:verify`.
    It compares three pages for each account, full API JSON, private flags and

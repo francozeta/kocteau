@@ -249,7 +249,9 @@ async function queryRecommendedFeedBundle({
   const decodedCursor = decodeFeedCursor(cursor);
   if (!viewerId) {
     return {
-      feed: [], activeUsers: [], nextCursor: null, view: "for-you",
+      feed: [],
+      activeUsers: includeActiveUsers ? await getRecentlyActiveProfiles(4) : [],
+      nextCursor: null, view: "for-you",
       likedReviewIds: new Set<string>(), bookmarkedReviewIds: new Set<string>(),
     };
   }

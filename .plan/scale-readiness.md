@@ -46,7 +46,10 @@ A staging test is required before any ten-thousand-user capacity claim.
 
 Stage 1 merged as PR #221, production main 93baae3; a production search returned
 three fresh matches in 2.82 seconds. Cold header latency remains unresolved.
-[PR #222](https://github.com/francozeta/kocteau/pull/222), stage 2, has a locally
-verified authenticated read bundle and viewer-state fix.
-[Feed evidence](./authenticated-feed-read-bundle.md) owns measurements and the CLI
-authentication gate. Stages 3–6 remain planned.
+[PR #222](https://github.com/francozeta/kocteau/pull/222), stage 2, has a verified
+read bundle and delivered schema: both CLI migrations applied, 37 history versions
+match, affected public-schema lint passes, and role/read/type checks pass.
+[Feed evidence](./authenticated-feed-read-bundle.md) owns verification and limits.
+Stage 3 begins with regional shared failure cooldowns; durable admission quotas
+remain separate because an evictable cache cannot enforce a global concurrency
+ceiling. Durable jobs and representative staging load remain later gates.

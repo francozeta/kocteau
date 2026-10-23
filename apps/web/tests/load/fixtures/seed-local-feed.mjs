@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
@@ -77,6 +77,10 @@ sql("INSERT INTO auth.users(id,aud,role,email,encrypted_password,email_confirmed
   "FROM public.profiles p CROSS JOIN public.entities e WHERE p.username LIKE 'feed_read_writer_%' AND e.provider='deezer' " +
   "AND e.provider_id::text BETWEEN '999100001' AND '999100012' ON CONFLICT(author_id,entity_id)DO NOTHING; " +
   "UPDATE public.reviews SET title=null,body=null WHERE id=" + quote(reviews[0].id));
+// These marked local actors have one deterministic private-state fixture per run.
+const viewerIds = accounts.map(account => quote(account.id)).join(",");
+sql("DELETE FROM public.review_likes WHERE user_id IN (" + viewerIds +
+  "); DELETE FROM public.review_bookmarks WHERE user_id IN (" + viewerIds + ")");
 const first = await fetch("http://127.0.0.1:3001/api/feed?view=for-you", { headers: { Cookie: accounts[0].cookie } });
 assert.equal(first.status, 200, "start the baseline app on port 3001 before seeding");
 const { feed } = await first.json();
@@ -87,5 +91,7 @@ sql("INSERT INTO public.review_likes(user_id,review_id) VALUES (" + quote(accoun
   quote(accounts[0].id) + "," + quote(privateTarget) + ") ON CONFLICT DO NOTHING");
 const privateDir = resolve(root, ".codex-private/feed");
 mkdirSync(privateDir, { recursive: true, mode: 0o700 });
+chmodSync(privateDir, 0o700);
 writeFileSync(resolve(privateDir, "fixture.json"), JSON.stringify({ accounts, privateTarget }), { mode: 0o600 });
+chmodSync(resolve(privateDir, "fixture.json"), 0o600);
 console.log(JSON.stringify({ loginAccounts: accounts.length, fixtureProfiles: 10, fixtureReviews: 108, sessionFile: ".codex-private/feed/fixture.json" }));

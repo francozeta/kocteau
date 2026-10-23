@@ -6,6 +6,10 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
+Production search recovery takes priority in [PR #223](https://github.com/francozeta/kocteau/pull/223).
+Its CI and preview deployment pass; integration and production verification are pending.
+The separate shared-read cooldown stays unpublished during this correction.
+
 Stage 1 is merged: bounded anonymous reads, independent cancellation, shared
 search fills, explicit degraded responses and sampled queue/header/body diagnostics.
 Production returned three fresh search results in 2.82 seconds; cold-read
@@ -18,7 +22,12 @@ the repository's viewer-state correlation so fresh local replays match the
 already-correct cloud behavior.
 Local verification is recorded in the
 [feed stage evidence](./.plan/authenticated-feed-read-bundle.md).
-Cloud schema delivery is pending CLI authentication; both migrations are local only.
+The pinned CLI applied both migrations after linked-target and dry-run review.
+Cloud history has 37 versions; role permissions, an existing author read and private
+flags passed, and linked type generation matches the committed snapshot.
+Linked lint for the affected public schema also passes. PR #222 is ready for
+final integration. Stage 3 shared cooldown work is in a
+separate task branch; its 191 tests and lint pass, with native verification pending.
 The [scale stages](./.plan/scale-readiness.md) own subsequent delivery gates.
 
 ## Related Work
@@ -50,8 +59,8 @@ The [scale stages](./.plan/scale-readiness.md) own subsequent delivery gates.
 
 ## Next Priority
 
-Authenticate the pinned CLI, review the linked target and pending migration SQL,
-dry-run and apply the additive schema before merging the feed consumer.
+Complete PR #222 integration after the exact-head checks and review. Continue the
+shared failure cooldown in its separate branch before distributed admission work.
 Then measure cross-instance refresh contention and secondary write work on an
 isolated target, following the [load guide](./docs/load-readiness.md).
 Preserve guest drafts, private viewer state, ranking and the publish/edit loop.

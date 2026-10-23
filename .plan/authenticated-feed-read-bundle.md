@@ -55,13 +55,26 @@ Apply the corrected viewer-state migration to that database before comparison.
 Cookies remain in ignored `.codex-private`; loopback timings are not deployment
 configuration.
 
-## Delivery gate
+## Cloud delivery
 
-Both migrations are local only. The pinned CLI currently has no cloud token.
-Before merge: authenticate securely, verify the linked project and pending SQL,
-dry-run, apply, check history and permissions, and regenerate linked types.
-Do not claim cloud delivery from a local migration or run synthetic engagement
-or stress traffic against production.
+On 2026-10-23 the pinned CLI authenticated, linked the intended project and
+confirmed exactly the two reviewed migrations in its dry run. Both applied;
+remote history now matches all 37 local versions. Linked type generation
+matches the committed additive snapshot, including nullable review text.
+Read-only verification under the authenticated role returned 11 bounded rows for
+an existing author, with flags matching the shared viewer-state RPC. Guest and
+administrative-role execution are denied; invoker RLS is retained.
 
-Shared refresh coordination, durable jobs and 10,000-user mixed traffic remain
-later stages; this change does not establish that capacity.
+Advisors reported 27 warnings and no finding for the new bundle. Linked lint for
+the affected public schema passed. The existing global linked-lint caveat remains;
+its broad command did not finish within the bounded verification run. Local SQL
+tests and cloud role/read verification pass.
+Review follow-up bounds the guest verifier and asserts private/no-store headers,
+corrects existing fixture-file permissions, and preserves optional guest active
+profiles. Local auth.uid() reads both the individual sub GUC and JSON claims;
+all 40 SQL checks pass with the JSON claim setup used by the regression tests.
+PR #222 is ready for exact-head CI/review and integration. Cloud publication/OTP
+and a real authenticated browser session remain separate verification limits.
+
+Shared cooldown, distributed admission, durable jobs and 10,000-user mixed traffic
+remain subsequent work; this change does not establish that capacity.

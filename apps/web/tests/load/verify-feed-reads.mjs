@@ -45,9 +45,12 @@ for (let user = 0; user < fixture.accounts.length; user++) {
 }
 assert(targetVisible, "the selected private-state fixture must be visible");
 const before = trace("candidate").length;
-const guest = await fetch("http://127.0.0.1:3000/api/feed?view=for-you");
+const guest = await fetch("http://127.0.0.1:3000/api/feed?view=for-you", {
+  signal: AbortSignal.timeout(10_000),
+});
 const guestBody = await guest.json();
 assert.equal(guest.status, 200);
+assert.equal(guest.headers.get("cache-control"), "private, no-store");
 assert.equal(guestBody.requiresAuth, true);
 assert.deepEqual(guestBody.feed, []);
 assert.equal(trace("candidate").length, before, "guest makes no feed Data API request");
