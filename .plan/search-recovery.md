@@ -1,6 +1,6 @@
 # Search recovery
 
-Status: merged in PR #223 and verified on production runtime `578f59e`.
+Status: merged in PR #223; a read-only production smoke check passed after deployment of `578f59e`.
 
 ## Incident and scope
 
