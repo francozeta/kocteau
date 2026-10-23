@@ -7,16 +7,18 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-Deliver public-read cache recovery under [#147](https://github.com/francozeta/kocteau/issues/147):
-[#226](https://github.com/francozeta/kocteau/issues/226) keeps failed starter reads
-out of the cache; [#227](https://github.com/francozeta/kocteau/issues/227) shares
-provider lookups during a server render. Local tests, lint, docs, build and the
-seven-scenario Next verifier pass; the branch is not deployed. [Cache evidence](./.plan/public-read-cache-recovery.md) owns
-reproduction and limits. Keep observing [search recovery](./.plan/search-recovery.md).
-Feed PR #222 and the unpublished shared cooldown remain separate.
+Review public-read cache recovery in [PR #239](https://github.com/francozeta/kocteau/pull/239),
+under [#147](https://github.com/francozeta/kocteau/issues/147).
+[Cache evidence](./.plan/public-read-cache-recovery.md) owns reproduction and limits.
+Keep observing [search recovery](./.plan/search-recovery.md). Feed PR #222 and the
+unpublished shared cooldown remain separate.
 
 ## In Review
 
+- [PR #239](https://github.com/francozeta/kocteau/pull/239) addresses #226/#227:
+  failed starter reads stay outside the cache and provider lookups share a render.
+  Local 186 tests, seven Next scenarios, lint, docs and isolated build pass.
+  CI/preview and production rollout remain pending.
 - [PR #222](https://github.com/francozeta/kocteau/pull/222) contains the feed read
   bundle and published review fixes, synchronized with search recovery.
   Its schema is delivered through the pinned CLI; all 37 migration versions,
