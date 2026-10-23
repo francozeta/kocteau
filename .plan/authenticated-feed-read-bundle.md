@@ -21,13 +21,15 @@ the function keeps its signature, privileges and SECURITY DEFINER mode,
 with an empty search path and caller-only predicates. Regression checks cover
 selected and unrelated cards. A subsequent read-only cloud definition check found
 production already uses correctly qualified joins for this function, although that
-behavior is absent from the repository's 35-version migration history. This migration
+behavior was absent from the initial 35-version repository history. This migration
 aligns fresh local semantics with cloud and hardens the search path; it does not
-claim to newly fix production likes. The new feed-bundle RPC is absent from cloud.
+claim to newly fix production likes. Initial cloud inspection preceded delivery of
+the new feed-bundle RPC; the completed migration checks are recorded below.
 
 The type generator preserves nullable rating-only review titles and bodies.
-The committed type update is additive; local generation has unrelated differences
-from the cloud snapshot, so linked regeneration remains a delivery gate.
+The committed type update began as an additive patch because local generation
+had unrelated differences from cloud. Linked regeneration after delivery matched
+the committed snapshot, as recorded in the cloud delivery checks below.
 
 ## Verification
 
