@@ -34,7 +34,11 @@ try {
       await pause(100);
       const after = await stats();
       if (scenario === "healthy") {
-        for (const r of results) assert.deepEqual(r.ids, ["00000000-0000-4000-8000-000000000001"]);
+        for (const r of results) {
+          assert.equal(r.status, 200);
+          assert.deepEqual(r.ids, ["00000000-0000-4000-8000-000000000001"]);
+          if (mode === "candidate") assert.equal(r.readiness, "fresh");
+        }
       } else if (mode === "candidate") {
         for (const r of results) { assert.equal(r.status, 502); assert.equal(r.readiness, "degraded"); }
       }
@@ -47,12 +51,12 @@ try {
   const candidate = targets[1][1], q = "stalled-" + unique;
   await configure("stall");
   const stalled = await get(search(candidate, q));
-  assert.equal(stalled.status, 502); assert.ok(stalled.ms < 4_000);
+  assert.equal(stalled.status, 502); assert.equal(stalled.readiness, "degraded"); assert.ok(stalled.ms < 4_000);
   await pause(100); assert.equal((await stats()).active, 0);
   reports.push({ scenario: "stalled_db", ...stalled });
   await configure("healthy", "stall");
   const legacy = await get(candidate + "/api/deezer/search?" + new URLSearchParams({ q: "legacy-" + unique, type: "track" }));
-  assert.equal(legacy.status, 502); assert.ok(legacy.ms < 4_000);
+  assert.equal(legacy.status, 502); assert.equal(legacy.readiness, "degraded"); assert.ok(legacy.ms < 4_000);
   await pause(100); assert.equal((await stats()).active, 0, "the stalled provider must release all connections");
   reports.push({ scenario: "stalled_legacy_provider", ...legacy });
   await configure(); await pause(1_050);
