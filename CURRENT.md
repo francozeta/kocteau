@@ -1,6 +1,6 @@
 # Current Project State
 
-Last checked: 2026-10-25. Starter optimization is integrated; canonical-route research is documented for review.
+Last checked: 2026-10-25. Starter optimization is integrated; canonical-route defects are reproduced in isolation.
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
@@ -8,6 +8,8 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 Read-only canonical review/track latency investigation at main `ecdbc9a` is
 recorded in the [route research](./.plan/canonical-route-latency.md), under #147.
+Local query checks confirm repeated short-ID reads; mobile/desktop WebKit against
+a local production build confirms origin failures can display false missing pages.
 Production feedback now prioritizes #259/#260 canonical identity/recovery, then
 #261 track dependencies, before #243 pagination budgets. The investigation makes
 no application/schema/hosting changes; the issues are Todo, not shipped fixes.
@@ -19,8 +21,10 @@ owns SQL delivery and measurement limits.
 ## Verified Delivery
 
 The following verification belongs to the previous code delivery. The latest
-research separately used six HTTP reads, normal mobile Link navigation, current
-runtime logs and two read-only SQL plans; it is not a new capacity benchmark.
+research used six HTTP reads, normal mobile Link navigation, runtime logs and two
+read-only SQL plans. Further local debugging completed 17 helper checks and eight
+guest production-build browser checks; the combined development browser fixture
+was incomplete. None of these establishes production capacity or P95.
 
 Source CI/preview passed at `635fdcc1`; main Verify passed at `6c7d4ca`.
 Production was observed READY with `kocteau.com` before/after guest WebKit checks

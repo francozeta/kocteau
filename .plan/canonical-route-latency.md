@@ -92,6 +92,57 @@ timeouts around three seconds were logged. For the shared entity/review helpers,
 timeout→null→notFound follows current source control flow. A production 404 was
 not deliberately forced or injected.
 
+## Controlled local reproduction
+
+Further debugging used unchanged main web source (`ecdbc9a`; `apps/web` tree
+`bbd4a31c43b415c67dfe4eb1178c789760a35aa7`) with an isolated loopback Data API.
+No production requests or fault injection were used by these fixtures.
+
+Seventeen helper checks completed in an actual Next development server. Metadata
+and page called the same real query helper in each diagnostic render:
+
+| Public identity | First request origin reads | Repeat request origin reads |
+| --- | --- | --- |
+| Short review ID | 2: ID-only, then hydration | 1: ID-only |
+| Full review UUID after the warm short-ID fill | 0 | Not repeated |
+| Short entity ID | 1 | 1 |
+| Short artist ID | 1 | 1 |
+
+The analogous artist helper has now been read and executed; it shares the
+render-only canonical lookup pattern. A controlled 650 ms delay on only the
+short-review lookup made its warm-payload request take 728 ms. This demonstrates
+a foreground dependency, not a production speedup estimate. Compilation time
+is excluded from performance conclusions.
+
+The warm UUID payload remained available without another read, but a 503 on
+its short-ID lookup returned missing. A stalled lookup returned missing after
+3065 ms, at the public transport deadline. A successful identity followed by a
+503 during hydration also returned missing. Successful absence, an ambiguous
+eight-character prefix and an invalid ID were checked separately.
+
+The combined development browser fixture did not complete its healthy track
+recovery check: document completion and later visible-heading waits timed out.
+That fixture result is not a production latency measurement or a completed pass.
+
+A separate fixture against the existing local Next production build completed
+eight guest WebKit checks at 390x844 and 1280x900:
+
+- A review identity 503 showed "This page could not be found." without Retry
+  reviews. Restoring the origin and reloading the same URL displayed its review.
+- A track identity 403 showed the same missing-page state. Restoring the origin
+  and reloading displayed the track heading and structured data.
+- Each missing-page response was HTTP 200 after streaming had begun. Checking
+  status alone would miss the user-visible failure.
+- Both recovery flows completed without page errors; the contexts had no auth
+  cookies. This supersedes the incomplete development browser check.
+
+Origin errors are therefore confirmed to be misclassified as missing content in
+an actual browser, beyond the earlier source inference. The maintainer reports
+slowness both signed in and signed out; the public loaders are shared by those
+paths. An authenticated production-browser trace remains unmeasured. These local
+fixtures establish dependencies/error semantics, not production P95, the cause
+of historical HTTP-header waits, or user capacity. Raw diagnostics remain ignored.
+
 ## Prioritized follow-ups
 
 - [#259 / KOC-104](https://github.com/francozeta/kocteau/issues/259): collapse short
