@@ -107,3 +107,17 @@ private flags, view changes, pagination and reversible like/save actions in
 WebKit at mobile/desktop sizes. Install Playwright separately and set
 `KOCTEAU_PLAYWRIGHT_MODULE` and `PLAYWRIGHT_BROWSERS_PATH` when using an external
 installation. No cloud account or cloud data is used by these fixture commands.
+
+
+## Starter ranking cost
+
+Surface starter RPCs rank narrow rows and hydrate public track content after
+bounded lane selection. Preserve scores, source quotas, daily rotation,
+reviewed-track/provider exclusions and caller-specific preferences when tuning
+the query. The separate public starter loader and homepage ISR retain their
+own behavior.
+
+Run `pnpm perf:starter:verify` from the root with the local Docker stack for a
+rollback-only comparison. The [starter query record](../../../../.plan/starter-query-work.md)
+owns datasets, roles, growth plans and measurement limits. #256 tracks
+collection-dependent taste scoring separately.

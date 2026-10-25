@@ -1,59 +1,55 @@
 # Current Project State
 
-Last checked: 2026-10-25. The authenticated feed bundle is integrated in main.
+Last checked: 2026-10-25. Starter SQL delivery under #230 is verified;
+repository integration is pending.
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
 ## Active Work
 
-Observe [PR #222](https://github.com/francozeta/kocteau/pull/222), merged as
-`094d094`, under #255/#147. The [feed bundle record](./.plan/authenticated-feed-read-bundle.md)
-owns the current-main comparison, failure behavior and measurement limits.
-SQL investigation under #230 is next; #243/#228/#242 retain high reliability priority.
-
-Product hypotheses remain in [#251](https://github.com/francozeta/kocteau/issues/251)
-and #245–#250, organized in Linear behind core reliability/performance work.
+Integrate starter late hydration under [#230](https://github.com/francozeta/kocteau/issues/230)
+and #147. The [starter query record](./.plan/starter-query-work.md) owns current
+SQL plans, exact response parity, delivery and measurement limits.
 
 ## Verified Delivery
 
-CI and preview passed at `0d90ff6`. The production deployment for `094d094`
-was observed READY with the `kocteau.com` alias before and after settled guest
-WebKit verification on 25 Oct 2026. Mobile/desktop each showed three home review
-links, 14 public review links and eight API reviews; anonymous /feed redirected
-to login, with no authentication cookie or page errors.
+Pinned CLI 2.109.1 applied only `20261025203107_starter_late_hydration.sql`
+to the existing Kocteau target after dry run. All 38 migration versions match;
+linked types are unchanged. Function owner, existing grants, stable definer
+boundary and empty search path remain unchanged. Six ordered cloud response
+hashes match before/after across three surfaces and two SQL roles.
 
-Verification passes 202 web tests, seven real local SQL files/40 checks, twelve
-complete API payload comparisons for two actual local sessions over three pages,
-four authenticated HTTP failure/compatibility cases, four authenticated WebKit
-contexts, ten primary-render scenarios, five guest recovery scenarios, types,
-lint, docs and both production builds.
+Local verification passed 108 complete ordered response comparisons across
+three datasets, eight SQL files/54 checks, 202 web tests, TypeScript, lint,
+public-schema SQL lint and four real-session WebKit contexts at mobile/desktop
+sizes. No production synthetic users, engagement or load was introduced.
 
-Authenticated For You uses one Data API request instead of four on its first
-page and three later. Local payloads preserve ranking, cursor and caller flags.
-Unexpected RPC failures stop after one attempt and return private/no-store 503.
-Only a specifically missing bundle uses bounded Latest compatibility. All 37
-cloud migration versions and bundle privileges were rechecked read-only; no new
-cloud migration or production synthetic activity was introduced in this stage.
+The 10,000-track local fixture's warm RPC sample fell from 1,079.531 to
+677.330 ms and temporary writes from 42,411 to 4,601 blocks. The current-sized
+fixture's absolute gain is small; these are not production P95 or user capacity.
+Production after-checks returned six rows in 14.526/15.367 ms under authenticated
+and anon SQL roles; the few separate samples are not a controlled speedup claim.
 
-The earlier #241 review recovery and #252 progressive editorial rendering remain
-integrated. Their evidence is in the [review record](./.plan/review-read-recovery.md)
-and [render record](./.plan/primary-render.md).
+Earlier [review recovery](./.plan/review-read-recovery.md),
+[primary rendering](./.plan/primary-render.md) and the merged
+[feed bundle](./.plan/authenticated-feed-read-bundle.md) remain integrated.
+Existing advisor warnings and the global linked index_advisor/hypopg_reset lint
+failure remain; local public-schema lint passes.
 
 ## In Review
 
-Studio scouting remains in [PR #211](https://github.com/francozeta/kocteau/pull/211)
-under #206. Release work remains in [PR #202](https://github.com/francozeta/kocteau/pull/202);
-the released version is v0.3.15.
+Studio scouting: [PR #211](https://github.com/francozeta/kocteau/pull/211), #206.
+Release work: [PR #202](https://github.com/francozeta/kocteau/pull/202).
+Released version: v0.3.15.
 
 ## Limits And Next Priority
 
-The local process-restart/warm timings are not production P95, isolated SQL time
-or concurrent-user capacity. Authenticated production feed and physical
-iPhone/TikTok behavior remain unverified. The historical Data API cold-wait cause,
-existing advisor warnings and global index-advisor lint caveat remain open.
-Ten-thousand-user capacity is unverified.
+Next: reproduce and bound #243 pagination retries, then address #228/#242
+cache consistency before broader load work. #256/KOC-102 separately records
+reproduced collection-dependent taste scoring; this stage preserves ranking.
 
-Next, use representative current SQL plans under #230; reproduce #243's pagination
-failure budget and address #228/#242 cache consistency before broader load work.
-#244/#231 bound history and suggestions. Explicit-query Search remains in #229;
-#253 owns browser-fixture CI and #254 the interrupted RSC-prefetch investigation.
+The public homepage uses a separate loader and ISR. Authenticated production
+browser latency, physical iPhone/TikTok, historical cold Data API waits and
+10,000-user capacity remain unverified. #244/#231 bound history and suggestions;
+explicit-query Search remains in #229. #253 owns browser-fixture CI and #254
+interrupted RSC prefetch. Product ideas #245–#251 remain behind core reliability.

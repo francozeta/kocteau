@@ -29,3 +29,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Primary rendering](./primary-render.md): staged home/feed delivery under #229, pinned dependency checks and latency limits.
 
 - [Authenticated feed read bundle](./authenticated-feed-read-bundle.md): ranked cards and private viewer state in one authenticated read; current integration under #255.
+
+- [Starter query work](./starter-query-work.md): narrow ranking rows, current SQL plans, payload comparisons and growth limits under #230.
