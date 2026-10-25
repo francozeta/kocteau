@@ -154,8 +154,10 @@ of historical HTTP-header waits, or user capacity. Raw diagnostics remain ignore
   primary dependencies and overlap independent private state, preserving current
   editing/actions, counts, pagination, recommendation quality and geometry.
 
-These are Todo/High, not delivered fixes. They should precede the next #243
-pagination-budget stage in response to the new foreground-latency feedback.
+These are Todo/High, not delivered fixes. The maintainer now prioritizes the
+[end-to-end baseline](./reliability-baseline.md) under #147/#263 before selecting
+broader performance changes. These defects remain confirmed focused follow-ups;
+fixing them alone does not establish whole-app latency or recovery.
 #228/#242 and SQL-CI KOC-23 remain relevant. #229 retains explicit-query Search;
 #254 remains the separate interrupted-prefetch investigation. No new cache
 service, index or infrastructure expansion is justified by these measurements.

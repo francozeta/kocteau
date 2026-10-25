@@ -1,18 +1,18 @@
 # Current Project State
 
-Last checked: 2026-10-25. Starter optimization is integrated; canonical-route defects are reproduced in isolation.
+Last checked: 2026-10-25. Reliability and measurable core-journey speed take priority before broader product experience.
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
 ## Active Work
 
-Read-only canonical review/track latency investigation at main `ecdbc9a` is
-recorded in the [route research](./.plan/canonical-route-latency.md), under #147.
-Local query checks confirm repeated short-ID reads; mobile/desktop WebKit against
-a local production build confirms origin failures can display false missing pages.
-Production feedback now prioritizes #259/#260 canonical identity/recovery, then
-#261 track dependencies, before #243 pagination budgets. The investigation makes
-no application/schema/hosting changes; the issues are Todo, not shipped fixes.
+The maintainer selected an end-to-end diagnosis → selective redesign → repeated
+verification sequence under #147 and [#263 / KOC-107](https://github.com/francozeta/kocteau/issues/263).
+The [baseline plan](./.plan/reliability-baseline.md) owns its journeys and exit gate.
+The telemetry/region audit is complete; correlated p50/p95 and load limits are pending.
+The [route research](./.plan/canonical-route-latency.md) retains confirmed short-ID
+and false-missing-page defects. #259/#260 are focused follow-ups, not the complete
+latency diagnosis. Known recovery regressions can be fixed alongside measurement.
 
 The last application delivery remains [PR #257](https://github.com/francozeta/kocteau/pull/257),
 merged as `6c7d4ca` under #230. Its [starter record](./.plan/starter-query-work.md)
@@ -56,15 +56,16 @@ failure remain; local public-schema lint passes.
 
 ## In Review
 
+Reliability and route research: draft [PR #262](https://github.com/francozeta/kocteau/pull/262), documentation only.
 Studio scouting: [PR #211](https://github.com/francozeta/kocteau/pull/211), #206.
 Release work: [PR #202](https://github.com/francozeta/kocteau/pull/202).
 Released version: v0.3.15.
 
 ## Limits And Next Priority
 
-Next: implement #259/#260 with canonical lookup/error regressions, then #261
-primary-track dependency checks and #243 retry budgets. #228/#242 cache
-consistency and SQL-CI KOC-23 remain high-priority before broader load work. #256/KOC-102 separately records
+Next: #263 correlates feed/detail/Canvas journeys and records numeric budgets
+before performance changes are judged. #259/#260/#261, #243 and #228/#242 remain
+evidence-driven fixes; SQL-CI KOC-23 stays high-priority before broader load work. #256/KOC-102 separately records
 reproduced collection-dependent taste scoring; this stage preserves ranking.
 #258 links the SQL-CI gap to existing KOC-23; the 54 SQL checks currently run locally.
 

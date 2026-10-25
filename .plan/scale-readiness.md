@@ -1,5 +1,10 @@
 # Scale readiness stages
 
+The active sequence is now the [end-to-end baseline](./reliability-baseline.md)
+under #147/#263. The older sequence and rollout notes below are historical;
+shared coordination, jobs and infrastructure changes require measured need.
+[CURRENT](../CURRENT.md) and GitHub own actual integration status.
+
 Requested staged integration on 2026-10-23. Baseline main: `0ebf3d9`;
 previous public-read review base: `ffc8e5a` ([PR #221](https://github.com/francozeta/kocteau/pull/221)).
 Ten thousand active users is a target to validate, not established capacity.
