@@ -119,3 +119,33 @@ export default function FeedLoadingSkeleton() {
     </section>
   );
 }
+
+export function FeedRouteShelfSkeleton({
+  desktop = false,
+}: {
+  desktop?: boolean;
+}) {
+  return (
+    <section
+      aria-hidden="true"
+      className={
+        desktop ? "hidden space-y-3.5 lg:block" : "space-y-2.5 py-2 lg:hidden"
+      }
+    >
+      <div className="flex h-8 items-center">
+        <SkeletonLine className="w-24" />
+      </div>
+      <div className="flex gap-3 overflow-hidden py-0.5">
+        {[0, 1, 2].map((index) => (
+          <Skeleton
+            key={index}
+            className={cn(
+              "aspect-[3/4] shrink-0 rounded-[0.9rem] bg-muted-foreground/[0.1]",
+              desktop ? "w-[13.5rem] xl:w-[14rem]" : "w-[min(82vw,19rem)]",
+            )}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}

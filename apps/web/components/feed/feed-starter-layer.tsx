@@ -173,7 +173,7 @@ export default function FeedStarterLayer({
       <motion.article
         key={activeTrack.id}
         className="kocteau-review-card overflow-hidden rounded-[var(--kocteau-radius-card)]"
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
       >

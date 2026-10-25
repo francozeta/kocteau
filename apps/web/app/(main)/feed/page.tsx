@@ -33,43 +33,41 @@ export default async function FeedPage({
   }
 
   const activeView = getAuthenticatedFeedView(params.view);
-  const { feedPage, starterTracks, viewerProfile, viewerState } =
-    await measureServerTask(
-      "getAuthenticatedFeedData",
-      async () => {
-        const feedPagePromise = getFeedPage({
-          view: activeView,
-          viewerId: userId,
-          includeActiveUsers: false,
-        });
-        const starterTracksPromise = getStarterTracksForSurface({
-          viewerId: userId,
-          limit: 6,
-          surface: "home",
-          contextKey: "home",
-        });
-        const viewerProfilePromise = getCurrentViewerProfile();
-        const feedPage = await feedPagePromise;
-        const viewerStatePromise =
-          feedPage.feed.length > 0
-            ? getFeedViewerState(
-                userId,
-                feedPage.feed.map((review) => review.id),
-              )
-            : Promise.resolve({
-                likedReviewIds: new Set<string>(),
-                bookmarkedReviewIds: new Set<string>(),
-              });
-        const [starterTracks, viewerProfile, viewerState] = await Promise.all([
-          starterTracksPromise,
-          viewerProfilePromise,
-          viewerStatePromise,
-        ]);
+  const starterTracks = getStarterTracksForSurface({
+    viewerId: userId,
+    limit: 6,
+    surface: "home",
+    contextKey: "home",
+  }).catch(() => []);
+  const { feedPage, viewerProfile, viewerState } = await measureServerTask(
+    "getAuthenticatedFeedData",
+    async () => {
+      const feedPagePromise = getFeedPage({
+        view: activeView,
+        viewerId: userId,
+        includeActiveUsers: false,
+      });
+      const viewerProfilePromise = getCurrentViewerProfile();
+      const feedPage = await feedPagePromise;
+      const viewerStatePromise =
+        feedPage.feed.length > 0
+          ? getFeedViewerState(
+              userId,
+              feedPage.feed.map((review) => review.id),
+            )
+          : Promise.resolve({
+              likedReviewIds: new Set<string>(),
+              bookmarkedReviewIds: new Set<string>(),
+            });
+      const [viewerProfile, viewerState] = await Promise.all([
+        viewerProfilePromise,
+        viewerStatePromise,
+      ]);
 
-        return { feedPage, starterTracks, viewerProfile, viewerState };
-      },
-      { route: "/feed", view: activeView },
-    );
+      return { feedPage, viewerProfile, viewerState };
+    },
+    { route: "/feed", view: activeView },
+  );
   const feedData = {
     ...feedPage,
     activeUsers: [],

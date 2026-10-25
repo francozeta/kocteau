@@ -1,19 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  Suspense,
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import FeedReviewCta from "@/components/feed/feed-review-cta";
 import FeedStarterLayer from "@/components/feed/feed-starter-layer";
 import FeedStarterShelf from "@/components/feed/feed-starter-shelf";
-import { FeedReviewStackSkeleton } from "@/components/feed/feed-loading-skeletons";
+import {
+  FeedRouteShelfSkeleton,
+  FeedStarterLayerSkeleton,
+  FeedReviewStackSkeleton,
+} from "@/components/feed/feed-loading-skeletons";
 import {
   KocteauProfileIcon,
   KocteauReviewsIcon,
   KocteauSongIcon,
 } from "@/components/icons/kocteau-icons";
 import { FeedReviewCard } from "@/components/reviews/review-route-cards";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import type { FeedView } from "@/lib/feed-view";
@@ -36,7 +54,7 @@ type FeedReviewListProps = {
   initialPage?: FeedBundleQueryData;
   isAuthenticated: boolean;
   viewer: FeedReviewListViewer;
-  starterTracks?: StarterTrack[];
+  starterTracks?: StarterTrack[] | Promise<StarterTrack[]>;
   showReviewCta?: boolean;
   showStarterShelf?: boolean;
   enablePagination?: boolean;
@@ -49,10 +67,9 @@ const recommendationReasonLabels = {
   familiar_entity: "Related pick",
   author_affinity: "Similar listener",
   popular_recent: "Popular now",
-} satisfies Partial<Record<
-  NonNullable<FeedBundleReview["recommendation_reason"]>,
-  string
->>;
+} satisfies Partial<
+  Record<NonNullable<FeedBundleReview["recommendation_reason"]>, string>
+>;
 
 const reviewReadThresholds = [
   { depth: 50, eventType: "review_read_50" },
@@ -144,6 +161,48 @@ function FeedEmptyState({
   );
 }
 
+function FeedStarterContent({
+  tracks,
+  reviewedKeys,
+  mode,
+  isAuthenticated,
+  emptyFallback = null,
+  className,
+}: {
+  tracks: StarterTrack[] | Promise<StarterTrack[]>;
+  reviewedKeys: Set<string>;
+  mode: "layer" | "shelf";
+  isAuthenticated: boolean;
+  emptyFallback?: ReactNode;
+  className?: string;
+}) {
+  const resolvedTracks = Array.isArray(tracks) ? tracks : use(tracks);
+  const visibleTracks = resolvedTracks.filter(
+    (track) =>
+      !reviewedKeys.has(`${track.provider}:${track.type}:${track.provider_id}`),
+  );
+
+  if (visibleTracks.length === 0) {
+    return emptyFallback;
+  }
+
+  return mode === "layer" ? (
+    <div className={className}>
+      <FeedStarterLayer
+        tracks={visibleTracks}
+        isAuthenticated={isAuthenticated}
+      />
+    </div>
+  ) : (
+    <FeedStarterShelf
+      tracks={visibleTracks}
+      isAuthenticated={isAuthenticated}
+      variant={isAuthenticated ? "personalized" : "editorial"}
+      className={className}
+    />
+  );
+}
+
 export default function FeedReviewList({
   view,
   initialPage,
@@ -170,13 +229,8 @@ export default function FeedReviewList({
         }
       : {}),
   });
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isPending,
-  } = feedQuery;
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+    feedQuery;
   const reviews = useMemo(() => {
     const seen = new Set<string>();
 
@@ -206,16 +260,6 @@ export default function FeedReviewList({
 
     return keys;
   }, [reviews]);
-  const visibleStarterTracks = useMemo(
-    () =>
-      starterTracks.filter(
-        (track) =>
-          !reviewedStarterKeys.has(
-            `${track.provider}:${track.type}:${track.provider_id}`,
-          ),
-      ),
-    [reviewedStarterKeys, starterTracks],
-  );
   const forYouReadAnalyticsReviews = useMemo(
     () =>
       reviews.map((review, position) => ({
@@ -243,61 +287,81 @@ export default function FeedReviewList({
       return;
     }
 
-    let reviewPositionOffset = 0;
+    let cancelled = false;
+    void Promise.resolve(starterTracks).then((resolvedStarters) => {
+      if (cancelled) return;
+      const starterCount = resolvedStarters.filter(
+        (track) => !reviewedStarterKeys.has(
+          `${track.provider}:${track.type}:${track.provider_id}`,
+        ),
+      ).length;
+      let reviewPositionOffset = 0;
 
-    (data?.pages ?? []).forEach((page, pageIndex) => {
-      const reviewIds = page.feed.map((review) => review.id);
-      const pageStartPosition = reviewPositionOffset;
-      reviewPositionOffset += page.feed.length;
+      (data?.pages ?? []).forEach((page, pageIndex) => {
+        const reviewIds = page.feed.map((review) => review.id);
+        const pageStartPosition = reviewPositionOffset;
+        reviewPositionOffset += page.feed.length;
 
-      if (reviewIds.length === 0) {
-        return;
-      }
+        if (reviewIds.length === 0) {
+          return;
+        }
 
-      const pageKey = `${view}:${pageIndex}:${reviewIds.join(",")}`;
+        const pageKey = `${view}:${pageIndex}:${reviewIds.join(",")}`;
 
-      if (trackedPageKeysRef.current.has(pageKey)) {
-        return;
-      }
+        if (trackedPageKeysRef.current.has(pageKey)) {
+          return;
+        }
 
-      trackedPageKeysRef.current.add(pageKey);
-      trackAnalyticsEvent({
-        eventType: "feed_loaded",
-        source: "feed:for-you",
-        metadata: {
-          view,
-          page_index: pageIndex,
-          review_count: reviewIds.length,
-          starter_count: visibleStarterTracks.length,
-          review_ids: reviewIds,
-          has_cursor: Boolean(page.nextCursor),
-          has_next_page: Boolean(page.nextCursor),
-        },
-      });
-
-      page.feed.forEach((review, reviewIndex) => {
+        trackedPageKeysRef.current.add(pageKey);
         trackAnalyticsEvent({
-          eventType: "review_impression",
+          eventType: "feed_loaded",
           source: "feed:for-you",
           metadata: {
-            review_id: review.id,
-            entity_id: review.entities?.id ?? null,
-            reason: review.recommendation_reason ?? null,
+            view,
             page_index: pageIndex,
-            position: pageStartPosition + reviewIndex,
+            review_count: reviewIds.length,
+            starter_count: starterCount,
+            review_ids: reviewIds,
+            has_cursor: Boolean(page.nextCursor),
+            has_next_page: Boolean(page.nextCursor),
           },
+        });
+
+        page.feed.forEach((review, reviewIndex) => {
+          trackAnalyticsEvent({
+            eventType: "review_impression",
+            source: "feed:for-you",
+            metadata: {
+              review_id: review.id,
+              entity_id: review.entities?.id ?? null,
+              reason: review.recommendation_reason ?? null,
+              page_index: pageIndex,
+              position: pageStartPosition + reviewIndex,
+            },
+          });
         });
       });
     });
-  }, [data?.pages, isAuthenticated, view, visibleStarterTracks.length]);
+    return () => {
+      cancelled = true;
+    };
+  }, [data?.pages, isAuthenticated, reviewedStarterKeys, starterTracks, view]);
 
   useEffect(() => {
-    if (view !== "for-you" || !isAuthenticated || forYouReadAnalyticsReviews.length === 0) {
+    if (
+      view !== "for-you" ||
+      !isAuthenticated ||
+      forYouReadAnalyticsReviews.length === 0
+    ) {
       return;
     }
 
-    const scrollRoot = document.querySelector<HTMLElement>("[data-kocteau-scroll-main]");
-    const reviewById = new Map(forYouReadAnalyticsReviews.map((review) => [review.id, review]));
+    const scrollRoot = document.querySelector<HTMLElement>(
+      "[data-kocteau-scroll-main]",
+    );
+    const reviewById = new Map(
+      forYouReadAnalyticsReviews.map((review) => [review.id, review]),
+    );
     let frame = 0;
     let dwellTimer = 0;
 
@@ -330,7 +394,11 @@ export default function FeedReviewList({
 
         const rect = node.getBoundingClientRect();
 
-        if (rect.height <= 0 || rect.bottom <= viewport.top || rect.top >= viewport.bottom) {
+        if (
+          rect.height <= 0 ||
+          rect.bottom <= viewport.top ||
+          rect.top >= viewport.bottom
+        ) {
           reviewVisibleSinceRef.current.delete(review.id);
           continue;
         }
@@ -339,7 +407,8 @@ export default function FeedReviewList({
           reviewVisibleSinceRef.current.set(review.id, now);
         }
 
-        const visibleFor = now - (reviewVisibleSinceRef.current.get(review.id) ?? now);
+        const visibleFor =
+          now - (reviewVisibleSinceRef.current.get(review.id) ?? now);
 
         const progress = Math.max(
           0,
@@ -383,10 +452,13 @@ export default function FeedReviewList({
         return;
       }
 
-      dwellTimer = window.setTimeout(() => {
-        dwellTimer = 0;
-        scheduleMeasureReadDepth();
-      }, Math.max(0, delay));
+      dwellTimer = window.setTimeout(
+        () => {
+          dwellTimer = 0;
+          scheduleMeasureReadDepth();
+        },
+        Math.max(0, delay),
+      );
     }
 
     function scheduleMeasureReadDepth() {
@@ -399,7 +471,9 @@ export default function FeedReviewList({
 
     scheduleMeasureReadDepth();
     window.addEventListener("resize", scheduleMeasureReadDepth);
-    scrollRoot?.addEventListener("scroll", scheduleMeasureReadDepth, { passive: true });
+    scrollRoot?.addEventListener("scroll", scheduleMeasureReadDepth, {
+      passive: true,
+    });
 
     return () => {
       if (frame) {
@@ -443,18 +517,12 @@ export default function FeedReviewList({
   }, [enablePagination, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const showStarterLayer =
-    view === "for-you" &&
-    isAuthenticated &&
-    visibleStarterTracks.length > 0 &&
-    reviews.length < 4;
+    view === "for-you" && isAuthenticated && reviews.length < 4;
   const shouldShowStarterShelf =
     showStarterShelf &&
-    visibleStarterTracks.length > 0 &&
     reviews.length > 0 &&
-    (
-      (isAuthenticated && view === "for-you") ||
-      (!isAuthenticated && view === "latest")
-    );
+    ((isAuthenticated && view === "for-you") ||
+      (!isAuthenticated && view === "latest"));
   const shouldShowReviewCta =
     showReviewCta && (view === "for-you" || view === "latest");
 
@@ -469,10 +537,24 @@ export default function FeedReviewList({
   if (reviews.length === 0) {
     if (showStarterLayer) {
       return (
-        <FeedStarterLayer
-          tracks={visibleStarterTracks}
-          isAuthenticated={isAuthenticated}
-        />
+        <Suspense fallback={<FeedStarterLayerSkeleton />}>
+          <FeedStarterContent
+            tracks={starterTracks}
+            reviewedKeys={reviewedStarterKeys}
+            mode="layer"
+            className={
+              reviews.length > 0 && shouldShowStarterShelf
+                ? "hidden lg:block"
+                : undefined
+            }
+            isAuthenticated={isAuthenticated}
+            emptyFallback={
+              reviews.length === 0 ? (
+                <FeedEmptyState view={view} isAuthenticated={isAuthenticated} />
+              ) : null
+            }
+          />
+        </Suspense>
       );
     }
 
@@ -486,12 +568,15 @@ export default function FeedReviewList({
       ) : null}
 
       {shouldShowStarterShelf ? (
-        <FeedStarterShelf
-          tracks={visibleStarterTracks}
-          isAuthenticated={isAuthenticated}
-          variant={isAuthenticated ? "personalized" : "editorial"}
-          className="lg:hidden"
-        />
+        <Suspense fallback={<FeedRouteShelfSkeleton />}>
+          <FeedStarterContent
+            tracks={starterTracks}
+            reviewedKeys={reviewedStarterKeys}
+            mode="shelf"
+            className="lg:hidden"
+            isAuthenticated={isAuthenticated}
+          />
+        </Suspense>
       ) : null}
 
       {reviews.map((review, index) => {
@@ -516,16 +601,39 @@ export default function FeedReviewList({
       })}
 
       {showStarterLayer ? (
-        <div className={shouldShowStarterShelf ? "hidden lg:block" : undefined}>
-          <FeedStarterLayer
-            tracks={visibleStarterTracks}
+        <Suspense
+          fallback={
+            <div
+              className={shouldShowStarterShelf ? "hidden lg:block" : undefined}
+            >
+              <FeedStarterLayerSkeleton />
+            </div>
+          }
+        >
+          <FeedStarterContent
+            tracks={starterTracks}
+            reviewedKeys={reviewedStarterKeys}
+            mode="layer"
+            className={
+              reviews.length > 0 && shouldShowStarterShelf
+                ? "hidden lg:block"
+                : undefined
+            }
             isAuthenticated={isAuthenticated}
+            emptyFallback={
+              reviews.length === 0 ? (
+                <FeedEmptyState view={view} isAuthenticated={isAuthenticated} />
+              ) : null
+            }
           />
-        </div>
+        </Suspense>
       ) : null}
 
       {!enablePagination ? null : hasNextPage ? (
-        <div ref={sentinelRef} className="flex min-h-12 items-center justify-center py-2">
+        <div
+          ref={sentinelRef}
+          className="flex min-h-12 items-center justify-center py-2"
+        >
           {isFetchingNextPage ? (
             <Spinner className="size-4 text-muted-foreground/70" />
           ) : null}
