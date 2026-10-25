@@ -31,3 +31,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Authenticated feed read bundle](./authenticated-feed-read-bundle.md): ranked cards and private viewer state in one authenticated read; current integration under #255.
 
 - [Starter query work](./starter-query-work.md): narrow ranking rows, current SQL plans, payload comparisons and growth limits under #230.
+
+- [Canonical route latency](./canonical-route-latency.md): read-only detail/track navigation evidence, short-ID caching, route recovery and primary dependency follow-ups under #259–#261.

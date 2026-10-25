@@ -1,16 +1,26 @@
 # Current Project State
 
-Last checked: 2026-10-25. Starter query optimization is integrated in main.
+Last checked: 2026-10-25. Starter optimization is integrated; canonical-route research is documented for review.
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
 ## Active Work
 
-Observe [PR #257](https://github.com/francozeta/kocteau/pull/257), merged as
-`6c7d4ca`, under #230/#147. Next work is #243's pagination retry budget. The [starter query record](./.plan/starter-query-work.md) owns current
-SQL plans, exact response parity, delivery and measurement limits.
+Read-only canonical review/track latency investigation at main `ecdbc9a` is
+recorded in the [route research](./.plan/canonical-route-latency.md), under #147.
+Production feedback now prioritizes #259/#260 canonical identity/recovery, then
+#261 track dependencies, before #243 pagination budgets. The investigation makes
+no application/schema/hosting changes; the issues are Todo, not shipped fixes.
+
+The last application delivery remains [PR #257](https://github.com/francozeta/kocteau/pull/257),
+merged as `6c7d4ca` under #230. Its [starter record](./.plan/starter-query-work.md)
+owns SQL delivery and measurement limits.
 
 ## Verified Delivery
+
+The following verification belongs to the previous code delivery. The latest
+research separately used six HTTP reads, normal mobile Link navigation, current
+runtime logs and two read-only SQL plans; it is not a new capacity benchmark.
 
 Source CI/preview passed at `635fdcc1`; main Verify passed at `6c7d4ca`.
 Production was observed READY with `kocteau.com` before/after guest WebKit checks
@@ -48,8 +58,9 @@ Released version: v0.3.15.
 
 ## Limits And Next Priority
 
-Next: reproduce and bound #243 pagination retries, then address #228/#242
-cache consistency before broader load work. #256/KOC-102 separately records
+Next: implement #259/#260 with canonical lookup/error regressions, then #261
+primary-track dependency checks and #243 retry budgets. #228/#242 cache
+consistency and SQL-CI KOC-23 remain high-priority before broader load work. #256/KOC-102 separately records
 reproduced collection-dependent taste scoring; this stage preserves ranking.
 #258 links the SQL-CI gap to existing KOC-23; the 54 SQL checks currently run locally.
 
