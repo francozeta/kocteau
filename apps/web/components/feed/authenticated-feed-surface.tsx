@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { FeedRouteShelfSkeleton } from "@/components/feed/feed-loading-skeletons";
 import FeedInRotationShelf from "@/components/feed/feed-in-rotation-shelf";
 import FeedReviewList from "@/components/feed/feed-review-list";
 import FeedViewTabs from "@/components/feed/feed-view-tabs";
@@ -17,7 +18,7 @@ type AuthenticatedFeedSurfaceProps = {
   initialView: Exclude<FeedView, "latest">;
   initialPage: FeedBundleQueryData;
   viewer: CurrentViewerProfile | null;
-  starterTracks: StarterTrack[];
+  starterTracks: Promise<StarterTrack[]>;
 };
 
 function readViewFromLocation() {
@@ -68,13 +69,12 @@ export default function AuthenticatedFeedSurface({
         />
       </div>
       <div className="hidden max-w-[44rem] justify-start lg:flex">
-        <FeedViewTabs
-          activeView={activeView}
-          onViewChange={handleViewChange}
-        />
+        <FeedViewTabs activeView={activeView} onViewChange={handleViewChange} />
       </div>
       {activeView === "for-you" ? (
-        <FeedInRotationShelf tracks={starterTracks} />
+        <Suspense fallback={<FeedRouteShelfSkeleton desktop />}>
+          <FeedInRotationShelf tracks={starterTracks} />
+        </Suspense>
       ) : null}
       <div className="w-full space-y-4">
         <FeedReviewList

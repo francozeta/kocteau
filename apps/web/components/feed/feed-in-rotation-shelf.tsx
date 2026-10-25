@@ -1,16 +1,18 @@
+import { use } from "react";
 import SectionLinkHeading from "@/components/shared/section-link-heading";
 import StarterRouteCard from "@/components/music/starter-route-card";
 import TrackCarousel from "@/components/music/track-carousel";
 import type { StarterTrack } from "@/lib/starter";
 
 type FeedInRotationShelfProps = {
-  tracks: StarterTrack[];
+  tracks: StarterTrack[] | Promise<StarterTrack[]>;
 };
 
 export default function FeedInRotationShelf({
   tracks,
 }: FeedInRotationShelfProps) {
-  const visibleTracks = tracks.slice(0, 8);
+  const resolvedTracks = Array.isArray(tracks) ? tracks : use(tracks);
+  const visibleTracks = resolvedTracks.slice(0, 8);
 
   if (visibleTracks.length === 0) {
     return null;
@@ -35,11 +37,7 @@ export default function FeedInRotationShelf({
         viewportClassName="-mr-7 pr-7"
       >
         {visibleTracks.map((track, index) => (
-          <StarterRouteCard
-            key={track.id}
-            track={track}
-            priority={index < 4}
-          />
+          <StarterRouteCard key={track.id} track={track} priority={index < 4} />
         ))}
       </TrackCarousel>
     </section>

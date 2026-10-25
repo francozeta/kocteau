@@ -6,6 +6,22 @@ Read [AGENTS.md](../AGENTS.md) and [CURRENT.md](../CURRENT.md). Open the relevan
 [flow README](./components.md) and its linked technical guide. Inspect Git status,
 recent commits, and the coordinating issue or PR before changing files.
 
+## Plan And Prioritize
+
+Capture actionable improvements and future product hypotheses in GitHub issues
+before implementation. Include the user problem, existing behavior, sources,
+smallest scope, dependencies, priority and a verifiable acceptance condition.
+For uncertain experiments, record what would lead to keeping, revising or
+dropping the idea. Link related issues rather than duplicating an existing scope.
+
+The connected Linear workspace imports GitHub issues. Organize those imported
+items by project, priority and status; link implementation PRs and evidence back
+to the issue. Do not create a second ticket for the same imported work or mark
+a local result as shipped. Current product hypotheses are indexed in
+[the discovery backlog](https://github.com/francozeta/kocteau/issues/251);
+[the performance tracker](https://github.com/francozeta/kocteau/issues/147)
+orders the active home/feed work.
+
 ## Change
 
 Keep one task on one conventional branch. Record only decisions that will matter
