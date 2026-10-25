@@ -76,9 +76,45 @@ corrects existing fixture-file permissions, and preserves optional guest active
 profiles. Local auth.uid() reads both the individual sub GUC and JSON claims;
 all 40 SQL checks pass with the JSON claim setup used by the regression tests.
 PR #222 has a published review follow-up and is synchronized with search recovery.
-Application rollout is held during search-incident observation; its database
-delivery is complete. Cloud publication/OTP and production-authenticated browser
+That earlier application rollout was held during search-incident observation;
+its database delivery was complete. Current integration is recorded below. Cloud publication/OTP and production-authenticated browser
 behavior remain separate verification limits.
 
 Shared cooldown, distributed admission, durable jobs and 10,000-user mixed traffic
 remain subsequent work; this change does not establish that capacity.
+
+
+## Current integration — 25 Oct 2026
+
+Issue #255 reconciles PR head `65903f3` with main `bdc419d` without rewriting
+published history. The page retains #252's shared, independent editorial promise;
+the public list retains #241's throwing cache callback, v2 cache namespace and
+HTTP 503/private-no-store recovery. Normal For You reads use the bundle once.
+Only a specifically missing bundle falls back to bounded Latest hydration.
+Unexpected timeouts/permission errors stop after one attempted RPC; failed
+compatibility hydration also propagates rather than becoming empty success.
+No new cloud migration was needed; the 37 remote versions and current bundle
+privileges were rechecked read-only.
+
+Current-source verification passes 202 tests (12 new bundle boundary cases),
+seven real local SQL files/40 checks, and complete API JSON parity over three
+pages for two actual local sessions. Baseline is current main `bdc419d`, using
+the same 37-version local database. Each first page uses four Data API requests
+before and one after; subsequent pages use three before and one after.
+
+The matched restart sequence keeps the shared database warm. Only its initial
+pair is cold at the application-process level: 221 → 122 ms. The subsequent
+warm sequence measured 30–37 ms before and 22–26 ms after over six pairs.
+These small loopback observations include HTTP/JSON time, exclude the trace
+stabilization wait, and are neither isolated SQL time nor production P95.
+Earlier verifier timings included that artificial wait; use the corrected
+measurement boundary for future comparisons.
+
+Four authenticated HTTP fault scenarios confirm non-cacheable 503 recovery,
+no unexpected fallback fanout, and explicit missing-function compatibility.
+Four WebKit sessions (two viewers at two viewport sizes) preserve private flags,
+view navigation and pagination; reversible local like/bookmark actions pass.
+The ten primary-render scenarios also pass against the integrated page.
+
+Production-authenticated observation, physical-device verification and capacity
+remain unverified. CURRENT.md and GitHub own publication/deployment status.

@@ -33,42 +33,35 @@ export default async function FeedPage({
   }
 
   const activeView = getAuthenticatedFeedView(params.view);
-  const { feedPage, starterTracks, viewerProfile, viewerState } =
-    await measureServerTask(
-      "getAuthenticatedFeedData",
-      async () => {
-        const feedPagePromise = getFeedPageBundle(userId, activeView, {
-          includeActiveUsers: false,
-        });
-        const starterTracksPromise = getStarterTracksForSurface({
-          viewerId: userId,
-          limit: 6,
-          surface: "home",
-          contextKey: "home",
-        });
-        const viewerProfilePromise = getCurrentViewerProfile();
-        const [feedPage, starterTracks, viewerProfile] = await Promise.all([
-          feedPagePromise,
-          starterTracksPromise,
-          viewerProfilePromise,
-        ]);
-        const viewerState = {
-          likedReviewIds: feedPage.likedReviewIds,
-          bookmarkedReviewIds: feedPage.bookmarkedReviewIds,
-        };
-
-        return { feedPage, starterTracks, viewerProfile, viewerState };
-      },
-      { route: "/feed", view: activeView },
-    );
+  const starterTracks = getStarterTracksForSurface({
+    viewerId: userId,
+    limit: 6,
+    surface: "home",
+    contextKey: "home",
+  }).catch(() => []);
+  const { feedPage, viewerProfile } = await measureServerTask(
+    "getAuthenticatedFeedData",
+    async () => {
+      const feedPagePromise = getFeedPageBundle(userId, activeView, {
+        includeActiveUsers: false,
+      });
+      const viewerProfilePromise = getCurrentViewerProfile();
+      const [feedPage, viewerProfile] = await Promise.all([
+        feedPagePromise,
+        viewerProfilePromise,
+      ]);
+      return { feedPage, viewerProfile };
+    },
+    { route: "/feed", view: activeView },
+  );
   const feedData = {
     view: feedPage.view,
     nextCursor: feedPage.nextCursor,
     activeUsers: [],
     feed: feedPage.feed.map((review) => ({
       ...review,
-      viewer_has_liked: viewerState.likedReviewIds.has(review.id),
-      viewer_has_bookmarked: viewerState.bookmarkedReviewIds.has(review.id),
+      viewer_has_liked: feedPage.likedReviewIds.has(review.id),
+      viewer_has_bookmarked: feedPage.bookmarkedReviewIds.has(review.id),
     })),
     requiresAuth: false,
   };

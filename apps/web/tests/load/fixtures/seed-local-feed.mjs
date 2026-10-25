@@ -81,7 +81,7 @@ sql("INSERT INTO auth.users(id,aud,role,email,encrypted_password,email_confirmed
 const viewerIds = accounts.map(account => quote(account.id)).join(",");
 sql("DELETE FROM public.review_likes WHERE user_id IN (" + viewerIds +
   "); DELETE FROM public.review_bookmarks WHERE user_id IN (" + viewerIds + ")");
-const first = await fetch("http://127.0.0.1:3001/api/feed?view=for-you", { headers: { Cookie: accounts[0].cookie } });
+const first = await fetch("http://127.0.0.1:3001/api/feed?view=for-you", { headers: { Cookie: accounts[0].cookie }, signal: AbortSignal.timeout(10_000) });
 assert.equal(first.status, 200, "start the baseline app on port 3001 before seeding");
 const { feed } = await first.json();
 const privateTarget = feed.find(row => row.author?.id !== accounts[0].id)?.id;

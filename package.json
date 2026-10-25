@@ -53,7 +53,8 @@
     "perf:reads:fixture": "node apps/web/tests/load/fixtures/public-data.mjs",
     "perf:reads:verify": "node apps/web/tests/load/verify-public-reads.mjs",
     "perf:feed:seed": "node apps/web/tests/load/fixtures/seed-local-feed.mjs",
-    "perf:feed:verify": "node apps/web/tests/load/verify-feed-reads.mjs"
+    "perf:feed:verify": "node apps/web/tests/load/verify-feed-reads.mjs",
+    "perf:feed:browser": "node apps/web/tests/load/verify-authenticated-feed.mjs"
   },
   "devDependencies": {
     "eslint": "9.39.4",

@@ -1,6 +1,14 @@
+import { Suspense } from "react";
 import { circular, redaction } from "@/app/landing-fonts";
 import GuestHeader from "@/components/landing/guest-header";
-import GuestHome from "@/components/landing/guest-home";
+import GuestHome, {
+  GuestRecentReviews,
+  ProductFeatureGrid,
+} from "@/components/landing/guest-home";
+import GuestProductPreview from "@/components/landing/guest-product-preview";
+import { FeedReviewStackSkeleton } from "@/components/feed/feed-loading-skeletons";
+import type { StarterTrack } from "@/lib/starter";
+import type { FeedBundleReview } from "@/queries/feed";
 import JsonLd from "@/components/shared/json-ld";
 import { createPageMetadata } from "@/lib/metadata";
 import { measureServerTask } from "@/lib/perf";
@@ -20,31 +28,30 @@ export const metadata = createPageMetadata({
   path: "/",
 });
 
-export default async function HomePage() {
-  const [publicBundle, starterTracks] = await measureServerTask(
-    "getPublicHomeData",
-    () =>
-      Promise.all([
-        getFeedPage({
-          view: "latest",
-          limit: 3,
-          includeActiveUsers: false,
-          publicOnly: true,
-          revalidateSeconds: 5 * 60,
-        }),
-        getPublicStarterTracks({ limit: 6, contextKey: "home" }),
-      ]),
-    { route: "/" },
-  );
+async function HomeProductPreview({
+  tracks,
+}: {
+  tracks: Promise<StarterTrack[]>;
+}) {
+  return <GuestProductPreview starterTracks={await tracks} />;
+}
 
-  const recentPage = {
-    ...publicBundle,
-    activeUsers: [],
-    nextCursor: null,
-    requiresAuth: false,
-  };
+async function HomeProductFeatures({
+  tracks,
+}: {
+  tracks: Promise<StarterTrack[]>;
+}) {
+  return <ProductFeatureGrid starterTracks={await tracks} />;
+}
+
+async function HomeRecentReviews({
+  data,
+}: {
+  data: Promise<FeedBundleReview[]>;
+}) {
+  const reviews = await data;
   const feedStructuredData = buildFeedPageJsonLd(
-    recentPage.feed.flatMap((review) => {
+    reviews.flatMap((review) => {
       const entity = review.entities;
       const author = review.author;
 
@@ -75,7 +82,32 @@ export default async function HomePage() {
       ];
     }),
   );
+  return (
+    <>
+      <JsonLd data={feedStructuredData} id="home-structured-data" />
+      <GuestRecentReviews reviews={reviews} />
+    </>
+  );
+}
 
+export default function HomePage() {
+  const recentReviews = measureServerTask(
+    "getPublicHomeReviews",
+    () =>
+      getFeedPage({
+        view: "latest",
+        limit: 3,
+        includeActiveUsers: false,
+        publicOnly: true,
+        revalidateSeconds: 5 * 60,
+      }),
+    { route: "/" },
+  ).then((bundle) => bundle.feed);
+  const starterTracks = measureServerTask(
+    "getPublicHomeStarters",
+    () => getPublicStarterTracks({ limit: 6, contextKey: "home" }),
+    { route: "/" },
+  );
   return (
     <div
       className={`${circular.variable} ${redaction.variable} kocteau-guest-typography kocteau-guest-grain min-h-svh overflow-x-clip bg-[var(--kocteau-landing-canvas)] text-foreground`}
@@ -83,10 +115,28 @@ export default async function HomePage() {
       <GuestHeader />
       <main className="pt-15 sm:pt-16">
         <JsonLd data={buildHomePageJsonLd()} id="home-page-structured-data" />
-        <JsonLd data={feedStructuredData} id="home-structured-data" />
         <GuestHome
-          recentReviews={recentPage.feed}
-          starterTracks={starterTracks}
+          recentReviews={
+            <Suspense
+              fallback={
+                <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
+                  <FeedReviewStackSkeleton />
+                </div>
+              }
+            >
+              <HomeRecentReviews data={recentReviews} />
+            </Suspense>
+          }
+          productPreview={
+            <Suspense fallback={<GuestProductPreview starterTracks={[]} />}>
+              <HomeProductPreview tracks={starterTracks} />
+            </Suspense>
+          }
+          productFeatures={
+            <Suspense fallback={<ProductFeatureGrid starterTracks={[]} />}>
+              <HomeProductFeatures tracks={starterTracks} />
+            </Suspense>
+          }
         />
       </main>
     </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { RiOpenaiFill } from "react-icons/ri";
 import {
   SiClaude,
@@ -8,7 +9,6 @@ import {
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import GuestDitheredMark from "@/components/landing/guest-dithered-mark";
 import GuestFooter from "@/components/landing/guest-footer";
-import GuestProductPreview from "@/components/landing/guest-product-preview";
 import GuestReviewList from "@/components/landing/guest-review-list";
 import GuestTestimonials from "@/components/landing/guest-testimonials";
 import { SpotlightLogo } from "@/components/landing/spotlight-logo";
@@ -17,8 +17,9 @@ import type { StarterTrack } from "@/lib/starter";
 import type { FeedBundleReview } from "@/queries/feed";
 
 type GuestHomeProps = {
-  recentReviews: FeedBundleReview[];
-  starterTracks: StarterTrack[];
+  recentReviews: ReactNode;
+  productPreview: ReactNode;
+  productFeatures: ReactNode;
 };
 
 const askKocteauPrompt = encodeURIComponent(
@@ -101,7 +102,7 @@ function GuestHomeHero() {
   );
 }
 
-function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }) {
+export function ProductFeatureGrid({ starterTracks }: { starterTracks: StarterTrack[] }) {
   const visibleTracks = starterTracks.slice(0, 3);
 
   return (
@@ -284,47 +285,63 @@ function GuestClosingCta() {
   );
 }
 
+export function GuestRecentReviews({
+  reviews,
+}: {
+  reviews: FeedBundleReview[];
+}) {
+  return reviews.length > 0 ? (
+    <section
+      id="recent-reviews"
+      aria-labelledby="recent-reviews-title"
+      className="mx-auto w-full max-w-[80rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10"
+    >
+      <div className="flex items-end justify-between gap-4 px-0.5">
+        <h2
+          id="recent-reviews-title"
+          className="font-serif text-[1.35rem] font-semibold text-foreground"
+        >
+          Recently reviewed.
+        </h2>
+        <Link
+          href="/reviews"
+          className="text-[11.5px] font-medium text-muted-foreground/58 transition-colors hover:text-foreground"
+        >
+          Explore more
+        </Link>
+      </div>
+      <GuestReviewList reviews={reviews} />
+    </section>
+  ) : null;
+}
+
 export default function GuestHome({
   recentReviews,
-  starterTracks,
+  productPreview,
+  productFeatures,
 }: GuestHomeProps) {
   return (
     <div className="kocteau-guest-typography bg-[var(--kocteau-landing-canvas)]">
       <div className="space-y-16 sm:space-y-20 lg:space-y-24">
         <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
           <GuestHomeHero />
-          <div className="-mt-7 sm:-mt-10 lg:-mt-14">
-            <GuestProductPreview starterTracks={starterTracks} />
-          </div>
+          <div className="-mt-7 sm:-mt-10 lg:-mt-14">{productPreview}</div>
         </div>
 
         <div className="relative isolate overflow-x-clip bg-[var(--kocteau-landing-canvas)]">
           <GuestDitheredMark className="absolute -right-44 -top-24 h-[24rem] w-[32rem] opacity-30 sm:-right-60 sm:-top-28 sm:h-[30rem] sm:w-[40rem] sm:opacity-40 lg:-right-72 lg:-top-32 lg:h-[34rem] lg:w-[45rem]" />
 
           <div className="relative z-10 mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
-            <ProductFeatureGrid starterTracks={starterTracks} />
+            {productFeatures}
           </div>
         </div>
-
       </div>
 
       <div className="mt-16 bg-[var(--kocteau-landing-canvas)] sm:mt-20 lg:mt-24">
         <GuestTestimonials />
 
         <div className="space-y-16 pt-16 sm:space-y-20 sm:pt-20 lg:space-y-24 lg:pt-24">
-          {recentReviews.length > 0 ? (
-            <section id="recent-reviews" aria-labelledby="recent-reviews-title" className="mx-auto w-full max-w-[80rem] scroll-mt-20 space-y-3 px-4 sm:px-6 lg:px-10">
-              <div className="flex items-end justify-between gap-4 px-0.5">
-                <h2 id="recent-reviews-title" className="font-serif text-[1.35rem] font-semibold text-foreground">
-                  Recently reviewed.
-                </h2>
-                <Link href="/reviews" className="text-[11.5px] font-medium text-muted-foreground/58 transition-colors hover:text-foreground">
-                  Explore more
-                </Link>
-              </div>
-              <GuestReviewList reviews={recentReviews} />
-            </section>
-          ) : null}
+          {recentReviews}
 
           <GuestClosingCta />
         </div>

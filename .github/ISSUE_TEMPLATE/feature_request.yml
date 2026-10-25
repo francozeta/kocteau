@@ -19,6 +19,28 @@ body:
       description: Describe the smallest useful version.
     validations:
       required: true
+  - type: textarea
+    id: existing
+    attributes:
+      label: Existing behavior and related issues
+      description: Describe what Kocteau already provides and link overlapping work.
+  - type: textarea
+    id: validation
+    attributes:
+      label: How will we decide this helped?
+      description: Give an observable acceptance condition. For experiments, explain when to keep, revise or drop the idea.
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Suggested timing
+      options:
+        - Current reliability or performance problem.
+        - Next focused improvement.
+        - Future experiment or research.
+    validations:
+      required: true
   - type: dropdown
     id: lane
     attributes:

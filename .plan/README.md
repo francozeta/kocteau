@@ -22,4 +22,10 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 
 - [Search recovery](./search-recovery.md): typing amplification, recoverable errors and history/session continuity after the production incident.
 
-- [Authenticated feed bundle](./authenticated-feed-read-bundle.md): schema delivered and read parity verified; application rollout held during search-incident observation.
+- [Public read cache recovery](./public-read-cache-recovery.md): starter failure boundaries and render-scoped provider lookup reuse; isolated evidence and rollout limits.
+
+- [Anonymous review recovery](./review-read-recovery.md): failed public list fills, explicit recovery and content-based guest verification under issue #240.
+
+- [Primary rendering](./primary-render.md): staged home/feed delivery under #229, pinned dependency checks and latency limits.
+
+- [Authenticated feed read bundle](./authenticated-feed-read-bundle.md): ranked cards and private viewer state in one authenticated read; current integration under #255.

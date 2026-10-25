@@ -69,6 +69,12 @@
   use `Cache-Control: no-store`; server-side local data and provider fetch caches
   may still be reused. Empty-query responses use the same no-store policy.
 
+Public starter picks use a separate 15-minute tagged cache in
+`lib/queries/starter.ts`. Successful empty catalogs are cacheable. Failed origin
+reads escape the cached callback; the optional empty fallback is returned outside
+it, so a failed fill remains retryable and a failed refresh cannot replace valid
+picks with an empty result. This does not change personalized starter ranking.
+
 ## Preserve
 
 Browsing works signed out; publishing requires auth. Keep the Kocteau ranking
