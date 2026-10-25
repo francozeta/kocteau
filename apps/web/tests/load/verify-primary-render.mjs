@@ -226,6 +226,7 @@ try {
     [
       'export async function getFeedPage({view="latest",viewerId=null}={}){ return fetch(process.env.FIXTURE_ORIGIN+"/feed?"+new URLSearchParams({view,viewer:viewerId??"guest"}),{cache:"no-store"}).then(r=>r.json()); }',
       'export async function getFeedViewerState(viewerId,ids){ return {likedReviewIds:new Set(viewerId==="viewer-a"?ids:[]),bookmarkedReviewIds:new Set()}; }',
+      'export async function getFeedPageBundle(viewerId,view="latest",options={}){const page=await getFeedPage({view,viewerId,...options});return {...page,...await getFeedViewerState(viewerId,page.feed.map(review=>review.id))};}',
     ].join("\n"),
   );
   await writeFile(

@@ -6,10 +6,14 @@ Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-Observe [PR #252](https://github.com/francozeta/kocteau/pull/252), merged as
-`9265b50`, under #147/#229. The [primary-render record](./.plan/primary-render.md)
-owns the pinned comparison and its limits. Explicit-query Search remains open in
-#229; the feed transport consumer in PR #222 is still a separate delivery.
+Integrate [#255](https://github.com/francozeta/kocteau/issues/255) through the
+existing [PR #222](https://github.com/francozeta/kocteau/pull/222). The local
+`perf/feed-bundle-integration` branch reconciles head `65903f3` with main
+`bdc419d`, preserving #241's cache/error handling and #252's independent editorial
+promise. Local verification passes 202 tests, 40 SQL checks, two-session/three-page
+API parity, authenticated WebKit and primary-render recovery. Publication and
+production-authenticated verification remain pending; the already-delivered
+37-version schema is not being reapplied. Explicit-query Search remains in #229.
 
 Product hypotheses are indexed in [#251](https://github.com/francozeta/kocteau/issues/251),
 with sources, scope and evaluation criteria in #245–#250. Existing GitHub imports

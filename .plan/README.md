@@ -27,3 +27,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Anonymous review recovery](./review-read-recovery.md): failed public list fills, explicit recovery and content-based guest verification under issue #240.
 
 - [Primary rendering](./primary-render.md): staged home/feed delivery under #229, pinned dependency checks and latency limits.
+
+- [Authenticated feed read bundle](./authenticated-feed-read-bundle.md): ranked cards and private viewer state in one authenticated read; current integration under #255.

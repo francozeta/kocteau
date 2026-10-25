@@ -51,7 +51,10 @@
     "perf:search:smoke": "k6 run -e K6_PROFILE=smoke -e K6_SEARCH_ONLY=1 -e K6_SEARCH_SOURCE=local -e K6_SEARCH_REQUIRE_MATCHES=1 apps/web/tests/load/kocteau.js",
     "perf:search:baseline": "k6 run -e K6_PROFILE=baseline -e K6_SEARCH_ONLY=1 -e K6_SEARCH_SOURCE=local -e K6_SEARCH_REQUIRE_MATCHES=1 apps/web/tests/load/kocteau.js",
     "perf:reads:fixture": "node apps/web/tests/load/fixtures/public-data.mjs",
-    "perf:reads:verify": "node apps/web/tests/load/verify-public-reads.mjs"
+    "perf:reads:verify": "node apps/web/tests/load/verify-public-reads.mjs",
+    "perf:feed:seed": "node apps/web/tests/load/fixtures/seed-local-feed.mjs",
+    "perf:feed:verify": "node apps/web/tests/load/verify-feed-reads.mjs",
+    "perf:feed:browser": "node apps/web/tests/load/verify-authenticated-feed.mjs"
   },
   "devDependencies": {
     "eslint": "9.39.4",

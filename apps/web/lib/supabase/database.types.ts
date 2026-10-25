@@ -1703,6 +1703,29 @@ export type Database = {
         Args: { p_days?: number }
         Returns: Json
       }
+      get_recommended_feed_bundle: {
+        Args: {
+          p_cursor_created_at?: string
+          p_cursor_id?: string
+          p_cursor_score?: number
+          p_limit?: number
+        }
+        Returns: {
+          author: Json
+          body: string | null
+          comments_count: number
+          created_at: string
+          entities: Json
+          id: string
+          likes_count: number
+          rating: number
+          recommendation_reason: string
+          recommendation_score: number
+          title: string | null
+          viewer_has_bookmarked: boolean
+          viewer_has_liked: boolean
+        }[]
+      }
       get_recommended_review_ids: {
         Args: {
           p_cursor_created_at?: string
