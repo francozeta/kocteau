@@ -119,8 +119,22 @@ function finding. Local public-schema lint passes; the global cloud caveat remai
 Four actual local-session WebKit contexts passed mobile/desktop feed rendering,
 pagination, view changes and reversible like/save actions, without page or starter
 loader errors. The runtime web source is unchanged; its existing production build
-was exercised against the migrated local database. Repository CI/preview and
-main integration remain to be recorded.
+was exercised against the migrated local database. PR #257 merged as `6c7d4ca`; source Verify run 40232909292 and main Verify run
+40233337468 both passed. Source preview was READY and account-authorized /reviews
+fetch returned HTTP 200 with 14 review links and no false empty state.
+
+Production deployment for `6c7d4ca` was READY with the `kocteau.com` alias checked
+before and after guest WebKit verification at 2026-10-25T21:01:04Z. Mobile/desktop
+each showed three home review links, 14 public review links, eight API reviews
+and login redirect for anonymous /feed, with no page errors or auth-token cookie.
+This does not verify authenticated production browser performance.
+
+No unresolved inline review threads were present at merge. The optional automated
+review was canceled on merge and is not counted as completed verification.
+The per-PR database preview was skipped by project configuration. Standard CI
+runs web tests/docs/lint/build; the 54 SQL checks were local. GitHub #258 links
+that existing automation gap to canonical Linear KOC-23; duplicate import KOC-103
+was marked Duplicate.
 
 The public homepage uses a separate public starter loader and ISR; this change
 does not establish a homepage TTFB benefit. Authenticated production browser

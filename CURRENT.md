@@ -1,17 +1,21 @@
 # Current Project State
 
-Last checked: 2026-10-25. Starter SQL delivery under #230 is verified;
-repository integration is pending.
+Last checked: 2026-10-25. Starter query optimization is integrated in main.
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
 
 ## Active Work
 
-Integrate starter late hydration under [#230](https://github.com/francozeta/kocteau/issues/230)
-and #147. The [starter query record](./.plan/starter-query-work.md) owns current
+Observe [PR #257](https://github.com/francozeta/kocteau/pull/257), merged as
+`6c7d4ca`, under #230/#147. Next work is #243's pagination retry budget. The [starter query record](./.plan/starter-query-work.md) owns current
 SQL plans, exact response parity, delivery and measurement limits.
 
 ## Verified Delivery
+
+Source CI/preview passed at `635fdcc1`; main Verify passed at `6c7d4ca`.
+Production was observed READY with `kocteau.com` before/after guest WebKit checks
+at 21:01 UTC: mobile/desktop each showed three home reviews, 14 public reviews,
+eight API reviews and login redirect for anonymous /feed, without page errors.
 
 Pinned CLI 2.109.1 applied only `20261025203107_starter_late_hydration.sql`
 to the existing Kocteau target after dry run. All 38 migration versions match;
@@ -47,6 +51,7 @@ Released version: v0.3.15.
 Next: reproduce and bound #243 pagination retries, then address #228/#242
 cache consistency before broader load work. #256/KOC-102 separately records
 reproduced collection-dependent taste scoring; this stage preserves ranking.
+#258 links the SQL-CI gap to existing KOC-23; the 54 SQL checks currently run locally.
 
 The public homepage uses a separate loader and ISR. Authenticated production
 browser latency, physical iPhone/TikTok, historical cold Data API waits and
