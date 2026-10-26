@@ -3,6 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { canonicalRouteTag } from "@/lib/queries/canonical-cache";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -90,6 +91,7 @@ function getHydratedAuthorId(author: EntityReview["author"]) {
 }
 
 const entityPageLoaders = new Map<string, () => Promise<EntityPage | null>>();
+const entityRouteLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityPageByProviderLoaders = new Map<string, () => Promise<EntityPage | null>>();
 const entityByProviderLoaders = new Map<string, () => Promise<ExistingEntity | null>>();
 const entityReviewLoaders = new Map<string, () => Promise<EntityReviewsPage>>();
@@ -123,9 +125,10 @@ function logEntitiesQueryError(
 }
 
 export async function getEntityPageById(
-  entityId: string,
+  rawId: string,
   { throwOnError = false }: { throwOnError?: boolean } = {},
 ) {
+  const entityId = rawId.toLowerCase();
   const loader = getOrCreateLoader(
     entityPageLoaders,
     ["entity-page", entityId],
@@ -172,57 +175,74 @@ export async function getEntityPageById(
   }
 }
 
-export const getEntityPageByRouteId = cache(async function getEntityPageByRouteId(
-  routeId: string,
-) {
-  if (isFullUuid(routeId)) {
-    return getEntityPageById(routeId, { throwOnError: true });
-  }
+export const getEntityPageByRouteId = cache(
+  async function getEntityPageByRouteId(routeId: string) {
+    if (isFullUuid(routeId)) {
+      return getEntityPageById(routeId.toLowerCase(), { throwOnError: true });
+    }
 
-  if (!isShortUuidPrefix(routeId)) {
-    return null;
-  }
+    if (!isShortUuidPrefix(routeId)) {
+      return null;
+    }
 
-  const normalizedRouteId = routeId.toLowerCase();
+    const normalizedRouteId = routeId.toLowerCase();
 
-  return measureServerTask(
-    "getEntityPageByRouteId",
-    async () => {
-      const supabase = supabasePublic();
-      let query = supabase
-        .from("entities")
-        .select(entityPageSelect)
-        .limit(2);
+    const loader = getOrCreateLoader(
+      entityRouteLoaders,
+      ["entity-route-v1", normalizedRouteId],
+      () =>
+        unstable_cache(
+          () =>
+            measureServerTask(
+              "getEntityPageByRouteId",
+              async () => {
+                const supabase = supabasePublic();
+                let query = supabase
+                  .from("entities")
+                  .select(entityPageSelect)
+                  .limit(2);
 
-      query =
-        normalizedRouteId.length === 8
-          ? query.like("short_id", `${normalizedRouteId}%`)
-          : query.eq("short_id", normalizedRouteId);
+                query =
+                  normalizedRouteId.length === 8
+                    ? query.like("short_id", `${normalizedRouteId}%`)
+                    : query.eq("short_id", normalizedRouteId);
 
-      const { data, error } = await query.returns<EntityPage[]>();
+                const { data, error } = await query.returns<EntityPage[]>();
 
-      if (error) {
-        logEntitiesQueryError("getEntityPageByRouteId", error, {
-          routeId: normalizedRouteId,
-        });
-        throw error;
-      }
+                if (error) {
+                  logEntitiesQueryError("getEntityPageByRouteId", error, {
+                    routeId: normalizedRouteId,
+                  });
+                  throw error;
+                }
 
-      if ((data?.length ?? 0) !== 1) {
-        if ((data?.length ?? 0) > 1) {
-          console.warn("[entities.getEntityPageByRouteId] ambiguous route id", {
-            routeId: normalizedRouteId,
-          });
-        }
+                if ((data?.length ?? 0) !== 1) {
+                  if ((data?.length ?? 0) > 1) {
+                    console.warn(
+                      "[entities.getEntityPageByRouteId] ambiguous route id",
+                      {
+                        routeId: normalizedRouteId,
+                      },
+                    );
+                  }
 
-        return null;
-      }
+                  return null;
+                }
 
-      return data?.[0] ?? null;
-    },
-    { routeId: normalizedRouteId },
-  );
-});
+                return data?.[0] ?? null;
+              },
+              { routeId: normalizedRouteId },
+            ),
+          ["entity-route-v1", normalizedRouteId],
+          {
+            revalidate: 60,
+            tags: [canonicalRouteTag("entity", normalizedRouteId)],
+          },
+        ),
+    );
+    return loader();
+  },
+);
 
 export const getEntityPageByProvider = cache(async function getEntityPageByProvider(
   provider: string,

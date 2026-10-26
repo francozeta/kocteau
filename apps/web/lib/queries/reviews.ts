@@ -8,9 +8,11 @@ import type {
   ReviewCardEntity,
 } from "@/components/reviews/review-card";
 import {
+  runReviewListQuery,
   runReviewMaybeQuery,
 } from "@/lib/queries/review-likes";
 import { getOrCreateLoader } from "@/lib/queries/cache-loader";
+import { canonicalRouteTag } from "@/lib/queries/canonical-cache";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
 import { buildReviewHydrationSelect } from "@/lib/queries/review-hydration";
 import { getViewerReviewCollectionState } from "@/lib/queries/viewer";
@@ -44,6 +46,8 @@ export type ViewerReview = {
 };
 
 const publicReviewLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
+const publicReviewRouteLoaders = new Map<string, () => Promise<ReviewPageReview | null>>();
+
 
 function normalizeReviewPageReview(review: ReviewPageReview): ReviewPageReview {
   return {
@@ -73,9 +77,10 @@ function logQueryFallbackError(
 }
 
 export async function getPublicReviewById(
-  reviewId: string,
+  rawId: string,
   { throwOnError = false }: { throwOnError?: boolean } = {},
 ) {
+  const reviewId = rawId.toLowerCase();
   const loader = getOrCreateLoader(
     publicReviewLoaders,
     ["review", reviewId],
@@ -128,59 +133,66 @@ export async function getPublicReviewById(
   }
 }
 
-export const getPublicReviewByRouteId = cache(async function getPublicReviewByRouteId(
-  routeId: string,
-) {
-  if (isFullUuid(routeId)) {
-    return getPublicReviewById(routeId, { throwOnError: true });
-  }
+export const getPublicReviewByRouteId = cache(
+  async function getPublicReviewByRouteId(routeId: string) {
+    if (isFullUuid(routeId)) {
+      return getPublicReviewById(routeId.toLowerCase(), { throwOnError: true });
+    }
+    if (!isShortUuidPrefix(routeId)) return null;
 
-  if (!isShortUuidPrefix(routeId)) {
-    return null;
-  }
-
-  const normalizedRouteId = routeId.toLowerCase();
-
-  return measureServerTask(
-    "getPublicReviewByRouteId",
-    async () => {
-      const supabase = supabasePublic();
-      let query = supabase
-        .from("reviews")
-        .select("id")
-        .limit(2);
-
-      query =
-        normalizedRouteId.length === 8
-          ? query.like("short_id", `${normalizedRouteId}%`)
-          : query.eq("short_id", normalizedRouteId);
-
-      const { data, error } = await query.returns<Array<{ id: string }>>();
-
-      if (error) {
-        console.error("[reviews.getPublicReviewByRouteId] failed", {
-          code: error.code ?? null,
-          message: error.message ?? null,
-          routeId: normalizedRouteId,
-        });
-        throw error;
-      }
-
-      if ((data?.length ?? 0) !== 1) {
-        if ((data?.length ?? 0) > 1) {
-          console.warn("[reviews.getPublicReviewByRouteId] ambiguous route id", {
-            routeId: normalizedRouteId,
-          });
-        }
-
-        return null;
-      }
-
-      return getPublicReviewById(data?.[0]?.id ?? "", { throwOnError: true });
-    },
-    { routeId: normalizedRouteId },
-  );
-});
+    const normalizedRouteId = routeId.toLowerCase();
+    const loader = getOrCreateLoader(
+      publicReviewRouteLoaders,
+      ["review-route-v1", normalizedRouteId],
+      () =>
+        unstable_cache(
+          () =>
+            measureServerTask(
+              "getPublicReviewByRouteId",
+              async () => {
+                const supabase = supabasePublic();
+                const reviews = await runReviewListQuery<ReviewPageReview>(
+                  async (mode) => {
+                    let query = supabase
+                      .from("reviews")
+                      .select(
+                        buildReviewHydrationSelect(mode, {
+                          includeAuthor: true,
+                          includeEntity: true,
+                          includePinned: true,
+                        }),
+                      )
+                      .limit(2);
+                    query =
+                      normalizedRouteId.length === 8
+                        ? query.like("short_id", `${normalizedRouteId}%`)
+                        : query.eq("short_id", normalizedRouteId);
+                    return query.returns<ReviewPageReview[]>();
+                  },
+                  { throwOnError: true },
+                );
+                if (reviews.length !== 1) {
+                  if (reviews.length > 1)
+                    console.warn(
+                      "[reviews.getPublicReviewByRouteId] ambiguous route id",
+                      { routeId: normalizedRouteId },
+                    );
+                  return null;
+                }
+                return normalizeReviewPageReview(reviews[0]);
+              },
+              { routeId: normalizedRouteId },
+            ),
+          ["review-route-v1", normalizedRouteId],
+          {
+            revalidate: 60,
+            tags: ["reviews", canonicalRouteTag("review", normalizedRouteId)],
+          },
+        ),
+    );
+    return loader();
+  },
+);
 
 export async function getReviewViewerState(
   viewerId: string | null | undefined,

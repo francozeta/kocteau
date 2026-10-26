@@ -1,3 +1,4 @@
+import { expireCanonicalRouteReads } from "@/lib/queries/canonical-cache";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { normalizeRelation } from "@/lib/queries/normalize-relation";
@@ -59,7 +60,7 @@ function revalidateReviewSurfaces(review: ReviewDeleteRecord, reviewId: string) 
   revalidateTag("reviews", "max");
   revalidateTag("profiles", "max");
   revalidateTag("entities", "max");
-  revalidateTag(`review:${reviewId}`, "max");
+  expireCanonicalRouteReads("review", reviewId);
   revalidateTag(`profile:${review.author_id}:reviews`, "max");
   revalidateTag(`entity:${review.entity_id}`, "max");
   revalidateTag(`entity:${review.entity_id}:reviews`, "max");
