@@ -88,3 +88,7 @@ available for valid SDK traffic. The verifier checks that rejection before the
 browser journeys, scans manual span values for URL, host, credential, query and
 content canaries, and observes propagated requests across every page in each
 browser context. Propagation counters do not imply complete transport coverage.
+
+The verification observations above describe the initial PR #264 baseline. The
+current executable also asserts canonical failure recovery and simulated-session
+isolation under [the recovery plan](./canonical-read-recovery.md).

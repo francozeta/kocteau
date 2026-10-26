@@ -177,7 +177,31 @@ try {
     45000,
   );
   browser = await webkit.launch();
-  for (const mobile of [true, false]) {
+  const { createServerClient } = require("@supabase/ssr");
+  let sessionCookies = [];
+  const fixtureAuth = createServerClient(
+    "http://127.0.0.1:54321",
+    "isolated-fixture-key",
+    {
+      cookies: {
+        getAll: () => sessionCookies,
+        setAll: (cookies) => {
+          sessionCookies = cookies;
+        },
+      },
+    },
+  );
+  const session = await fixtureAuth.auth.setSession({
+    access_token: fixture.accessToken,
+    refresh_token: "isolated-refresh-token",
+  });
+  assert.equal(session.error, null);
+  for (const { mobile, authenticated } of [
+    { mobile: true, authenticated: false },
+    { mobile: false, authenticated: false },
+    { mobile: true, authenticated: true },
+    { mobile: false, authenticated: true },
+  ]) {
     const browserEventsBefore = fixture.state.transactions.filter(
       (t) => t.platform === "javascript",
     ).length;
@@ -195,30 +219,34 @@ try {
         ? route.continue()
         : route.fulfill({ status: 204 });
     });
+    if (authenticated) {
+      await context.addCookies(
+        sessionCookies.map(({ name, value }) => ({
+          name,
+          value,
+          url: appUrl,
+          sameSite: "Lax",
+        })),
+      );
+    }
+    const viewerReadsBefore = fixture.state.viewerReads;
     const page = await context.newPage();
     page.setDefaultTimeout(20000);
     const errors = [];
     page.on("pageerror", (error) =>
       errors.push({ stage: "navigation", message: error.message }),
     );
-    const pendingRequests = [];
-    const requestErrors = [];
     const captureRequest = (request) => {
-      pendingRequests.push(
-        request
-          .allHeaders()
-          .then((headers) => {
-            if (headers["sentry-trace"])
-              requests.push({
-                traceId: headers["sentry-trace"].split("-")[0],
-                prefetch:
-                  headers["next-router-prefetch"] === "1" ||
-                  headers.purpose === "prefetch",
-                rsc: headers.rsc === "1",
-              });
-          })
-          .catch((error) => requestErrors.push(String(error))),
-      );
+      const headers = request.headers();
+      if (headers["sentry-trace"]) {
+        requests.push({
+          traceId: headers["sentry-trace"].split("-")[0],
+          prefetch:
+            headers["next-router-prefetch"] === "1" ||
+            headers.purpose === "prefetch",
+          rsc: headers.rsc === "1",
+        });
+      }
     };
     context.on("request", captureRequest);
     const settle = async (response) => {
@@ -235,6 +263,7 @@ try {
     await reviewLink.waitFor();
     const direct = {
       mobile,
+      authenticated,
       journey: "reviews-direct",
       contentReadyMs: Math.round(performance.now() - started),
     };
@@ -257,6 +286,7 @@ try {
       .waitFor();
     results.push({
       mobile,
+      authenticated,
       journey: "review-link",
       contentReadyMs: Math.round(performance.now() - started),
     });
@@ -276,6 +306,7 @@ try {
       .waitFor();
     results.push({
       mobile,
+      authenticated,
       journey: "track-link",
       contentReadyMs: Math.round(performance.now() - started),
     });
@@ -299,45 +330,291 @@ try {
     await bodyPage.waitForLoadState("networkidle");
     fixture.state.bodyDelayMs = 0;
     fixture.state.fail = true;
+    fixture.state.failTable = "reviews";
     const failurePath =
       "/reviews/" +
       fixture.reviews.at(-1).short_id +
       "/fixture-track-fixture-artist";
     const failurePage = await context.newPage();
+    let failurePhase = "origin-failure";
     failurePage.on("pageerror", (error) =>
-      errors.push({ stage: "origin-failure", message: error.message }),
+      errors.push({
+        stage: failurePhase,
+        message: error.message,
+        expectedForcedFallback: error.message.startsWith(
+          "Minified React error #419;",
+        ),
+      }),
     );
     const failure = await failurePage.goto(appUrl + failurePath, {
       waitUntil: "domcontentloaded",
     });
     await failurePage.waitForLoadState("networkidle");
-    const missing = await failurePage
-      .getByText("This page could not be found.", { exact: true })
-      .count();
-    results.push({
-      mobile,
-      journey: "origin-failure-observation",
-      http: failure.status(),
-      missingPage: Boolean(missing),
-      openIssue: "#260",
-    });
+    await failurePage
+      .getByRole("heading", {
+        name: "Reviews are temporarily unavailable",
+        exact: true,
+      })
+      .waitFor();
+    assert.equal(
+      await failurePage
+        .getByText("This page could not be found.", { exact: true })
+        .isVisible(),
+      false,
+    );
+    assert.doesNotMatch(await failurePage.title(), /404|could not be found/i);
+    await failurePage.waitForLoadState("networkidle");
+    failurePhase = "recovery";
     fixture.state.fail = false;
     fixture.state.headerDelayMs = 80;
-    const recoveryPage = await context.newPage();
-    recoveryPage.on("pageerror", (error) =>
-      errors.push({ stage: "recovery", message: error.message }),
-    );
-    await recoveryPage.goto(appUrl + failurePath, {
-      waitUntil: "domcontentloaded",
-    });
-    await recoveryPage
+    await failurePage
+      .getByRole("button", { name: "Retry reviews", exact: true })
+      .press("Enter");
+    await failurePage
       .locator("#review-structured-data")
       .waitFor({ state: "attached" });
-    await recoveryPage
+    await failurePage
       .getByText(/Fixture review \d+/, { exact: true })
       .first()
       .waitFor();
-    await recoveryPage.waitForLoadState("networkidle");
+    await failurePage.waitForLoadState("networkidle");
+    results.push({
+      mobile,
+      authenticated,
+      journey: "review-failure-retry",
+      http: failure.status(),
+      recovered: true,
+    });
+    for (const probe of [
+      {
+        kind: "track",
+        path: "/tracks/fixture-track-fixture-artist/" + fixture.entity.short_id,
+        title: fixture.entity.title,
+        status: 403,
+        delay: 0,
+      },
+      {
+        kind: "artist",
+        path: "/artists/fixture-artist/" + fixture.artist.short_id,
+        title: fixture.artist.name,
+        status: 503,
+        delay: 3500,
+      },
+      {
+        kind: "album",
+        path: "/albums/fixture-album-fixture-artist/" + fixture.album.short_id,
+        title: fixture.album.title,
+        status: 503,
+        delay: 0,
+      },
+    ]) {
+      fixture.state.fail = true;
+      fixture.state.failTable =
+        probe.kind === "artist" ? "artists" : "entities";
+      fixture.state.failureStatus = probe.status;
+      fixture.state.headerDelayMs = probe.delay;
+      const faultPage = await context.newPage();
+      let probePhase = "origin-failure";
+      faultPage.on("pageerror", (error) =>
+        errors.push({
+          stage: probePhase,
+          message: error.message,
+          expectedForcedFallback: error.message.startsWith(
+            "Minified React error #419;",
+          ),
+        }),
+      );
+      const response = await faultPage.goto(appUrl + probe.path, {
+        waitUntil: "domcontentloaded",
+      });
+      await faultPage
+        .getByRole("heading", {
+          name: "This page is temporarily unavailable",
+          exact: true,
+        })
+        .waitFor();
+      assert.equal(
+        await faultPage
+          .getByText("This page could not be found.", { exact: true })
+          .isVisible(),
+        false,
+      );
+      assert.doesNotMatch(await faultPage.title(), /404|could not be found/i);
+      await faultPage.waitForLoadState("networkidle");
+      probePhase = "recovery";
+      fixture.state.fail = false;
+      fixture.state.headerDelayMs = 80;
+      await faultPage
+        .getByRole("button", { name: "Retry", exact: true })
+        .click();
+      await faultPage
+        .getByRole("heading", { name: probe.title, exact: true })
+        .first()
+        .waitFor();
+      await faultPage.waitForLoadState("networkidle");
+      results.push({
+        mobile,
+        authenticated,
+        journey: probe.kind + "-failure-retry",
+        fault: probe.delay ? "timeout" : probe.status,
+        http: response.status(),
+        recovered: true,
+      });
+      await faultPage.close();
+    }
+    if (mobile && !authenticated) {
+      const uuidCases = [
+        {
+          kind: "review",
+          row: { ...fixture.reviews[0], title: "Fixture review 90" },
+          target: fixture.reviews,
+        },
+        {
+          kind: "track",
+          row: { ...fixture.entity },
+          target: fixture.state.extraEntities,
+        },
+        {
+          kind: "artist",
+          row: { ...fixture.artist },
+          target: fixture.state.extraArtists,
+        },
+        {
+          kind: "album",
+          row: { ...fixture.album },
+          target: fixture.state.extraEntities,
+        },
+      ];
+      for (const [index, probe] of uuidCases.entries()) {
+        const prefix = (0x90000001 + index).toString(16);
+        probe.row.id = prefix + "-1234-4000-8000-000000000001";
+        probe.row.short_id = prefix + "1234";
+        probe.target.push(probe.row);
+        const path =
+          probe.kind === "review"
+            ? "/reviews/" + probe.row.id + "/fixture-track-fixture-artist"
+            : "/" +
+              probe.kind +
+              "s/" +
+              (probe.kind === "artist"
+                ? "fixture-artist"
+                : probe.kind === "album"
+                  ? "fixture-album-fixture-artist"
+                  : "fixture-track-fixture-artist") +
+              "/" +
+              probe.row.id;
+        fixture.state.fail = true;
+        fixture.state.failTable =
+          probe.kind === "review"
+            ? "reviews"
+            : probe.kind === "artist"
+              ? "artists"
+              : "entities";
+        fixture.state.failureStatus = 503;
+        fixture.state.headerDelayMs = 0;
+        const uuidPage = await context.newPage();
+        let uuidPhase = "origin-failure";
+        uuidPage.on("pageerror", (error) =>
+          errors.push({
+            stage: uuidPhase,
+            message: error.message,
+            expectedForcedFallback: error.message.startsWith(
+              "Minified React error #419;",
+            ),
+          }),
+        );
+        await uuidPage.goto(appUrl + path, { waitUntil: "domcontentloaded" });
+        await uuidPage
+          .getByRole("heading", {
+            name:
+              probe.kind === "review"
+                ? "Reviews are temporarily unavailable"
+                : "This page is temporarily unavailable",
+            exact: true,
+          })
+          .waitFor();
+        assert.equal(
+          await uuidPage
+            .getByText("This page could not be found.", { exact: true })
+            .isVisible(),
+          false,
+        );
+        await uuidPage.waitForLoadState("networkidle");
+        uuidPhase = "recovery";
+        fixture.state.fail = false;
+        fixture.state.headerDelayMs = 80;
+        await uuidPage
+          .getByRole("button", {
+            name: probe.kind === "review" ? "Retry reviews" : "Retry",
+            exact: true,
+          })
+          .click();
+        if (probe.kind === "review")
+          await uuidPage
+            .locator("#review-structured-data")
+            .waitFor({ state: "attached" });
+        else
+          await uuidPage
+            .getByRole("heading", {
+              name: probe.row.name || probe.row.title,
+              exact: true,
+            })
+            .first()
+            .waitFor();
+        await uuidPage.waitForLoadState("networkidle");
+        results.push({
+          mobile,
+          authenticated,
+          journey: probe.kind + "-uuid-failed-fill-retry",
+          recovered: true,
+        });
+        await uuidPage.close();
+        assert.equal(probe.target.pop(), probe.row);
+      }
+    }
+    fixture.state.failureStatus = 503;
+    for (const path of [
+      "/reviews/ffffffffffff/missing",
+      "/tracks/missing/ffffffffffff",
+      "/artists/missing/ffffffffffff",
+      "/albums/missing/ffffffffffff",
+      "/reviews/invalid/missing",
+    ]) {
+      const absentPage = await context.newPage();
+      const absentResponse = await absentPage.goto(appUrl + path, {
+        waitUntil: "domcontentloaded",
+      });
+      if (path.includes("/invalid/")) {
+        assert.equal(absentResponse.status(), 404);
+      } else {
+        await absentPage
+          .getByText("This page could not be found.", { exact: true })
+          .waitFor({ timeout: 5000 });
+      }
+      assert.equal(
+        await absentPage.getByRole("button", { name: /^Retry/ }).count(),
+        0,
+      );
+      await absentPage.close();
+      results.push({ mobile, authenticated, journey: "genuine-missing", path });
+    }
+    fixture.state.identityMode = "ambiguous";
+    const ambiguousPage = await context.newPage();
+    await ambiguousPage.goto(
+      appUrl + "/tracks/ambiguous/" + fixture.entity.short_id.slice(0, 8),
+      { waitUntil: "domcontentloaded" },
+    );
+    await ambiguousPage
+      .getByText("This page could not be found.", { exact: true })
+      .waitFor();
+    await ambiguousPage.close();
+    fixture.state.identityMode = "normal";
+    results.push({
+      mobile,
+      authenticated,
+      journey: "ambiguous-legacy-prefix",
+      missing: true,
+    });
     await waitFor(
       () =>
         fixture.state.transactions.filter((t) => t.platform === "javascript")
@@ -345,17 +622,16 @@ try {
       "Browser transaction did not reach isolated collector",
     );
     context.off("request", captureRequest);
-    await Promise.all(pendingRequests);
-    assert.deepEqual(requestErrors, []);
     const failureErrors = errors.filter(
-      (error) => error.stage === "origin-failure",
+      (error) => error.expectedForcedFallback,
     );
     assert.deepEqual(
-      errors.filter((error) => error.stage !== "origin-failure"),
+      errors.filter((error) => !error.expectedForcedFallback),
       [],
     );
     results.push({
       mobile,
+      authenticated,
       journey: "trace-verification",
       failureRenderErrors: failureErrors,
     });
@@ -363,8 +639,10 @@ try {
       (await context.cookies()).some((cookie) =>
         cookie.name.includes("auth-token"),
       ),
-      false,
+      authenticated,
     );
+    assert.equal(fixture.state.viewerReads > viewerReadsBefore, authenticated);
+    assert.equal(fixture.state.publicIdentityAuthViolations, 0);
     await context.close();
   }
   await waitFor(
@@ -402,7 +680,7 @@ try {
     engine: "WebKit",
     productionPercentiles: null,
     limits:
-      "Small deterministic guest fixture; content visibility timings, not production P95/LCP, authenticated coverage or capacity. Background attribution remains unknown.",
+      "Small deterministic fixture with simulated auth service; content visibility timings, not production P95/LCP, production authentication/RLS coverage or capacity. Background attribution remains unknown.",
     homepageIsrSeconds: 300,
     results,
     buildOriginReads,
@@ -424,11 +702,27 @@ try {
 } catch (error) {
   console.error(error);
   console.error(output.slice(-5000));
+  const pageStates = [];
+  for (const context of browser?.contexts() ?? []) {
+    for (const page of context.pages()) {
+      try {
+        pageStates.push({
+          url: page.url(),
+          title: await page.title(),
+          text: (await page.locator("body").innerText({ timeout: 2000 })).slice(
+            0,
+            2000,
+          ),
+        });
+      } catch {}
+    }
+  }
   await writeFile(
     join(evidence, "partial.json"),
     JSON.stringify(
       {
         results,
+        pageStates,
         envelopeTypes: fixture.state.envelopeTypes,
         transactions: fixture.state.transactions.length,
         publicReadSpans: manualReads().length,

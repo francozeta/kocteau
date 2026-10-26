@@ -346,3 +346,20 @@ test("a failed taste-tag lookup does not cache its empty fallback", async (t) =>
   assert.equal(recovered[0]?.label, "Dream pop");
   assert.equal(calls.filter((call) => call === "entity_preference_tags").length, 2);
 });
+
+
+test("canonical entity failures reject while optional ID reads retain their fallback", async () => {
+  const id = "10000000-1234-4000-8000-000000000001";
+  const shortId = "100000001234";
+  queryStatus = 403;
+  queryRows = () => ({ code: "42501", message: "Fixture read denied" });
+
+  await assert.rejects(entities.getEntityPageByRouteId(shortId), { code: "42501" });
+  await assert.rejects(entities.getEntityPageByRouteId(id), { code: "42501" });
+  assert.equal(await entities.getEntityPageById(id), null);
+
+  queryStatus = 200;
+  queryRows = () => [];
+  assert.equal(await entities.getEntityPageByRouteId(shortId), null);
+  assert.equal(await entities.getEntityPageByRouteId(id), null);
+});

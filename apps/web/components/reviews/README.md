@@ -54,3 +54,6 @@ See [reproduction and limits](../../../../.plan/review-read-recovery.md) for mob
 and desktop WebKit commands and [discovery setup](../discovery/README.md) for the
 external Playwright installation. CI builds use an explicit placeholder-only
 successful-empty fixture; production builds keep their actual data source.
+
+Canonical review reads propagate failures to the same Retry boundary; successful
+missing identities remain distinct. See [canonical recovery](../../../../.plan/canonical-read-recovery.md) for error policy and verification.

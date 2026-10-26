@@ -122,7 +122,10 @@ function logEntitiesQueryError(
   });
 }
 
-export async function getEntityPageById(entityId: string) {
+export async function getEntityPageById(
+  entityId: string,
+  { throwOnError = false }: { throwOnError?: boolean } = {},
+) {
   const loader = getOrCreateLoader(
     entityPageLoaders,
     ["entity-page", entityId],
@@ -164,6 +167,7 @@ export async function getEntityPageById(entityId: string) {
       error as { code?: string; message?: string; details?: string; hint?: string },
       { entityId },
     );
+    if (throwOnError) throw error;
     return null;
   }
 }
@@ -172,7 +176,7 @@ export const getEntityPageByRouteId = cache(async function getEntityPageByRouteI
   routeId: string,
 ) {
   if (isFullUuid(routeId)) {
-    return getEntityPageById(routeId);
+    return getEntityPageById(routeId, { throwOnError: true });
   }
 
   if (!isShortUuidPrefix(routeId)) {
@@ -201,7 +205,7 @@ export const getEntityPageByRouteId = cache(async function getEntityPageByRouteI
         logEntitiesQueryError("getEntityPageByRouteId", error, {
           routeId: normalizedRouteId,
         });
-        return null;
+        throw error;
       }
 
       if ((data?.length ?? 0) !== 1) {
