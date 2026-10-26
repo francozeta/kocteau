@@ -47,7 +47,10 @@ const getArtistPageByIdCached = (artistId: string) =>
     },
   );
 
-export async function getArtistPageById(artistId: string) {
+export async function getArtistPageById(
+  artistId: string,
+  { throwOnError = false }: { throwOnError?: boolean } = {},
+) {
   try {
     return await getArtistPageByIdCached(artistId)();
   } catch (error) {
@@ -56,6 +59,7 @@ export async function getArtistPageById(artistId: string) {
       error as { code?: string; message?: string },
       { artistId },
     );
+    if (throwOnError) throw error;
     return null;
   }
 }
@@ -63,15 +67,15 @@ export async function getArtistPageById(artistId: string) {
 export const getArtistPageByRouteId = cache(async function getArtistPageByRouteId(
   routeId: string,
 ) {
+  if (isFullUuid(routeId)) {
+    return getArtistPageById(routeId, { throwOnError: true });
+  }
+
+  if (!isShortUuidPrefix(routeId)) {
+    return null;
+  }
+
   try {
-    if (isFullUuid(routeId)) {
-      return await getArtistPageById(routeId);
-    }
-
-    if (!isShortUuidPrefix(routeId)) {
-      return null;
-    }
-
     const normalizedRouteId = routeId.toLowerCase();
     const supabase = supabasePublic();
     let query = supabase.from("artists").select(artistSelect).limit(2);
@@ -94,7 +98,7 @@ export const getArtistPageByRouteId = cache(async function getArtistPageByRouteI
       error as { code?: string; message?: string },
       { routeId },
     );
-    return null;
+    throw error;
   }
 });
 

@@ -62,3 +62,7 @@ Public database reads use the bounded transport described in the
 [Discovery guide](../discovery/README.md). Taste-tag lookup failures return their
 empty optional fallback outside the tagged cache, so recovery can populate the
 same key immediately instead of persisting a false empty result.
+
+Canonical track, album and artist reads propagate failures to a catalog Retry
+boundary. Optional relationship lookups keep their nullable fallback. See
+[canonical recovery](../../../../.plan/canonical-read-recovery.md) for the shared policy and verification.

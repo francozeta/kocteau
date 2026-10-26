@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { createHmac } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -50,11 +51,82 @@ export async function startJourneyFixture() {
       author,
     };
   });
+  const album = {
+    ...entity,
+    id: "40000000-1234-4000-8000-000000000001",
+    short_id: "400000001234",
+    provider_id: "43",
+    type: "album",
+    title: "Fixture album",
+  };
+  const artist = {
+    id: "30000000-1234-4000-8000-000000000001",
+    short_id: "300000001234",
+    provider: "deezer",
+    provider_id: "44",
+    name: "Fixture artist",
+    image_url: null,
+    deezer_url: null,
+    musicbrainz_id: null,
+    musicbrainz_match_score: null,
+    artist_type: null,
+    country_code: null,
+    disambiguation: null,
+    life_span_begin: null,
+    life_span_end: null,
+    genres: [],
+    musicbrainz_synced_at: null,
+    created_at: "2026-10-25T00:00:00Z",
+    updated_at: "2026-10-25T00:00:00Z",
+  };
+  const authUser = {
+    id: author.id,
+    aud: "authenticated",
+    role: "authenticated",
+    app_metadata: { provider: "email", providers: ["email"] },
+    user_metadata: {},
+    created_at: "2026-10-25T00:00:00Z",
+  };
+  const encode = (value) =>
+    Buffer.from(JSON.stringify(value)).toString("base64url");
+  const unsignedToken =
+    encode({ alg: "HS256", typ: "JWT" }) +
+    "." +
+    encode({
+      sub: author.id,
+      aud: "authenticated",
+      role: "authenticated",
+      iss: "http://127.0.0.1:54321/auth/v1",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+  const accessToken =
+    unsignedToken +
+    "." +
+    createHmac("sha256", "isolated-fixture-only")
+      .update(unsignedToken)
+      .digest("base64url");
+  const profile = {
+    ...author,
+    bio: null,
+    spotify_url: null,
+    apple_music_url: null,
+    deezer_url: null,
+    onboarded: true,
+    taste_onboarded: true,
+  };
   const state = {
     fail: false,
+    failTable: null,
+    failureStatus: 503,
+    identityMode: "normal",
+    extraEntities: [],
+    extraArtists: [],
     headerDelayMs: 80,
     bodyDelayMs: 0,
     reads: 0,
+    viewerReads: 0,
+    publicIdentityAuthViolations: 0,
     transactions: [],
     envelopeTypes: {},
   };
@@ -65,15 +137,39 @@ export async function startJourneyFixture() {
       res.end('{"data":[]}');
       return;
     }
+    if (url.pathname === "/auth/v1/user") {
+      if (req.headers.authorization === "Bearer " + accessToken)
+        res.end(JSON.stringify(authUser));
+      else
+        res
+          .writeHead(401)
+          .end(JSON.stringify({ message: "Invalid fixture session" }));
+      return;
+    }
     if (!url.pathname.startsWith("/rest/v1/")) {
       res.writeHead(404).end("{}");
       return;
     }
+    const table = url.pathname.split("/").at(-1);
     state.reads++;
-    const { fail, headerDelayMs, bodyDelayMs } = state;
-    if (headerDelayMs) await delay(headerDelayMs);
-    if (fail) {
-      res.writeHead(503).end(
+    const isViewer = req.headers.authorization === "Bearer " + accessToken;
+    if (isViewer) state.viewerReads++;
+    const identityTable = ["reviews", "entities", "artists"].includes(
+      url.pathname.split("/").at(-1),
+    );
+    if (
+      isViewer &&
+      identityTable &&
+      (url.searchParams.has("short_id") || url.searchParams.has("id"))
+    )
+      state.publicIdentityAuthViolations++;
+    const { fail, failureStatus, headerDelayMs, bodyDelayMs, identityMode } =
+      state;
+    const selected = !state.failTable || state.failTable === table;
+    const waitMs = fail && !selected ? 80 : headerDelayMs;
+    if (waitMs) await delay(waitMs);
+    if (fail && selected) {
+      res.writeHead(failureStatus).end(
         JSON.stringify({
           code: "FIXTURE_UNAVAILABLE",
           message: "Isolated synthetic Data API failure",
@@ -81,9 +177,17 @@ export async function startJourneyFixture() {
       );
       return;
     }
-    const table = url.pathname.split("/").at(-1);
+
     let rows =
-      table === "reviews" ? reviews : table === "entities" ? [entity] : [];
+      table === "reviews"
+        ? reviews
+        : table === "entities"
+          ? [entity, album, ...state.extraEntities]
+          : table === "artists"
+            ? [artist, ...state.extraArtists]
+            : table === "profiles"
+              ? [profile]
+              : [];
     const short = url.searchParams.get("short_id"),
       id = url.searchParams.get("id");
     if (short) {
@@ -91,7 +195,23 @@ export async function startJourneyFixture() {
       rows = rows.filter((x) => x.short_id.startsWith(prefix));
     }
     if (id) rows = rows.filter((x) => x.id === id.replace(/^eq\./, ""));
-    if (url.searchParams.get("type") === "eq.album") rows = [];
+    const type = url.searchParams.get("type");
+    if (type)
+      rows = rows.filter((row) => row.type === type.replace(/^eq\./, ""));
+    if (
+      identityMode === "ambiguous" &&
+      short?.startsWith("like.") &&
+      rows.length
+    ) {
+      rows = [
+        rows[0],
+        {
+          ...rows[0],
+          id: rows[0].id.replace("-1234-", "-9999-"),
+          short_id: rows[0].short_id.slice(0, 8) + "9999",
+        },
+      ];
+    }
     if (table === "get_entity_review_summary")
       rows = [{ review_count: reviews.length, average_rating: 4 }];
     const limit = Number(url.searchParams.get("limit"));
@@ -167,7 +287,10 @@ export async function startJourneyFixture() {
     return {
       state,
       entity,
+      album,
+      artist,
       reviews,
+      accessToken,
       dsn: "http://public@127.0.0.1:" + collectorPort + "/1",
       close: async () => {
         for (const server of [origin, collector]) server.closeAllConnections();

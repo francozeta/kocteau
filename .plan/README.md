@@ -37,3 +37,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Starter query work](./starter-query-work.md): narrow ranking rows, current SQL plans, payload comparisons and growth limits under #230.
 
 - [Canonical route latency](./canonical-route-latency.md): production observations and controlled local reproductions of short-ID reads, false missing pages and primary dependency follow-ups under #259–#261.
+
+- [Canonical read recovery](./canonical-read-recovery.md): #260/KOC-105, with #263 measurement; strict route failures, Retry boundaries and controlled browser verification.

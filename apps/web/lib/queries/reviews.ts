@@ -72,7 +72,10 @@ function logQueryFallbackError(
   });
 }
 
-export async function getPublicReviewById(reviewId: string) {
+export async function getPublicReviewById(
+  reviewId: string,
+  { throwOnError = false }: { throwOnError?: boolean } = {},
+) {
   const loader = getOrCreateLoader(
     publicReviewLoaders,
     ["review", reviewId],
@@ -120,6 +123,7 @@ export async function getPublicReviewById(reviewId: string) {
       error as { code?: string; message?: string; details?: string; hint?: string },
       { reviewId },
     );
+    if (throwOnError) throw error;
     return null;
   }
 }
@@ -128,7 +132,7 @@ export const getPublicReviewByRouteId = cache(async function getPublicReviewByRo
   routeId: string,
 ) {
   if (isFullUuid(routeId)) {
-    return getPublicReviewById(routeId);
+    return getPublicReviewById(routeId, { throwOnError: true });
   }
 
   if (!isShortUuidPrefix(routeId)) {
@@ -159,7 +163,7 @@ export const getPublicReviewByRouteId = cache(async function getPublicReviewByRo
           message: error.message ?? null,
           routeId: normalizedRouteId,
         });
-        return null;
+        throw error;
       }
 
       if ((data?.length ?? 0) !== 1) {
@@ -172,7 +176,7 @@ export const getPublicReviewByRouteId = cache(async function getPublicReviewByRo
         return null;
       }
 
-      return getPublicReviewById(data?.[0]?.id ?? "");
+      return getPublicReviewById(data?.[0]?.id ?? "", { throwOnError: true });
     },
     { routeId: normalizedRouteId },
   );
