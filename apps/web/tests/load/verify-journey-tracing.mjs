@@ -306,9 +306,10 @@ try {
       { waitUntil: "commit" },
     );
     await page
-      .locator("#review-structured-data")
+      .locator("section:has(> #review-structured-data):visible")
       .waitFor({ state: "attached" });
     await page
+      .locator("section:has(> #review-structured-data):visible")
       .getByText(/Fixture review \d+/, { exact: true })
       .first()
       .waitFor();
@@ -377,7 +378,7 @@ try {
     }
     await page.goBack({ waitUntil: "domcontentloaded" });
     await page
-      .locator("#review-structured-data")
+      .locator("section:has(> #review-structured-data):visible")
       .waitFor({ state: "attached" });
     await settle();
     // Fresh documents keep forced origin probes separate from normal Link/back navigation.
@@ -396,7 +397,7 @@ try {
       { waitUntil: "domcontentloaded" },
     );
     await bodyPage
-      .locator("#review-structured-data")
+      .locator("section:has(> #review-structured-data):visible")
       .waitFor({ state: "attached" });
     await bodyPage.waitForLoadState("networkidle");
     fixture.state.bodyDelayMs = 0;
@@ -441,7 +442,7 @@ try {
       .getByRole("button", { name: "Retry reviews", exact: true })
       .press("Enter");
     await failurePage
-      .locator("#review-structured-data")
+      .locator("section:has(> #review-structured-data):visible")
       .waitFor({ state: "attached" });
     await failurePage
       .getByText(/Fixture review \d+/, { exact: true })
@@ -637,7 +638,7 @@ try {
           .click();
         if (probe.kind === "review")
           await uuidPage
-            .locator("#review-structured-data")
+            .locator("section:has(> #review-structured-data):visible")
             .waitFor({ state: "attached" });
         else
           await uuidPage

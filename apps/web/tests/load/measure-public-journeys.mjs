@@ -94,10 +94,10 @@ try {
         (url) => url.pathname === new URL(reviewHref, base).pathname,
       );
       await page
-        .locator("#review-structured-data")
+        .locator("section:has(> #review-structured-data):visible")
         .waitFor({ state: "attached" });
       await page
-        .locator("article.kocteau-review-card")
+        .locator("section:has(> #review-structured-data):visible article.kocteau-review-card")
         .first()
         .waitFor({ state: "visible" });
       assert.equal(await missing(), false);
@@ -127,7 +127,7 @@ try {
         (url) => url.pathname === new URL(reviewHref, base).pathname,
       );
       await page
-        .locator("#review-structured-data")
+        .locator("section:has(> #review-structured-data):visible")
         .waitFor({ state: "attached" });
       await page
         .locator("article.kocteau-review-card")
