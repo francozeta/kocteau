@@ -53,7 +53,7 @@ const coldPrefix = (index) =>
 const preserved = Object.fromEntries(
   Object.entries(process.env).filter(
     ([key]) =>
-      /^(?:PATH|HTTP_PROXY|HTTPS_PROXY|ALL_PROXY|NO_PROXY|SSL_CERT_FILE|SSL_CERT_DIR|NODE_EXTRA_CA_CERTS|PLAYWRIGHT_BROWSERS_PATH)$/.test(
+      /^(?:CI|PATH|HTTP_PROXY|HTTPS_PROXY|ALL_PROXY|NO_PROXY|SSL_CERT_FILE|SSL_CERT_DIR|NODE_EXTRA_CA_CERTS|PLAYWRIGHT_BROWSERS_PATH)$/.test(
         key,
       ) || key.startsWith("CODEX_"),
   ),
