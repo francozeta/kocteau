@@ -6,11 +6,12 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-[#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), draft
+[#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
 editor code on reading routes. The [editor plan](./.plan/review-editor-loading.md)
 owns source scope, browser/byte gates and the execution-resource handoff.
-Final verification is pending GitHub browser CI; the candidate is not deployed.
+[Its rollout record](https://github.com/francozeta/kocteau/pull/270#issuecomment-6420280473) owns current CI results, byte comparisons and
+integration/deployment evidence; source alone does not establish delivery.
 
 [PR #268](https://github.com/francozeta/kocteau/pull/268) is integrated at main
 `a772ab1`. It proves fewer canonical identity reads but its same-target guest
@@ -40,8 +41,8 @@ for `419`, legacy/provider policies or the separate private wait in #265.
 
 ## Next
 
-Complete PR #270's same-worker browser/byte comparison and preserve editor
-behavior before integration. Confirm the optional production observation's actual
+Use PR #270's rollout record to confirm same-worker browser/byte checks,
+verified editor behavior and integration. Confirm the optional production observation's actual
 outcome and deployed source separately; different CI workers cannot be compared
 with the gru1 latency baseline.
 

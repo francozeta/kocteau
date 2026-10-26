@@ -23,7 +23,7 @@ The prototype passed 216 unit tests, lint and types. Its first browser extension
 incorrectly expected drafts to survive closing; the existing session explicitly
 resets them. The corrected test checks original fields, typing while open,
 Escape/reopen reset and query auto-open on mobile/desktop simulated sessions.
-Final validation is pending CI.
+[The rollout record](https://github.com/francozeta/kocteau/pull/270#issuecomment-6420280473) owns current CI and integration evidence.
 
 The managed environment failed to start. The persistent Vercel sandbox reached
 its Hobby usage limit on 26 Oct; it cannot resume before the platform resets
@@ -55,7 +55,7 @@ These are browser resource sizes, not guaranteed actual wire bytes.
 
 ## Remaining work
 
-Complete CI and compare emitted/requested code before accepting this as a
-navigation optimization. #261 retains primary/optional track dependencies,
+Use the rollout record to assess emitted/requested code savings and the
+verified integration scope. #261 retains primary/optional track dependencies,
 #265 private fault waits, #267 React 419 attribution and #228 catalog invalidation.
 No overall production navigation improvement has been demonstrated yet.
