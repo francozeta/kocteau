@@ -11,7 +11,8 @@ owns diagnosis → selective redesign → repeated verification before broader
 product experience. The [baseline plan](./.plan/reliability-baseline.md) owns
 journeys and the exit gate.
 
-The first technical candidate is `perf/journey-observability`. It joins server
+The first technical candidate is [PR #264](https://github.com/francozeta/kocteau/pull/264)
+(`perf/journey-observability`). It joins server
 tasks and public HTTP phases to existing sampled request traces and makes the
 existing SDK configuration reusable for isolated collection. Its
 [delivery record](./.plan/journey-tracing.md) owns verification and limits.
@@ -19,8 +20,8 @@ It includes the research from draft PR #262; candidate source is not production.
 
 ## Verified Candidate
 
-214 unit tests passed, including actual-SDK parentage, outcomes, concurrent
-isolation and capture beyond the diagnostic log cap. TypeScript, lint, docs and
+215 unit tests passed, including actual-SDK parentage, outcomes, concurrent
+isolation, unsafe-context filtering and capture beyond the diagnostic log cap. TypeScript, lint, docs and
 a native local production build are checked. Mobile/desktop WebKit joined
 browser/server traces and observed independent header/body delays; homepage ISR
 remains 300 seconds. Origin-failure probes still reproduce #260's false missing

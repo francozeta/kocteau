@@ -296,3 +296,25 @@ test("background calls without an active request do not create unrelated root tr
   await Sentry.flush(1_000);
   assert.equal(transactions.length, before);
 });
+
+test("manual spans discard raw operation URLs and extra private observation fields", async (t) => {
+  t.mock.method(console, "warn", () => {});
+  t.mock.method(console, "info", () => {});
+  const transaction = await capture("fixture.privacy", () =>
+    perf.measureServerTask("fixture.privacy.task", async () => {
+      const read = {
+        ...observation,
+        operation: "https://private-canary.invalid?q=private-canary",
+        query: "private-canary",
+        authorization: "Bearer private-canary",
+      };
+      perf.reportPublicRead(read);
+    }),
+  );
+  const read = transaction.spans?.find(
+    (span) => span.op === "kocteau.public_read",
+  );
+  assert.ok(read);
+  assert.equal(read.description, "supabase.other");
+  assert.equal(JSON.stringify(transaction).includes("private-canary"), false);
+});

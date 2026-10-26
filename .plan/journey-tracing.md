@@ -39,7 +39,7 @@ Existing performance-log controls do not disable SDK tracing.
 
 ## Verification
 
-Unit verification: 214 tests passed, including actual-SDK in-memory transport
+Unit verification: 215 tests passed, including actual-SDK in-memory transport
 checks for nested parentage, timing attributes, 50 reads beyond the log cap,
 error identity, cancellation, parallel isolation and no orphan root traces.
 TypeScript and lint are checked separately. The browser verifier includes a real
@@ -66,7 +66,7 @@ iPhone results, authenticated coverage or capacity. This verifier observes
 #260's error-state behavior; it does not claim that defect has been fixed.
 
 The completed local production-build run on 26 Oct 2026 recorded
-30 public-read spans and 11 trace IDs joined to browser transactions or
+30 public-read spans and 12 trace IDs joined to browser transactions or
 propagated browser requests. The fixture made 4 build-time and 38 runtime origin
 calls; these are separate populations, and the manual-span count is not claimed
 as complete transport coverage. Header and body delay assertions passed, and
@@ -80,3 +80,12 @@ does not certify that separate scenario. The broader
 baseline remains open: representative production observations, Canvas action
 traces, authenticated cohorts, reliable background attribution, SQL correlation,
 numeric journey budgets and a declared mixed-load envelope.
+
+Review follow-up (2026-10-26): the local collector rejects malformed gzip with
+HTTP 400 without losing the process. The verifier checks URL, host, credential,
+query and content canaries in manual span data, observes requests on every page
+in each browser context, and exercises the malformed envelope before navigation.
+The repeated isolated run at 01:04 UTC recorded 30 public-read spans, 12 joined
+trace IDs and 94 propagated main-page requests; the fixture still made 4 build
+and 38 runtime origin calls. These counters describe different event sets, not
+concurrent users or complete transport coverage.

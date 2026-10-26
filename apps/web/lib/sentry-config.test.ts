@@ -6,7 +6,10 @@ test("production keeps the existing project and one-percent trace default", () =
   const options = getSentryOptions({ production: true });
   assert.equal(options.enabled, true);
   assert.equal(options.tracesSampleRate, 0.01);
-  assert.ok(options.dsn.startsWith("https://"));
+  assert.equal(
+    options.dsn,
+    "https://93063a824f0328fb310fa6c9cd744780@o4508104492711936.ingest.us.sentry.io/4511130278100992",
+  );
   assert.equal(options.enableLogs, false);
   assert.equal(options.sendDefaultPii, false);
 });

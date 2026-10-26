@@ -140,6 +140,7 @@ function tracePublicRead(read: PublicReadObservation) {
     },
   });
   if (read.outcome !== "success" && read.outcome !== "cancelled") {
+    // OpenTelemetry ERROR status; the pinned Next SDK does not export its named constant.
     span.setStatus({ code: 2, message: read.outcome });
   }
   span.end(endedAt);

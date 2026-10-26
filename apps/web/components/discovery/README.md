@@ -78,8 +78,10 @@ picks with an empty result. This does not change personalized starter ranking.
 ## Correlated tracing
 
 Existing Sentry request sampling also owns task and public-read child spans.
-`lib/perf.ts` records every observed read within a sampled request, independently
-of slow-log selection and the ten-log-per-second diagnostic cap. Read spans carry
+`lib/perf.ts` creates child spans for observed reads within an active sampled
+request, independently of the diagnostic slow-log filter and ten-log-per-second
+cap. Diagnostic logs retain both limits; SDK sampling and span/event limits
+still apply to traces. Read spans carry
 queue/header/body timings and outcome; HTTP round-trip time is not SQL time.
 Foreground/revalidation classification remains unknown until reliably attributed.
 No caller context, raw URL, query text or credentials enter these manual spans.

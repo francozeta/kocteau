@@ -98,6 +98,20 @@ const stop = async (child) => {
   child.stderr?.destroy();
 };
 try {
+  const collectorUrl = new URL(fixture.dsn);
+  collectorUrl.username = "";
+  collectorUrl.password = "";
+  collectorUrl.pathname = "/api/1/envelope/";
+  const malformed = await fetch(collectorUrl, {
+    method: "POST",
+    headers: { "Content-Encoding": "gzip" },
+    body: "not-a-gzip-envelope",
+  });
+  assert.equal(
+    malformed.status,
+    400,
+    "Malformed telemetry must not crash the collector",
+  );
   console.log(
     JSON.stringify({
       event: "build",
@@ -188,21 +202,25 @@ try {
       errors.push({ stage: "navigation", message: error.message }),
     );
     const pendingRequests = [];
-    page.on("request", (request) =>
+    const requestErrors = [];
+    const captureRequest = (request) => {
       pendingRequests.push(
-        (async () => {
-          const headers = await request.allHeaders();
-          if (headers["sentry-trace"])
-            requests.push({
-              traceId: headers["sentry-trace"].split("-")[0],
-              prefetch:
-                headers["next-router-prefetch"] === "1" ||
-                headers.purpose === "prefetch",
-              rsc: headers.rsc === "1",
-            });
-        })(),
-      ),
-    );
+        request
+          .allHeaders()
+          .then((headers) => {
+            if (headers["sentry-trace"])
+              requests.push({
+                traceId: headers["sentry-trace"].split("-")[0],
+                prefetch:
+                  headers["next-router-prefetch"] === "1" ||
+                  headers.purpose === "prefetch",
+                rsc: headers.rsc === "1",
+              });
+          })
+          .catch((error) => requestErrors.push(String(error))),
+      );
+    };
+    context.on("request", captureRequest);
     const settle = async (response) => {
       if (response) await response.finished();
       await page.waitForLoadState("domcontentloaded");
@@ -326,7 +344,9 @@ try {
           .length > browserEventsBefore,
       "Browser transaction did not reach isolated collector",
     );
+    context.off("request", captureRequest);
     await Promise.all(pendingRequests);
+    assert.deepEqual(requestErrors, []);
     const failureErrors = errors.filter(
       (error) => error.stage === "origin-failure",
     );
@@ -370,7 +390,11 @@ try {
   for (const read of reads) {
     assert.equal(read.data?.["kocteau.timing_kind"], "http_round_trip");
     assert.equal(read.data?.["kocteau.execution"], "unknown");
-    assert.equal(read.data?.["url"], undefined);
+    assert.doesNotMatch(
+      JSON.stringify(read.data),
+      /https?:\/\/|127\.0\.0\.1|isolated-fixture-key|private-canary|Synthetic listening note/i,
+      "Manual read-span data must omit URLs, credentials, query canaries and review text",
+    );
   }
   const report = {
     at: new Date().toISOString(),

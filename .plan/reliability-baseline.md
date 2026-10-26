@@ -25,8 +25,10 @@ The default `lib/perf.ts` policy records tasks at/above 750 ms and a 1% sample o
 the rest; public-read diagnostics cap at ten records/second/process. Runtime
 overrides were not inspected. These logs help locate outliers but cannot directly
 provide unbiased p50/p95 or complete error denominators. Existing browser/server
-Sentry tracing defaults to 1% in production. Check the existing SDK/platform
-coverage before adding instrumentation or another service.
+Sentry tracing defaults to 1% in production builds. The first delivery adds child
+spans independently of the diagnostic slow-log filter and burst cap; SDK sampling
+and span/event limits still apply. Check existing SDK/platform coverage before
+adding further instrumentation or another service.
 
 The public transport already records queue, headers and body phases. Correlate
 these with browser intent/content readiness and the server request. Distinguish

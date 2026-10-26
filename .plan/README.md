@@ -16,9 +16,9 @@ cloud measurement, data-plane incident and recovery, and prioritized follow-up.
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
 
-- [Journey tracing](./journey-tracing.md): first technical instrumentation delivery, local SDK/browser evidence and remaining coverage under #263.
+- [Journey tracing](./journey-tracing.md): first technical instrumentation delivery, local SDK/browser evidence and remaining coverage under [#263](https://github.com/francozeta/kocteau/issues/263), delivery [PR #264](https://github.com/francozeta/kocteau/pull/264).
 
-- [End-to-end reliability baseline](./reliability-baseline.md): current diagnosis, selective redesign, repeated verification and product-experience exit gate under #147/#263.
+- [End-to-end reliability baseline](./reliability-baseline.md): current diagnosis, selective redesign, repeated verification and product-experience exit gate under [#147](https://github.com/francozeta/kocteau/issues/147)/[#263](https://github.com/francozeta/kocteau/issues/263), coordinated in [PR #264](https://github.com/francozeta/kocteau/pull/264).
 
 - [Public read reliability](./public-read-reliability.md): measured implementation following the capacity audit; merged in PR #221; cold-read reliability remains under investigation.
 

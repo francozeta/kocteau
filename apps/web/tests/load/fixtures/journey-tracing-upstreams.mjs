@@ -73,14 +73,12 @@ export async function startJourneyFixture() {
     const { fail, headerDelayMs, bodyDelayMs } = state;
     if (headerDelayMs) await delay(headerDelayMs);
     if (fail) {
-      res
-        .writeHead(503)
-        .end(
-          JSON.stringify({
-            code: "FIXTURE_UNAVAILABLE",
-            message: "Isolated synthetic Data API failure",
-          }),
-        );
+      res.writeHead(503).end(
+        JSON.stringify({
+          code: "FIXTURE_UNAVAILABLE",
+          message: "Isolated synthetic Data API failure",
+        }),
+      );
       return;
     }
     const table = url.pathname.split("/").at(-1);
@@ -131,10 +129,16 @@ export async function startJourneyFixture() {
       res.writeHead(404).end();
       return;
     }
-    const chunks = [];
-    for await (const chunk of req) chunks.push(chunk);
-    let body = Buffer.concat(chunks);
-    if (req.headers["content-encoding"] === "gzip") body = gunzipSync(body);
+    let body;
+    try {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      body = Buffer.concat(chunks);
+      if (req.headers["content-encoding"] === "gzip") body = gunzipSync(body);
+    } catch {
+      if (!res.destroyed) res.writeHead(400).end("{}");
+      return;
+    }
     const lines = body.toString().split("\n");
     for (let i = 1; i + 1 < lines.length; i += 2) {
       try {
