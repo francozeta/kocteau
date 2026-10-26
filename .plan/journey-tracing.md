@@ -81,11 +81,10 @@ baseline remains open: representative production observations, Canvas action
 traces, authenticated cohorts, reliable background attribution, SQL correlation,
 numeric journey budgets and a declared mixed-load envelope.
 
-Review follow-up (2026-10-26): the local collector rejects malformed gzip with
-HTTP 400 without losing the process. The verifier checks URL, host, credential,
-query and content canaries in manual span data, observes requests on every page
-in each browser context, and exercises the malformed envelope before navigation.
-The repeated isolated run at 01:04 UTC recorded 30 public-read spans, 12 joined
-trace IDs and 94 propagated main-page requests; the fixture still made 4 build
-and 38 runtime origin calls. These counters describe different event sets, not
-concurrent users or complete transport coverage.
+## Verifier safety and coverage
+
+The isolated collector rejects malformed gzip envelopes with HTTP 400 and remains
+available for valid SDK traffic. The verifier checks that rejection before the
+browser journeys, scans manual span values for URL, host, credential, query and
+content canaries, and observes propagated requests across every page in each
+browser context. Propagation counters do not imply complete transport coverage.
