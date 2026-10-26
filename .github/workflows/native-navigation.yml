@@ -1,0 +1,71 @@
+name: Native navigation
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/components/reviews/**'
+      - 'apps/web/components/music/**'
+      - 'apps/web/lib/queries/**'
+      - 'apps/web/tests/load/**'
+      - '.github/workflows/native-navigation.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/components/reviews/**'
+      - 'apps/web/components/music/**'
+      - 'apps/web/lib/queries/**'
+      - 'apps/web/tests/load/**'
+      - '.github/workflows/native-navigation.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-navigation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: Native navigation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install isolated browser
+        run: |
+          npm install --prefix "$RUNNER_TEMP/kocteau-browser" --no-save --no-package-lock playwright@1.64.1
+          "$RUNNER_TEMP/kocteau-browser/node_modules/.bin/playwright" install --with-deps webkit
+      - name: Verify native navigation and editor
+        env:
+          KOCTEAU_EDITOR_BASELINE_REF: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.body, '[compare-editor-bytes]') && github.event.pull_request.base.sha || '' }}
+        run: |
+          export KOCTEAU_PLAYWRIGHT_MODULE="$RUNNER_TEMP/kocteau-browser/node_modules/playwright"
+          node apps/web/tests/load/compare-editor-bytes.mjs
+      - name: Observe public production scripts
+        if: ${{ github.event_name == 'push' || contains(github.event.pull_request.body, '[compare-editor-bytes]') }}
+        continue-on-error: true
+        env:
+          KOCTEAU_BASE_URL: https://kocteau.com
+          KOCTEAU_REVIEW_PATH: /reviews/f81673e3557c/sea-swallow-me-cocteau-twins
+          KOCTEAU_JOURNEY_SAMPLES: '2'
+        run: |
+          export KOCTEAU_PLAYWRIGHT_MODULE="$RUNNER_TEMP/kocteau-browser/node_modules/playwright"
+          pnpm perf:journey:baseline
+          node -e 'const fs=require("node:fs");const r=JSON.parse(fs.readFileSync(".codex-private/public-journey-baseline/report.json","utf8"));console.log("PUBLIC_NAV_OBSERVATION "+JSON.stringify({at:r.at,summary:r.summary,scripts:r.results.map(x=>({mobile:x.mobile,scripts:x.scripts})),limits:"Production source must be confirmed separately. Separate CI workers and unknown placement; do not compare these timings with the gru1 baseline."}))'
