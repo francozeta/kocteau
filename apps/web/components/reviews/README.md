@@ -65,3 +65,8 @@ becoming cached absence. Review creation, edits and deletion immediately expire
 UUID and 8/12-ID aliases; likes/comments retain their existing revalidation
 policy. Viewer state remains private. See [navigation reads](../../../../.plan/canonical-navigation.md)
 for the invalidation contract and reproducible read-count checks.
+
+The edit dialog loads its form when rendered while retaining SSR for query-driven
+opening. Composer ownership and the existing reset on close/reopen remain intact.
+[Editor loading](../../../../.plan/review-editor-loading.md) owns browser and script
+size checks; passing unit tests alone does not establish faster navigation.

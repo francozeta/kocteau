@@ -41,3 +41,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Canonical read recovery](./canonical-read-recovery.md): strict route failures, Retry boundaries and controlled browser verification under [#260](https://github.com/francozeta/kocteau/issues/260)/[#263](https://github.com/francozeta/kocteau/issues/263), delivery [PR #266](https://github.com/francozeta/kocteau/pull/266).
 
 - [Canonical navigation reads](./canonical-navigation.md): actual public-read reduction and controlled before/after navigation under [#259 / KOC-104](https://github.com/francozeta/kocteau/issues/259), delivery [PR #268](https://github.com/francozeta/kocteau/pull/268).
+
+- [Review editor loading](./review-editor-loading.md): deferred editor code, real browser/byte verification and resource handoff under [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery [PR #270](https://github.com/francozeta/kocteau/pull/270).

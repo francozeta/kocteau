@@ -5,11 +5,23 @@ import { FaDeezer } from "react-icons/fa";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PencilLine } from "@/components/ui/icons";
 import { Button, buttonVariants } from "@/components/ui/button";
-import NewReviewForm from "@/components/reviews/new-review-form";
+import dynamic from "next/dynamic";
+import type { NewReviewFormProps } from "@/components/reviews/new-review-form";
 import { ReviewComposerSession } from "./review-composer-session";
 import ReviewComposerSurface from "./review-composer-surface";
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
+
+const NewReviewForm = dynamic<NewReviewFormProps>(
+  () => import("@/components/reviews/new-review-form"),
+  {
+    loading: () => (
+      <div className="min-h-[20rem] p-5 text-sm text-muted-foreground" role="status">
+        Loading review editor…
+      </div>
+    ),
+  },
+);
 
 export type EditReviewSelection = {
   provider: "deezer";
