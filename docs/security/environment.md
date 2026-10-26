@@ -58,12 +58,14 @@ The web app intentionally keeps a small environment surface:
 | `CRON_SECRET` | Server only | Authenticates Vercel Cron requests to `/api/cron/enrich-catalog`. Configure it in Project Settings → Environment Variables, not in the Cron Jobs screen. |
 | `V0_REFERRAL_URL` | Server only, optional | Creator Perks destination. |
 | `APPLE_MUSIC_DEVELOPER_TOKEN` | Server only, optional | Maintainer-only Apple Music import. |
+| `NEXT_PUBLIC_SENTRY_DSN` | Public, optional | Telemetry destination. Unset keeps the existing project; an explicit empty value disables telemetry. Use a local collector for isolated verification. |
+| `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | Public, optional | Shared browser/server trace sampling, 0–1; default 0.01 in production and disabled outside production. Invalid values retain 0.01. |
 | `SENTRY_AUTH_TOKEN` | Build only, optional | Source-map upload during deployment. |
 | `AI_GATEWAY_API_KEY` | Server only, optional | Studio source-context generation outside Vercel OIDC. |
 | `VERCEL_OIDC_TOKEN` | Server only, temporary | Local Gateway authentication from the Vercel CLI; it expires and must not be committed. |
 | `STUDIO_PROPOSALS_ENABLED` | Server only, optional | `0` disables new Gateway generation while retaining history. |
 | `STUDIO_PROPOSAL_MODEL` | Server only, optional | Gateway model override; default and budget contract live in [catalog research](../knowledge-layer.md#optional-gateway-context). |
-| `KOCTEAU_PERF_*` | Server only, optional | Sampled performance diagnostics. |
+| `KOCTEAU_PERF_*` | Server only, optional | Sampled diagnostic logs; these do not control Sentry trace sampling. |
 
 Use `apps/web/.env.example` as the configuration template. Preserve existing local
 files when synchronizing devices. Next.js development overrides such as

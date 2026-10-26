@@ -1,60 +1,62 @@
 # Current Project State
 
-Last checked: 2026-10-25. Starter query optimization is integrated in main.
+Last checked: 2026-10-26. The first tracing delivery is verified locally; end-to-end reliability remains the priority.
 Stable contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
-[Design](./DESIGN.md), and [catalog research](./docs/knowledge-layer.md).
+[Design](./DESIGN.md), and [architecture](./docs/core-architecture.md).
 
 ## Active Work
 
-Observe [PR #257](https://github.com/francozeta/kocteau/pull/257), merged as
-`6c7d4ca`, under #230/#147. Next work is #243's pagination retry budget. The [starter query record](./.plan/starter-query-work.md) owns current
-SQL plans, exact response parity, delivery and measurement limits.
+[#263 / KOC-107](https://github.com/francozeta/kocteau/issues/263), under #147,
+owns diagnosis → selective redesign → repeated verification before broader
+product experience. The [baseline plan](./.plan/reliability-baseline.md) owns
+journeys and the exit gate.
 
-## Verified Delivery
+The first technical delivery is [PR #264](https://github.com/francozeta/kocteau/pull/264)
+(`perf/journey-observability`). It joins server
+tasks and public HTTP phases to existing sampled request traces and makes the
+existing SDK configuration reusable for isolated collection. Its
+[delivery record](./.plan/journey-tracing.md) owns verification and limits.
+It includes the research from draft PR #262. PR #264 owns integration and
+deployment status; this handoff records source verification.
 
-Source CI/preview passed at `635fdcc1`; main Verify passed at `6c7d4ca`.
-Production was observed READY with `kocteau.com` before/after guest WebKit checks
-at 21:01 UTC: mobile/desktop each showed three home reviews, 14 public reviews,
-eight API reviews and login redirect for anonymous /feed, without page errors.
+## Verified Scope
 
-Pinned CLI 2.109.1 applied only `20261025203107_starter_late_hydration.sql`
-to the existing Kocteau target after dry run. All 38 migration versions match;
-linked types are unchanged. Function owner, existing grants, stable definer
-boundary and empty search path remain unchanged. Six ordered cloud response
-hashes match before/after across three surfaces and two SQL roles.
+215 unit tests passed, including actual-SDK parentage, outcomes, concurrent
+isolation, unsafe-context filtering and capture beyond the diagnostic log cap. TypeScript, lint, docs and
+a native local production build are checked. Mobile/desktop WebKit joined
+browser/server traces and observed independent header/body delays; homepage ISR
+remains 300 seconds. Origin-failure probes still reproduce #260's false missing
+page under HTTP 200; the desktop fault also emitted React #419. This delivery
+instruments that behavior rather than claiming a recovery fix.
 
-Local verification passed 108 complete ordered response comparisons across
-three datasets, eight SQL files/54 checks, 202 web tests, TypeScript, lint,
-public-schema SQL lint and four real-session WebKit contexts at mobile/desktop
-sizes. No production synthetic users, engagement or load was introduced.
+Representative production p50/p95, complete error accounting, Canvas action
+traces, authenticated cohorts, reliable background attribution, SQL correlation
+and mixed-load limits remain pending. Local timings are not production latency
+or concurrent-user capacity.
 
-The 10,000-track local fixture's warm RPC sample fell from 1,079.531 to
-677.330 ms and temporary writes from 42,411 to 4,601 blocks. The current-sized
-fixture's absolute gain is small; these are not production P95 or user capacity.
-Production after-checks returned six rows in 14.526/15.367 ms under authenticated
-and anon SQL roles; the few separate samples are not a controlled speedup claim.
+## Previous Application Baseline
 
-Earlier [review recovery](./.plan/review-read-recovery.md),
-[primary rendering](./.plan/primary-render.md) and the merged
-[feed bundle](./.plan/authenticated-feed-read-bundle.md) remain integrated.
-Existing advisor warnings and the global linked index_advisor/hypopg_reset lint
-failure remain; local public-schema lint passes.
+The baseline before this tracing delivery is [PR #257](https://github.com/francozeta/kocteau/pull/257)
+at `6c7d4ca`, followed by main evidence `ecdbc9a`. The
+[starter record](./.plan/starter-query-work.md) owns its CLI migration, 38-version
+history, response parity and local SQL growth results. The
+[feed bundle](./.plan/authenticated-feed-read-bundle.md),
+[review recovery](./.plan/review-read-recovery.md) and
+[primary rendering](./.plan/primary-render.md) remain integrated.
+The global linked index_advisor/hypopg_reset lint failure remains documented;
+public-schema checks for the previous delivery passed.
 
-## In Review
+## Other Review Work
 
 Studio scouting: [PR #211](https://github.com/francozeta/kocteau/pull/211), #206.
 Release work: [PR #202](https://github.com/francozeta/kocteau/pull/202).
 Released version: v0.3.15.
 
-## Limits And Next Priority
+## Next
 
-Next: reproduce and bound #243 pagination retries, then address #228/#242
-cache consistency before broader load work. #256/KOC-102 separately records
-reproduced collection-dependent taste scoring; this stage preserves ranking.
-#258 links the SQL-CI gap to existing KOC-23; the 54 SQL checks currently run locally.
-
-The public homepage uses a separate loader and ISR. Authenticated production
-browser latency, physical iPhone/TikTok, historical cold Data API waits and
-10,000-user capacity remain unverified. #244/#231 bound history and suggestions;
-explicit-query Search remains in #229. #253 owns browser-fixture CI and #254
-interrupted RSC prefetch. Product ideas #245–#251 remain behind core reliability.
+Collect representative critical-journey measurements and freeze numeric budgets.
+#259/#260/#261, #243 and #228/#242 retain focused read/recovery/cache scope;
+known correctness defects may be fixed alongside measurement. #253 owns browser
+CI; #254 interrupted prefetch; SQL-CI KOC-23 and #256 scoring remain separate.
+Physical iPhone/TikTok and 10,000-user capacity are unverified. Product experiments
+#245–#251 remain behind the declared reliability gate.

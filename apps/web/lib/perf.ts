@@ -1,9 +1,11 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 import type { PublicReadObservation } from "@/lib/supabase/public-fetch";
 
 const DEFAULT_SLOW_TASK_THRESHOLD_MS = 750;
 const DEFAULT_PRODUCTION_SAMPLE_RATE = 0.01;
-const SENSITIVE_CONTEXT_KEY = /(cursor|email|id|path|query|token|url|username)/i;
+const SENSITIVE_CONTEXT_KEY =
+  /(cursor|email|id|path|query|token|url|username)/i;
 
 function readFiniteNumber(value: string | undefined, fallback: number) {
   const parsed = Number(value);
@@ -23,7 +25,9 @@ const PERF_SAMPLE_RATE = Math.min(
     0,
     readFiniteNumber(
       process.env.KOCTEAU_PERF_SAMPLE_RATE,
-      process.env.NODE_ENV === "production" ? DEFAULT_PRODUCTION_SAMPLE_RATE : 0,
+      process.env.NODE_ENV === "production"
+        ? DEFAULT_PRODUCTION_SAMPLE_RATE
+        : 0,
     ),
   ),
 );
@@ -59,48 +63,87 @@ function shouldLogCompletedTask(durationMs: number) {
   );
 }
 
+function traceCorrelation(span: Sentry.Span) {
+  if (!span.isRecording()) return {};
+  const { traceId, spanId } = span.spanContext();
+  return { trace_id: traceId, span_id: spanId };
+}
+
 export async function measureServerTask<T>(
   name: string,
   run: () => Promise<T>,
   context?: Record<string, unknown>,
 ) {
-  if (!PERF_ENABLED) {
-    return run();
+  return Sentry.startSpan(
+    { name, op: "kocteau.server.task", onlyIfParent: true },
+    async (span) => {
+      if (!PERF_ENABLED) return run();
+      const startedAt = performance.now();
+
+      try {
+        const result = await run();
+        const durationMs = performance.now() - startedAt;
+        if (shouldLogCompletedTask(durationMs)) {
+          console.info({
+            event:
+              durationMs >= SLOW_TASK_THRESHOLD_MS
+                ? "server_task_slow"
+                : "server_task_sample",
+            task: name,
+            duration_ms: roundDuration(durationMs),
+            ...traceCorrelation(span),
+            context: sanitizeContext(context),
+          });
+        }
+        return result;
+      } catch (error) {
+        console.error({
+          event: "server_task_failed",
+          task: name,
+          duration_ms: roundDuration(performance.now() - startedAt),
+          ...traceCorrelation(span),
+          context: sanitizeContext(context),
+          error:
+            error instanceof Error
+              ? { name: error.name, message: error.message }
+              : String(error),
+        });
+        throw error;
+      }
+    },
+  );
+}
+
+function tracePublicRead(read: PublicReadObservation) {
+  const endedAt = Date.now() / 1_000;
+  const operation = /^(?:rpc:)?[a-z][a-z0-9_]{0,63}$/.test(read.operation)
+    ? read.operation
+    : "other";
+  const span = Sentry.startInactiveSpan({
+    name: `supabase.${operation}`,
+    op: "kocteau.public_read",
+    onlyIfParent: true,
+    startTime: endedAt - read.totalMs / 1_000,
+    attributes: {
+      "kocteau.timing_kind": "http_round_trip",
+      "kocteau.execution": "unknown",
+      "kocteau.outcome": read.outcome,
+      "kocteau.phase": read.phase,
+      "kocteau.queue_ms": read.queueMs,
+      "kocteau.headers_ms": read.headersMs,
+      "kocteau.body_ms": read.bodyMs,
+      "kocteau.total_ms": read.totalMs,
+      ...(read.status === null
+        ? {}
+        : { "http.response.status_code": read.status }),
+      ...(read.bytes === null ? {} : { "kocteau.bytes": read.bytes }),
+    },
+  });
+  if (read.outcome !== "success" && read.outcome !== "cancelled") {
+    // OpenTelemetry ERROR status; the pinned Next SDK does not export its named constant.
+    span.setStatus({ code: 2, message: read.outcome });
   }
-
-  const startedAt = performance.now();
-
-  try {
-    const result = await run();
-    const durationMs = performance.now() - startedAt;
-
-    if (shouldLogCompletedTask(durationMs)) {
-      console.info({
-        event: durationMs >= SLOW_TASK_THRESHOLD_MS ? "server_task_slow" : "server_task_sample",
-        task: name,
-        duration_ms: roundDuration(durationMs),
-        context: sanitizeContext(context),
-      });
-    }
-
-    return result;
-  } catch (error) {
-    const durationMs = performance.now() - startedAt;
-    console.error({
-      event: "server_task_failed",
-      task: name,
-      duration_ms: roundDuration(durationMs),
-      context: sanitizeContext(context),
-      error:
-        error instanceof Error
-          ? {
-              name: error.name,
-              message: error.message,
-            }
-          : String(error),
-    });
-    throw error;
-  }
+  span.end(endedAt);
 }
 
 let publicReadLogWindow = 0;
@@ -109,6 +152,11 @@ let suppressedPublicReadLogs = 0;
 
 /** Bounded, sampled diagnostics with no query text, URLs, headers, or credentials. */
 export function reportPublicRead(read: PublicReadObservation) {
+  try {
+    tracePublicRead(read);
+  } catch {
+    // Telemetry must not change a completed data read.
+  }
   if (!PERF_ENABLED) return;
   const failed = read.outcome !== "success" && read.outcome !== "cancelled";
   if (!failed && !shouldLogCompletedTask(read.totalMs)) return;

@@ -75,6 +75,24 @@ reads escape the cached callback; the optional empty fallback is returned outsid
 it, so a failed fill remains retryable and a failed refresh cannot replace valid
 picks with an empty result. This does not change personalized starter ranking.
 
+## Correlated tracing
+
+Existing Sentry request sampling also owns task and public-read child spans.
+`lib/perf.ts` creates child spans for observed reads within an active sampled
+request, independently of the diagnostic slow-log filter and ten-log-per-second
+cap. Diagnostic logs retain both limits; SDK sampling and span/event limits
+still apply to traces. Read spans carry
+queue/header/body timings and outcome; HTTP round-trip time is not SQL time.
+Foreground/revalidation classification remains unknown until reliably attributed.
+No caller context, raw URL, query text or credentials enter these manual spans.
+
+Run `pnpm perf:journey:verify` from an isolated checkout without application
+environment files. It builds the real app with a synthetic loopback Data API and
+a local telemetry collector, then verifies native HTTP phase timings and
+browser/server trace propagation in mobile/desktop WebKit. It requires the
+external Playwright installation described below and preserves homepage ISR.
+See [delivery evidence and limits](../../../../.plan/journey-tracing.md).
+
 ## Preserve
 
 Browsing works signed out; publishing requires auth. Keep the Kocteau ranking
