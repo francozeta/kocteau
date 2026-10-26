@@ -125,9 +125,10 @@ function logEntitiesQueryError(
 }
 
 export async function getEntityPageById(
-  entityId: string,
+  rawId: string,
   { throwOnError = false }: { throwOnError?: boolean } = {},
 ) {
+  const entityId = rawId.toLowerCase();
   const loader = getOrCreateLoader(
     entityPageLoaders,
     ["entity-page", entityId],
@@ -235,7 +236,7 @@ export const getEntityPageByRouteId = cache(
           ["entity-route-v1", normalizedRouteId],
           {
             revalidate: 60,
-            tags: ["entities", canonicalRouteTag("entity", normalizedRouteId)],
+            tags: [canonicalRouteTag("entity", normalizedRouteId)],
           },
         ),
     );

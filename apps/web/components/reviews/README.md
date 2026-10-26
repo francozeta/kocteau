@@ -61,6 +61,7 @@ missing identities remain distinct. See [canonical recovery](../../../../.plan/c
 
 Canonical short-review reads hydrate the public author/entity in one origin query
 and reuse a 60-second entry per normalized route ID. Errors throw rather than
-becoming cached absence. Review mutations immediately expire UUID and 8/12-ID
-aliases; viewer state remains private. See [navigation reads](../../../../.plan/canonical-navigation.md)
+becoming cached absence. Review creation, edits and deletion immediately expire
+UUID and 8/12-ID aliases; likes/comments retain their existing revalidation
+policy. Viewer state remains private. See [navigation reads](../../../../.plan/canonical-navigation.md)
 for the invalidation contract and reproducible read-count checks.

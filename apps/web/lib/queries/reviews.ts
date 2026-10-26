@@ -77,9 +77,10 @@ function logQueryFallbackError(
 }
 
 export async function getPublicReviewById(
-  reviewId: string,
+  rawId: string,
   { throwOnError = false }: { throwOnError?: boolean } = {},
 ) {
+  const reviewId = rawId.toLowerCase();
   const loader = getOrCreateLoader(
     publicReviewLoaders,
     ["review", reviewId],

@@ -16,8 +16,7 @@ const baselineRef = process.env.CANONICAL_CACHE_BASELINE_REF || null;
 const upstream = await startJourneyFixture();
 upstream.state.headerDelayMs = 180;
 const root = join(repositoryRoot, ".plan/local");
-await mkdir(root, { recursive: true });
-const fixture = await mkdtemp(join(root, "canonical-cache-"));
+let fixture;
 let app,
   appUrl,
   output = "";
@@ -47,6 +46,8 @@ const check = async (label, kind, id, expected, status = 200) => {
   return response.data;
 };
 try {
+  await mkdir(root, { recursive: true });
+  fixture = await mkdtemp(join(root, "canonical-cache-"));
   await mkdir(join(fixture, "app/probe"), { recursive: true });
   await symlink(
     join(webRoot, "node_modules"),
@@ -92,20 +93,21 @@ try {
   await writeFile(
     join(fixture, "app/probe/route.js"),
     [
-      'import { getPublicReviewByRouteId } from "@/lib/queries/reviews";',
-      'import { getEntityPageByRouteId } from "@/lib/queries/entities";',
+      'import { getPublicReviewByRouteId, getPublicReviewById } from "@/lib/queries/reviews";',
+      'import { getEntityPageByRouteId, getEntityPageById } from "@/lib/queries/entities";',
       ...(!baselineRef
         ? [
             'import { expireCanonicalRouteReads } from "@/lib/queries/canonical-cache";',
           ]
         : []),
+      'import { revalidateTag } from "next/cache";',
       'export const dynamic = "force-dynamic";',
       "export async function GET(req) { const p = new URL(req.url).searchParams; try {",
-      ' const row = await (p.get("kind") === "review" ? getPublicReviewByRouteId(p.get("id")) : getEntityPageByRouteId(p.get("id")));',
+      ' const kind=p.get("kind"), id=p.get("id"); const row=await (kind==="review-id" ? getPublicReviewById(id,{throwOnError:true}) : kind==="entity-id" ? getEntityPageById(id,{throwOnError:true}) : kind==="review" ? getPublicReviewByRouteId(id) : getEntityPageByRouteId(id));',
       ' return Response.json(row); } catch { return Response.json({error:"source unavailable"}, {status:503}); }}',
       ...(!baselineRef
         ? [
-            'export async function POST(req) {const p=new URL(req.url).searchParams; expireCanonicalRouteReads(p.get("kind"),p.get("id")); return Response.json({ok:true});}',
+            'export async function POST(req) {const p=new URL(req.url).searchParams; if(p.get("kind")==="global-entities") revalidateTag("entities",{expire:0}); else expireCanonicalRouteReads(p.get("kind"),p.get("id")); return Response.json({ok:true});}',
           ]
         : []),
     ].join("\n"),
@@ -143,6 +145,16 @@ try {
     appUrl = stripVTControlCharacters(output).match(
       /- Local:\s+(http:\/\/127\.0\.0\.1:\d+)/,
     )?.[1];
+    if (appUrl) {
+      try {
+        const response = await fetch(appUrl + "/favicon.ico", {
+          signal: AbortSignal.timeout(2000),
+        });
+        await response.body?.cancel();
+      } catch {
+        appUrl = undefined;
+      }
+    }
     if (Date.now() > end) throw Error("Next startup timed out");
     await delay(100);
   }
@@ -236,6 +248,52 @@ try {
         upstream.entity.title,
       );
   }
+  if (!baselineRef) {
+    await request("global-entities", "unused", "POST");
+    await check(
+      "unrelated review write retains entity route",
+      "entity",
+      upstream.entity.short_id,
+      0,
+    );
+    for (const [kind, source, target, prefix, field] of [
+      ["review", upstream.reviews[0], upstream.reviews, "abcdef01", "body"],
+      [
+        "entity",
+        upstream.entity,
+        upstream.state.extraEntities,
+        "abcdef02",
+        "title",
+      ],
+    ]) {
+      const row = {
+        ...source,
+        id: prefix + "-1234-4000-8000-000000000001",
+        short_id: prefix + "1234",
+      };
+      target.push(row);
+      await check(
+        kind + " uppercase UUID fill",
+        kind + "-id",
+        row.id.toUpperCase(),
+        1,
+      );
+      await check(kind + " UUID case shares value", kind + "-id", row.id, 0);
+      row[field] = "Updated uppercase fixture";
+      await request(kind, row.id, "POST");
+      assert.equal(
+        (
+          await check(
+            kind + " uppercase UUID expiry",
+            kind + "-id",
+            row.id.toUpperCase(),
+            1,
+          )
+        )[field],
+        row[field],
+      );
+    }
+  }
   const report = {
     at: new Date().toISOString(),
     mode: baselineRef ? "baseline" : "candidate",
@@ -260,5 +318,5 @@ try {
   app?.stdout.destroy();
   app?.stderr.destroy();
   await upstream.close();
-  await rm(fixture, { recursive: true, force: true });
+  if (fixture) await rm(fixture, { recursive: true, force: true });
 }

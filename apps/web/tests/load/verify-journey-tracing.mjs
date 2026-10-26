@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -37,6 +38,9 @@ for (const name of [
 const evidence = join(repositoryRoot, ".codex-private/journey-tracing");
 await mkdir(evidence, { recursive: true });
 const fixture = await startJourneyFixture();
+const coldProbeSeed = randomBytes(4).readUInt32BE(0);
+const coldPrefix = (index) =>
+  (0x50000000 + ((coldProbeSeed + index) & 0x0fffffff)).toString(16);
 const preserved = Object.fromEntries(
   Object.entries(process.env).filter(
     ([key]) =>
@@ -204,12 +208,9 @@ try {
   ]) {
     const syntheticRows = [];
     const createColdRow = (source, target, index) => {
-      const prefix = (
-        0x71000000 +
-        (authenticated ? 100 : 0) +
-        (mobile ? 10 : 20) +
-        index
-      ).toString(16);
+      const prefix = coldPrefix(
+        (authenticated ? 100 : 0) + (mobile ? 10 : 20) + index,
+      );
       const row = {
         ...source,
         id: prefix + "-1234-4000-8000-000000000001",
@@ -525,7 +526,7 @@ try {
         },
       ];
       for (const [index, probe] of uuidCases.entries()) {
-        const prefix = (0x90000001 + index).toString(16);
+        const prefix = coldPrefix(900 + index);
         probe.row.id = prefix + "-1234-4000-8000-000000000001";
         probe.row.short_id = prefix + "1234";
         probe.target.push(probe.row);
