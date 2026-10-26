@@ -39,3 +39,5 @@ Local experiments, diagnostics, screenshots, and private notes belong in ignored
 - [Canonical route latency](./canonical-route-latency.md): production observations and controlled local reproductions of short-ID reads, false missing pages and primary dependency follow-ups under #259–#261.
 
 - [Canonical read recovery](./canonical-read-recovery.md): strict route failures, Retry boundaries and controlled browser verification under [#260](https://github.com/francozeta/kocteau/issues/260)/[#263](https://github.com/francozeta/kocteau/issues/263), delivery [PR #266](https://github.com/francozeta/kocteau/pull/266).
+
+- [Canonical navigation reads](./canonical-navigation.md): actual public-read reduction and controlled before/after navigation under [#259 / KOC-104](https://github.com/francozeta/kocteau/issues/259).

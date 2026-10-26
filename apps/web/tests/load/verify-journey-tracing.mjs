@@ -202,6 +202,23 @@ try {
     { mobile: true, authenticated: true },
     { mobile: false, authenticated: true },
   ]) {
+    const syntheticRows = [];
+    const createColdRow = (source, target, index) => {
+      const prefix = (
+        0x71000000 +
+        (authenticated ? 100 : 0) +
+        (mobile ? 10 : 20) +
+        index
+      ).toString(16);
+      const row = {
+        ...source,
+        id: prefix + "-1234-4000-8000-000000000001",
+        short_id: prefix + "1234",
+      };
+      target.push(row);
+      syntheticRows.push({ target, row });
+      return row;
+    };
     const browserEventsBefore = fixture.state.transactions.filter(
       (t) => t.platform === "javascript",
     ).length;
@@ -323,7 +340,14 @@ try {
     bodyPage.on("pageerror", (error) =>
       errors.push({ stage: "body-probe", message: error.message }),
     );
-    await bodyPage.goto(appUrl + reviewPath, { waitUntil: "domcontentloaded" });
+    const bodyReview = createColdRow(fixture.reviews[0], fixture.reviews, 1);
+    await bodyPage.goto(
+      appUrl +
+        "/reviews/" +
+        bodyReview.short_id +
+        "/fixture-track-fixture-artist",
+      { waitUntil: "domcontentloaded" },
+    );
     await bodyPage
       .locator("#review-structured-data")
       .waitFor({ state: "attached" });
@@ -331,10 +355,9 @@ try {
     fixture.state.bodyDelayMs = 0;
     fixture.state.fail = true;
     fixture.state.failTable = "reviews";
+    const failedReview = createColdRow(fixture.reviews[0], fixture.reviews, 2);
     const failurePath =
-      "/reviews/" +
-      fixture.reviews.at(-1).short_id +
-      "/fixture-track-fixture-artist";
+      "/reviews/" + failedReview.short_id + "/fixture-track-fixture-artist";
     const failurePage = await context.newPage();
     let failurePhase = "origin-failure";
     failurePage.on("pageerror", (error) =>
@@ -408,6 +431,22 @@ try {
         delay: 0,
       },
     ]) {
+      const source =
+        probe.kind === "artist"
+          ? fixture.artist
+          : probe.kind === "album"
+            ? fixture.album
+            : fixture.entity;
+      const target =
+        probe.kind === "artist"
+          ? fixture.state.extraArtists
+          : fixture.state.extraEntities;
+      const row = createColdRow(
+        source,
+        target,
+        probe.kind === "track" ? 3 : probe.kind === "artist" ? 4 : 5,
+      );
+      probe.path = probe.path.replace(source.short_id, row.short_id);
       fixture.state.fail = true;
       fixture.state.failTable =
         probe.kind === "artist" ? "artists" : "entities";
@@ -644,6 +683,8 @@ try {
     assert.equal(fixture.state.viewerReads > viewerReadsBefore, authenticated);
     assert.equal(fixture.state.publicIdentityAuthViolations, 0);
     await context.close();
+    for (const { target, row } of syntheticRows)
+      target.splice(target.indexOf(row), 1);
   }
   await waitFor(
     () =>

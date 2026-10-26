@@ -1,3 +1,4 @@
+import { expireCanonicalRouteReads } from "@/lib/queries/canonical-cache";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import {
@@ -227,13 +228,13 @@ export async function POST(req: Request) {
   revalidateTag(`creator-perks:${auth.user.id}`, "max");
 
   if (entityId) {
-    revalidateTag(`entity:${entityId}`, "max");
+    expireCanonicalRouteReads("entity", entityId);
     revalidateTag(`entity:${entityId}:reviews`, "max");
     revalidatePath(`/track/${entityId}`);
   }
 
   if (reviewId) {
-    revalidateTag(`review:${reviewId}`, "max");
+    expireCanonicalRouteReads("review", reviewId);
   }
 
   if (profile?.username) {

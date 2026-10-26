@@ -32,6 +32,12 @@ await mkdir(evidence, { recursive: true });
 const out = join(evidence, "report.json");
 const browser = await webkit.launch();
 const results = [];
+let pinnedReviewPath = process.env.KOCTEAU_REVIEW_PATH || null;
+if (pinnedReviewPath)
+  assert.ok(
+    pinnedReviewPath.startsWith("/reviews/") && !/[?#]/.test(pinnedReviewPath),
+    "Use a canonical relative review path",
+  );
 try {
   for (let sample = 0; sample < sampleCount; sample++) {
     const mobile = sample % 2 === 0;
@@ -58,7 +64,11 @@ try {
         timeout: 60000,
       });
       assert.equal(response.status(), 200);
-      const review = page.locator('a[href^="/reviews/"]').first();
+      const review = pinnedReviewPath
+        ? page
+            .locator("a[href=" + JSON.stringify(pinnedReviewPath) + "]")
+            .first()
+        : page.locator('a[href^="/reviews/"]').first();
       await review.waitFor({ state: "visible" });
       const listReadyMs = Math.round(performance.now() - started);
       const navigation = await page.evaluate(() => {
@@ -67,6 +77,7 @@ try {
       });
       await page.waitForLoadState("networkidle", { timeout: 30000 });
       const reviewHref = await review.getAttribute("href");
+      pinnedReviewPath ||= new URL(reviewHref, base).pathname;
       started = performance.now();
       await review.click();
       await page.waitForURL(
@@ -122,6 +133,8 @@ try {
       const result = {
         sample,
         mobile,
+        reviewPath: new URL(reviewHref, base).pathname,
+        trackPath: new URL(trackHref, base).pathname,
         timingsMs: {
           list: listReadyMs,
           review: reviewReadyMs,

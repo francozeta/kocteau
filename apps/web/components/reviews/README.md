@@ -57,3 +57,10 @@ successful-empty fixture; production builds keep their actual data source.
 
 Canonical review reads propagate failures to the same Retry boundary; successful
 missing identities remain distinct. See [canonical recovery](../../../../.plan/canonical-read-recovery.md) for error policy and verification.
+
+
+Canonical short-review reads hydrate the public author/entity in one origin query
+and reuse a 60-second entry per normalized route ID. Errors throw rather than
+becoming cached absence. Review mutations immediately expire UUID and 8/12-ID
+aliases; viewer state remains private. See [navigation reads](../../../../.plan/canonical-navigation.md)
+for the invalidation contract and reproducible read-count checks.

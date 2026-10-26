@@ -56,6 +56,7 @@
     "perf:feed:verify": "node apps/web/tests/load/verify-feed-reads.mjs",
     "perf:feed:browser": "node apps/web/tests/load/verify-authenticated-feed.mjs",
     "perf:starter:verify": "node supabase/scripts/verify-starter-query.mjs",
+    "perf:canonical:verify": "node apps/web/tests/load/verify-canonical-cache.mjs",
     "perf:journey:verify": "node apps/web/tests/load/verify-journey-tracing.mjs",
     "perf:journey:baseline": "node apps/web/tests/load/measure-public-journeys.mjs"
   },

@@ -66,3 +66,10 @@ same key immediately instead of persisting a false empty result.
 Canonical track, album and artist reads propagate failures to a catalog Retry
 boundary. Optional relationship lookups keep their nullable fallback. See
 [canonical recovery](../../../../.plan/canonical-read-recovery.md) for the shared policy and verification.
+
+
+Canonical track/album short-ID entity reads reuse confirmed public rows for
+60 seconds. Their full requested IDs remain separate cache keys; mutation tags
+cover 8/12-ID aliases. Creation of a review expires the updated entity's UUID and
+route reads. Artist reads keep their existing policy. See
+[navigation reads](../../../../.plan/canonical-navigation.md) for scope and checks.
