@@ -3,7 +3,7 @@
 Owner: [#147](https://github.com/francozeta/kocteau/issues/147).
 Active measurement work: [#263 / KOC-107](https://github.com/francozeta/kocteau/issues/263).
 Baseline source: main `ecdbc9a`, checked 25 Oct 2026.
-Status: telemetry/region audit complete; correlated journey baseline and fixes pending.
+Status: telemetry/region audit and the first [tracing delivery](./journey-tracing.md) are verified locally; representative journey baseline and fixes remain pending.
 
 ## Decision
 
