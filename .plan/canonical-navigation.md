@@ -66,5 +66,6 @@ track `/tracks/sea-swallow-me-cocteau-twins/806fa97db9d4`.
 Median visible-content times: list 815 ms, review 486 ms, track 891 ms, Back 105 ms.
 P95 in this bounded sample: 971 / 526 / 965 / 161 ms respectively.
 These are controlled measurements, not RUM, physical iPhone/network, authenticated
-production or capacity coverage. After-deployment comparison remains pending.
+production or capacity coverage. [PR #268's rollout record](https://github.com/francozeta/kocteau/pull/268#issuecomment-6418785667)
+owns merge/deployment confirmation and the after-deployment comparison.
 Raw reports are ignored under `.codex-private/navigation/`.

@@ -11,7 +11,8 @@ actual canonical navigation latency, following the user's production feedback.
 The [navigation plan](./.plan/canonical-navigation.md) owns the single-read review
 resolution, short-ID public caches, immediate alias invalidation and measurement
 limits. Local cache checks verify review cold reads 2 -> 1 and repeat review/entity
-reads 1 -> 0; production improvement is not yet established.
+reads 1 -> 0. [PR #268's rollout record](https://github.com/francozeta/kocteau/pull/268#issuecomment-6418785667)
+owns integration, deployed-source confirmation and production comparisons.
 
 [PR #266](https://github.com/francozeta/kocteau/pull/266) is integrated at main
 `62763aad`. Its [recovery plan](./.plan/canonical-read-recovery.md) owns canonical
@@ -39,10 +40,11 @@ for `419`, legacy/provider policies or the separate private wait in #265.
 
 ## Next
 
-Complete the navigation candidate's browser/check gate, integrate it and compare
-the same production review/track before and after deployment. The navigation plan
-records pinned targets and the bounded baseline. Do not infer production-wide
-speed or capacity from origin-read counts.
+Use PR #268's rollout record to confirm deployed scope and the same-target
+production comparison. The navigation plan records pinned targets and the bounded
+baseline. Continue measuring secondary track dependencies under #261 and the
+private fault wait under #265; do not infer production-wide speed or capacity
+from origin-read counts.
 
 [#265](https://github.com/francozeta/kocteau/issues/265) retains the private
 viewer-context fault wait; it follows the newly prioritized normal-navigation
