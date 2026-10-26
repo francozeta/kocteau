@@ -75,6 +75,10 @@ try {
       await page
         .locator("#review-structured-data")
         .waitFor({ state: "attached" });
+      await page
+        .locator("article.kocteau-review-card")
+        .first()
+        .waitFor({ state: "visible" });
       assert.equal(await missing(), false);
       const reviewReadyMs = Math.round(performance.now() - started);
       await page.waitForLoadState("networkidle", { timeout: 30000 });
@@ -101,6 +105,10 @@ try {
       await page
         .locator("#review-structured-data")
         .waitFor({ state: "attached" });
+      await page
+        .locator("article.kocteau-review-card")
+        .first()
+        .waitFor({ state: "visible" });
       assert.equal(await missing(), false);
       const backReadyMs = Math.round(performance.now() - started);
       await page.waitForLoadState("networkidle", { timeout: 30000 });

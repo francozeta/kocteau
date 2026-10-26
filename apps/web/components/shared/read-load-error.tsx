@@ -19,15 +19,16 @@ export default function ReadLoadError({
   return (
     <section
       className="mx-auto w-full max-w-3xl space-y-4 px-4 py-12"
-      role="alert"
       aria-busy={isPending}
     >
-      <h1 className="font-heading text-2xl font-medium tracking-normal">
-        {title}
-      </h1>
-      <p className="text-sm text-muted-foreground">
-        Please try again in a moment.
-      </p>
+      <div role="alert" className="space-y-4">
+        <h1 className="font-heading text-2xl font-medium tracking-normal">
+          {title}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Please try again in a moment.
+        </p>
+      </div>
       <Button
         variant="outline"
         disabled={isPending}

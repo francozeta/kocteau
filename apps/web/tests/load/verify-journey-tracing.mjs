@@ -336,8 +336,15 @@ try {
       fixture.reviews.at(-1).short_id +
       "/fixture-track-fixture-artist";
     const failurePage = await context.newPage();
+    let failurePhase = "origin-failure";
     failurePage.on("pageerror", (error) =>
-      errors.push({ stage: "origin-failure", message: error.message }),
+      errors.push({
+        stage: failurePhase,
+        message: error.message,
+        expectedForcedFallback: error.message.startsWith(
+          "Minified React error #419;",
+        ),
+      }),
     );
     const failure = await failurePage.goto(appUrl + failurePath, {
       waitUntil: "domcontentloaded",
@@ -356,6 +363,8 @@ try {
       false,
     );
     assert.doesNotMatch(await failurePage.title(), /404|could not be found/i);
+    await failurePage.waitForLoadState("networkidle");
+    failurePhase = "recovery";
     fixture.state.fail = false;
     fixture.state.headerDelayMs = 80;
     await failurePage
@@ -405,8 +414,15 @@ try {
       fixture.state.failureStatus = probe.status;
       fixture.state.headerDelayMs = probe.delay;
       const faultPage = await context.newPage();
+      let probePhase = "origin-failure";
       faultPage.on("pageerror", (error) =>
-        errors.push({ stage: "origin-failure", message: error.message }),
+        errors.push({
+          stage: probePhase,
+          message: error.message,
+          expectedForcedFallback: error.message.startsWith(
+            "Minified React error #419;",
+          ),
+        }),
       );
       const response = await faultPage.goto(appUrl + probe.path, {
         waitUntil: "domcontentloaded",
@@ -424,6 +440,8 @@ try {
         false,
       );
       assert.doesNotMatch(await faultPage.title(), /404|could not be found/i);
+      await faultPage.waitForLoadState("networkidle");
+      probePhase = "recovery";
       fixture.state.fail = false;
       fixture.state.headerDelayMs = 80;
       await faultPage
@@ -495,8 +513,15 @@ try {
         fixture.state.failureStatus = 503;
         fixture.state.headerDelayMs = 0;
         const uuidPage = await context.newPage();
+        let uuidPhase = "origin-failure";
         uuidPage.on("pageerror", (error) =>
-          errors.push({ stage: "origin-failure", message: error.message }),
+          errors.push({
+            stage: uuidPhase,
+            message: error.message,
+            expectedForcedFallback: error.message.startsWith(
+              "Minified React error #419;",
+            ),
+          }),
         );
         await uuidPage.goto(appUrl + path, { waitUntil: "domcontentloaded" });
         await uuidPage
@@ -514,6 +539,8 @@ try {
             .isVisible(),
           false,
         );
+        await uuidPage.waitForLoadState("networkidle");
+        uuidPhase = "recovery";
         fixture.state.fail = false;
         fixture.state.headerDelayMs = 80;
         await uuidPage
@@ -542,6 +569,7 @@ try {
           recovered: true,
         });
         await uuidPage.close();
+        assert.equal(probe.target.pop(), probe.row);
       }
     }
     fixture.state.failureStatus = 503;
@@ -595,10 +623,10 @@ try {
     );
     context.off("request", captureRequest);
     const failureErrors = errors.filter(
-      (error) => error.stage === "origin-failure",
+      (error) => error.expectedForcedFallback,
     );
     assert.deepEqual(
-      errors.filter((error) => error.stage !== "origin-failure"),
+      errors.filter((error) => !error.expectedForcedFallback),
       [],
     );
     results.push({

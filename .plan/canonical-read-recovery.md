@@ -3,6 +3,7 @@
 Coordination: [#260 / KOC-105](https://github.com/francozeta/kocteau/issues/260),
 with measurement under [#263 / KOC-107](https://github.com/francozeta/kocteau/issues/263)
 and parent #147. Baseline: main `52932a5` / PR #264.
+Review and rollout: [PR #266](https://github.com/francozeta/kocteau/pull/266).
 
 ## Contract
 
@@ -46,9 +47,10 @@ cases cover each resolver separately. Successful absence, malformed IDs and
 ambiguous eight-character prefixes retain their intended behavior. Early invalid
 IDs are checked by their HTTP 404 response; the framework may emit an empty body.
 
-Expected renderer errors during deliberate origin failures are recorded separately.
-Healthy navigation, body probes and recovery must remain free of page errors.
-React error `419` is not claimed fixed by this work. Detailed reports stay ignored.
+React's documented `419` server-render fallback is recorded separately only on
+documents deliberately subjected to origin failure, including deferred hydration
+on Retry. All other errors on those pages and every error in clean navigation or
+body probes fail verification. This does not claim to fix [React `419`](https://react.dev/errors/419). Detailed reports stay ignored.
 
 ## Controlled navigation baseline
 
@@ -61,15 +63,21 @@ KOCTEAU_BASE_URL=https://kocteau.com pnpm perf:journey:baseline
 
 The command uses one browser worker and fresh guest contexts, alternates viewport
 sizes and records public list, Link-to-review, Link-to-track and Back milestones.
+Review and Back require a visible review article as well as its data marker; the
+list requires a visible review link and the track a visible primary heading.
 It accepts 2–24 samples through `KOCTEAU_JOURNEY_SAMPLES` (default 12).
 `KOCTEAU_PLAYWRIGHT_MODULE` can point to the external Playwright installation.
 Reports go to ignored `.codex-private/public-journey-baseline/`.
 
 A twelve-journey production-URL run from gru1 before this correction had median
-milestones of 719 ms for the public list, 460 ms for the review, 852 ms for the
-track and 84 ms for Back. It used six samples per viewport and observed healthy
+milestones of 769 ms for the public list, 453 ms for the review, 868 ms for the
+track and 92 ms for Back. It used six samples per viewport and observed healthy
 guest navigation. These are controlled measurements, not a speedup, RUM,
 production-wide percentiles, server-cache coldness or concurrent-user capacity.
+
+Postgres statement counters are cumulative, not a per-deployment latency window.
+Use snapshots with reset time and role/query identity before attributing a rollout;
+this investigation does not reset production counters.
 
 Recent selected slow logs show waits before response headers with very small
 local queue times. Such records are sampled and biased; some work is background
