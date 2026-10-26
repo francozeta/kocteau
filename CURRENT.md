@@ -6,18 +6,18 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-[#259 / KOC-104](https://github.com/francozeta/kocteau/issues/259) now prioritizes
-actual canonical navigation latency, following the user's production feedback.
-The [navigation plan](./.plan/canonical-navigation.md) owns the single-read review
-resolution, short-ID public caches, immediate alias invalidation and measurement
-limits. Local cache checks verify review cold reads 2 -> 1 and repeat review/entity
-reads 1 -> 0. [PR #268's rollout record](https://github.com/francozeta/kocteau/pull/268#issuecomment-6418785667)
-owns integration, deployed-source confirmation and production comparisons.
+[#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), draft
+[PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
+editor code on reading routes. The [editor plan](./.plan/review-editor-loading.md)
+owns source scope, browser/byte gates and the execution-resource handoff.
+Final verification is pending GitHub browser CI; the candidate is not deployed.
 
-[PR #266](https://github.com/francozeta/kocteau/pull/266) is integrated at main
-`62763aad`. Its [recovery plan](./.plan/canonical-read-recovery.md) owns canonical
-Retry vs genuine absence; [#263 / KOC-107](https://github.com/francozeta/kocteau/issues/263)
-and the [baseline plan](./.plan/reliability-baseline.md) retain the broader gate.
+[PR #268](https://github.com/francozeta/kocteau/pull/268) is integrated at main
+`a772ab1`. It proves fewer canonical identity reads but its same-target guest
+production medians changed only review 486 -> 468 ms and track 891 -> 876 ms,
+with slower outliers. [Its rollout record](https://github.com/francozeta/kocteau/pull/268#issuecomment-6418785667)
+owns deployed-source confirmation and limits. This does not demonstrate a
+perceptible navigation improvement. #259/#263 remain open.
 
 ## Verified Baseline
 
@@ -40,14 +40,12 @@ for `419`, legacy/provider policies or the separate private wait in #265.
 
 ## Next
 
-Use PR #268's rollout record to confirm deployed scope and the same-target
-production comparison. The navigation plan records pinned targets and the bounded
-baseline. Continue measuring secondary track dependencies under #261 and the
-private fault wait under #265; do not infer production-wide speed or capacity
-from origin-read counts.
+Complete PR #270's same-worker browser/byte comparison and preserve editor
+behavior before integration. Confirm the optional production observation's actual
+outcome and deployed source separately; different CI workers cannot be compared
+with the gru1 latency baseline.
 
-[#265](https://github.com/francozeta/kocteau/issues/265) retains the private
-viewer-context fault wait; it follows the newly prioritized normal-navigation
-work. #261 retains secondary track dependencies. #267 retains React 419
-attribution. #243, #228/#242, #253/#254 and SQL-CI KOC-23 remain separate.
+#261 retains primary/optional track dependencies, #265 the private fault wait,
+#267 React 419 attribution and #228 catalog invalidation. #243, #242,
+#253/#254 and SQL-CI KOC-23 remain separate.
 Product experiments #245–#251 follow the reliability gate.
