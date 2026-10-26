@@ -11,14 +11,15 @@ owns diagnosis → selective redesign → repeated verification before broader
 product experience. The [baseline plan](./.plan/reliability-baseline.md) owns
 journeys and the exit gate.
 
-The first technical candidate is [PR #264](https://github.com/francozeta/kocteau/pull/264)
+The first technical delivery is [PR #264](https://github.com/francozeta/kocteau/pull/264)
 (`perf/journey-observability`). It joins server
 tasks and public HTTP phases to existing sampled request traces and makes the
 existing SDK configuration reusable for isolated collection. Its
 [delivery record](./.plan/journey-tracing.md) owns verification and limits.
-It includes the research from draft PR #262; candidate source is not production.
+It includes the research from draft PR #262. PR #264 owns integration and
+deployment status; this handoff records source verification.
 
-## Verified Candidate
+## Verified Scope
 
 215 unit tests passed, including actual-SDK parentage, outcomes, concurrent
 isolation, unsafe-context filtering and capture beyond the diagnostic log cap. TypeScript, lint, docs and
@@ -33,9 +34,9 @@ traces, authenticated cohorts, reliable background attribution, SQL correlation
 and mixed-load limits remain pending. Local timings are not production latency
 or concurrent-user capacity.
 
-## Integrated Delivery
+## Previous Application Baseline
 
-The last integrated application delivery remains [PR #257](https://github.com/francozeta/kocteau/pull/257)
+The baseline before this tracing delivery is [PR #257](https://github.com/francozeta/kocteau/pull/257)
 at `6c7d4ca`, followed by main evidence `ecdbc9a`. The
 [starter record](./.plan/starter-query-work.md) owns its CLI migration, 38-version
 history, response parity and local SQL growth results. The
