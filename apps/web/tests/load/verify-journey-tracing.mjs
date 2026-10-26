@@ -10,6 +10,15 @@ import { fileURLToPath } from "node:url";
 import { stripVTControlCharacters } from "node:util";
 import { startJourneyFixture } from "./fixtures/journey-tracing-upstreams.mjs";
 
+const scriptSnapshot = (page) => page.evaluate(() => {
+  const scripts = performance.getEntriesByType("resource")
+    .filter((entry) => new URL(entry.name).pathname.endsWith(".js"));
+  return {
+    count: scripts.length,
+    decodedBytes: scripts.reduce((sum, entry) => sum + entry.decodedBodySize, 0),
+    encodedBytes: scripts.reduce((sum, entry) => sum + entry.encodedBodySize, 0),
+  };
+});
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const repositoryRoot = resolve(webRoot, "../..");
 const require = createRequire(join(webRoot, "package.json"));
@@ -288,6 +297,7 @@ try {
     await settle(document);
     direct.settledMs = Math.round(performance.now() - started);
     results.push(direct);
+    const listScripts = await scriptSnapshot(page);
     const reviewPath = await reviewLink.getAttribute("href");
     started = performance.now();
     await reviewLink.click({ noWaitAfter: true });
@@ -309,6 +319,7 @@ try {
       contentReadyMs: Math.round(performance.now() - started),
     });
     await settle();
+    const reviewScripts = await scriptSnapshot(page);
     const trackLink = page.locator('a[href^="/tracks/"]').first();
     await trackLink.waitFor();
     const trackPath = await trackLink.getAttribute("href");
@@ -329,6 +340,41 @@ try {
       contentReadyMs: Math.round(performance.now() - started),
     });
     await settle();
+    const trackScripts = await scriptSnapshot(page);
+    results.push({ mobile, authenticated, journey: "reading-script-bytes",
+      scripts: { list: listScripts, review: reviewScripts, track: trackScripts } });
+    if (authenticated) {
+      const edit = page.getByRole("button", { name: "Edit review", exact: true }).first();
+      await edit.click();
+      const title = page.locator("#review-title");
+      await title.waitFor({ state: "visible" });
+      const originalTitle = await title.inputValue();
+      const ownReview = fixture.reviews.find((review) => review.title === originalTitle);
+      assert.ok(ownReview, "Editor must receive the viewer's actual review");
+      assert.equal(await page.locator("#review-body").inputValue(), ownReview.body);
+      await title.fill("Unsaved local editor draft");
+      assert.equal(await title.inputValue(), "Unsaved local editor draft");
+      await page.keyboard.press("Escape");
+      await title.waitFor({ state: "hidden" });
+      await edit.click();
+      await title.waitFor({ state: "visible" });
+      assert.equal(await title.inputValue(), originalTitle);
+      await page.keyboard.press("Escape");
+      await title.waitFor({ state: "hidden" });
+      results.push({ mobile, authenticated, journey: "editor-original-fields-reopen",
+        resetToOriginal: true });
+      const autoPage = await context.newPage();
+      autoPage.on("pageerror", (error) => errors.push({ stage: "editor-auto-open", message: error.message }));
+      await autoPage.goto(appUrl + trackPath + "?editReview=" + ownReview.id,
+        { waitUntil: "domcontentloaded" });
+      await autoPage.locator("#review-title").waitFor({ state: "visible" });
+      assert.equal(await autoPage.locator("#review-title").inputValue(), originalTitle);
+      await autoPage.keyboard.press("Escape");
+      await autoPage.locator("#review-title").waitFor({ state: "hidden" });
+      results.push({ mobile, authenticated, journey: "editor-query-auto-open",
+        originalFields: true });
+      await autoPage.close();
+    }
     await page.goBack({ waitUntil: "domcontentloaded" });
     await page
       .locator("#review-structured-data")

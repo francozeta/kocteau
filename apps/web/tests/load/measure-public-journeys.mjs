@@ -3,6 +3,15 @@ import { createRequire } from "node:module";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+const scriptSnapshot = (page) => page.evaluate(() => {
+  const scripts = performance.getEntriesByType("resource")
+    .filter((entry) => new URL(entry.name).pathname.endsWith(".js"));
+  return {
+    count: scripts.length,
+    decodedBytes: scripts.reduce((sum, entry) => sum + entry.decodedBodySize, 0),
+    encodedBytes: scripts.reduce((sum, entry) => sum + entry.encodedBodySize, 0),
+  };
+});
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const repositoryRoot = resolve(webRoot, "../..");
 const require = createRequire(join(webRoot, "package.json"));
@@ -76,6 +85,7 @@ try {
         return { ttfbMs: n ? Math.round(n.responseStart - n.startTime) : null };
       });
       await page.waitForLoadState("networkidle", { timeout: 30000 });
+      const listScripts = await scriptSnapshot(page);
       const reviewHref = await review.getAttribute("href");
       pinnedReviewPath ||= new URL(reviewHref, base).pathname;
       started = performance.now();
@@ -93,6 +103,7 @@ try {
       assert.equal(await missing(), false);
       const reviewReadyMs = Math.round(performance.now() - started);
       await page.waitForLoadState("networkidle", { timeout: 30000 });
+      const reviewScripts = await scriptSnapshot(page);
       const track = page.locator('a[href^="/tracks/"]').first();
       await track.waitFor({ state: "visible" });
       const trackHref = await track.getAttribute("href");
@@ -108,6 +119,8 @@ try {
       assert.equal(await missing(), false);
       const trackReadyMs = Math.round(performance.now() - started);
       await page.waitForLoadState("networkidle", { timeout: 30000 });
+      started = performance.now();
+      const trackScripts = await scriptSnapshot(page);
       started = performance.now();
       await page.goBack({ waitUntil: "domcontentloaded" });
       await page.waitForURL(
@@ -135,6 +148,7 @@ try {
         mobile,
         reviewPath: new URL(reviewHref, base).pathname,
         trackPath: new URL(trackHref, base).pathname,
+        scripts: { list: listScripts, review: reviewScripts, track: trackScripts },
         timingsMs: {
           list: listReadyMs,
           review: reviewReadyMs,
