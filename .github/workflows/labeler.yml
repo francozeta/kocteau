@@ -23,4 +23,4 @@ jobs:
 
     steps:
       - name: Label pull request
-        uses: actions/labeler@v6
+        uses: actions/labeler@v7
