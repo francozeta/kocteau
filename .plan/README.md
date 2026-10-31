@@ -16,6 +16,8 @@ cloud measurement, data-plane incident and recovery, and prioritized follow-up.
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
 
+- [Search design experiment 001](./search-design-judgment.md): bounded selected-canvas feedback evaluation using pinned MDS Stage 02, coordinated in [#271](https://github.com/francozeta/kocteau/issues/271). Preview review only; owner acceptance remains open.
+
 - [Journey tracing](./journey-tracing.md): first technical instrumentation delivery, local SDK/browser evidence and remaining coverage under [#263](https://github.com/francozeta/kocteau/issues/263), delivery [PR #264](https://github.com/francozeta/kocteau/pull/264).
 
 - [End-to-end reliability baseline](./reliability-baseline.md): current diagnosis, selective redesign, repeated verification and product-experience exit gate under [#147](https://github.com/francozeta/kocteau/issues/147)/[#263](https://github.com/francozeta/kocteau/issues/263), coordinated in [PR #264](https://github.com/francozeta/kocteau/pull/264).

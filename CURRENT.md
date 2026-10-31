@@ -1,10 +1,24 @@
 # Current Project State
 
-Last checked: 2026-10-26. Reliability diagnosis and recoverable public reads remain
-the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
+Search experiment checked: 2026-10-31. The reliability observations below were
+last checked on 2026-10-26 and remain the product priority.
+Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
+
+[Search design experiment 001 / #271](https://github.com/francozeta/kocteau/issues/271)
+is isolated on `feat/search-design-judgment`, based on main `e7718b4`. It tests
+selected-canvas feedback while retaining Search's composition, navigation and
+actions. MDS Stage 02 is pinned in `mds.json`; the existing skill library is
+unchanged. The [experiment record](./.plan/search-design-judgment.md) owns
+research, comparison, checks and limits. Unit tests, lint, build and the new
+feedback browser checks pass. Two runs of the existing desktop search-recovery
+check failed the immediate reload assertion on the candidate while the control
+passed. A diagnostic replay restored the query; attribution remains open.
+Preview publication/review and owner acceptance remain pending. This is not
+integrated product behavior or a production release and does not advance the
+separate reliability gate.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

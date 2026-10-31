@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "https://github.com/francozeta/mds.git",
+    "revision": "012db40d572620444399bdf3489bfc2ee34a712c"
+  },
+  "skills": {
+    "enabled": false
+  }
+}
