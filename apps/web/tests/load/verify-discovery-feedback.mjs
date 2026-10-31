@@ -117,7 +117,7 @@ try {
   const nextCover = page.getByRole("button", { name: /Discovery fixture 90909002.*Find similar music/ });
   await nextCover.focus();
   await page.keyboard.press("Enter");
-  await statusIs("No new music found. Try another cover or search.");
+  await statusIs("No new music found. Try another cover.");
   assert.equal(await page.getByRole("button", { name: /Discovery fixture 90909001.*Find similar music/ }).count(), 1, "Retained covers must not count as new music");
   const emptyPath = new URL(page.url()).pathname;
 
@@ -140,7 +140,7 @@ try {
 
   await page.goBack();
   await page.waitForURL(new URL(emptyPath, target).href);
-  await statusIs("No new music found. Try another cover or search.");
+  await statusIs("No new music found. Try another cover.");
   mode = "success";
   await page.goForward();
   await statusIs("Choose another cover to keep exploring.");
@@ -152,11 +152,11 @@ try {
   await waitForLanes(90909006);
   release(90909006, "fast", "empty");
   release(90909006, "deep", "empty");
-  await statusIs("No new music found. Try another cover or search.");
+  await statusIs("No new music found. Try another cover.");
   release(90909005, "fast", "success");
   release(90909005, "deep", "success");
   await page.waitForTimeout(150);
-  await statusIs("No new music found. Try another cover or search.");
+  await statusIs("No new music found. Try another cover.");
   assert(new URL(page.url()).pathname.endsWith("/90909006"), "Superseded results cannot change the current selection");
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   assert.deepEqual(errors, []);

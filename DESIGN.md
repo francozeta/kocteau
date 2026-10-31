@@ -193,6 +193,16 @@ Avoid motion on:
   some canvas space for explicit state; [the experiment](./.plan/search-design-judgment.md)
   records the comparison and remaining listener-validation question. The existing
   spatial composition and action hierarchy remain the design baseline.
+- Its second iteration tests stronger music identity in the same space: bound
+  supporting-cover size after selection, pair captions with projected artwork,
+  and keep caption placement outside the mobile controls and foreground music.
+  The selected caption can carry “Exploring from” and the track identity; when
+  that cue is present, the permanent ready-state instruction is screen-reader
+  only, revealed again if it has keyboard focus. Loading, empty and failure
+  feedback remain visible. Preserve full accessible names and native keyboard
+  alternatives; never center an unrelated cover when the seed has no artwork.
+  The renderer's hit order must match its paint order. These choices are still
+  experimental; the linked record owns references, comparisons and limits.
 
 ## UI Review Checklist
 

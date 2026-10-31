@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ImageSphere } from "@/lib/discovery/image-sphere";
+import type { CoverBounds } from "@/lib/discovery/cover-layout";
 import type { SearchEntityType } from "@/lib/search-types";
+import { cn } from "@/lib/utils";
 
 export type DiscoveryOrbitItem = {
   id: string;
@@ -45,6 +47,11 @@ export default function DiscoveryOrbit({
   const isMobile = useIsMobile();
   const hostRef = useRef<HTMLDivElement>(null);
   const labelRefs = useRef(new Map<string, HTMLDivElement>());
+  const labelSizesRef = useRef(
+    new Map<string, { width: number; height: number }>(),
+  );
+  const labelInsetsRef = useRef({ top: 80, bottom: 112 });
+  const labelObstaclesRef = useRef<CoverBounds[]>([]);
   const sphereRef = useRef<ImageSphere | null>(null);
   const [canvasUnavailable, setCanvasUnavailable] = useState(false);
   const sphereItems = useMemo(() => {
@@ -107,6 +114,7 @@ export default function DiscoveryOrbit({
     let sphere: ImageSphere | null = null;
     let onScreen = true;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mobileLabels = window.matchMedia("(max-width: 767px)");
     const observer = new IntersectionObserver(
       ([entry]) => {
         onScreen = entry?.isIntersecting ?? false;
@@ -142,14 +150,43 @@ export default function DiscoveryOrbit({
           fov: compactViewport ? 29 : 25,
           autoRotate: !reducedMotion.matches,
           reducedMotion: reducedMotion.matches,
-          anchorIndex: centerSeedRef.current && seedRef.current ? 0 : undefined,
-          onCoverPosition: (imageUrl, x, y, opacity, visible) => {
+          anchorIndex:
+            centerSeedRef.current && seedRef.current?.coverUrl ? 0 : undefined,
+          getLabelSize: (imageUrl) => labelSizesRef.current.get(imageUrl),
+          getLabelObstacles: () => labelObstaclesRef.current,
+          getLabelInsets: () =>
+            mobileLabels.matches
+              ? labelInsetsRef.current
+              : { top: 0, bottom: 0 },
+          onCoverPosition: ({
+            imageUrl,
+            x,
+            y,
+            opacity,
+            visible,
+            coverWidth,
+            placement,
+          }) => {
             const label = labelRefs.current.get(imageUrl);
 
             if (!label) return;
 
             label.style.transform = `translate3d(${x}px, ${y}px, 0) translateX(-50%)`;
-            label.style.opacity = visible ? String(Math.max(0.55, opacity)) : "0";
+            label.style.setProperty(
+              "--discovery-cover-width",
+              `${coverWidth}px`,
+            );
+            label.style.opacity = visible
+              ? String(Math.max(0.8, opacity))
+              : "0";
+            label.dataset.visible = String(visible);
+            label.dataset.placement = placement;
+            label.style.textAlign =
+              label.dataset.current === "true" || placement === "right"
+                ? "start"
+                : placement === "left"
+                  ? "end"
+                  : "center";
           },
           onSelect: (index) => {
             const item = sphereItemsRef.current[index];
@@ -182,7 +219,7 @@ export default function DiscoveryOrbit({
 
   useEffect(() => {
     sphereRef.current?.updateImages(imageUrls, {
-      anchorIndex: centerSeed && seed ? 0 : undefined,
+      anchorIndex: centerSeed && seed?.coverUrl ? 0 : undefined,
     });
   }, [centerSeed, imageUrls, seed]);
 
@@ -190,11 +227,78 @@ export default function DiscoveryOrbit({
     const labels = hostRef.current?.querySelectorAll<HTMLDivElement>(
       "[data-discovery-cover-label]",
     );
+    const header = document.querySelector<HTMLElement>(
+      "[data-kocteau-search-mobile-header-slot]",
+    );
+    const dock = document.getElementById("mobile-search-dock");
+    const feedback = document.querySelector<HTMLElement>(
+      "[data-discovery-feedback]",
+    );
+    const measureInsets = () => {
+      const host = hostRef.current?.getBoundingClientRect();
+      if (!host?.height) return;
+      const headerBounds = header?.getBoundingClientRect();
+      const dockBounds = dock?.getBoundingClientRect();
+      labelObstaclesRef.current = Array.from(
+        feedback?.querySelectorAll<HTMLElement>('[role="status"], button') ??
+          [],
+      ).flatMap((element) => {
+        const bounds = element.getBoundingClientRect();
+        return bounds.width > 1 && bounds.height > 1
+          ? [
+              {
+                left: bounds.left - host.left - 4,
+                right: bounds.right - host.left + 4,
+                top: bounds.top - host.top - 4,
+                bottom: bounds.bottom - host.top + 4,
+              },
+            ]
+          : [];
+      });
+      labelInsetsRef.current = {
+        top: headerBounds?.height
+          ? Math.max(64, headerBounds.bottom - host.top + 8)
+          : 80,
+        bottom: dockBounds?.height
+          ? Math.max(0, host.bottom - dockBounds.top + 8)
+          : 112,
+      };
+    };
+    const observer = new ResizeObserver((entries) => {
+      measureInsets();
+      for (const entry of entries) {
+        const imageUrl = (entry.target as HTMLDivElement).dataset.coverUrl;
+        if (imageUrl)
+          labelSizesRef.current.set(imageUrl, {
+            width: entry.contentRect.width,
+            height: entry.contentRect.height,
+          });
+      }
+    });
     labelRefs.current.clear();
+    labelSizesRef.current.clear();
+    measureInsets();
+    for (const element of [
+      hostRef.current,
+      header,
+      dock,
+      feedback,
+      feedback?.querySelector('[role="status"]'),
+    ]) {
+      if (element) observer.observe(element);
+    }
     labels?.forEach((label) => {
       const imageUrl = label.dataset.coverUrl;
-      if (imageUrl) labelRefs.current.set(imageUrl, label);
+      if (imageUrl) {
+        labelRefs.current.set(imageUrl, label);
+        labelSizesRef.current.set(imageUrl, {
+          width: label.offsetWidth,
+          height: label.offsetHeight,
+        });
+        observer.observe(label);
+      }
     });
+    return () => observer.disconnect();
   }, [sphereItems]);
 
   return (
@@ -235,13 +339,38 @@ export default function DiscoveryOrbit({
                 key={item.id}
                 data-discovery-cover-label
                 data-cover-url={item.coverUrl}
+                data-current={seed?.id === item.id ? "true" : undefined}
                 aria-hidden="true"
-                className="pointer-events-none absolute left-0 top-0 z-10 w-32 text-center opacity-0 [text-shadow:0_1px_4px_#000] md:w-40"
+                className={cn(
+                  "pointer-events-none absolute left-0 top-0 max-w-[calc(100%-2rem)] opacity-0 [text-shadow:0_1px_4px_#000]",
+                  seed?.id === item.id
+                    ? "z-20 w-[min(14rem,var(--discovery-cover-width,14rem))] text-start"
+                    : "z-10 w-32 text-center md:w-40",
+                )}
               >
-                <span className="block truncate text-[10px] font-medium leading-tight text-foreground/90">
+                <span
+                  className={cn(
+                    "block font-medium text-foreground",
+                    seed?.id === item.id
+                      ? "line-clamp-2 text-balance break-words text-sm leading-5"
+                      : "truncate text-xs leading-4",
+                  )}
+                >
+                  {seed?.id === item.id ? (
+                    <span className="me-1 text-[11px] font-normal text-muted-foreground">
+                      Exploring from
+                    </span>
+                  ) : null}
                   {item.title}
                 </span>
-                <span className="mt-0.5 block truncate text-[9px] leading-tight text-muted-foreground/75">
+                <span
+                  className={cn(
+                    "mt-0.5 block truncate text-muted-foreground",
+                    seed?.id === item.id
+                      ? "text-xs leading-4"
+                      : "text-[11px] leading-4",
+                  )}
+                >
                   {getArtistLabel(item)}
                 </span>
               </div>

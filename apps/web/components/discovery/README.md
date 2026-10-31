@@ -9,6 +9,13 @@
   empty expansion and retry feedback in one mounted polite status region.
   Nodes attributed to the current seed indicate related music; retained covers
   from another selection do not. Feedback does not change ranking or navigation.
+- `discovery-orbit.tsx` pairs native keyboard buttons with projected captions.
+  `lib/discovery/cover-layout.ts` owns caption geometry and bounded placement;
+  `image-sphere.ts` owns artwork, paint order and picking. Caption sizes are
+  observed outside the animation loop. Covered labels must not identify music
+  painted behind the foreground selection; the original keyboard controls remain
+  available even when a label has no clear placement. Only actual seed artwork
+  can become the center anchor.
 - APIs: `app/api/search`, `app/api/discovery/map`.
 - Server catalog lookups and provider orchestration: `lib/search/catalog.ts`.
   `/api/search` accepts `source=local|remote|all` (default `all` retains the
@@ -176,3 +183,20 @@ Back/Forward and interrupted selection. This checks interaction and semantics,
 not artwork rendering or assistive-technology interoperability. The experiment's
 [comparison record](../../../../.plan/search-design-judgment.md) owns rendered
 evidence, research limits and owner acceptance.
+
+The second iteration additionally checks painted WebGL covers, pointer/touch
+selection at the center and upper-right area of the current artwork, drag versus
+selection, long identities, Back, reduced motion, missing artwork and the native
+WebGL-failure fallback:
+
+```bash
+DISCOVERY_CANVAS_URL=http://127.0.0.1:3005 \
+  node apps/web/tests/load/verify-discovery-canvas.mjs
+DISCOVERY_CANVAS_DESKTOP=1 DISCOVERY_CANVAS_URL=http://127.0.0.1:3005 \
+  node apps/web/tests/load/verify-discovery-canvas.mjs
+```
+
+This Chromium check uses synthetic music, CORS-enabled image fixtures and the same
+external Playwright installation. It requires working WebGL for the normal path
+and explicitly disables it in a separate browser for the fallback. It is not an
+artwork-quality, physical-device or production-performance test.

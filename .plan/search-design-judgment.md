@@ -188,3 +188,139 @@ passes on the implementation SHA. Native-navigation CI was still running when
 this handoff was written; check the PR for its current result. Later documentation
 commits do not change the inspected application code. The branch alias in the
 PR follows the newest Preview; no production alias was promoted.
+
+## Iteration 02 — music identity and visual focus
+
+Requested after reviewing the first Preview. Control for this iteration:
+`799e05dc248233a5daa618bbcaf13e16c1420ff0`, retaining the original main control
+above. Continue the same experimental branch and draft PR, with MDS's pin and
+the existing skill library unchanged.
+
+### Research and intent before implementation
+
+Reopened DesEngs and followed three originals on 2026-10-31:
+
+- [Limit the number of details — Lightspark Design](https://design.lightspark.com/limit-the-number-of-details):
+  a practitioner argument for spending attention on fewer, better understood
+  controls. Apply it by improving the existing cover/identity relationship and
+  reconsidering the permanent ready-state instruction. It does not justify
+  removing necessary loading, empty or recovery feedback. Individual article
+  authorship was not confirmed; no claim of measured usability improvement.
+- [Invisible Details of Interaction Design — Rauno Freiberg](https://rauno.me/craft/interaction-design):
+  practitioner observations about spatial consistency, explicit intent and
+  immediate input. Apply them to the relationship between the cover a listener
+  sees, its caption and its hit target. Keep the established drag metaphor and
+  keyboard alternative; do not transplant OS gestures or add sound/haptics.
+- [Details That Make Interfaces Feel Better — Jakub Krehel](https://jakub.kr/writing/details-that-make-interfaces-feel-better):
+  typography, image boundaries and interruptible state changes as local craft.
+  Apply readable, balanced selected-title wrapping and preserve instant keyboard
+  response. The article was read as text; an attempted browser inspection did not
+  expose the outline demo's control, so its interactive behavior is unverified.
+  An outline alone cannot solve overlapping identities; no effect/library is imported.
+
+The Pierrick Calvez typography article linked by DesEngs returned HTTP 503;
+its contents were not evaluated. The directory's other libraries are discovery
+leads, not instructions to install them. Read the local layout, typography,
+accessibility and UI craft skills; preserve Kocteau's visual contract.
+
+Fresh controlled desktop/mobile inspection reproduces captions for other music
+on top of the selected artwork: “Love Songs on the Radio” appears over Happy's
+cover, while another large cover competes with the selected one on mobile.
+Source inspection finds that captions ignore foreground-cover occlusion and
+estimate projected height using radial camera distance instead of camera depth.
+Pointer picking also uses geometric depth while the artwork uses explicit render
+order. Whether that mismatch selects hidden music needs a browser check.
+
+Hypothesis: clarify which music is current by improving the existing cover
+composition and captions, without adding a rail, graph, tutorial or new controls.
+Prototype bounded supporting-cover sizes after selection; keep world positions
+and root-canvas disorder. Correct caption projection, protect the selected
+identity from fully occluded labels, and keep nearby captions above their own
+cover if the normal position would collide with the selection. Match picking to
+what is actually painted in front. Use a stronger selected title and a small
+“Exploring from” cue. Remove the visible permanent ready instruction if that cue
+makes it redundant; retain its accessible status and all progress/recovery states.
+
+This intentionally changes the previous prototype. Compare it against the first
+Preview before retaining it. Check native pointer/touch selection, drag versus
+tap, keyboard, Back, reduced motion, long titles, narrow widths, WebGL fallback
+and the existing feedback states. Record discarded directions and remaining
+overlap/performance limits; this is not a complete sphere-layout redesign.
+
+### Implementation, comparison and refinement
+
+The retained direction changes the existing canvas rather than adding a new
+surface. Supporting artwork is capped after selection (148px maximum, bounded
+by the viewport); its world positions and the root sphere's scale variation are
+retained. Selected identity uses a compact inline “Exploring from” cue, a stronger
+title and the existing artist line, aligned with the artwork. Captions use actual
+perspective depth and cover bounds, including tilt, instead of radial distance.
+Nearby placement checks foreground artwork, earlier captions and the existing
+header, dock and visible feedback. Measurements use ResizeObserver outside the
+animation loop. The search/ranking/network/navigation model is unchanged.
+
+Captions have bounded below/above/side alternatives. Fully occluded artwork does
+not put its name over foreground music. Where the dense canvas offers no clear
+caption slot, the existing native keyboard controls retain full identities.
+This is not a guarantee of readable labels in every possible overlap or rotation.
+Picking follows paint order; only pointer gestures that start on the actual
+canvas can select through the renderer. Native controls invoke their own action
+once. A seed without artwork no longer turns the first retained image into a
+false center anchor.
+
+The original renderer in main `e7718b4` is unchanged in iteration-01 control
+`799e05d`. A fixed public-data mobile probe at 390×844 selects Happy by Mazzy Star,
+then taps the upper-right part of its visible artwork. The control chooses
+Aphex Twin's `4 bit 9d api+e+6 [126.26]` (`85900417`); the candidate retains Happy
+(`3130628`). Center taps pass in both, and the sampled desktop points do not
+reproduce the mismatch. Dragging remains non-selecting in both builds. This is
+a bounded reproduced interaction difference, not a claim about every device.
+
+Refinements made after inspection:
+
+- A separate “Exploring from” row made the selected caption unnecessarily tall.
+  The inline cue and leading-edge alignment retain the meaning with fewer rows.
+- Moving an obstructed label above its cover sometimes put it under the mobile
+  header. Side placement and measured control bounds keep it near its artwork.
+- The previous lower status location could compete with selected identity on
+  short screens. Progress/empty/error feedback now sits below the existing header;
+  error and Retry share one compact row. The empty message drops the redundant
+  search instruction. Successful ready feedback stays in the mounted live region
+  and is visible if focused, or if no artwork cue can be shown.
+- Feedback is also a caption-placement obstacle, so unrelated words do not show
+  through the gap between its message and Retry. No new panel, color, effect,
+  font, dependency, skill import or global design token is introduced.
+
+### Verification and limits for iteration 02
+
+Local unit coverage is **225/225**: the existing 216 plus nine geometry/placement
+checks, including comparison against Three.js-projected corners. Lint, TypeScript
+and the production web build pass with the pinned Node/pnpm and isolated upstream
+configuration described above. New native-canvas browser coverage checks real
+WebGL rendering with synthetic CORS-enabled artwork, long full accessible names,
+pointer/touch, drag, native-control history, keyboard, Back, reduced motion,
+missing artwork and an explicitly disabled-WebGL fallback. The original feedback
+check retains state/Retry/interruption coverage; only its shortened empty copy
+expectation changes. An initial missing-artwork search fixture lacked the
+required provider field; the fixture was corrected, without changing Search.
+
+Rendered stress inspection covers 320×640, 320×568, 390×844, 1440×1000,
+720×500 reflow and 200% root text sizing. Selected identity and status do not
+overlap in these sampled states; controls remain in bounds, Retry retains a 44px
+target and no horizontal overflow is observed. Scoped axe reports zero feedback
+violations. These checks do not establish whole-canvas contrast conformance,
+native browser zoom, field performance, physical touch behavior or screen-reader
+speech. Normal motion and reduced motion are inspected separately; no new
+animation system is added.
+
+Both unmodified search-recovery browser rechecks pass on this iteration. They do
+not diagnose or retroactively erase iteration 01's two desktop reload failures;
+do not attribute a search-state fix to this interface work. WebKit remains
+unavailable on this worker. The extra per-frame caption checks are bounded by the
+existing 30-cover limit, but no field GPU/INP improvement is claimed.
+
+Raw captures and input records remain in ignored
+`.plan/local/search-design-judgment-02/`. Review the new Preview against the
+immutable iteration-01 Preview above. Owner/listener acceptance remains open;
+no merge, production promotion, auth, schema, production-data or ranking change
+is part of this iteration.

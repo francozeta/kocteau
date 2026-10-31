@@ -1,4 +1,11 @@
 import * as THREE from "three";
+import {
+  placeCoverLabel,
+  projectCoverBounds,
+  type CoverLabelSize,
+  type CoverLabelInsets,
+  type CoverBounds,
+} from "./cover-layout";
 
 const RADIUS = 180;
 const PLANE_SIZE = 50;
@@ -40,11 +47,7 @@ function getDepthScale(depth: number) {
 }
 
 function getDepthOpacity(depth: number) {
-  return THREE.MathUtils.lerp(
-    DEPTH_OPACITY_BACK,
-    1,
-    getDepthProgress(depth),
-  );
+  return THREE.MathUtils.lerp(DEPTH_OPACITY_BACK, 1, getDepthProgress(depth));
 }
 
 function hashFraction(value: string) {
@@ -62,8 +65,7 @@ export function getImageSphereLayoutStyle(imageUrl: string) {
   return {
     scale: 0.84 + hashFraction(`${imageUrl}:scale`) * 0.32,
     tilt: (hashFraction(`${imageUrl}:tilt`) - 0.5) * 0.1,
-    verticalJitter:
-      (hashFraction(`${imageUrl}:vertical`) - 0.5) * 0.18,
+    verticalJitter: (hashFraction(`${imageUrl}:vertical`) - 0.5) * 0.18,
     radiusJitter: (hashFraction(`${imageUrl}:radius`) - 0.5) * 72,
     angleJitter: (hashFraction(`${imageUrl}:angle`) - 0.5) * 0.9,
   };
@@ -126,12 +128,15 @@ export interface ImageSphereOptions {
   reducedMotion?: boolean;
   anchorIndex?: number;
   onReady?: () => void;
+  getLabelSize?: (imageUrl: string) => CoverLabelSize | undefined;
+  getLabelInsets?: () => CoverLabelInsets;
+  getLabelObstacles?: () => CoverBounds[];
   onCoverPosition?: (
-    imageUrl: string,
-    x: number,
-    y: number,
-    opacity: number,
-    visible: boolean,
+    position: ReturnType<typeof placeCoverLabel> & {
+      imageUrl: string;
+      opacity: number;
+      coverWidth: number;
+    },
   ) => void;
   onSelect?: (index: number) => void;
 }
@@ -182,6 +187,9 @@ export class ImageSphere {
   private anchorIndex?: number;
   private readyNotified = false;
   private onReady?: () => void;
+  private getLabelSize?: ImageSphereOptions["getLabelSize"];
+  private getLabelInsets?: ImageSphereOptions["getLabelInsets"];
+  private getLabelObstacles?: ImageSphereOptions["getLabelObstacles"];
   private onCoverPosition?: ImageSphereOptions["onCoverPosition"];
   private onSelect?: (index: number) => void;
 
@@ -196,6 +204,9 @@ export class ImageSphere {
     this.pointerCanHover = window.matchMedia("(hover: hover)").matches;
     this.anchorIndex = options.anchorIndex;
     this.onReady = options.onReady;
+    this.getLabelSize = options.getLabelSize;
+    this.getLabelInsets = options.getLabelInsets;
+    this.getLabelObstacles = options.getLabelObstacles;
     this.onCoverPosition = options.onCoverPosition;
     this.onSelect = options.onSelect;
     const width = host.clientWidth || 1;
@@ -460,6 +471,7 @@ export class ImageSphere {
     let downX = 0;
     let downY = 0;
     const onDown = (event: PointerEvent) => {
+      if (event.target !== this.renderer.domElement) return;
       localMouse(event.clientX, event.clientY);
       this.dragging = true;
       this.startX = event.clientX;
@@ -481,7 +493,9 @@ export class ImageSphere {
         return;
       }
 
-      if (Math.hypot(event.clientX - downX, event.clientY - downY) > CLICK_SLOP) {
+      if (
+        Math.hypot(event.clientX - downX, event.clientY - downY) > CLICK_SLOP
+      ) {
         this.setPressed(null);
       }
 
@@ -511,6 +525,7 @@ export class ImageSphere {
       this.renderer.domElement.style.cursor = "grab";
     };
     const onUp = (event: PointerEvent) => {
+      if (!this.dragging) return;
       const moved = Math.hypot(event.clientX - downX, event.clientY - downY);
       const pressed = this.pressed;
       release();
@@ -582,6 +597,10 @@ export class ImageSphere {
       .intersectObjects(this.planes, false)
       .filter((hit) => !hit.object.userData.stale);
 
+    hits.sort(
+      (a, b) =>
+        b.object.renderOrder - a.object.renderOrder || a.distance - b.distance,
+    );
     return (hits.length > 0 ? hits[0].object : null) as PlaneMesh | null;
   }
 
@@ -607,27 +626,106 @@ export class ImageSphere {
     }
   }
 
-  private updateCoverPosition(plane: PlaneMesh, opacity: number) {
-    const imageUrl = plane.userData.imageUrl as string | undefined;
+  private getPlaneScale(plane: PlaneMesh, depth: number) {
+    const isAnchor = plane.userData.isAnchor === true;
+    let scale =
+      getDepthScale(depth) *
+      ((plane.userData.baseScale as number | undefined) ?? 1);
 
-    if (!this.onCoverPosition || !imageUrl || plane.userData.stale) return;
+    if (this.anchorIndex !== undefined && !isAnchor) {
+      const viewHeight =
+        2 *
+        Math.max(1, this.camera.position.z - depth) *
+        Math.tan((this.camera.fov * Math.PI) / 360);
+      const maxPixels = Math.min(148, this.width * 0.24, this.height * 0.24);
+      scale = Math.min(
+        scale,
+        (maxPixels * viewHeight) / (PLANE_SIZE * this.height),
+      );
+    }
 
-    const distance = Math.max(1, this.camera.position.distanceTo(this.worldPos));
-    const viewHeight =
-      2 * distance * Math.tan((this.camera.fov * Math.PI) / 360);
-    const pixelHeight = (PLANE_SIZE * plane.scale.y * this.height) / viewHeight;
-    this.tmpPos.copy(this.worldPos).project(this.camera);
-    const x = ((this.tmpPos.x + 1) / 2) * this.width;
-    const y = ((1 - this.tmpPos.y) / 2) * this.height + pixelHeight / 2 + 8;
-    const visible =
-      this.tmpPos.z > -1 &&
-      this.tmpPos.z < 1 &&
-      x > 0 &&
-      x < this.width &&
-      y > 0 &&
-      y < this.height - 12;
+    return isAnchor ? scale * ANCHOR_SCALE : scale;
+  }
 
-    this.onCoverPosition(imageUrl, x, y, opacity, visible);
+  private updateCoverPositions() {
+    if (!this.onCoverPosition) return;
+    const viewport = { width: this.width, height: this.height };
+    const insets = this.getLabelInsets?.();
+    const obstacles = this.getLabelObstacles?.() ?? [];
+    const covers = this.planes
+      .filter((plane) => !plane.userData.stale)
+      .map((plane) => {
+        plane.getWorldPosition(this.worldPos);
+        const imageUrl = plane.userData.imageUrl as string;
+        const cover = projectCoverBounds({
+          x: this.worldPos.x,
+          y: this.worldPos.y,
+          depth: this.camera.position.z - this.worldPos.z,
+          width: PLANE_SIZE * plane.scale.x * plane.userData.aspect,
+          height: PLANE_SIZE * plane.scale.y,
+          tilt: (plane.userData.tilt as number | undefined) ?? 0,
+          viewport,
+          fov: this.camera.fov,
+        });
+        const label = this.getLabelSize?.(imageUrl) ?? {
+          width: 128,
+          height: 32,
+        };
+        return { plane, imageUrl, cover, label };
+      });
+    const anchor = covers.find(({ plane }) => plane.userData.isAnchor === true);
+    const anchorLabel = anchor
+      ? placeCoverLabel({ ...anchor, viewport, insets, obstacles })
+      : null;
+    const foreground =
+      anchor && anchorLabel
+        ? {
+            cover: anchor.cover,
+            label: {
+              left: anchorLabel.x - anchor.label.width / 2,
+              right: anchorLabel.x + anchor.label.width / 2,
+              top: anchorLabel.y,
+              bottom: anchorLabel.y + anchor.label.height,
+            },
+          }
+        : undefined;
+
+    covers.sort((a, b) => b.plane.renderOrder - a.plane.renderOrder);
+    const captions: Array<{
+      left: number;
+      right: number;
+      top: number;
+      bottom: number;
+    }> = [];
+    for (const item of covers) {
+      const occluders = covers
+        .filter((other) => other.plane.renderOrder > item.plane.renderOrder)
+        .map((other) => other.cover);
+      const position = placeCoverLabel({
+        ...item,
+        viewport,
+        insets,
+        occluders: item === anchor ? [] : occluders,
+        obstacles: item === anchor ? obstacles : [...obstacles, ...captions],
+        foreground:
+          anchor && item.plane.renderOrder < anchor.plane.renderOrder
+            ? foreground
+            : undefined,
+      });
+      if (position.visible)
+        captions.push({
+          left: position.x - item.label.width / 2,
+          right: position.x + item.label.width / 2,
+          top: position.y,
+          bottom: position.y + item.label.height,
+        });
+      this.onCoverPosition({
+        ...position,
+        imageUrl: item.imageUrl,
+        opacity: item.plane.material.opacity,
+        coverWidth: item.cover.right - item.cover.left,
+      });
+    }
   }
 
   start() {
@@ -725,11 +823,9 @@ export class ImageSphere {
 
       plane.getWorldPosition(this.worldPos);
       const depth = this.worldPos.z;
-      const depthScale = getDepthScale(depth);
       const isHovered = plane.userData.isHovered === true;
       const isPressed = plane.userData.isPressed === true;
-      let targetScale =
-        depthScale * ((plane.userData.baseScale as number | undefined) ?? 1);
+      let targetScale = this.getPlaneScale(plane, depth);
 
       if (isHovered) {
         targetScale *= HOVER_SCALE;
@@ -737,10 +833,6 @@ export class ImageSphere {
 
       if (isPressed) {
         targetScale *= PRESS_SCALE;
-      }
-
-      if (isAnchor) {
-        targetScale *= ANCHOR_SCALE;
       }
 
       const scale = plane.scale.x + (targetScale - plane.scale.x) * scaleEase;
@@ -763,7 +855,6 @@ export class ImageSphere {
         (targetOpacity - plane.userData.opacity) * opacityEase;
       plane.userData.opacity = opacity;
       plane.material.opacity = opacity;
-      this.updateCoverPosition(plane, opacity);
       plane.renderOrder =
         isHovered || isPressed
           ? INTERACTION_RENDER_ORDER
@@ -772,6 +863,7 @@ export class ImageSphere {
             : Math.round((depth + RADIUS * 1.5) * 10);
     }
 
+    this.updateCoverPositions();
     this.renderer.render(this.scene, this.camera);
     this.raf = requestAnimationFrame(this.loop);
   };
@@ -791,23 +883,18 @@ export class ImageSphere {
       plane.rotateZ((plane.userData.tilt as number | undefined) ?? 0);
       plane.getWorldPosition(this.worldPos);
       const depth = this.worldPos.z;
-      const depthScale = getDepthScale(depth);
       const isAnchor = plane.userData.isAnchor === true;
-      const baseScale =
-        (plane.userData.baseScale as number | undefined) ?? 1;
-      const scale = isAnchor
-        ? depthScale * ANCHOR_SCALE
-        : depthScale * baseScale;
+      const scale = this.getPlaneScale(plane, depth);
       plane.scale.set(scale, scale, scale);
       const opacity = isAnchor ? 1 : getDepthOpacity(depth);
       plane.userData.opacity = opacity;
       plane.material.opacity = opacity;
-      this.updateCoverPosition(plane, opacity);
       plane.renderOrder = isAnchor
         ? ANCHOR_RENDER_ORDER
         : Math.round((depth + RADIUS * 1.5) * 10);
     }
 
+    this.updateCoverPositions();
     this.renderer.render(this.scene, this.camera);
   }
 

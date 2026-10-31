@@ -9,17 +9,22 @@ Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 [Search design experiment 001 / #271](https://github.com/francozeta/kocteau/issues/271)
 is in [draft PR #272](https://github.com/francozeta/kocteau/pull/272), isolated on
-`feat/search-design-judgment` from main `e7718b4`. It tests
-selected-canvas feedback while retaining Search's composition, navigation and
-actions. MDS Stage 02 is pinned in `mds.json`; the existing skill library is
+`feat/search-design-judgment` from main `e7718b4`. Its first iteration tests
+selected-canvas feedback; the second tests music identity, caption legibility
+and agreement between visible artwork and pointer selection. Search's spatial
+direction, navigation and actions remain. MDS Stage 02 is pinned in `mds.json`;
+the existing skill library is
 unchanged. The [experiment record](./.plan/search-design-judgment.md) owns
 research, comparison, checks and limits. Unit tests, lint, build and the new
 feedback browser checks pass. Two runs of the existing desktop search-recovery
 check failed the immediate reload assertion on the candidate while the control
 passed. A diagnostic replay restored the query; attribution remains open.
-The implementation's Preview is READY and the live guest expansion flow passes
-desktop/mobile Chromium checks. Owner acceptance and resolution of the desktop
-reload check remain open; see the experiment record for the verified SHA and CI.
+The second iteration has 225 passing unit tests plus canvas/feedback browser
+coverage, including native picking, missing artwork and WebGL fallback. Its
+search-recovery desktop/mobile rechecks pass; the older failures remain
+undiagnosed, not a claimed fix. The draft PR owns the latest Preview/CI evidence;
+the experiment record keeps the fixed controls and comparison. Owner/listener
+acceptance, WebKit and physical-device verification remain open.
 This is not
 integrated product behavior or a production release and does not advance the
 separate reliability gate.
