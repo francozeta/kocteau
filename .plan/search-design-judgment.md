@@ -1,7 +1,8 @@
 # Search design judgment — experiment 001
 
 Coordination: [#271](https://github.com/francozeta/kocteau/issues/271).
-Status: local experiment on `feat/search-design-judgment`; no production release.
+Status: [draft PR #272](https://github.com/francozeta/kocteau/pull/272) on
+`feat/search-design-judgment`; no production release.
 Control: main `e7718b4e2eca79becdf85d91492ca3d15aa41124`.
 Method: MDS Stage 02 at `012db40d572620444399bdf3489bfc2ee34a712c`.
 The initializer used `--no-skills`; the existing skill library is unchanged.
@@ -165,3 +166,25 @@ has not been weakened or changed; its desktop result remains an integration gap.
 The next decision is owner review of this bounded candidate and its evidence,
 not a claim that MDS has proved better design judgment. Keep the PR experimental;
 do not merge or promote the Preview as part of this task.
+
+## Preview delivery
+
+Implementation `84eef1e5d5f42d300026825d1bf1b4b3c7f09e3b` is published in the draft
+PR. [Its immutable Preview](https://kocteau-j61krkl9t-franco-zetas-projects.vercel.app/search)
+is **READY** on Vercel project `kocteau`, Preview target (`target: null`), region
+`gru1`, build duration about 69 seconds. Vercel metadata confirms the repository,
+experiment branch and SHA; main remains `e7718b4`.
+
+Guest Chromium checks against that deployed build at 1440×1000 and 390×844 select
+Merge by Lamb from the live starter canvas. Both `fast` and `deep` expansion
+requests return 200. Feedback moves through **Finding related music… → Looking
+for more music… → Choose another cover to keep exploring.** The selected identity
+and `/search/track/merge/2422967` route remain present, with no horizontal overflow
+or JavaScript page errors. This is real read-path evidence; failure states were
+exercised with isolated fixtures rather than inducing deployment outages.
+
+GitHub's [Verify run](https://github.com/francozeta/kocteau/actions/runs/41227742768)
+passes on the implementation SHA. Native-navigation CI was still running when
+this handoff was written; check the PR for its current result. Later documentation
+commits do not change the inspected application code. The branch alias in the
+PR follows the newest Preview; no production alias was promoted.
