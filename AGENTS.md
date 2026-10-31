@@ -6,6 +6,15 @@ Kocteau should feel closer to Letterboxd, Apple Music editorial, and a quiet mus
 
 ---
 
+## Shared Standard
+
+Before every task, run `node scripts/mds.mjs context` and read the MDS contract
+selected by `mds.json`. Restore the pinned parent clone if unavailable; see
+[parent consultation](https://github.com/francozeta/mds/blob/012db40d572620444399bdf3489bfc2ee34a712c/docs/parent-contract.md).
+Kocteau's product and design contracts remain authoritative. The Search design
+experiment uses Stage 02 without importing the personal skill profile: retain
+the existing `.agents/` library and `skills-lock.json` to avoid mixing versions.
+
 ## Repository Operating Contract
 
 ### Source Of Truth

@@ -5,6 +5,10 @@
 - Route: `app/(main)/search/page.tsx`; surface: `discovery-map.tsx`.
 - Interaction: `hooks/use-discovery-canvas.ts`, `hooks/use-kocteau-search.ts`.
 - State/navigation: `lib/discovery`; search ordering: `lib/search/kocteau-first.ts`.
+- `discovery-feedback.tsx` owns selected-canvas progress, available exploration,
+  empty expansion and retry feedback in one mounted polite status region.
+  Nodes attributed to the current seed indicate related music; retained covers
+  from another selection do not. Feedback does not change ranking or navigation.
 - APIs: `app/api/search`, `app/api/discovery/map`.
 - Server catalog lookups and provider orchestration: `lib/search/catalog.ts`.
   `/api/search` accepts `source=local|remote|all` (default `all` retains the
@@ -150,3 +154,25 @@ For an existing disposable authenticated session,
 header. Keep it out of Git; the fixture creates no accounts or activity.
 This is a browser regression check with simulated API failures, not a load test or
 a test on a physical iPhone/TikTok browser.
+
+## Canvas feedback regression
+
+Against an isolated local build/server (never cloud-backed application
+configuration), use the same external Playwright installation:
+
+```bash
+DISCOVERY_FEEDBACK_URL=http://127.0.0.1:3002 \
+  node apps/web/tests/load/verify-discovery-feedback.mjs
+DISCOVERY_FEEDBACK_DESKTOP=1 DISCOVERY_FEEDBACK_URL=http://127.0.0.1:3002 \
+  node apps/web/tests/load/verify-discovery-feedback.mjs
+```
+
+`DISCOVERY_FEEDBACK_BROWSER=webkit` selects WebKit when its host dependencies are
+available. Browser requests for search, expansion and images use disposable
+fixtures; other external browser requests are blocked. The check performs no
+account creation, catalog writes or activity. It exercises pending/partial/ready,
+empty expansion with retained covers, failure/retry focus, partial failure,
+Back/Forward and interrupted selection. This checks interaction and semantics,
+not artwork rendering or assistive-technology interoperability. The experiment's
+[comparison record](../../../../.plan/search-design-judgment.md) owns rendered
+evidence, research limits and owner acceptance.

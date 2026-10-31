@@ -44,7 +44,6 @@ export default function DiscoveryNavigation({
   onScopeChange,
   seed,
   href,
-  pending,
   searchActive,
   canGoBack,
   onBack,
@@ -55,7 +54,6 @@ export default function DiscoveryNavigation({
   onScopeChange: (scope: SearchScope) => void;
   seed: DiscoverySeed | null;
   href?: string;
-  pending: boolean;
   searchActive: boolean;
   canGoBack: boolean;
   onBack: () => void;
@@ -158,9 +156,6 @@ export default function DiscoveryNavigation({
           Search
         </h2>
       )}
-      <span role="status" className="sr-only">
-        {pending ? "Finding new paths…" : ""}
-      </span>
     </div>
   );
   const options = (
@@ -277,9 +272,6 @@ export default function DiscoveryNavigation({
                         ? "Artist"
                         : seed.artist_name || typeLabels[seed.type]}
                     </span>
-                  </span>
-                  <span role="status" className="sr-only">
-                    {pending ? "Finding new paths…" : ""}
                   </span>
                 </PrefetchLink>
                 {options}

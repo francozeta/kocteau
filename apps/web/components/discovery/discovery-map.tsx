@@ -7,6 +7,7 @@ import DiscoveryOrbit, {
 import DiscoverySearch from "@/components/discovery/discovery-search";
 import DiscoveryNavigation from "@/components/discovery/discovery-navigation";
 import DiscoveryActions from "@/components/discovery/discovery-actions";
+import DiscoveryFeedback from "@/components/discovery/discovery-feedback";
 import { OPEN_SEARCH_LAUNCHER_SHORTCUT_EVENT } from "@/hooks/use-global-shortcuts";
 import { useDiscoverySearchState } from "@/hooks/use-discovery-search-state";
 import { useDiscoveryCanvas } from "@/hooks/use-discovery-canvas";
@@ -199,7 +200,6 @@ export default function DiscoveryMap({
         }}
         seed={selectedSeed}
         href={orbitSeed?.href}
-        pending={canvas.isExpanding}
         searchActive={desktopSearchActive}
         canGoBack={canvas.canGoBack}
         onBack={() => {
@@ -227,15 +227,12 @@ export default function DiscoveryMap({
         />
       </div>
 
-      {canvas.hasError ? (
-        <button
-          type="button"
-          onClick={canvas.retry}
-          className="absolute bottom-28 left-1/2 z-20 min-h-11 -translate-x-1/2 rounded-full bg-[var(--kocteau-surface-control)] px-4 text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:bottom-5"
-        >
-          Some paths couldn’t load. Retry
-        </button>
-      ) : null}
+      <DiscoveryFeedback
+        frame={canvas.frame}
+        pending={canvas.isExpanding}
+        hasError={canvas.hasError}
+        onRetry={canvas.retry}
+      />
       {!orbitItems.length && !selectedSeed ? (
         <p className="pointer-events-none absolute inset-x-6 top-1/2 text-center text-sm text-muted-foreground">
           Search for music to start exploring.

@@ -185,6 +185,14 @@ Avoid motion on:
   actions in the existing dialog/drawer pattern. Starting a new canvas must not
   silently erase taste memory.
 - Stop automatic rotation for reduced motion and pause rendering offscreen.
+- Experiment 001 tests one quiet feedback location above the selected canvas's
+  keyboard controls and mobile dock: distinguish finding music, available paths,
+  a completed expansion without related music and recoverable failure. Keep
+  covers usable while loading; retained covers alone are not evidence of a new
+  path. Use text and one polite live region, with no added animation. This trades
+  some canvas space for explicit state; [the experiment](./.plan/search-design-judgment.md)
+  records the comparison and remaining listener-validation question. The existing
+  spatial composition and action hierarchy remain the design baseline.
 
 ## UI Review Checklist
 
