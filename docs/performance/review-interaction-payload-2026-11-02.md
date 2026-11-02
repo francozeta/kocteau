@@ -27,9 +27,11 @@ This is a code-path finding, not yet a production LCP/INP percentile.
   preserved.
 - The lightweight comments button and count still render immediately, and
   the lazy chunk is prefetched on pointer hover or keyboard focus for
-  authenticated visitors. Anonymous comments still trigger the same auth
-  guidance. Inline comments still scroll and focus the existing composer
-  without importing the overlay.
+  authenticated visitors. A new count-only hook avoids installing full
+  comments-query observers and create/delete mutations for every *closed*
+  button; shared React Query count keys still reflect mutations once opened.
+  Anonymous comments still trigger the same auth guidance. Inline comments
+  still scroll and focus the existing composer without importing the overlay.
 - Review cards retain their like, bookmark and comment counts, visual
   appearance, accessibility labels and optimistic mutation behavior.
 - The `ReviewCardInteractionBar` now accepts only
