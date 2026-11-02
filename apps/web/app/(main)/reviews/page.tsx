@@ -17,14 +17,15 @@ export const metadata = createPageMetadata({
 async function PublicReviewsList() {
   // Public reviews and viewer identity are independent. Start the shared public
   // read immediately instead of serializing it behind session resolution.
-  const publicBundlePromise = getFeedPage({
-    view: "latest",
-    includeActiveUsers: false,
-    publicOnly: true,
-    limit: 14,
-  });
-  const userId = await getCurrentUserId();
-  const publicBundle = await publicBundlePromise;
+  const [publicBundle, userId] = await Promise.all([
+    getFeedPage({
+      view: "latest",
+      includeActiveUsers: false,
+      publicOnly: true,
+      limit: 14,
+    }),
+    getCurrentUserId(),
+  ]);
   const viewerState =
     userId && publicBundle.feed.length > 0
       ? await getFeedViewerState(
