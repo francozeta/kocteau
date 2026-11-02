@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { reviewKeys } from "@/queries/reviews";
 import { syncReviewCommentsCount } from "@/queries/viewer";
@@ -16,7 +16,7 @@ export function useReviewCommentsCount({
   initialCount: number;
 }) {
   const queryClient = useQueryClient();
-  const countKey = reviewKeys.commentsCount(reviewId);
+  const countKey = useMemo(() => reviewKeys.commentsCount(reviewId), [reviewId]);
   const previousInitialCount = useRef(initialCount);
   const countQuery = useQuery({
     queryKey: countKey,
