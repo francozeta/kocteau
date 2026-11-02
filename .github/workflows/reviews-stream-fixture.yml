@@ -1,0 +1,30 @@
+name: Reviews streaming fixture
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/app/(main)/reviews/page.tsx"
+      - "apps/web/tests/load/verify-reviews-stream.mjs"
+      - ".github/workflows/reviews-stream-fixture.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  streaming:
+    name: Verify public reviews stream without data
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check held-feed streaming with isolated Next.js
+        run: node apps/web/tests/load/verify-reviews-stream.mjs
