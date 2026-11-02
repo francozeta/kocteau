@@ -26,19 +26,23 @@ for (const { path, mime, test } of cases) {
       redirect: "manual",
       signal: AbortSignal.timeout(25_000),
       headers: { "User-Agent": "KocteauPublicSmoke/1.0 (read-only; GitHub Actions)" },
-      cache: "no-store",
     });
+    // Header arrival is not browser paint or exact TTFB; the first chunk is
+    // a closer approximation of the first response-body byte.
+    const headersAt = performance.now();
     const contentType = response.headers.get("content-type") || "";
     // A single bounded body read: do not download unlimited user-generated markup.
     const maxBytes = 2_000_000;
     const reader = response.body?.getReader();
     let total = 0;
+    let firstChunkAt = null;
     const chunks = [];
     if (reader) {
       try {
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
+          firstChunkAt ??= performance.now();
           total += value.byteLength;
           if (total > maxBytes) throw new Error("Response exceeds smoke budget");
           chunks.push(value);
@@ -47,11 +51,20 @@ for (const { path, mime, test } of cases) {
         reader.releaseLock();
       }
     }
+    const completedAt = performance.now();
     const content = Buffer.concat(chunks).toString("utf8");
     const ok = response.status === 200 && contentType.includes(mime) && test(content);
     console.log(JSON.stringify({
       path, status: response.status, mime: contentType.split(";")[0],
-      bytes: total, elapsedMs: Math.round(performance.now() - started),
+      decodedBytes: total,
+      headersMs: Math.round(headersAt - started),
+      firstBodyByteMs: firstChunkAt === null ? null : Math.round(firstChunkAt - started),
+      bodyTransferMs: Math.round(completedAt - headersAt),
+      elapsedMs: Math.round(completedAt - started),
+      edgeCache: response.headers.get("x-vercel-cache"),
+      ageSeconds: response.headers.get("age"),
+      contentEncoding: response.headers.get("content-encoding"),
+      advertisedContentLength: response.headers.get("content-length"),
       check: ok ? "PASS" : "FAIL",
     }));
     if (!ok) failures++;
