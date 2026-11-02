@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { KocteauCommentIcon } from "@/components/icons/kocteau-icons";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useReviewCommentsCount } from "@/hooks/use-review-comments-count";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import { toastAuthRequired } from "@/lib/feedback";
@@ -48,7 +47,6 @@ export default function ReviewCommentsButton({
   viewer = null,
   inlineTarget = null,
 }: ReviewCommentsButtonProps) {
-  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
   const commentsCount = useReviewCommentsCount({ reviewId, initialCount });
@@ -65,7 +63,7 @@ export default function ReviewCommentsButton({
         block: "center",
       });
       const composerId = inlineTarget.composerId;
-      if (isAuthenticated && composerId && !isMobile) {
+      if (isAuthenticated && composerId && !window.matchMedia("(max-width: 767px)").matches) {
         window.requestAnimationFrame(() => {
           document.getElementById(composerId)?.focus();
         });
@@ -119,7 +117,6 @@ export default function ReviewCommentsButton({
           isAuthenticated={isAuthenticated}
           open={open}
           onOpenChange={setOpen}
-          isMobile={isMobile}
           commentsDescription={commentsDescription}
           viewer={viewer}
         />
