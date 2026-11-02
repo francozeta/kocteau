@@ -44,7 +44,25 @@ Earlier [run 41468674583](https://github.com/francozeta/kocteau/actions/runs/414
 reported total elapsed only: `/` 1,314 ms, `/reviews` 2,267 ms,
 `/track` 684 ms, `/sitemap.xml` 1,269 ms, `/robots.txt` 282 ms.
 
-The two requests for `/reviews` differed substantially (2,267 vs 656 ms);
+A third bounded run
+([41470574059](https://github.com/francozeta/kocteau/actions/runs/41470574059),
+15:20 UTC) also passed all five GETs. Response first-body / total durations:
+`/` 1,194 / 1,198 ms (**edge HIT**, age 153 s),
+`/reviews` 407 / 537 ms (MISS),
+`/track` 226 / 226 ms (MISS),
+`/sitemap.xml` 269 / 269 ms (MISS),
+`/robots.txt` 180 / 188 ms (HIT).
+
+**Next priority from these samples:** The homepage had similar ~1.15–1.19 s
+first-body delay in two successive runs even when the edge reported STALE and
+HIT. This suggests a repeatable bottleneck in that runner-to-response
+path, but a cache HIT alone does not distinguish CDN routing, protocol
+connection, cross-region transfer, middleware or another cause. Record
+network timing and POP/region before making a code or infrastructure change.
+`/reviews` returned its first body chunk in 310–407 ms in the later two
+runs, so reducing the review count would be an unproven UX optimization.
+
+The two earlier requests for `/reviews` differed substantially (2,267 vs 656 ms);
 **it is unsound to call 2,267 ms its typical or P95 latency**. In the second
 sample, the HTML first chunk arrived in 310 ms, and subsequent body completion
 took another 346 ms. The original delay could reflect transient server,
