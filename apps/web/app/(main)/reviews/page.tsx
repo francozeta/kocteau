@@ -96,7 +96,7 @@ async function PublicReviewsList() {
           );
         })}
       </div>
-    </section>
+    </>
   );
 }
 
