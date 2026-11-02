@@ -92,6 +92,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(5000),
   ]);
 
+  // Do not serve a successful but almost-empty sitemap after a transient DB
+  // failure: search engines may interpret it as removal of canonical URLs.
+  if (
+    profilesResult.error ||
+    reviewsResult.error ||
+    albumsResult.error ||
+    artistsResult.error
+  ) {
+    throw new Error("Public sitemap data could not be loaded");
+  }
+
   const profiles = (profilesResult.data ?? []) as SitemapProfile[];
   const reviews = (reviewsResult.data ?? []) as SitemapReview[];
   const albums = (albumsResult.data ?? []) as SitemapEntity[];
