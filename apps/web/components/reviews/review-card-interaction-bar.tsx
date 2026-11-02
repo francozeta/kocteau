@@ -48,7 +48,7 @@ export default function ReviewCardInteractionBar({
         analyticsSource={analyticsSource}
       />
       <ReviewCommentsButton
-        reviewId={review.id}
+        reviewId={reviewId}
         initialCount={commentsCount}
         isAuthenticated={isAuthenticated}
         analyticsSource={analyticsSource}
@@ -56,7 +56,7 @@ export default function ReviewCardInteractionBar({
         inlineTarget={commentInlineTarget}
       />
       <ReviewBookmarkButton
-        reviewId={review.id}
+        reviewId={reviewId}
         initialBookmarked={viewerHasBookmarked}
         isAuthenticated={isAuthenticated}
         buttonRef={bookmarkButtonRef}
