@@ -3,6 +3,7 @@ import type { EntityPage } from "@/lib/queries/entities";
 import type { PublicProfile } from "@/lib/queries/profiles";
 import type { ReviewPageReview } from "@/lib/queries/reviews";
 import { getMetadataBase } from "@/lib/metadata";
+import { isPublicReviewIndexable } from "@/lib/reviews/public-content";
 import { buildEntityCanonicalPath, buildReviewCanonicalPath } from "@/lib/seo-routes";
 
 type FeedStructuredDataEntry = {
@@ -191,8 +192,18 @@ export function buildHomePageJsonLd() {
   };
 }
 
+function indexableFeedEntries(entries: FeedStructuredDataEntry[]) {
+  return entries.filter((entry) =>
+    isPublicReviewIndexable({
+      title: entry.reviewTitle,
+      body: entry.reviewBody,
+    }),
+  );
+}
+
 export function buildFeedPageJsonLd(entries: FeedStructuredDataEntry[]) {
   const siteUrl = absoluteUrl("/");
+  const indexableEntries = indexableFeedEntries(entries);
 
   return {
     "@context": "https://schema.org",
@@ -208,8 +219,8 @@ export function buildFeedPageJsonLd(entries: FeedStructuredDataEntry[]) {
     mainEntity: {
       "@type": "ItemList",
       itemListOrder: "https://schema.org/ItemListOrderDescending",
-      numberOfItems: entries.length,
-      itemListElement: entries.map((entry, index) => ({
+      numberOfItems: indexableEntries.length,
+      itemListElement: indexableEntries.map((entry, index) => ({
         "@type": "ListItem",
         position: index + 1,
         url: absoluteUrl(buildReviewCanonicalPath({
@@ -238,6 +249,7 @@ export function buildFeedPageJsonLd(entries: FeedStructuredDataEntry[]) {
 
 export function buildReviewsPageJsonLd(entries: FeedStructuredDataEntry[]) {
   const url = absoluteUrl("/reviews");
+  const indexableEntries = indexableFeedEntries(entries);
 
   return {
     "@context": "https://schema.org",
@@ -257,8 +269,8 @@ export function buildReviewsPageJsonLd(entries: FeedStructuredDataEntry[]) {
     mainEntity: {
       "@type": "ItemList",
       itemListOrder: "https://schema.org/ItemListOrderDescending",
-      numberOfItems: entries.length,
-      itemListElement: entries.map((entry, index) => ({
+      numberOfItems: indexableEntries.length,
+      itemListElement: indexableEntries.map((entry, index) => ({
         "@type": "ListItem",
         position: index + 1,
         url: absoluteUrl(buildReviewCanonicalPath({
