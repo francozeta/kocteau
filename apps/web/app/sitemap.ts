@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { unstable_cache } from "next/cache";
 import { documentation } from "@/lib/docs";
 import { HELP_LAST_UPDATED, helpRoutes } from "@/lib/help";
 import { getMetadataBase } from "@/lib/metadata";
@@ -44,7 +45,12 @@ type SitemapArtist = {
   updated_at: string;
 };
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+// The sitemap must not be prerendered during a CI build (which may have no
+// catalog access), or frozen at deployment time as new reviews are published.
+// Cache successful runtime reads for one hour to avoid hammering Supabase.
+export const dynamic = "force-dynamic";
+
+async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   const metadataBase = getMetadataBase();
   const supabase = supabasePublic();
   const helpLastModified = new Date(HELP_LAST_UPDATED);
@@ -91,6 +97,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .order("updated_at", { ascending: false })
       .limit(5000),
   ]);
+
+  // Do not serve a successful but almost-empty sitemap after a transient DB
+  // failure: search engines may interpret it as removal of canonical URLs.
+  if (
+    profilesResult.error ||
+    reviewsResult.error ||
+    albumsResult.error ||
+    artistsResult.error
+  ) {
+    throw new Error("Public sitemap data could not be loaded");
+  }
 
   const profiles = (profilesResult.data ?? []) as SitemapProfile[];
   const reviews = (reviewsResult.data ?? []) as SitemapReview[];
@@ -238,4 +255,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...artistRoutes,
     ...profileRoutes,
   ];
+}
+
+const getCachedSitemap = unstable_cache(buildSitemap, ["public-sitemap-v2"], {
+  revalidate: 60 * 60,
+});
+
+export default function sitemap(): Promise<MetadataRoute.Sitemap> {
+  return getCachedSitemap();
 }
