@@ -50,9 +50,32 @@ Use the external GitHub Actions smoke result below for the actual HTTP probe.
 
 ## HTTP smoke evidence
 
-Pending CI run; update this section with the run, individual statuses and
-response times after the first execution. A failed probe is diagnostic;
-do not auto-retry or automatically change production firewall policy.
+GitHub Actions [Public read-only smoke #41468674583](https://github.com/francozeta/kocteau/actions/runs/41468674583)
+on 2026-11-02 at 15:08–15:09 UTC, from a GitHub-hosted runner:
+
+| Route | HTTP | MIME | Duration | Decompressed body |
+| --- | ---: | --- | ---: | ---: |
+| `/robots.txt` | 200 | text/plain | 282 ms | 1,036 bytes |
+| `/sitemap.xml` | 200 | application/xml | 1,269 ms | 19,540 bytes |
+| `/` | 200 | text/html | 1,314 ms | 411,401 bytes |
+| `/reviews` | 200 | text/html | 2,267 ms | 617,388 bytes |
+| `/track` | 200 | text/html | 684 ms | 79,506 bytes |
+
+**All five checks passed.** Both public SEO files were reachable, the homepage
+and review pages returned HTML, and no test request hit an HTTP 403/429/5xx.
+The site is externally reachable; the local container DNS limitation is not
+evidence of a Kocteau outage.
+
+The page body sizes above are **decoded HTML bytes in Node fetch**, not network
+transfer bytes, JavaScript bundle sizes or device-side Core Web Vitals.
+The `/reviews` total duration was the highest, but a single run cannot
+attribute it to database, streaming, serialization, network or bot protection.
+Before changing layout/infinite scroll, investigate request timing and
+React Server Components payload size against the existing performance issues.
+
+This is a smoke test, **not** a bot-verification test, abuse simulation or
+load/capacity test. A failed future probe would be diagnostic; do not auto-retry
+or automatically change firewall policy.
 
 ## Security gaps and proposed safe rollout
 
