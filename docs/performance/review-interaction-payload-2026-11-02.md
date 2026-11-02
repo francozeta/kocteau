@@ -58,6 +58,33 @@ This is a code-path finding, not yet a production LCP/INP percentile.
   makes this measurement available through the project data interface.
   Low current traffic may yield too few samples for meaningful percentiles.
 
+## Actual-Next/WebKit fixture results
+
+Validated on GitHub Actions commit `b6b795d3`:
+- [Verify #41505486016](https://github.com/francozeta/kocteau/actions/runs/41505486016): tests, docs, lint and production build passed.
+- [Native navigation #41505486068](https://github.com/francozeta/kocteau/actions/runs/41505486068): mobile/desktop, guest/authenticated simulated journeys passed, including the lazy comments overlay opening and closing in mobile Drawer / desktop Sheet; the test asserts an additional JS resource is fetched only **after** interaction.
+- Vercel Preview for `b6b795d3`: `READY`.
+
+The earlier unchanged fixture [#41477517794](https://github.com/francozeta/kocteau/actions/runs/41477517794) vs candidate #41505486068:
+
+| Initial `/reviews` JS | Earlier reference | Candidate | Difference |
+| --- | ---: | ---: | ---: |
+| Guest, decoded | 2,058,312 bytes | 2,046,963 bytes | **-11,349 bytes** |
+| Guest, encoded | 609,161 bytes | 606,739 bytes | **-2,422 bytes** |
+| Authenticated fixture, decoded | 1,650,729 bytes | 1,639,380 bytes | **-11,349 bytes** |
+| Authenticated fixture, encoded | 498,456 bytes | 496,034 bytes | **-2,422 bytes** |
+
+These measurements are from **different CI runs**, albeit the same WebKit
+fixture and route. Bundler, runner and test ordering are not fully paired.
+They are indicative rather than a strict causal performance benchmark. The
+JS resource **count** increased by one, even though aggregate bytes fell.
+The outcome does **not** establish a measurable p75 LCP, INP or TTFB change
+for users on iPhones in Lima.
+
+The gain is modest (~0.55% of the guest initial decoded JS bytes). A future
+pass should profile AppShell/client route chunks with the same isolated
+measurement method before redesigning hydration boundaries.
+
 ## Attribution and limits
 
 Removing unused scripts from initial navigation should reduce network
