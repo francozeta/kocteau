@@ -139,7 +139,7 @@ try {
   }
   assert.ok(body.includes("Music reviews"), "Real heading must render while feed is delayed");
   assert.ok(body.includes("Loading reviews"), "Streaming fallback must render while feed is delayed");
-  assert.ok(!body.includes("Fixture review"), "Private/list content must not appear before data arrives");
+  assert.ok(!body.includes('data-fixture="review"'), "Review markup must not appear before data arrives");
   result.initialContentBeforeFeed = true;
   waiting.forEach((release) => release());
   while (true) {
@@ -147,7 +147,7 @@ try {
     if (chunk.done) break;
     body += decoder.decode(chunk.value, { stream: true });
   }
-  result.reviewsAfterFeed = body.includes("Fixture review");
+  result.reviewsAfterFeed = body.includes('data-fixture="review"') && body.includes("Fixture review");
   assert.ok(result.reviewsAfterFeed, "The real review must arrive after the feed resumes");
   console.log(JSON.stringify({ result: "PASS", ...result }));
 } finally {
