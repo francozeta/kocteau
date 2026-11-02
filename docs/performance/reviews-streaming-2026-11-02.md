@@ -48,7 +48,7 @@ slow public reads. The application still has to finish fetching and
 rendering the real reviews; no SQL or full-response speedup is asserted.
 
 **Verification checklist:**
-- [ ] Isolated Next streaming fixture passes.
+- [x] Isolated Next streaming fixture passes — [GitHub Actions run #41477215637](https://github.com/francozeta/kocteau/actions/runs/41477215637): `initialContentBeforeFeed=true`, `reviewsAfterFeed=true`.
 - [ ] GitHub Verify tests, lint, docs and production build pass.
 - [ ] Vercel preview builds.
 - [ ] After merge, inspect a bounded production read-only smoke and compare
@@ -57,6 +57,22 @@ rendering the real reviews; no SQL or full-response speedup is asserted.
       correct review list and interaction flags.
 - [ ] Obtain actual Speed Insights LCP/INP/TTFB counts by route before
       promising improvements to real-user percentiles.
+
+## Additional CDN-route evidence
+
+The extended [production smoke #41477215712](https://github.com/francozeta/kocteau/actions/runs/41477215712)
+passed all five public GETs. On the homepage, `x-vercel-cache=HIT`
+and `x-vercel-id=cle1::gru1::...` accompanied **1,198 ms to first
+body chunk** and **1,202 ms total**, despite no origin function running
+on a CDN hit. The request-route identifier indicates a Cleveland
+(`cle1`) ingress and São Paulo (`gru1`) routing; see the
+[Vercel region docs](https://vercel.com/docs/headers/request-headers).
+This observation **does not establish actual visitor latency from Lima**
+and cannot be repaired by optimizing the Next.js home loader alone.
+
+`/reviews` on the same run: **420 ms first chunk**, **661 ms full**
+(HTTP 200, cache MISS). The demo now proves that a slow feed need not
+delay the new heading/skeleton, not that the CDN transit has improved.
 
 ## Next priorities
 
