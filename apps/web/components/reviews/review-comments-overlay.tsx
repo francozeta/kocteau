@@ -1,6 +1,7 @@
 "use client";
 
 import ReviewCommentsPanel from "@/components/reviews/review-comments-panel";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Drawer,
   DrawerContent,
@@ -22,7 +23,6 @@ type ReviewCommentsOverlayProps = {
   isAuthenticated: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  isMobile: boolean;
   commentsDescription: string;
   viewer: {
     id: string;
@@ -41,10 +41,11 @@ export default function ReviewCommentsOverlay({
   isAuthenticated,
   open,
   onOpenChange,
-  isMobile,
   commentsDescription,
   viewer,
 }: ReviewCommentsOverlayProps) {
+  const isMobile = useIsMobile();
+
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
