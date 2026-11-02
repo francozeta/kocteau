@@ -4,10 +4,13 @@ import type { Ref } from "react";
 import ReviewBookmarkButton from "@/components/reviews/review-bookmark-button";
 import ReviewCommentsButton from "@/components/reviews/review-comments-button";
 import ReviewLikeButton from "@/components/reviews/review-like-button";
-import type { ReviewCardData } from "@/components/reviews/review-card";
 
 type ReviewCardInteractionBarProps = {
-  review: ReviewCardData;
+  reviewId: string;
+  likesCount: number;
+  commentsCount: number;
+  viewerHasLiked: boolean;
+  viewerHasBookmarked: boolean;
   isAuthenticated?: boolean;
   bookmarkButtonRef?: Ref<HTMLButtonElement>;
   analyticsSource?: string | null;
@@ -24,7 +27,11 @@ type ReviewCardInteractionBarProps = {
 };
 
 export default function ReviewCardInteractionBar({
-  review,
+  reviewId,
+  likesCount,
+  commentsCount,
+  viewerHasLiked,
+  viewerHasBookmarked,
   isAuthenticated = false,
   bookmarkButtonRef,
   analyticsSource = null,
@@ -34,15 +41,15 @@ export default function ReviewCardInteractionBar({
   return (
     <div className="inline-flex items-center gap-0.5 rounded-full bg-[color-mix(in_oklch,var(--foreground)_7%,transparent)] p-1">
       <ReviewLikeButton
-        reviewId={review.id}
-        initialCount={review.likes_count}
-        initialLiked={Boolean(review.viewer_has_liked)}
+        reviewId={reviewId}
+        initialCount={likesCount}
+        initialLiked={viewerHasLiked}
         isAuthenticated={isAuthenticated}
         analyticsSource={analyticsSource}
       />
       <ReviewCommentsButton
         reviewId={review.id}
-        initialCount={review.comments_count}
+        initialCount={commentsCount}
         isAuthenticated={isAuthenticated}
         analyticsSource={analyticsSource}
         viewer={viewer}
@@ -50,7 +57,7 @@ export default function ReviewCardInteractionBar({
       />
       <ReviewBookmarkButton
         reviewId={review.id}
-        initialBookmarked={Boolean(review.viewer_has_bookmarked)}
+        initialBookmarked={viewerHasBookmarked}
         isAuthenticated={isAuthenticated}
         buttonRef={bookmarkButtonRef}
         analyticsSource={analyticsSource}
