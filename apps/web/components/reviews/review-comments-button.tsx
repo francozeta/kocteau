@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { KocteauCommentIcon } from "@/components/icons/kocteau-icons";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useReviewComments } from "@/hooks/use-review-comments";
+import { useReviewCommentsCount } from "@/hooks/use-review-comments-count";
 import { trackAnalyticsEvent } from "@/lib/analytics/client";
 import { toastAuthRequired } from "@/lib/feedback";
 import { cn } from "@/lib/utils";
@@ -51,11 +51,7 @@ export default function ReviewCommentsButton({
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
-  const { commentsCount } = useReviewComments({
-    reviewId,
-    initialCount,
-    enabled: open,
-  });
+  const commentsCount = useReviewCommentsCount({ reviewId, initialCount });
   const commentsDescription =
     commentsCount > 0
       ? `${commentsCount} ${commentsCount === 1 ? "reply" : "replies"}`
