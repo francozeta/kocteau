@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { FeedReviewStackSkeleton } from "@/components/feed/feed-loading-skeletons";
 import { FeedReviewCard } from "@/components/reviews/review-route-cards-server";
 import JsonLd from "@/components/shared/json-ld";
 import { getCurrentUserId } from "@/lib/auth/server";
@@ -12,15 +14,18 @@ export const metadata = createPageMetadata({
   path: "/reviews",
 });
 
-export default async function ReviewsPage() {
-  const userId = await getCurrentUserId();
-  const publicBundle = await getFeedPage({
-    view: "latest",
-    viewerId: userId,
-    includeActiveUsers: false,
-    publicOnly: true,
-    limit: 14,
-  });
+async function PublicReviewsList() {
+  // Public reviews and viewer identity are independent. Start the shared public
+  // read immediately instead of serializing it behind session resolution.
+  const [publicBundle, userId] = await Promise.all([
+    getFeedPage({
+      view: "latest",
+      includeActiveUsers: false,
+      publicOnly: true,
+      limit: 14,
+    }),
+    getCurrentUserId(),
+  ]);
   const viewerState =
     userId && publicBundle.feed.length > 0
       ? await getFeedViewerState(
@@ -68,18 +73,8 @@ export default async function ReviewsPage() {
   });
 
   return (
-    <section className="w-full max-w-3xl space-y-5 pb-4 sm:space-y-6">
+    <>
       <JsonLd data={buildReviewsPageJsonLd(structuredEntries)} id="reviews-structured-data" />
-
-      <header className="space-y-2">
-        <h1 className="font-heading text-[2rem] font-medium leading-[1.05] tracking-normal text-foreground sm:text-[2.45rem]">
-          Music reviews
-        </h1>
-        <p className="max-w-xl text-sm leading-6 text-muted-foreground text-pretty">
-          Recent ratings and listening notes from Kocteau.
-        </p>
-      </header>
-
       <div className="space-y-4">
         {reviews.length === 0 ? (
           <p className="py-6 text-sm text-muted-foreground">No public reviews yet.</p>
@@ -102,6 +97,31 @@ export default async function ReviewsPage() {
           );
         })}
       </div>
+    </>
+  );
+}
+
+export default function ReviewsPage() {
+  return (
+    <section className="w-full max-w-3xl space-y-5 pb-4 sm:space-y-6">
+      <header className="space-y-2">
+        <h1 className="font-heading text-[2rem] font-medium leading-[1.05] tracking-normal text-foreground sm:text-[2.45rem]">
+          Music reviews
+        </h1>
+        <p className="max-w-xl text-sm leading-6 text-muted-foreground text-pretty">
+          Recent ratings and listening notes from Kocteau.
+        </p>
+      </header>
+
+      <Suspense
+        fallback={
+          <div aria-busy="true" aria-label="Loading music reviews">
+            <FeedReviewStackSkeleton />
+          </div>
+        }
+      >
+        <PublicReviewsList />
+      </Suspense>
     </section>
   );
 }
