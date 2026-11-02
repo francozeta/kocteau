@@ -30,6 +30,8 @@ This is a code-path finding, not yet a production LCP/INP percentile.
   authenticated visitors. A new count-only hook avoids installing full
   comments-query observers and create/delete mutations for every *closed*
   button; shared React Query count keys still reflect mutations once opened.
+  The responsive breakpoint subscription also lives in the lazy overlay,
+  rather than being installed once per idle review card.
   Anonymous comments still trigger the same auth guidance. Inline comments
   still scroll and focus the existing composer without importing the overlay.
 - Review cards retain their like, bookmark and comment counts, visual
