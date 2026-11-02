@@ -22,20 +22,29 @@ export default function robots(): MetadataRoute.Robots {
     "/*opengraph-image*",
     "/*twitter-image*",
   ];
+  // Discovery assistants may read public pages, but cannot access app/private routes.
+  // Keep training-oriented crawlers opt-out; this is separate from the WAF.
+  const discoveryCrawlers = [
+    "ChatGPT-User",
+    "OAI-SearchBot",
+    "Claude-SearchBot",
+    "PerplexityBot",
+  ];
   const restrictedCrawlers = [
     "CCBot",
-    "ChatGPT-User",
     "ClaudeBot",
-    "Claude-SearchBot",
     "GPTBot",
-    "PerplexityBot",
-    "OAI-SearchBot",
     "Bytespider",
     "Applebot-Extended",
   ];
 
   return {
     rules: [
+      {
+        userAgent: discoveryCrawlers,
+        allow: publicAllow,
+        disallow: privateDisallow,
+      },
       {
         userAgent: restrictedCrawlers,
         allow: ["/docs", "/llms.txt"],
