@@ -298,6 +298,34 @@ try {
     direct.settledMs = Math.round(performance.now() - started);
     results.push(direct);
     const listScripts = await scriptSnapshot(page);
+    if (authenticated) {
+      // The initial route should not need a comment composer. Request it
+      // only now, after measuring initial JS, and verify both responsive
+      // overlays still work with synthetic authenticated data.
+      const commentsTrigger = page.getByRole("button", { name: "Open comments" }).first();
+      await commentsTrigger.click();
+      const commentsOverlay = page
+        .locator('[data-slot="drawer-content"], [data-slot="sheet-content"]')
+        .first();
+      await commentsOverlay.waitFor({ state: "visible", timeout: 20_000 });
+      assert.ok(
+        await commentsOverlay.getByText("Comments", { exact: true }).count(),
+        "Lazy comments overlay must show the comment heading",
+      );
+      const afterOpen = await scriptSnapshot(page);
+      assert.ok(
+        afterOpen.count > listScripts.count,
+        "Opening comments should load a deferred JavaScript chunk",
+      );
+      await page.keyboard.press("Escape");
+      await commentsOverlay.waitFor({ state: "hidden" });
+      results.push({
+        mobile, authenticated, journey: "comments-overlay-lazy",
+        scriptCountBefore: listScripts.count,
+        scriptCountAfter: afterOpen.count,
+        addedDecodedBytes: afterOpen.decodedBytes - listScripts.decodedBytes,
+      });
+    }
     const reviewPath = await reviewLink.getAttribute("href");
     started = performance.now();
     await reviewLink.click({ noWaitAfter: true });
