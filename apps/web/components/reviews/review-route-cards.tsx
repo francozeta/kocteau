@@ -286,7 +286,11 @@ function RoutedReviewCard({
         ) : null,
         footer: showInteractionBar ? (
           <ReviewCardInteractionBar
-            review={review}
+            reviewId={review.id}
+            likesCount={review.likes_count}
+            commentsCount={review.comments_count}
+            viewerHasLiked={Boolean(review.viewer_has_liked)}
+            viewerHasBookmarked={Boolean(review.viewer_has_bookmarked)}
             isAuthenticated={isAuthenticated}
             viewer={viewer}
             analyticsSource={analyticsSource}
