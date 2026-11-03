@@ -16,6 +16,8 @@ cloud measurement, data-plane incident and recovery, and prioritized follow-up.
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
 
+- [Craft interaction experiment 002](./search-craft-interactions.md): stacked Search keyboard/hover responsiveness and focus recovery over PR #272, review only, issue #279. It does not alter production or the first experiment.
+
 - [Search design experiment 001](./search-design-judgment.md): bounded selected-canvas feedback evaluation using pinned MDS Stage 02, coordinated in [#271](https://github.com/francozeta/kocteau/issues/271), delivery [draft PR #272](https://github.com/francozeta/kocteau/pull/272). Preview review only; owner acceptance remains open.
 
 - [Journey tracing](./journey-tracing.md): first technical instrumentation delivery, local SDK/browser evidence and remaining coverage under [#263](https://github.com/francozeta/kocteau/issues/263), delivery [PR #264](https://github.com/francozeta/kocteau/pull/264).
