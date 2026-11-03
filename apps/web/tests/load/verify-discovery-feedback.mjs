@@ -106,6 +106,25 @@ try {
   await page.locator("[data-global-search-input]:visible").waitFor();
   await statusIs("");
 
+  // Craft Scroll Fades: only the edge with additional content should be masked.
+  const scopeScroller = page.locator('[data-scroll-edge-fade="x"]:visible').first();
+  await scopeScroller.waitFor();
+  await scopeScroller.evaluate((node) => { node.style.maxWidth = "118px"; });
+  await page.waitForFunction(() => {
+    const node = [...document.querySelectorAll('[data-scroll-edge-fade="x"]')]
+      .find((item) => item.getClientRects().length > 0);
+    return node && node.scrollWidth > node.clientWidth &&
+      node.style.maskImage.startsWith("linear-gradient(");
+  });
+  const maskAtStart = await scopeScroller.evaluate((node) => node.style.maskImage);
+  await scopeScroller.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
+  await page.waitForFunction((start) => {
+    const node = [...document.querySelectorAll('[data-scroll-edge-fade="x"]')]
+      .find((item) => item.getClientRects().length > 0);
+    return node && node.scrollLeft > 0 && node.style.maskImage !== start;
+  }, maskAtStart);
+  await scopeScroller.evaluate((node) => { node.style.maxWidth = ""; node.scrollLeft = 0; });
+
   // Craft: rapid result traversal should follow input immediately and recover focus.
   searchResults = [track(90909101), track(90909102), track(90909103)];
   const input = page.locator("[data-global-search-input]:visible");
@@ -113,6 +132,7 @@ try {
   const resultButtons = page.locator("[data-discovery-seed-result]");
   await resultButtons.first().waitFor();
   assert.equal(await resultButtons.count(), 3, "All fixture results remain selectable");
+  assert.equal(await resultButtons.first().locator(".ring-inset").count(), 1, "Inset cover edge stays inside image bounds");
   await input.press("ArrowDown");
   assert(await resultButtons.nth(0).evaluate((node) => document.activeElement === node));
   await resultButtons.nth(0).press("ArrowDown");
