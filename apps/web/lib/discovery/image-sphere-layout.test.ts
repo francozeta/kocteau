@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { getImageSphereLayoutStyle } from "./image-sphere.ts";
+import {
+  getImageSphereLayoutStyle,
+  getImageSphereTargetScale,
+} from "./image-sphere.ts";
 
 describe("image sphere layout style", () => {
   it("keeps each cover's irregular layout stable across renders", () => {
@@ -18,5 +21,24 @@ describe("image sphere layout style", () => {
     assert.ok(style.tilt >= -0.05 && style.tilt <= 0.05);
     assert.ok(style.verticalJitter >= -0.09 && style.verticalJitter <= 0.09);
     assert.ok(style.radiusJitter >= -36 && style.radiusJitter <= 36);
+  });
+});
+
+describe("original Kocteau 3D scale", () => {
+  it("uses the original depth gradient rather than capping background covers", () => {
+    // RADIUS=180, depth scale moves from 0.68 to 1.10.
+    assert.equal(getImageSphereTargetScale(-216, 1, false), 0.68);
+    assert.equal(getImageSphereTargetScale(216, 1, false), 1.1);
+    assert.equal(getImageSphereTargetScale(0, 1, false), 0.89);
+    assert.equal(getImageSphereTargetScale(216, 1.16, false), 1.1 * 1.16);
+    assert.equal(getImageSphereTargetScale(216, 0.84, false), 1.1 * 0.84);
+  });
+
+  it("reserves the original anchor emphasis without shrinking its neighbors", () => {
+    const neighbor = getImageSphereTargetScale(90, 1.16, false);
+    const anchor = getImageSphereTargetScale(90, 1, true);
+
+    assert.ok(neighbor > getImageSphereTargetScale(90, 0.84, false));
+    assert.equal(anchor, getImageSphereTargetScale(90, 1, false) * 1.08);
   });
 });
