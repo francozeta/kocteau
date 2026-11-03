@@ -162,20 +162,30 @@ header. Keep it out of Git; the fixture creates no accounts or activity.
 This is a browser regression check with simulated API failures, not a load test or
 a test on a physical iPhone/TikTok browser.
 
-## Existing component library reuse
+## Published Craft techniques adapted to Search
 
-Search scope filters now use the checked-in Radix-backed `ToggleGroup` from
-`components/ui/toggle-group.tsx`. It controls one selected scope and gives
-keyboard users roving arrow-key focus, while preserving the existing quiet
-rounded chips, 44px touch targets and Kocteau-specific surface colors. No new
-UI primitive or package was installed.
+The source behind [Gustavo Fior's Craft](https://craft.gustavofior.com/) includes
+demonstrations and a UI library, but it is not a drop-in Kocteau component suite.
+The full demonstrations have their own page/visual dependencies. Keep the pinned
+skill as a reference and adapt only isolated techniques with no additional
+package installation:
 
-The scope list stays native horizontally scrollable rather than nesting a
-`ScrollArea` wrapper. Search results retain their remotely ranked order and
-manual asynchronous states; converting them wholesale to `Command` would
-introduce a second selection/filtering system without a demonstrated need.
-The existing `Dialog` and mobile `Drawer` remain the correct primitives for
-canvas options. These are intentional non-adoptions, not missing components.
+- [Scroll Fades](https://craft.gustavofior.com/scroll-fades): the reusable
+  `components/ui/scroll-edge-fade.tsx` masks *only* a scrollable edge with more
+  content. Search scope chips preserve their original markup, semantics and
+  native overflow; unlike a static gradient, no chip is faded at its endpoint.
+- [Image Outlines](https://craft.gustavofior.com/image-outlines): the existing
+  music cover component receives an inset, low-opacity ring in Search results,
+  without increasing dimensions or covering the cover with an external frame.
+- [Hover Restraint](https://craft.gustavofior.com/hover-restraint) and
+  [Interruptibility](https://craft.gustavofior.com/interruptibility): already
+  guide the immediate hover treatment, keyboard recovery and the unchanged
+  reversible form transition. No new motion library was required.
+
+Do not import unpublished Craft placeholder articles, replace WebGL's cover
+paint order, globally change tokens, or vendor its demo components wholesale.
+The [experiment plan](../../../../.plan/search-craft-interactions.md) owns the
+comparison and any accessibility/browser limits.
 
 ## Craft interaction experiment (stacked preview)
 
