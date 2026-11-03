@@ -46,6 +46,15 @@ function getDepthScale(depth: number) {
   );
 }
 
+/** Original spatial cover scaling, shared by moving and reduced-motion frames. */
+export function getImageSphereTargetScale(
+  depth: number,
+  baseScale: number,
+  isAnchor: boolean,
+) {
+  return getDepthScale(depth) * baseScale * (isAnchor ? ANCHOR_SCALE : 1);
+}
+
 function getDepthOpacity(depth: number) {
   return THREE.MathUtils.lerp(DEPTH_OPACITY_BACK, 1, getDepthProgress(depth));
 }
@@ -627,24 +636,17 @@ export class ImageSphere {
   }
 
   private getPlaneScale(plane: PlaneMesh, depth: number) {
-    const isAnchor = plane.userData.isAnchor === true;
-    let scale =
-      getDepthScale(depth) *
-      ((plane.userData.baseScale as number | undefined) ?? 1);
-
-    if (this.anchorIndex !== undefined && !isAnchor) {
-      const viewHeight =
-        2 *
-        Math.max(1, this.camera.position.z - depth) *
-        Math.tan((this.camera.fov * Math.PI) / 360);
-      const maxPixels = Math.min(148, this.width * 0.24, this.height * 0.24);
-      scale = Math.min(
-        scale,
-        (maxPixels * viewHeight) / (PLANE_SIZE * this.height),
-      );
-    }
-
-    return isAnchor ? scale * ANCHOR_SCALE : scale;
+    // Retain the original Kocteau 3D choreography: depth and per-cover scale
+    // determine size even after a music selection. The experimental 148px
+    // supporting-cover cap flattened the composition. Paint-order picking,
+    // label collision handling and reduced-motion behavior stay unchanged.
+    const baseScale =
+      (plane.userData.baseScale as number | undefined) ?? 1;
+    return getImageSphereTargetScale(
+      depth,
+      baseScale,
+      plane.userData.isAnchor === true,
+    );
   }
 
   private updateCoverPositions() {
