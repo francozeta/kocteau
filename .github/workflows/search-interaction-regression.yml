@@ -5,6 +5,8 @@ on:
     paths:
       - 'apps/web/components/discovery/**'
       - 'apps/web/tests/load/verify-discovery-feedback.mjs'
+      - 'apps/web/tests/load/verify-discovery-canvas.mjs'
+      - 'apps/web/lib/discovery/**'
       - '.github/workflows/search-interaction-regression.yml'
   workflow_dispatch:
 
@@ -70,3 +72,10 @@ jobs:
         run: |
           node apps/web/tests/load/verify-discovery-feedback.mjs
           DISCOVERY_FEEDBACK_DESKTOP=1 node apps/web/tests/load/verify-discovery-feedback.mjs
+      - name: Verify WebGL picking, original composition and fallback
+        env:
+          KOCTEAU_PLAYWRIGHT_MODULE: ${{ runner.temp }}/kocteau-browser/node_modules/playwright
+          DISCOVERY_CANVAS_URL: http://127.0.0.1:3002
+        run: |
+          node apps/web/tests/load/verify-discovery-canvas.mjs
+          DISCOVERY_CANVAS_DESKTOP=1 node apps/web/tests/load/verify-discovery-canvas.mjs
