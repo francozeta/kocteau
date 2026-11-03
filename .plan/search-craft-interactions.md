@@ -10,22 +10,33 @@ The prior design experiment already fixed painted cover picking, caption placeme
 
 This iteration asks whether small, high-frequency interaction changes make Search easier to operate **without adding new UI**. It follows the official published Craft guidance at `gustavo-fior/craft@586e23b34b9c27e48b2ad8be660c67db587f26ad`, including [Hover Restraint](https://craft.gustavofior.com/hover-restraint) and [Interruptibility](https://craft.gustavofior.com/interruptibility). The reference is practitioner craft, not proof of an outcome in Kocteau. Existing `DESIGN.md` wins on colors, typography, motion, interactions and structure.
 
-## Component-library selection
+## Craft source-to-product adaptation
 
-The source already contains shadcn-style Radix `ToggleGroup`, `Command`,
-`ScrollArea`, `Dialog` and Vaul `Drawer` components as well as
-`@base-ui/react`. Reusing installed capabilities is preferable to adding a
-second design system. Selected: `ToggleGroup` for the single-choice music
-scope; it supports roving keyboard focus, retains the current styling, and
-keeps search scope state in the existing controlled callback. The isolated
-browser fixture explicitly checks ArrowRight, Enter, and the selected scope.
+Inspected Gustavo Fior's actual `src/components/demos` and `src/components/ui`
+at pinned upstream revision `586e23b34b9c27e48b2ad8be660c67db587f26ad`.
+These include full comparison demonstrations and familiar shadcn-style UI
+primitives, not a unique ready-to-install Kocteau component pack. His published
+[Scroll Fades](https://craft.gustavofior.com/scroll-fades) reference uses
+gradient masks that reveal only the overflowing edge; the full demo uses
+comparison panes, animation-timeline support and multiple controls unrelated
+to Search. We adapted its *behavior* into a small reusable
+`components/ui/scroll-edge-fade.tsx` with native overflow, position-aware
+mask, RAF batching and resize awareness. It does not depend on the Craft app.
 
-Rejected for this experiment: `Command` because it would duplicate query and
-ranking/selection behavior; `ScrollArea` because the native scrolling surface
-already serves results and the narrow filter row; additional tooltips/sheets
-because each would increase chrome without clarifying the next music action.
-`Dialog` and `Drawer` are reused as-is. The design identity is still
-defined by `DESIGN.md`, not the component-library demos.
+[Image Outlines](https://craft.gustavofior.com/image-outlines) provides the
+basis for an inset `ring-white/10` on mixed-brightness result thumbnails;
+the selected music header already used this treatment, so Search now has
+consistent artwork edges without changing layout. Hover Restraint and
+Interruptibility remain the basis for previous focused keyboard/interaction
+changes. These are narrow adaptations of published ideas, not imported
+upstream demo code or author-design tokens.
+
+Rejected for now: copying the Craft UI primitives, phosphor icon set, sheet/
+tooltip demos, full noise generator, new animation libraries, unpublished
+placeholder concepts and unnecessary visual chrome. Existing Kocteau
+components and its `DESIGN.md` remain the source of truth. The earlier
+Radix ToggleGroup conversion was reverted because it was not what the
+Craft-source request targeted.
 
 ## Source inspection, observed gap, alternative
 
