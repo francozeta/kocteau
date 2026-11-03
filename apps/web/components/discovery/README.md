@@ -187,6 +187,21 @@ paint order, globally change tokens, or vendor its demo components wholesale.
 The [experiment plan](../../../../.plan/search-craft-interactions.md) owns the
 comparison and any accessibility/browser limits.
 
+## Owner preference: keep the original Kocteau 3D rhythm
+
+The [hybrid experiment](../../../../.plan/search-craft-original-3d.md) restores the
+original depth-driven cover sizing and varied composition after selecting music.
+The earlier version capped supporting covers at 148px / 24% of the viewport,
+flattening their size/depth relationship. This was a visual experiment, not a
+required behavior, and the owner prefers the original movement.
+
+The change is intentionally smaller than a renderer rollback: keep the
+paint-order selection fix, keyboard/drag correctness, dynamic labels, low-motion
+handling, async feedback, and all of the approved Craft microdetails outside
+the sphere. Run both the discovery canvas and Search interaction browser
+fixtures against the hybrid Preview. Only the owner can approve the overall
+movement/identity comparison with the original.
+
 ## Craft interaction experiment (stacked preview)
 
 `feat/search-craft-interactions` is a separate experimental layer over the existing
