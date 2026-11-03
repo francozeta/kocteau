@@ -1,0 +1,72 @@
+name: Search interaction regression
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/components/discovery/**'
+      - 'apps/web/tests/load/verify-discovery-feedback.mjs'
+      - '.github/workflows/search-interaction-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: search-interaction-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: Isolated mobile and desktop Search
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3002
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: fixture-placeholder
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install isolated Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/kocteau-browser" --no-save --no-package-lock playwright@1.64.1
+          "$RUNNER_TEMP/kocteau-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Start read-only loopback upstream
+        run: |
+          node apps/web/tests/load/fixtures/public-data.mjs >"$RUNNER_TEMP/upstream.log" 2>&1 &
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:54321/__fixture/stats > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/upstream.log"
+          exit 1
+      - name: Build with isolated upstream only
+        env:
+          NODE_OPTIONS: --import=${{ github.workspace }}/apps/web/tests/load/fixtures/search-recovery-upstreams.mjs
+        run: pnpm --filter web build
+      - name: Start application with isolated upstream
+        env:
+          NODE_OPTIONS: --import=${{ github.workspace }}/apps/web/tests/load/fixtures/search-recovery-upstreams.mjs
+        run: |
+          pnpm --filter web start --port 3002 >"$RUNNER_TEMP/web.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3002/search > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/web.log"
+          exit 1
+      - name: Verify Search interactions on mobile and desktop
+        env:
+          KOCTEAU_PLAYWRIGHT_MODULE: ${{ runner.temp }}/kocteau-browser/node_modules/playwright
+          DISCOVERY_FEEDBACK_URL: http://127.0.0.1:3002
+        run: |
+          node apps/web/tests/load/verify-discovery-feedback.mjs
+          DISCOVERY_FEEDBACK_DESKTOP=1 node apps/web/tests/load/verify-discovery-feedback.mjs
