@@ -104,9 +104,11 @@ export default function DiscoverySearch({
     onFocusChange?.(false);
     if (restoreFocus) {
       requestAnimationFrame(() =>
-        document
-          .querySelector<HTMLButtonElement>("[data-global-search-trigger]")
-          ?.focus(),
+        (
+          document.querySelector<HTMLElement>("[data-global-search-trigger]") ??
+          document.querySelector<HTMLElement>("[data-discovery-focus]") ??
+          document.querySelector<HTMLElement>('[aria-label="Toggle navigation"]')
+        )?.focus({ preventScroll: true }),
       );
     }
   };
@@ -125,8 +127,27 @@ export default function DiscoverySearch({
     <div
       onKeyDown={(event) => {
         if (event.key === "Escape") {
+          event.preventDefault();
           closeSearch();
+          return;
         }
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+        const results = Array.from(
+          event.currentTarget.querySelectorAll<HTMLButtonElement>(
+            "[data-discovery-seed-result]",
+          ),
+        );
+        const index = results.indexOf(event.target as HTMLButtonElement);
+        if (index < 0) return;
+        event.preventDefault();
+        if (event.key === "ArrowUp" && index === 0) {
+          inputRef.current?.focus({ preventScroll: true });
+          return;
+        }
+        const next = event.key === "ArrowDown" ? index + 1 : index - 1;
+        results[Math.max(0, Math.min(next, results.length - 1))]?.focus({
+          preventScroll: true,
+        });
       }}
       className={cn(
         "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
@@ -163,10 +184,11 @@ export default function DiscoverySearch({
               <button
                 type="button"
                 key={`${result.provider}:${result.type}:${result.provider_id}`}
+                data-discovery-seed-result
                 onClick={() => {
                   if (onSelect(result)) closeSearch(false);
                 }}
-                className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
+                className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
               >
                 <EntityCoverImage
                   src={result.cover_url}
