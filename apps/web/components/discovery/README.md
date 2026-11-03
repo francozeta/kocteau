@@ -162,6 +162,29 @@ header. Keep it out of Git; the fixture creates no accounts or activity.
 This is a browser regression check with simulated API failures, not a load test or
 a test on a physical iPhone/TikTok browser.
 
+## Craft interaction experiment (stacked preview)
+
+`feat/search-craft-interactions` is a separate experimental layer over the existing
+Search canvas design in PR #272. Its control is the exact base PR revision
+`040e0f42df3000a0da33d5f0f710de4cc53262cd`. It does not change the 3D
+cover composition, selection ranking, URL semantics, backend or UI tokens.
+
+Scope: frequent hover states in scope filters, result rows and back/options
+controls respond immediately; search results support ArrowDown/ArrowUp,
+including returning to the input from the first result; Escape closes the
+overlay and intentionally returns focus to the available search/navigation
+control. The open/close form layout transition remains interruptible and
+follows the existing motion contract. The official
+`craft-design-engineering` skill is copied with a pinned source revision and
+recorded in `skills-lock.json`, not globally installed or added to the MDS
+personal profile.
+
+The existing `verify-discovery-feedback.mjs` loopback fixture also checks the
+new keyboard path on mobile and desktop. Its assertions are not evidence of
+production keyboard behavior or of visual acceptance: use the [experiment
+record](../../../../.plan/search-craft-interactions.md) and compare the two
+Preview builds before deciding whether to merge.
+
 ## Canvas feedback regression
 
 Against an isolated local build/server (never cloud-backed application
