@@ -5,6 +5,10 @@ last checked on 2026-10-26 and remain the product priority.
 Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
+## Search hybrid experiment 003 — original 3D + Craft details
+
+The owner's visual review prefers the original Kocteau 3D cover flow and movement over the selected-state size cap introduced in the first Search experiment, while retaining the Craft interface changes. The isolated `feat/search-craft-original-3d` branch restores depth-driven secondary-cover size variation from original `main@8587fea` without reverting painted-cover picking, caption safeguards, browser recovery, or Craft controls. See [hybrid plan](./.plan/search-craft-original-3d.md). This is not production or approved for merge; browser and owner review remain required.
+
 ## Search Craft experiment 002 — review branch
 
 [Issue #279](https://github.com/francozeta/kocteau/issues/279) coordinates a stacked Search interaction candidate on `feat/search-craft-interactions`, using [PR #272](https://github.com/francozeta/kocteau/pull/272) at `040e0f42` as its fixed control. The [plan](./.plan/search-craft-interactions.md) owns scope and verification. The changes target frequent hover response, keyboard result traversal and focus restoration, with Craft's published skill pinned in this branch only. This is experimental code, not integrated or deployed behavior; compare Preview and CI before owner acceptance. Production, backend and the parent MDS profile remain unchanged.
