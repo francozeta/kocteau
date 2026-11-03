@@ -29,7 +29,7 @@ describe("original Kocteau 3D scale", () => {
     // RADIUS=180, depth scale moves from 0.68 to 1.10.
     assert.equal(getImageSphereTargetScale(-216, 1, false), 0.68);
     assert.equal(getImageSphereTargetScale(216, 1, false), 1.1);
-    assert.equal(getImageSphereTargetScale(0, 1, false), 0.89);
+    assert.ok(Math.abs(getImageSphereTargetScale(0, 1, false) - 0.89) < 1e-12);
     assert.equal(getImageSphereTargetScale(216, 1.16, false), 1.1 * 1.16);
     assert.equal(getImageSphereTargetScale(216, 0.84, false), 1.1 * 0.84);
   });
