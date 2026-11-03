@@ -197,7 +197,7 @@ export default function DiscoverySearch({
                   quality={70}
                   variant="thumbnail"
                   className={cn(
-                    "size-[3.25rem] bg-muted/30",
+                    "size-[3.25rem] bg-muted/30 ring-1 ring-inset ring-white/10",
                     result.type === "artist"
                       ? "rounded-full"
                       : "rounded-[0.6rem]",
