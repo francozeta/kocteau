@@ -16,6 +16,8 @@ cloud measurement, data-plane incident and recovery, and prioritized follow-up.
 Local experiments, diagnostics, screenshots, and private notes belong in ignored
 `.plan/local/` or `.codex-private/`. They are not contributor documentation.
 
+- [Search hybrid experiment 003](./search-craft-original-3d.md): return to original depth-driven 3D cover sizing while keeping the Craft control, artwork and accessibility improvements; separate review branch.
+
 - [Craft interaction experiment 002](./search-craft-interactions.md): stacked Search keyboard/hover responsiveness and focus recovery over PR #272, review only, issue #279. It does not alter production or the first experiment.
 
 - [Search design experiment 001](./search-design-judgment.md): bounded selected-canvas feedback evaluation using pinned MDS Stage 02, coordinated in [#271](https://github.com/francozeta/kocteau/issues/271), delivery [draft PR #272](https://github.com/francozeta/kocteau/pull/272). Preview review only; owner acceptance remains open.
