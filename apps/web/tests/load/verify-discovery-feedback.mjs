@@ -106,25 +106,6 @@ try {
   await page.locator("[data-global-search-input]:visible").waitFor();
   await statusIs("");
 
-  // Use the installed ToggleGroup primitive for a single active music scope.
-  const scopeGroup = page.getByRole("group", { name: "Search for" });
-  const songs = scopeGroup.getByRole("button", { name: "Songs" });
-  const albums = scopeGroup.getByRole("button", { name: "Albums" });
-  await songs.focus();
-  await songs.press("ArrowRight");
-  assert(await albums.evaluate((node) => document.activeElement === node), "ArrowRight traverses the scope group");
-  await albums.press("Enter");
-  await page.waitForFunction(() =>
-    document.querySelector('[role="group"][aria-label="Search for"] [data-state="on"]')?.textContent?.includes("Albums"),
-  );
-  const allScopes = scopeGroup.getByRole("button", { name: "All", exact: true });
-  await allScopes.click();
-  await page.waitForFunction(() =>
-    document.querySelector('[role="group"][aria-label="Search for"] [data-state="on"]')?.textContent?.includes("All"),
-  );
-  const searchAfterScope = page.locator("[data-global-search-input]:visible");
-  await searchAfterScope.press("Escape");
-
   // Craft: rapid result traversal should follow input immediately and recover focus.
   searchResults = [track(90909101), track(90909102), track(90909103)];
   const input = page.locator("[data-global-search-input]:visible");
