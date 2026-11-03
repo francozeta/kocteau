@@ -13,6 +13,7 @@ in repository documents that every contributor can read.
 
 | Work | Starting points |
 | --- | --- |
+| Published interaction details (Craft preview only) | `craft-design-engineering` — read the relevant reference, preserve `DESIGN.md` |
 | Interface craft | `better-ui`, `better-layout`, `better-typography`, `better-colors` |
 | Interaction and copy | `better-accessibility`, `better-writing` |
 | Motion | `transitions-dev`, `transitions-polish` |
