@@ -162,6 +162,21 @@ header. Keep it out of Git; the fixture creates no accounts or activity.
 This is a browser regression check with simulated API failures, not a load test or
 a test on a physical iPhone/TikTok browser.
 
+## Existing component library reuse
+
+Search scope filters now use the checked-in Radix-backed `ToggleGroup` from
+`components/ui/toggle-group.tsx`. It controls one selected scope and gives
+keyboard users roving arrow-key focus, while preserving the existing quiet
+rounded chips, 44px touch targets and Kocteau-specific surface colors. No new
+UI primitive or package was installed.
+
+The scope list stays native horizontally scrollable rather than nesting a
+`ScrollArea` wrapper. Search results retain their remotely ranked order and
+manual asynchronous states; converting them wholesale to `Command` would
+introduce a second selection/filtering system without a demonstrated need.
+The existing `Dialog` and mobile `Drawer` remain the correct primitives for
+canvas options. These are intentional non-adoptions, not missing components.
+
 ## Craft interaction experiment (stacked preview)
 
 `feat/search-craft-interactions` is a separate experimental layer over the existing
