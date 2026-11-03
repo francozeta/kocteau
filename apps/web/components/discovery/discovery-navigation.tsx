@@ -6,7 +6,6 @@ import EntityCoverImage from "@/components/music/entity-cover-image";
 import PrefetchLink from "@/components/shared/prefetch-link";
 import { KocteauMoreIcon } from "@/components/icons/kocteau-icons";
 import { ComposeChevronLeftIcon } from "@/components/ui/icons";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Dialog,
   DialogContent,
@@ -78,23 +77,21 @@ export default function DiscoveryNavigation({
   const Description = mobile ? DrawerDescription : DialogDescription;
 
   const scopeControls = (
-    <ToggleGroup
-      type="single"
-      value={scope}
-      onValueChange={(value) => {
-        if (!value || value === scope) return;
-        setOpen(false);
-        onScopeChange(value as SearchScope);
-      }}
-      spacing={1}
+    <div
+      role="group"
       aria-label="Search for"
-      className="no-scrollbar flex min-w-0 max-w-full items-center gap-0.5 overflow-x-auto rounded-full"
+      className="no-scrollbar flex min-w-0 items-center gap-0.5 overflow-x-auto"
     >
       {scopes.map((option) => (
-        <ToggleGroupItem
+        <button
           key={option.value}
-          value={option.value}
-          className="group flex h-11 min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent p-1 text-[11px] font-medium transition-none hover:bg-transparent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-[state=on]:bg-transparent data-[state=on]:text-foreground"
+          type="button"
+          aria-pressed={scope === option.value}
+          onClick={() => {
+            setOpen(false);
+            onScopeChange(option.value);
+          }}
+          className="group flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span
             className={cn(
@@ -106,9 +103,9 @@ export default function DiscoveryNavigation({
           >
             {option.label}
           </span>
-        </ToggleGroupItem>
+        </button>
       ))}
-    </ToggleGroup>
+    </div>
   );
   const identity = (
     <div className="flex min-h-14 min-w-0 items-center gap-1">
