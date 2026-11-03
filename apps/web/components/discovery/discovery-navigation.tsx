@@ -37,7 +37,7 @@ const scopes: { value: SearchScope; label: string }[] = [
 ];
 const typeLabels = { track: "Song", album: "Album", artist: "Artist" };
 const iconButton =
-  "flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export default function DiscoveryNavigation({
   scope,
@@ -95,7 +95,7 @@ export default function DiscoveryNavigation({
         >
           <span
             className={cn(
-              "flex min-h-7 items-center rounded-full px-2.5 transition-colors duration-150",
+              "flex min-h-7 items-center rounded-full px-2.5",
               scope === option.value
                 ? "bg-[var(--kocteau-surface-control-hover)] text-foreground"
                 : "bg-[var(--kocteau-surface-control)] text-muted-foreground group-hover:text-foreground",
@@ -114,7 +114,7 @@ export default function DiscoveryNavigation({
           type="button"
           aria-label={canGoBack ? "Previous canvas" : "Back to all music"}
           onClick={canGoBack ? onBack : onRestart}
-          className="flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ComposeChevronLeftIcon className="size-4" />
         </button>
