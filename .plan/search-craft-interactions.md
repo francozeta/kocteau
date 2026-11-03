@@ -10,6 +10,23 @@ The prior design experiment already fixed painted cover picking, caption placeme
 
 This iteration asks whether small, high-frequency interaction changes make Search easier to operate **without adding new UI**. It follows the official published Craft guidance at `gustavo-fior/craft@586e23b34b9c27e48b2ad8be660c67db587f26ad`, including [Hover Restraint](https://craft.gustavofior.com/hover-restraint) and [Interruptibility](https://craft.gustavofior.com/interruptibility). The reference is practitioner craft, not proof of an outcome in Kocteau. Existing `DESIGN.md` wins on colors, typography, motion, interactions and structure.
 
+## Component-library selection
+
+The source already contains shadcn-style Radix `ToggleGroup`, `Command`,
+`ScrollArea`, `Dialog` and Vaul `Drawer` components as well as
+`@base-ui/react`. Reusing installed capabilities is preferable to adding a
+second design system. Selected: `ToggleGroup` for the single-choice music
+scope; it supports roving keyboard focus, retains the current styling, and
+keeps search scope state in the existing controlled callback. The isolated
+browser fixture explicitly checks ArrowRight, Enter, and the selected scope.
+
+Rejected for this experiment: `Command` because it would duplicate query and
+ranking/selection behavior; `ScrollArea` because the native scrolling surface
+already serves results and the narrow filter row; additional tooltips/sheets
+because each would increase chrome without clarifying the next music action.
+`Dialog` and `Drawer` are reused as-is. The design identity is still
+defined by `DESIGN.md`, not the component-library demos.
+
 ## Source inspection, observed gap, alternative
 
 On the base PR, the search input moves focus to the first result with ArrowDown, but a focused result has only Escape handling. No ArrowDown/ArrowUp traversal is provided there. Closing a search from result focus attempts to focus only `[data-global-search-trigger]`; this trigger can be absent in the desktop header or at the guest root. High-frequency search result, scope, back and options hover styles include 150ms color transitions.
