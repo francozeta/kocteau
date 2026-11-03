@@ -43,10 +43,11 @@ const track = (id) => ({
   source: "deezer",
 });
 let searchResult = track(90909001);
+let searchResults = [searchResult];
 let mode = "hold";
 const held = [];
 await page.route("**/api/search?**", (route) =>
-  route.fulfill({ json: [searchResult] }),
+  route.fulfill({ json: searchResults }),
 );
 await page.route("**/api/discovery/map?**", async (route) => {
   const url = new URL(route.request().url());
@@ -75,6 +76,7 @@ const statusIs = (text) => page.waitForFunction((expected) =>
 text);
 const select = async (id) => {
   searchResult = track(id);
+  searchResults = [searchResult];
   const trigger = page.getByRole("button", { name: "Search music", exact: true });
   if (await trigger.isVisible()) await trigger.click();
   const input = page.locator("[data-global-search-input]:visible");
@@ -103,6 +105,30 @@ try {
   await page.goto(new URL("/search", target).href, { waitUntil: "domcontentloaded" });
   await page.locator("[data-global-search-input]:visible").waitFor();
   await statusIs("");
+
+  // Craft: rapid result traversal should follow input immediately and recover focus.
+  searchResults = [track(90909101), track(90909102), track(90909103)];
+  const input = page.locator("[data-global-search-input]:visible");
+  await input.fill("Discovery fixture");
+  const resultButtons = page.locator("[data-discovery-seed-result]");
+  await resultButtons.first().waitFor();
+  assert.equal(await resultButtons.count(), 3, "All fixture results remain selectable");
+  await input.press("ArrowDown");
+  assert(await resultButtons.nth(0).evaluate((node) => document.activeElement === node));
+  await resultButtons.nth(0).press("ArrowDown");
+  assert(await resultButtons.nth(1).evaluate((node) => document.activeElement === node));
+  await resultButtons.nth(1).press("ArrowUp");
+  assert(await resultButtons.nth(0).evaluate((node) => document.activeElement === node));
+  await resultButtons.nth(0).press("ArrowUp");
+  assert(await input.evaluate((node) => document.activeElement === node), "ArrowUp from first result returns to search input");
+  await input.press("ArrowDown");
+  await resultButtons.nth(0).press("Escape");
+  await page.waitForFunction(() => !document.querySelector("[data-discovery-seed-result]"));
+  await page.waitForFunction(() => {
+    const current = document.activeElement;
+    return current?.matches("[data-discovery-focus], [data-global-search-trigger], [aria-label='Toggle navigation']");
+  });
+
   await select(90909001);
   await waitForLanes(90909001);
   await statusIs("Finding related music…");
