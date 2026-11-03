@@ -6,6 +6,7 @@ import EntityCoverImage from "@/components/music/entity-cover-image";
 import PrefetchLink from "@/components/shared/prefetch-link";
 import { KocteauMoreIcon } from "@/components/icons/kocteau-icons";
 import { ComposeChevronLeftIcon } from "@/components/ui/icons";
+import { ScrollEdgeFade } from "@/components/ui/scroll-edge-fade";
 import {
   Dialog,
   DialogContent,
@@ -77,9 +78,11 @@ export default function DiscoveryNavigation({
   const Description = mobile ? DrawerDescription : DialogDescription;
 
   const scopeControls = (
-    <div
+    <ScrollEdgeFade
       role="group"
       aria-label="Search for"
+      axis="x"
+      fadeSize={16}
       className="no-scrollbar flex min-w-0 items-center gap-0.5 overflow-x-auto"
     >
       {scopes.map((option) => (
@@ -105,7 +108,7 @@ export default function DiscoveryNavigation({
           </span>
         </button>
       ))}
-    </div>
+    </ScrollEdgeFade>
   );
   const identity = (
     <div className="flex min-h-14 min-w-0 items-center gap-1">
