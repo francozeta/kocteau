@@ -5,6 +5,10 @@ last checked on 2026-10-26 and remain the product priority.
 Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
+## Search Craft experiment 002 — review branch
+
+[Issue #279](https://github.com/francozeta/kocteau/issues/279) coordinates a stacked Search interaction candidate on `feat/search-craft-interactions`, using [PR #272](https://github.com/francozeta/kocteau/pull/272) at `040e0f42` as its fixed control. The [plan](./.plan/search-craft-interactions.md) owns scope and verification. The changes target frequent hover response, keyboard result traversal and focus restoration, with Craft's published skill pinned in this branch only. This is experimental code, not integrated or deployed behavior; compare Preview and CI before owner acceptance. Production, backend and the parent MDS profile remain unchanged.
+
 ## Active Work
 
 [Search design experiment 001 / #271](https://github.com/francozeta/kocteau/issues/271)
