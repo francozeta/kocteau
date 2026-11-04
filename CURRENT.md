@@ -6,13 +6,18 @@ interface exploration. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md)
 
 ## Active Work
 
-`feat/search-craft-codrops` is an independent Search exploration from production
-main `8587fea`, awaiting draft review and Preview verification. Its
+`feat/search-craft-codrops`, [draft PR #282](https://github.com/francozeta/kocteau/pull/282),
+is an independent Search exploration from production main `8587fea`. Its READY
+[Preview](https://kocteau-ddzg35uds-franco-zetas-projects.vercel.app/search) tests UI
+source `da94672`; subsequent documentation does not change that source. Its
 [design/audit record](./.plan/search-craft-codrops.md) owns references, regressions
 in #272/#280/#281 and browser evidence. The production renderer remains byte-identical,
 with a dedicated integrity test. No production deployment or experimental PR
-changes are part of this work. Physical iPhone/Safari and authenticated actions
-remain outside the available local verification; engine tests do not certify them.
+changes are part of this work. Chromium/WebKit interaction checks and bounded
+live Preview reads pass. Software WebGL samples reduce caption mutations but do
+not prove better frame times; the selected sample is slower. Physical iPhone/Safari,
+screen readers and authenticated actions remain unverified. Keep this a draft
+for spatial comparison, separate from the reliability rollout below.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

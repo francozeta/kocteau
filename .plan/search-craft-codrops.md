@@ -18,7 +18,7 @@ Compared production files against fetched, read-only PR heads:
 | --- | --- | --- | --- |
 | [#272](https://github.com/francozeta/kocteau/pull/272) | `040e0f4` | `getPlaneScale` caps non-anchor covers at `min(148, width*.24, height*.24)` pixels after selection. | Confirmed spatial regression: depth no longer determines cover size as in production. |
 | [#280](https://github.com/francozeta/kocteau/pull/280) | `b3b584b` | Retains the same renderer and wrapper changes as #272. | The UI refinements do not restore the original spatial experience. |
-| [#281](https://github.com/francozeta/kocteau/pull/281) | `221a522` | Removes the cap but retains the label solver, picking and wrapper changes. Its still-frame anchor scale also includes baseScale, unlike production's `renderStill`. | Restoring the cap alone does not restore production behavior. |
+| [#281](https://github.com/francozeta/kocteau/pull/281) | `221a522` | Removes the cap but retains the label solver, picking and wrapper changes. | Restoring the cap alone does not restore production behavior. The changed still-frame formula includes baseScale, but anchors currently set it to 1; no separate visible regression is established there. |
 
 All three add `updateCoverPositions` to the render loop. Instead of one linear
 projection and callback per cover, it allocates cover/label collections, sorts
@@ -82,7 +82,69 @@ index into the music; the original canvas remains the expressive composition.
 
 ## Verification record
 
-Pending implementation and browser review. Raw screenshots/diagnostics remain
-ignored in `.plan/local/`. No physical iPhone or Safari installation is attached.
-Linux WebKit is a useful engine check, not a substitute for physical-device GPU,
-Safari viewport/keyboard behavior or VoiceOver testing.
+Draft delivery: [PR #282](https://github.com/francozeta/kocteau/pull/282).
+Reviewed UI source: `da94672cc08caf7a5987c93e2c1714d67baa7f01`.
+[Independent Preview](https://kocteau-ddzg35uds-franco-zetas-projects.vercel.app/search):
+`dpl_F365L5nHUXwCnoDGEKV2ZUqgMMWM`, READY, preview target, project `kocteau`,
+region `gru1`. Vercel account access remains required. A temporary deployment-only
+share cookie was used for verification; no project protection setting changed.
+Later documentation commits do not change this tested UI source.
+
+### Implementation and critique
+
+- Only one selected caption is mounted. No caption node or caption style writes
+  exist at rest. Accessible native buttons retain full music names; focus alone
+  shows a thumbnail, activation selects and restores focus to current identity.
+- Search is an opaque local index instead of a full-canvas results sheet. The
+  list has edge-aware fades, immediate hover and arrow/Home/End/Enter/Escape
+  support. Loading rows share result geometry and never pulse. Input remains
+  16px on mobile. Filters have stable 44px hit targets and a static active cue.
+- Identity keeps the canonical page secondary; Review remains the primary song
+  action. Existing save/share/auth logic is unchanged. Expansion status and Retry
+  stay close to the canvas without hiding it.
+- Rendered mobile review found artwork passing beneath the caption. A small
+  opaque caption surface fixes local contrast without a collision solver or
+  changing cover positions. Automated review found invalid search ARIA and a
+  dangling `aria-controls` reference; both were corrected. No new dependencies,
+  shaders, particles, canvas masks, blur or permanent decorative animation.
+
+### Checks and limits
+
+| Check | Result | Scope |
+| --- | --- | --- |
+| Renderer integrity | Pass | SHA-256 `96903a431f59b379207de9ef6c22d2e6494c6b7670f5e8b50accec98a961ce67`; camera options, canvas dimensions/lifecycle, canvas hook and data/navigation remain unchanged. |
+| Unit/build/static | Pass | 220 existing unit tests plus the new integrity test; lint, production build, documentation links and diff/Git checks. Lint emits the existing jsx-ast-utils diagnostic but exits successfully. |
+| Client interaction matrix | Pass | Chromium and Linux WebKit, 1440×1000 desktop and 390×844 touch viewport: hover/focus/drag versus activation, real WebGL picking, one Song/Album/Artist caption, Back, loading, empty state, search/expansion failure and Retry. |
+| Reduced motion | Pass | Chromium desktop and WebKit mobile complete the same interaction checks with reduced motion. Original renderer behavior is retained; this is not a renderer optimization. |
+| Existing Search recovery suite | Pass | Chromium mobile after a clean build/start with its required recovery preload: two settled-query requests, two cancelled old requests, manual Retry, Back, document return, selected-canvas survival during outage, reload and disabled storage; no browser errors. Earlier runs used a build with a different cached provider fixture and cannot count as product evidence. |
+| Narrow layouts and fallback | Pass | Both engines at 320/390×568: no document overflow, 16px input, first/last scroll fades clear. Both engines render artwork-only fallback buttons when WebGL is unavailable; explicit selection reveals identity. |
+| Live Preview | Pass | Chromium desktop and WebKit mobile: real `/search`, two-phase search returns HTTP 200/200 and seven results, selected Artist identity follows selection, one canvas, no console errors. No API mocks on this pass. |
+| Automated accessibility | Pass for tested scope | Axe WCAG A/AA checks return no violations on Preview desktop root and loaded search results. Keyboard behavior checked locally. This is not a screen-reader or whole-product conformance certificate. |
+
+Raw screenshots/diagnostics remain ignored in `.plan/local/`. Local client tests
+simulate APIs and failures; they do not establish provider, database or auth
+correctness. The live Preview check complements them with a bounded guest read.
+Review/save/share publication, authenticated actions, physical iPhone/Safari,
+VoiceOver and mobile software-keyboard/safe-area behavior remain unverified.
+
+### Frame work comparison
+
+Same-machine, sequential Chromium production builds, same public starter sample,
+1280×900 viewport, software WebGL, three-second root and selected samples. These
+are diagnostic samples, not a hardware smoothness or field-performance gate.
+
+| State | Production median / P95 | Listening index median / P95 | Caption style mutations: production → index |
+| --- | --- | --- | --- |
+| Root, normal motion | 63.1 / 74.2 ms | 59.7 / 71.7 ms | 2,124 → 0 |
+| Selected, normal motion | 63.3 / 77.9 ms | 68.3 / 103.5 ms | 2,091 → 88 |
+
+Both selected samples drew 24 covers per frame. Both builds recorded zero React
+root commits during the settled samples. Each interaction cohort used one WebGL
+context with no empty-draw frames after warmup. These observations support less
+DOM caption work and no added per-frame React work; they do **not** show a
+consistent frame-time improvement. The selected sample is slower. The software
+renderer and short samples cannot attribute that difference to the UI or certify
+GPU time/power, individual-cover flicker, physical-device inertia or 60fps.
+Visual spot checks found no disappearing artwork, but nonzero draw calls alone
+cannot rule out millisecond individual-cover disappearance. Keep the PR a draft
+for the owner's spatial comparison and physical Safari/iPhone review.
