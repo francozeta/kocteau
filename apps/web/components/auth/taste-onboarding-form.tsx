@@ -233,6 +233,7 @@ function TasteSignalCloud({
 }) {
   const groupedTags = useMemo(() => groupPreferenceTags(tags), [tags]);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const scrollContentRef = useRef<HTMLDivElement | null>(null);
   const [scrollEdges, setScrollEdges] = useState({
     hasBottomOverflow: false,
     hasTopOverflow: false,
@@ -245,15 +246,30 @@ function TasteSignalCloud({
       return;
     }
 
-    setScrollEdges({
+    const nextEdges = {
       hasBottomOverflow:
         element.scrollTop + element.clientHeight < element.scrollHeight - 4,
       hasTopOverflow: element.scrollTop > 4,
-    });
+    };
+
+    setScrollEdges((current) =>
+      current.hasBottomOverflow === nextEdges.hasBottomOverflow &&
+      current.hasTopOverflow === nextEdges.hasTopOverflow
+        ? current
+        : nextEdges,
+    );
   }
 
   useEffect(() => {
+    const scrollArea = scrollAreaRef.current;
+    const scrollContent = scrollContentRef.current;
+    if (!scrollArea || !scrollContent) return;
+
     updateScrollEdges();
+    const observer = new ResizeObserver(updateScrollEdges);
+    observer.observe(scrollArea);
+    observer.observe(scrollContent);
+    return () => observer.disconnect();
   }, [tags.length]);
 
   if (tags.length === 0) {
@@ -285,7 +301,7 @@ function TasteSignalCloud({
         onScroll={updateScrollEdges}
         className="max-h-[min(19rem,52dvh)] overflow-y-auto overscroll-contain px-1.5 py-5 pr-2 [scrollbar-color:var(--scrollbar-thumb)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-[3px] [&::-webkit-scrollbar-thumb]:bg-[var(--scrollbar-thumb)] [&::-webkit-scrollbar-thumb:hover]:bg-[var(--scrollbar-thumb-hover)]"
       >
-        <div className="space-y-2.5">
+        <div ref={scrollContentRef} className="space-y-2.5">
           {Array.from(groupedTags.entries()).map(([kind, kindTags]) => {
             if (kindTags.length === 0) {
               return null;
