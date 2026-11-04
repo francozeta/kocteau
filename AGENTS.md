@@ -8,6 +8,14 @@ Kocteau should feel closer to Letterboxd, Apple Music editorial, and a quiet mus
 
 ## Repository Operating Contract
 
+### Shared MDS Contract
+
+Run `node scripts/mds.mjs context` before implementation. `mds.json` pins the
+reviewed parent; read `docs/design-judgment.md` at that pin for meaningful UI work.
+Kocteau's contracts and explicit owner instructions take precedence. The Search
+Craft/Codrops exploration preserves the production renderer byte-for-byte; its
+selected-only captions supersede the previous all-cover label rule.
+
 ### Source Of Truth
 
 Use this order when gathering context:
