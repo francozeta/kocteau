@@ -188,12 +188,8 @@ export default function DiscoverySearch({
             aria-label="Searching the catalog"
             className="grid gap-1"
           >
-            {Array.from({ length: 6 }, (_, index) => (
-              <div
-                key={index}
-                aria-hidden="true"
-                className="grid min-h-16 grid-cols-[3.25rem_minmax(0,1fr)_3rem] items-center gap-3 px-2 py-1.5"
-              >
+            {Array.from({ length: 7 }, (_, index) => (
+              <div key={index} aria-hidden="true" className={styles.resultRow}>
                 <Skeleton className="size-11 animate-none rounded-md bg-muted-foreground/[0.1]" />
                 <div className="space-y-2">
                   <Skeleton className="h-3 w-[min(14rem,62%)] animate-none rounded-full bg-muted-foreground/[0.12]" />
@@ -333,7 +329,9 @@ export default function DiscoverySearch({
               ? `${resultListId}-error`
               : undefined
           }
-          aria-controls={resultListId}
+          aria-controls={
+            showResults && resultsPortalTarget ? resultListId : undefined
+          }
           className="h-11 rounded-[0.625rem] border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-foreground md:h-9 md:text-[13px] [&::-webkit-search-cancel-button]:hidden"
         />
         <span className="sr-only" role="status" aria-live="polite">
