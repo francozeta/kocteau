@@ -126,6 +126,7 @@ export default async function AppShell({
           canManageCurators={canManageCurators}
         />
         <SidebarInset
+          data-kocteau-document-canvas={safeProfile ? "app" : "shell"}
           className={cn(
             "kocteau-sidebar-inset min-h-svh overflow-x-clip lg:h-dvh lg:overflow-hidden lg:p-2.5",
             safeProfile

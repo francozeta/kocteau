@@ -48,7 +48,7 @@ function BottomFade() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-28 bg-[linear-gradient(to_top,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)] md:hidden"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-28 bg-[linear-gradient(to_top,var(--kocteau-document-canvas)_0%,color-mix(in_oklch,var(--kocteau-document-canvas)_94%,transparent)_42%,transparent_100%)] md:hidden"
     />
   );
 }

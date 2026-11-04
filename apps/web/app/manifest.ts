@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { documentThemeColors } from "@/lib/document-viewport";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -8,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#0a0a0a",
-    theme_color: "#0a0a0a",
+    background_color: documentThemeColors.landing,
+    theme_color: documentThemeColors.landing,
     icons: [
       {
         src: "/icon.png",

@@ -1,5 +1,11 @@
 import SignupPageClient from "@/components/auth/signup-page-client";
+import type { Viewport } from "next";
 import { createPageMetadata } from "@/lib/metadata";
+import { documentThemeColors } from "@/lib/document-viewport";
+
+export const viewport: Viewport = {
+  themeColor: documentThemeColors.auth,
+};
 
 export const metadata = createPageMetadata({
   title: "Create account",

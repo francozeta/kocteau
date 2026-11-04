@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Viewport } from "next";
 import { circular, redaction } from "@/app/landing-fonts";
 import GuestHeader from "@/components/landing/guest-header";
 import GuestHome, {
@@ -11,6 +12,7 @@ import type { StarterTrack } from "@/lib/starter";
 import type { FeedBundleReview } from "@/queries/feed";
 import JsonLd from "@/components/shared/json-ld";
 import { createPageMetadata } from "@/lib/metadata";
+import { documentThemeColors } from "@/lib/document-viewport";
 import { measureServerTask } from "@/lib/perf";
 import { getFeedPage } from "@/lib/queries/feed";
 import { getPublicStarterTracks } from "@/lib/queries/starter";
@@ -20,6 +22,10 @@ import {
 } from "@/lib/structured-data";
 
 export const revalidate = 300;
+
+export const viewport: Viewport = {
+  themeColor: documentThemeColors.landing,
+};
 
 export const metadata = createPageMetadata({
   title: "Music reviews from real listeners",
@@ -110,6 +116,7 @@ export default function HomePage() {
   );
   return (
     <div
+      data-kocteau-document-canvas="landing"
       className={`${circular.variable} ${redaction.variable} kocteau-guest-typography kocteau-guest-grain min-h-svh overflow-x-clip bg-[var(--kocteau-landing-canvas)] text-foreground`}
     >
       <GuestHeader />

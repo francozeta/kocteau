@@ -1,13 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from "geist/font/sans";
 import localFont from "next/font/local";
 import "./globals.css";
+import "./document-canvas.css";
 import JsonLd from "@/components/shared/json-ld";
 import { cn } from "@/lib/utils";
 import { getMetadataBase } from "@/lib/metadata";
 import { buildSiteGraphJsonLd } from "@/lib/structured-data";
+import { documentThemeColors } from "@/lib/document-viewport";
 
 const supabaseAssetOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const geistPixelSquare = localFont({
@@ -29,6 +31,11 @@ const geistPixelSquare = localFont({
   ],
   adjustFontFallback: false,
 });
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: documentThemeColors.background,
+};
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
@@ -64,7 +71,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(GeistSans.variable, geistPixelSquare.variable, "font-sans")}
+      className={cn(GeistSans.variable, geistPixelSquare.variable, "dark font-sans")}
     >
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
@@ -76,7 +83,7 @@ export default function RootLayout({
           </>
         ) : null}
       </head>
-      <body className={`${GeistSans.className} antialiased dark`}>
+      <body className={`${GeistSans.className} antialiased`}>
         <JsonLd data={buildSiteGraphJsonLd()} id="site-structured-data" />
         {children}
         <Analytics />

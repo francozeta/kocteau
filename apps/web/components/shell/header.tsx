@@ -174,7 +174,7 @@ export default function Header({
       shouldUseContextualHeader && "max-md:hidden",
     )}>
       <div
-        className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)] md:hidden"
+        className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-document-canvas)_0%,color-mix(in_oklch,var(--kocteau-document-canvas)_94%,transparent)_42%,transparent_100%)] md:hidden"
         aria-hidden="true"
       />
 
@@ -318,7 +318,7 @@ export default function Header({
       <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
           <div
-            className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,#000_0%,rgba(0,0,0,0.94)_42%,transparent_100%)]"
+            className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-document-canvas)_0%,color-mix(in_oklch,var(--kocteau-document-canvas)_94%,transparent)_42%,transparent_100%)]"
             aria-hidden="true"
           />
 
