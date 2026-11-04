@@ -157,10 +157,22 @@ Avoid motion on:
 - Selecting a cover expands discovery in place. Keep some previous covers and
   their positions so the space remains recognizable; back restores the earlier
   composition. The entity page is an explicit secondary link.
-- Give every visible cover a title and artist label that follows its position,
-  without a filled label background or hover-only tooltip. The centered cover
-  remains the current object. Review is the primary track action; sharing and
-  saving remain quieter controls.
+- Only the explicitly selected cover shows a positional caption: Song, Album or
+  Artist, its title, and artist name when applicable. Click, tap or keyboard
+  activation selects; hover and keyboard focus alone do not. Unselected covers
+  show artwork only, retaining full accessible names. Returning to the initial
+  canvas removes the caption, never the artwork. A compact opaque caption surface
+  preserves contrast when other artwork passes underneath; do not solve this by
+  resizing, moving or hiding covers.
+- The production renderer is the spatial contract for the Craft/Codrops Search
+  exploration. Keep `image-sphere.ts`, its camera options, geometry, scaling,
+  motion, texture lifecycle and pointer behavior unchanged. Use its existing
+  projection callback for the selected DOM caption. Do not add collision solvers,
+  layout reads, shaders, blur or React updates to the frame loop.
+- Search reads as a compact listening index with an opaque results panel and
+  edge-aware scrolling. Keep Geist Pixel music identity, quiet Geist Sans
+  controls and instant row/filter hover feedback. Review is the primary track
+  action; sharing, saving and canonical music links remain quieter controls.
 - Mobile search scopes sit directly above the bottom input as slim rounded
   chips using the same opaque control surface as the input. The shared mobile
   header gradient softens the top edge; the bottom dock gradient softens the

@@ -28,6 +28,7 @@ import { shareUrl } from "@/lib/share";
 import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
 import type { SearchScope } from "@/lib/search-types";
 import { cn } from "@/lib/utils";
+import styles from "./discovery-interface.module.css";
 
 const scopes: { value: SearchScope; label: string }[] = [
   { value: "all", label: "All" },
@@ -68,9 +69,15 @@ export default function DiscoveryNavigation({
     "[data-kocteau-search-mobile-header-slot]",
   );
   const filtersTarget = usePortalTarget("[data-discovery-mobile-filters]");
-  const desktopIdentityTarget = usePortalTarget("[data-kocteau-search-desktop-identity-slot]");
-  const desktopFiltersTarget = usePortalTarget("[data-kocteau-search-desktop-filters-slot]");
-  const desktopOptionsTarget = usePortalTarget("[data-kocteau-search-desktop-options-slot]");
+  const desktopIdentityTarget = usePortalTarget(
+    "[data-kocteau-search-desktop-identity-slot]",
+  );
+  const desktopFiltersTarget = usePortalTarget(
+    "[data-kocteau-search-desktop-filters-slot]",
+  );
+  const desktopOptionsTarget = usePortalTarget(
+    "[data-kocteau-search-desktop-options-slot]",
+  );
   const Root = mobile ? Drawer : Dialog;
   const Trigger = mobile ? DrawerTrigger : DialogTrigger;
   const Content = mobile ? DrawerContent : DialogContent;
@@ -93,18 +100,9 @@ export default function DiscoveryNavigation({
             setOpen(false);
             onScopeChange(option.value);
           }}
-          className="group flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={styles.filter}
         >
-          <span
-            className={cn(
-              "flex min-h-7 items-center rounded-full px-2.5 transition-colors duration-150",
-              scope === option.value
-                ? "bg-[var(--kocteau-surface-control-hover)] text-foreground"
-                : "bg-[var(--kocteau-surface-control)] text-muted-foreground group-hover:text-foreground",
-            )}
-          >
-            {option.label}
-          </span>
+          <span>{option.label}</span>
         </button>
       ))}
     </div>
@@ -127,7 +125,7 @@ export default function DiscoveryNavigation({
           data-discovery-focus
           data-selected-music-card
           aria-label={`Open ${typeLabels[seed.type].toLowerCase()}: ${seed.title}`}
-          className="group flex h-8 min-w-0 flex-1 items-center gap-2 rounded-full bg-[var(--kocteau-surface-control)] py-1 ps-1 pe-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-lg:sr-only"
+          className="group flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-md py-1 pe-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground max-lg:sr-only"
         >
           <EntityCoverImage
             src={seed.cover_url}
@@ -139,13 +137,11 @@ export default function DiscoveryNavigation({
             )}
           />
           <span className="min-w-0">
-            <span className="block truncate text-xs font-medium text-foreground">
+            <span className="block truncate font-pixel text-xs font-medium text-foreground">
               {seed.title}
             </span>
             <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-              {seed.type === "artist"
-                ? "Artist"
-                : seed.artist_name || typeLabels[seed.type]}
+              {typeLabels[seed.type]} <span aria-hidden="true">↗</span>
             </span>
           </span>
         </PrefetchLink>
@@ -153,7 +149,7 @@ export default function DiscoveryNavigation({
         <h2
           data-discovery-focus
           tabIndex={-1}
-          className="px-1 text-sm font-medium text-foreground max-lg:sr-only"
+          className="px-1 font-pixel text-sm font-medium text-foreground max-lg:sr-only"
         >
           Search
         </h2>
@@ -180,9 +176,7 @@ export default function DiscoveryNavigation({
           <Description>Your exploration stays on this browser.</Description>
         </Header>
         <div className="grid gap-1">
-          <div className="mb-2 hidden md:block lg:hidden">
-            {scopeControls}
-          </div>
+          <div className="mb-2 hidden md:block lg:hidden">{scopeControls}</div>
           {seed && href ? (
             <button
               type="button"
@@ -192,7 +186,10 @@ export default function DiscoveryNavigation({
                   title: [seed.title, seed.artist_name]
                     .filter(Boolean)
                     .join(" — "),
-                  url: new URL(getDiscoverySeedPath(seed), window.location.origin).toString(),
+                  url: new URL(
+                    getDiscoverySeedPath(seed),
+                    window.location.origin,
+                  ).toString(),
                   successMessage: "Link copied",
                   errorMessage: "We could not share this music. Try again.",
                 });
@@ -257,7 +254,7 @@ export default function DiscoveryNavigation({
                   href={href}
                   data-discovery-focus
                   aria-label={`Open ${typeLabels[seed.type].toLowerCase()}: ${seed.title}`}
-                  className="mx-auto flex min-h-11 w-full max-w-72 min-w-0 items-center gap-2.5 rounded-full bg-[var(--kocteau-surface-control)] py-1.5 ps-1.5 pe-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="mx-auto flex min-h-11 w-full max-w-72 min-w-0 items-center gap-2.5 rounded-[0.625rem] bg-[var(--kocteau-surface-control)] py-1.5 ps-1.5 pe-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
                 >
                   <EntityCoverImage
                     src={seed.cover_url}
@@ -269,13 +266,16 @@ export default function DiscoveryNavigation({
                     )}
                   />
                   <span className="min-w-0">
-                    <span className="block truncate text-xs font-medium text-foreground">
+                    <span className="block truncate font-pixel text-xs font-medium text-foreground">
                       {seed.title}
                     </span>
                     <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                      {seed.type === "artist"
-                        ? "Artist"
-                        : seed.artist_name || typeLabels[seed.type]}
+                      {[
+                        typeLabels[seed.type],
+                        seed.type !== "artist" ? seed.artist_name : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   </span>
                   <span role="status" className="sr-only">
@@ -316,7 +316,9 @@ export default function DiscoveryNavigation({
       {desktopFiltersTarget && (!seed || searchActive)
         ? createPortal(scopeControls, desktopFiltersTarget)
         : null}
-      {desktopOptionsTarget ? createPortal(options, desktopOptionsTarget) : null}
+      {desktopOptionsTarget
+        ? createPortal(options, desktopOptionsTarget)
+        : null}
     </>
   );
 }

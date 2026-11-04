@@ -1,10 +1,18 @@
 # Current Project State
 
-Last checked: 2026-10-26. Reliability diagnosis and recoverable public reads remain
-the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
+Last checked: 2026-11-04. Reliability work remains separate from the new Search
+interface exploration. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
+
+`feat/search-craft-codrops` is an independent Search exploration from production
+main `8587fea`, awaiting draft review and Preview verification. Its
+[design/audit record](./.plan/search-craft-codrops.md) owns references, regressions
+in #272/#280/#281 and browser evidence. The production renderer remains byte-identical,
+with a dedicated integrity test. No production deployment or experimental PR
+changes are part of this work. Physical iPhone/Safari and authenticated actions
+remain outside the available local verification; engine tests do not certify them.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

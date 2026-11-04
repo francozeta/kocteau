@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ImageSphere } from "@/lib/discovery/image-sphere";
 import type { SearchEntityType } from "@/lib/search-types";
+import EntityCoverImage from "@/components/music/entity-cover-image";
+import styles from "./discovery-interface.module.css";
 
 export type DiscoveryOrbitItem = {
   id: string;
@@ -44,9 +46,10 @@ export default function DiscoveryOrbit({
 }: DiscoveryOrbitProps) {
   const isMobile = useIsMobile();
   const hostRef = useRef<HTMLDivElement>(null);
-  const labelRefs = useRef(new Map<string, HTMLDivElement>());
+  const selectedLabelRef = useRef<HTMLDivElement>(null);
   const sphereRef = useRef<ImageSphere | null>(null);
   const [canvasUnavailable, setCanvasUnavailable] = useState(false);
+  const [keyboardCover, setKeyboardCover] = useState<string | null>(null);
   const sphereItems = useMemo(() => {
     const combined: SphereDisplayItem[] = [
       ...(seed?.coverUrl
@@ -144,12 +147,14 @@ export default function DiscoveryOrbit({
           reducedMotion: reducedMotion.matches,
           anchorIndex: centerSeedRef.current && seedRef.current ? 0 : undefined,
           onCoverPosition: (imageUrl, x, y, opacity, visible) => {
-            const label = labelRefs.current.get(imageUrl);
+            const label = selectedLabelRef.current;
 
-            if (!label) return;
+            if (!label || label.dataset.coverUrl !== imageUrl) return;
 
             label.style.transform = `translate3d(${x}px, ${y}px, 0) translateX(-50%)`;
-            label.style.opacity = visible ? String(Math.max(0.55, opacity)) : "0";
+            label.style.opacity = visible
+              ? String(Math.max(0.55, opacity))
+              : "0";
           },
           onSelect: (index) => {
             const item = sphereItemsRef.current[index];
@@ -186,25 +191,16 @@ export default function DiscoveryOrbit({
     });
   }, [centerSeed, imageUrls, seed]);
 
-  useEffect(() => {
-    const labels = hostRef.current?.querySelectorAll<HTMLDivElement>(
-      "[data-discovery-cover-label]",
-    );
-    labelRefs.current.clear();
-    labels?.forEach((label) => {
-      const imageUrl = label.dataset.coverUrl;
-      if (imageUrl) labelRefs.current.set(imageUrl, label);
-    });
-  }, [sphereItems]);
-
   return (
     <div className="relative h-full min-h-0 overflow-hidden">
       <div
         ref={hostRef}
         className="relative h-full min-h-0 overflow-hidden bg-transparent"
+        role="group"
         aria-label="A draggable 3D sphere of music covers"
       >
         <div
+          role="group"
           aria-label="Music covers in this discovery map"
           className={
             canvasUnavailable
@@ -216,37 +212,86 @@ export default function DiscoveryOrbit({
             <button
               type="button"
               key={item.id}
+              aria-label={`Select ${item.type === "track" ? "song" : item.type}: ${item.title}${item.artistName ? ` by ${item.artistName}` : ""}`}
               aria-current={seed?.id === item.id ? "true" : undefined}
-              onClick={() => onSelect(item)}
+              onClick={(event) => {
+                onSelect(item);
+                if (event.detail === 0) {
+                  requestAnimationFrame(() =>
+                    document
+                      .querySelector<HTMLElement>("[data-discovery-focus]")
+                      ?.focus({ preventScroll: true }),
+                  );
+                }
+              }}
+              onFocus={() => setKeyboardCover(item.id)}
+              onBlur={() => setKeyboardCover(null)}
               className={
                 canvasUnavailable
                   ? "min-h-11 rounded-md bg-[var(--kocteau-surface-control)] p-3 text-start text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  : "sr-only focus:not-sr-only focus:fixed focus:bottom-20 focus:left-1/2 focus:z-[100002] focus:flex focus:min-h-11 focus:max-w-[calc(100%-2rem)] focus:-translate-x-1/2 focus:items-center focus:rounded-full focus:bg-black focus:px-4 focus:font-pixel focus:text-xs focus:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/80 md:focus:absolute md:focus:bottom-5"
+                  : styles.keyboardCover
               }
             >
-              {item.title} by {getArtistLabel(item)} — {item.routeLabel}
+              {canvasUnavailable || keyboardCover === item.id ? (
+                <EntityCoverImage
+                  src={item.coverUrl}
+                  alt=""
+                  sizes={canvasUnavailable ? "160px" : "44px"}
+                  className={
+                    canvasUnavailable
+                      ? "aspect-square w-full rounded-md ring-1 ring-inset ring-white/10"
+                      : "size-11 rounded-md"
+                  }
+                />
+              ) : null}
+              {canvasUnavailable && seed?.id === item.id ? (
+                <span className="mt-2 block text-sm">
+                  <span className="block font-pixel">{item.title}</span>
+                  {item.type !== "artist" && item.artistName ? (
+                    <span className="block">{item.artistName}</span>
+                  ) : null}
+                  <span className="block text-xs">
+                    {item.type === "track"
+                      ? "Song"
+                      : item.type === "album"
+                        ? "Album"
+                        : "Artist"}
+                  </span>
+                </span>
+              ) : null}
+              <span className="sr-only">
+                {item.title} by {getArtistLabel(item)} — {item.routeLabel}
+              </span>
             </button>
           ))}
         </div>
 
-        {!canvasUnavailable
-          ? sphereItems.map((item) => (
-              <div
-                key={item.id}
-                data-discovery-cover-label
-                data-cover-url={item.coverUrl}
-                aria-hidden="true"
-                className="pointer-events-none absolute left-0 top-0 z-10 w-32 text-center opacity-0 [text-shadow:0_1px_4px_#000] md:w-40"
-              >
-                <span className="block truncate text-[10px] font-medium leading-tight text-foreground/90">
-                  {item.title}
-                </span>
-                <span className="mt-0.5 block truncate text-[9px] leading-tight text-muted-foreground/75">
-                  {getArtistLabel(item)}
-                </span>
-              </div>
-            ))
-          : null}
+        {!canvasUnavailable && seed?.coverUrl ? (
+          <div
+            key={seed.id}
+            ref={selectedLabelRef}
+            data-discovery-cover-label
+            data-cover-url={seed.coverUrl}
+            aria-hidden="true"
+            className={styles.selectedCaption}
+          >
+            <span className={styles.captionType}>
+              {seed.type === "track"
+                ? "Song"
+                : seed.type === "album"
+                  ? "Album"
+                  : "Artist"}
+            </span>
+            <span className="block text-balance break-words font-pixel text-sm font-medium leading-5 text-foreground">
+              {seed.title}
+            </span>
+            {seed.type !== "artist" && seed.artistName ? (
+              <span className="mt-1 block text-pretty text-xs leading-4 text-muted-foreground">
+                {seed.artistName}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

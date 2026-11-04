@@ -104,6 +104,42 @@ source boundaries live in [catalog research](../../../../docs/knowledge-layer.md
 Run discovery/search tests, lint, and the web build. Check selection, browser Back,
 refresh, empty results, long titles, keyboard use, and touch navigation.
 
+## Listening index exploration
+
+The [design and renderer audit](../../../../.plan/search-craft-codrops.md) records
+the independent baseline, references, trade-offs and verification limits.
+`image-sphere.ts` remains production-identical. `renderer-contract.test.ts` pins
+its SHA-256; update that contract only with a separately reviewed spatial change.
+The wrapper renders one positional caption after explicit selection. Native cover
+buttons retain accessible names; focus alone reveals artwork without music text.
+The results panel uses native scrolling and an event/resize-driven edge fade.
+Its observer never reads canvas geometry or runs in the renderer's frame loop.
+
+For isolated client interaction checks, build/start with disposable loopback values
+and `NODE_OPTIONS="--import=$PWD/apps/web/tests/load/fixtures/discovery-interface-upstreams.mjs"`
+on both commands. This fixture supplies 32 explicitly synthetic records, blocks
+external server fetches, and needs no database or credentials. Never attach it to
+a deployed app or cloud database. The browser fixture supplies synthetic artwork,
+search results and failures; it does not verify the real catalog or auth writes.
+
+Using the external Playwright installation described below, run:
+
+```bash
+SEARCH_INTERFACE_URL=http://127.0.0.1:3002 \
+  node apps/web/tests/load/verify-search-interface.mjs
+SEARCH_INTERFACE_BROWSER=webkit SEARCH_INTERFACE_DESKTOP=1 \
+  SEARCH_INTERFACE_URL=http://127.0.0.1:3002 \
+  node apps/web/tests/load/verify-search-interface.mjs
+```
+
+Repeat both engines with/without `SEARCH_INTERFACE_DESKTOP=1` and with
+`SEARCH_INTERFACE_REDUCED=1` for reduced motion. `SEARCH_INTERFACE_OUTPUT` selects
+an ignored screenshot/report directory. Checks cover hover/focus/drag versus
+activation, touch/pointer picking, captions, Back, type selection, loading,
+empty/error/retry and canvas survival. Draw/frame probes are diagnostic: software
+WebGL timings and nonzero draw counts cannot prove individual-cover continuity,
+physical-device smoothness, GPU power use or field performance.
+
 Check stalled providers, total provider failure, client cancellation, cache reuse,
 and timing headers with isolated upstream fixtures.
 

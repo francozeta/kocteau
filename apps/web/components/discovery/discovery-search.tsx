@@ -17,6 +17,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { usePortalTarget } from "@/hooks/use-portal-target";
 import { cn } from "@/lib/utils";
 import type { SearchScope } from "@/lib/search-types";
+import DiscoveryResultList from "./discovery-result-list";
+import styles from "./discovery-interface.module.css";
 
 function getResultTypeLabel(result: KocteauSearchResult) {
   if (result.type === "artist") return result.artist_type || "Artist";
@@ -86,7 +88,9 @@ export default function DiscoverySearch({
   const hasQuery = query.trim().length >= 2;
   const isActiveViewport = mobile === isMobileViewport;
   const showResults =
-    isActiveViewport && (isFocused || query.length > 0) && (mobile ? hasQuery : true);
+    isActiveViewport &&
+    (isFocused || query.length > 0) &&
+    (mobile ? hasQuery : true);
   const showClose = isFocused || query.length > 0;
   const resultListId = mobile
     ? "mobile-discovery-seed-results"
@@ -105,8 +109,10 @@ export default function DiscoverySearch({
     if (restoreFocus) {
       requestAnimationFrame(() =>
         document
-          .querySelector<HTMLButtonElement>("[data-global-search-trigger]")
-          ?.focus(),
+          .querySelector<HTMLElement>(
+            "[data-discovery-focus], [data-global-search-trigger]",
+          )
+          ?.focus({ preventScroll: true }),
       );
     }
   };
@@ -125,19 +131,59 @@ export default function DiscoverySearch({
     <div
       onKeyDown={(event) => {
         if (event.key === "Escape") {
+          event.preventDefault();
           closeSearch();
+          return;
+        }
+        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+          const buttons = Array.from(
+            event.currentTarget.querySelectorAll<HTMLButtonElement>(
+              "[data-search-result]",
+            ),
+          );
+          const index = buttons.indexOf(
+            document.activeElement as HTMLButtonElement,
+          );
+          if (index < 0) return;
+          event.preventDefault();
+          const next =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? buttons.length - 1
+                : index + (event.key === "ArrowDown" ? 1 : -1);
+          if (next < 0) inputRef.current?.focus();
+          else buttons[Math.min(next, buttons.length - 1)]?.focus();
         }
       }}
-      className={cn(
-        "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
-        mobile
-          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+8rem)] pt-3 sm:px-6"
-          : "bg-[var(--kocteau-shell)] px-6 pb-8 pt-5",
-      )}
+      className={styles.resultsPanel}
+      role="region"
+      aria-label="Music search results"
     >
-      <div id={resultListId} className="mx-auto w-full max-w-2xl">
+      <div className="flex items-baseline justify-between gap-4 px-5 pb-3 pt-5">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            Music index
+          </p>
+          <h3 className="mt-1.5 font-pixel text-base font-medium text-foreground">
+            {hasQuery ? "Choose a starting point." : "Where do we go next?"}
+          </h3>
+        </div>
+        {hasQuery ? (
+          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+            {isSearching ? "Searching…" : `${results.length} found`}
+          </span>
+        ) : null}
+      </div>
+      <DiscoveryResultList id={resultListId}>
+        {!hasQuery ? (
+          <p className="px-3 pb-5 text-sm leading-6 text-muted-foreground">
+            Find a song, album, or artist. Let one lead to another.
+          </p>
+        ) : null}
         {!hasQuery ? null : isSearching && results.length === 0 ? (
           <div
+            role="group"
             aria-busy="true"
             aria-label="Searching the catalog"
             className="grid gap-1"
@@ -148,12 +194,12 @@ export default function DiscoverySearch({
                 aria-hidden="true"
                 className="grid min-h-16 grid-cols-[3.25rem_minmax(0,1fr)_3rem] items-center gap-3 px-2 py-1.5"
               >
-                <Skeleton className="size-[3.25rem] rounded-[0.6rem] bg-muted-foreground/[0.1]" />
+                <Skeleton className="size-11 animate-none rounded-md bg-muted-foreground/[0.1]" />
                 <div className="space-y-2">
-                  <Skeleton className="h-3 w-[min(14rem,62%)] rounded-full bg-muted-foreground/[0.12]" />
-                  <Skeleton className="h-2.5 w-[min(9rem,42%)] rounded-full bg-muted-foreground/[0.08]" />
+                  <Skeleton className="h-3 w-[min(14rem,62%)] animate-none rounded-full bg-muted-foreground/[0.12]" />
+                  <Skeleton className="h-2.5 w-[min(9rem,42%)] animate-none rounded-full bg-muted-foreground/[0.08]" />
                 </div>
-                <Skeleton className="h-2 w-10 justify-self-end rounded-full bg-muted-foreground/[0.08]" />
+                <Skeleton className="h-2 w-10 animate-none justify-self-end rounded-full bg-muted-foreground/[0.08]" />
               </div>
             ))}
           </div>
@@ -162,35 +208,35 @@ export default function DiscoverySearch({
             {results.map((result) => (
               <button
                 type="button"
+                data-search-result
                 key={`${result.provider}:${result.type}:${result.provider_id}`}
+                aria-label={`${result.title}${result.artist_name ? ` by ${result.artist_name}` : ""} — ${getResultTypeLabel(result)}`}
                 onClick={() => {
                   if (onSelect(result)) closeSearch(false);
                 }}
-                className="grid min-h-16 min-w-0 grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.75rem] px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-foreground/[0.055] focus-visible:ring-2 focus-visible:ring-ring/55"
+                className={styles.resultRow}
               >
                 <EntityCoverImage
                   src={result.cover_url}
                   alt=""
-                  sizes="52px"
+                  sizes="44px"
                   quality={70}
                   variant="thumbnail"
                   className={cn(
-                    "size-[3.25rem] bg-muted/30",
-                    result.type === "artist"
-                      ? "rounded-full"
-                      : "rounded-[0.6rem]",
+                    "size-11 bg-muted/30 outline-1 -outline-offset-1 outline-white/10",
+                    result.type === "artist" ? "rounded-full" : "rounded-md",
                   )}
                   iconClassName="size-3.5"
                 />
                 <span className="min-w-0">
-                  <span className="block truncate font-pixel text-[12px] font-medium text-foreground/92">
+                  <span className="block line-clamp-2 break-words font-pixel text-[13px] font-medium leading-5 text-foreground">
                     {result.title}
                   </span>
-                  <span className="mt-1 block truncate text-[11px] text-muted-foreground/62">
+                  <span className="mt-1 block truncate text-xs text-muted-foreground">
                     {getResultMetadataLabel(result)}
                   </span>
                 </span>
-                <span className="pr-1 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/48">
+                <span className="pr-1 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                   {getResultTypeLabel(result)}
                 </span>
               </button>
@@ -198,7 +244,10 @@ export default function DiscoverySearch({
           </div>
         ) : (
           <div className="px-3 py-4 text-xs text-muted-foreground">
-            <p id={`${resultListId}-error`}>
+            <p
+              id={`${resultListId}-error`}
+              role={hasError ? "alert" : undefined}
+            >
               {hasError
                 ? "Search couldn’t load. Your canvas is still here."
                 : "No matches. Try another name."}
@@ -214,7 +263,11 @@ export default function DiscoverySearch({
             ) : null}
           </div>
         )}
-      </div>
+      </DiscoveryResultList>
+      <p className="hidden px-5 py-3 text-xs text-muted-foreground md:block">
+        ↑↓ to browse <span className="mx-2 text-foreground/20">/</span> Enter to
+        explore <span className="mx-2 text-foreground/20">/</span> Esc to close
+      </p>
     </div>
   ) : null;
   const portaledResultList =
@@ -229,7 +282,7 @@ export default function DiscoverySearch({
   const searchForm = (
     <form
       className={cn(
-        "grid min-w-0 items-center transition-[grid-template-columns,gap] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
+        "grid min-w-0 items-center",
         showClose
           ? "grid-cols-[minmax(0,1fr)_2.75rem] gap-3"
           : "grid-cols-[minmax(0,1fr)_0fr] gap-0",
@@ -249,6 +302,8 @@ export default function DiscoverySearch({
           ref={inputRef}
           id={inputId}
           name="q"
+          type="search"
+          enterKeyHint="search"
           data-global-search-input="true"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
@@ -273,10 +328,13 @@ export default function DiscoverySearch({
           placeholder={`${searchLabel}…`}
           autoComplete="off"
           maxLength={80}
-          aria-describedby={hasError ? `${resultListId}-error` : undefined}
-          aria-expanded={showResults}
+          aria-describedby={
+            hasError && results.length === 0 && showResults
+              ? `${resultListId}-error`
+              : undefined
+          }
           aria-controls={resultListId}
-          className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]"
+          className="h-11 rounded-[0.625rem] border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-foreground md:h-9 md:text-[13px] [&::-webkit-search-cancel-button]:hidden"
         />
         <span className="sr-only" role="status" aria-live="polite">
           {hasError
@@ -296,7 +354,7 @@ export default function DiscoverySearch({
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => closeSearch()}
           className={cn(
-            "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 md:size-8",
+            "flex size-11 items-center justify-center rounded-[0.625rem] bg-[var(--kocteau-surface-control)] text-foreground motion-safe:transition-transform motion-safe:duration-150 hover:bg-[var(--kocteau-surface-control-hover)] motion-safe:active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground md:size-10",
             showClose
               ? "scale-100 opacity-100"
               : "pointer-events-none scale-95 opacity-0",

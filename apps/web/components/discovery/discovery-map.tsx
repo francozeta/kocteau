@@ -170,7 +170,9 @@ export default function DiscoveryMap({
           results={seedResults}
           isSearching={seedSearch.isFetching}
           hasError={seedSearch.isError}
-          onRetry={() => { void seedSearch.refetch(); }}
+          onRetry={() => {
+            void seedSearch.refetch();
+          }}
           onQueryChange={setSeedQuery}
           onSelect={chooseResult}
           onSubmit={chooseFirst}
@@ -227,15 +229,39 @@ export default function DiscoveryMap({
         />
       </div>
 
-      {canvas.hasError ? (
-        <button
-          type="button"
-          onClick={canvas.retry}
-          className="absolute bottom-28 left-1/2 z-20 min-h-11 -translate-x-1/2 rounded-full bg-[var(--kocteau-surface-control)] px-4 text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:bottom-5"
+      <div className="pointer-events-none absolute inset-x-5 bottom-36 z-20 flex items-end justify-between gap-4 md:inset-x-7 md:bottom-5">
+        <div
+          role="status"
+          className="max-w-xs rounded-md bg-[var(--kocteau-shell)] px-2 py-1 text-xs leading-5 text-muted-foreground empty:hidden"
         >
-          Some paths couldn’t load. Retry
-        </button>
-      ) : null}
+          {canvas.hasError ? (
+            <span className="pointer-events-auto">
+              Some connections couldn’t load.{" "}
+              <button
+                type="button"
+                onClick={canvas.retry}
+                className="min-h-10 rounded-sm px-2 text-foreground underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-foreground"
+              >
+                Retry
+              </button>
+            </span>
+          ) : canvas.isExpanding ? (
+            "Finding connections…"
+          ) : !selectedSeed && orbitItems.length > 0 ? (
+            <>
+              <span className="block font-pixel text-sm text-foreground">
+                Start anywhere.
+              </span>
+              <span>One record leads to another.</span>
+            </>
+          ) : null}
+        </div>
+        <p className="hidden rounded-md bg-[var(--kocteau-shell)] px-2 py-1 text-right text-xs leading-5 text-muted-foreground md:block">
+          Drag to wander
+          <br />
+          Select to explore
+        </p>
+      </div>
       {!orbitItems.length && !selectedSeed ? (
         <p className="pointer-events-none absolute inset-x-6 top-1/2 text-center text-sm text-muted-foreground">
           Search for music to start exploring.
