@@ -1,0 +1,31 @@
+:root {
+  --kocteau-document-canvas: var(--background);
+  --kocteau-auth-canvas: #050505;
+}
+
+html,
+body {
+  background-color: var(--kocteau-document-canvas);
+}
+
+:root:has([data-kocteau-document-canvas="landing"]) {
+  --kocteau-document-canvas: var(--kocteau-landing-canvas);
+}
+
+:root:has([data-kocteau-document-canvas="app"]) {
+  --kocteau-document-canvas: var(--kocteau-canvas);
+}
+
+:root:has([data-kocteau-document-canvas="shell"]) {
+  --kocteau-document-canvas: var(--kocteau-shell);
+}
+
+:root:has(.kocteau-auth-background) {
+  --kocteau-document-canvas: var(--kocteau-auth-canvas);
+}
+
+@media (min-width: 1024px) {
+  :root:has([data-kocteau-document-canvas="shell"]) {
+    --kocteau-document-canvas: var(--kocteau-canvas);
+  }
+}

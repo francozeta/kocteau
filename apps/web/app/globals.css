@@ -1286,7 +1286,7 @@
   height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
-  background: #050505;
+  background: var(--kocteau-auth-canvas);
 }
 
 .kocteau-auth-background::before {
