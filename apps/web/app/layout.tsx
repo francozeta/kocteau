@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from "geist/font/sans";
@@ -29,6 +29,11 @@ const geistPixelSquare = localFont({
   ],
   adjustFontFallback: false,
 });
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#0a0a0a",
+};
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
@@ -64,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(GeistSans.variable, geistPixelSquare.variable, "font-sans")}
+      className={cn(GeistSans.variable, geistPixelSquare.variable, "dark font-sans")}
     >
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />
@@ -76,7 +81,7 @@ export default function RootLayout({
           </>
         ) : null}
       </head>
-      <body className={`${GeistSans.className} antialiased dark`}>
+      <body className={`${GeistSans.className} antialiased`}>
         <JsonLd data={buildSiteGraphJsonLd()} id="site-structured-data" />
         {children}
         <Analytics />
