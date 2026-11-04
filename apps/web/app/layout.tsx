@@ -69,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(GeistSans.variable, geistPixelSquare.variable, "dark font-sans")}
+      className={cn(GeistSans.variable, geistPixelSquare.variable, "dark bg-background font-sans")}
     >
       <head>
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" crossOrigin="" />

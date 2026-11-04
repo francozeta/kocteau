@@ -488,7 +488,7 @@
     -webkit-font-smoothing: antialiased;
   }
   html {
-    @apply bg-background font-sans;
+    @apply font-sans;
     font-synthesis: none;
   }
 
