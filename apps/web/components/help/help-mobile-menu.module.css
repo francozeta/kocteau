@@ -1,0 +1,76 @@
+.portal {
+  /* Keep body-scroll-lock compensation from shrinking the viewport on WebKit. */
+  width: 100vw;
+  height: 100dvh;
+  pointer-events: none;
+}
+
+.viewport,
+.backdrop {
+  pointer-events: auto;
+}
+
+.popup {
+  max-height: 72vh;
+  padding: 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  opacity: 1;
+  translate: none;
+  transform: translate3d(0, var(--drawer-swipe-movement-y, 0px), 0);
+  transition: transform 500ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.popup::before {
+  position: absolute;
+  z-index: -1;
+  inset: 8px;
+  border: 1px solid var(--kocteau-line-soft);
+  border-radius: 1.1rem;
+  background: var(--kocteau-surface);
+  content: "";
+  pointer-events: none;
+}
+
+.popup[data-starting-style],
+.popup[data-ending-style] {
+  transform: translate3d(0, 100%, 0);
+}
+
+.backdrop {
+  opacity: calc(1 - var(--drawer-swipe-progress, 0));
+  transition: opacity 500ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.backdrop[data-starting-style],
+.backdrop[data-ending-style] {
+  opacity: 0;
+}
+
+.popup[data-swiping],
+.backdrop[data-swiping] {
+  transition-duration: 0ms;
+}
+
+.popup[data-ending-style],
+.backdrop[data-ending-style],
+.viewport[data-ending-style] {
+  /* A second tap must reach the trigger while the exit is still running. */
+  pointer-events: none;
+}
+
+.body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popup,
+  .backdrop {
+    transition: none;
+  }
+}
