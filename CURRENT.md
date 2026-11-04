@@ -1,10 +1,19 @@
 # Current Project State
 
-Last checked: 2026-10-26. Reliability diagnosis and recoverable public reads remain
+Last checked: 2026-11-04. Reliability diagnosis and recoverable public reads remain
 the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
+
+[#287 / KOC-120](https://github.com/francozeta/kocteau/issues/287) owns the
+[source-only Scroll Fades audit](https://github.com/francozeta/kocteau/issues/287#issuecomment-6633524726)
+against main `11d9781`. No product code changed.
+The first validation candidate is `TasteSignalCloud` edge-state updates on
+resize; a visible defect remains unverified. UI experiments wait for the
+visual/device acceptance of the [Help pilot, PR #286](https://github.com/francozeta/kocteau/pull/286)
+under [#284](https://github.com/francozeta/kocteau/issues/284).
+Optical Alignment follows separately; holistic visual convalidation stays last.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
