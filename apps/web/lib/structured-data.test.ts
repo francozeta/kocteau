@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildFeedPageJsonLd, buildReviewsPageJsonLd } from "./structured-data";
+import { buildFeedPageJsonLd, buildHomePageJsonLd, buildReviewsPageJsonLd, buildSiteGraphJsonLd } from "./structured-data";
 
 describe("review collection structured data", () => {
   it("only advertises substantial public reviews as structured review nodes", () => {
@@ -47,5 +47,16 @@ describe("review collection structured data", () => {
       reviews.mainEntity.itemListElement[0]?.item.name,
       "Listening closely",
     );
+  });
+});
+
+describe("public product discovery", () => {
+  it("uses consistent concrete product terms in its JSON-LD", () => {
+    const website = buildSiteGraphJsonLd()["@graph"].find((node) => node["@type"] === "WebSite");
+    const app = buildHomePageJsonLd()["@graph"].find((node) => node["@type"] === "WebApplication");
+    assert.ok(website && "keywords" in website);
+    assert.ok(app && "keywords" in app);
+    assert.match(JSON.stringify(website), /music reviews/);
+    assert.match(JSON.stringify(app), /music discovery/);
   });
 });

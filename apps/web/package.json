@@ -11,6 +11,7 @@
     "start": "next start",
     "changelog:draft": "node scripts/create-public-changelog-draft.mjs",
     "test": "tsx --test \"lib/**/*.test.ts\"",
+    "agent:verify": "node tests/load/verify-agent-endpoints.mjs",
     "lint": "eslint app components hooks lib queries instrumentation-client.ts instrumentation.ts next.config.ts proxy.ts sentry.edge.config.ts sentry.server.config.ts --max-warnings=0"
   },
   "dependencies": {

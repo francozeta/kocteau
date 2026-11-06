@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata = createPageMetadata({
-  title: "Music reviews from real listeners",
+  title: "Music reviews and discovery from real listeners",
   description:
     "Keep a record of what music leaves behind. Read track reviews, save listening notes, and discover music through people whose taste you trust.",
   path: "/",
@@ -108,12 +108,12 @@ export default function HomePage() {
         revalidateSeconds: 5 * 60,
       }),
     { route: "/" },
-  ).then((bundle) => bundle.feed);
+  ).then((bundle) => bundle.feed, () => [] as FeedBundleReview[]);
   const starterTracks = measureServerTask(
     "getPublicHomeStarters",
     () => getPublicStarterTracks({ limit: 6, contextKey: "home" }),
     { route: "/" },
-  );
+  ).catch(() => [] as StarterTrack[]);
   return (
     <div
       data-kocteau-document-canvas="landing"

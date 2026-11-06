@@ -39,6 +39,18 @@ Forced origin failures may still record React error `419`. Covered canonical
 identity failures now show Retry in the local matrix; this does not claim a fix
 for `419`, legacy/provider policies or the separate private wait in #265.
 
+## Agent-readiness candidate
+
+The `fix/agent-readiness` task branch adds Markdown homepage negotiation,
+machine-readable public API documentation, structured API errors, agent 404s,
+and product discovery signals. Unit tests, docs checks, lint, and build passed in the GitHub Verify workflow.
+The Vercel preview now builds and serves the public homepage even with the
+Kocteau Supabase project inactive. Actual preview requests verified the
+Markdown homepage, Markdown 404, JSON OpenAPI, error payloads, and docs.
+API feed and sitemap remain degraded until the Supabase project is resumed;
+the Markdown response includes Vary: Accept, but Next.js 16 overrides the
+HTML response Vary header with its RSC keys. Canonical production is unchanged.
+
 ## Next
 
 Use PR #270's rollout record to confirm same-worker browser/byte checks,

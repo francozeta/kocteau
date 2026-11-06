@@ -148,6 +148,7 @@ export function buildSiteGraphJsonLd() {
         name: "Kocteau",
         alternateName: ["Kocteau reviews", "Kocteau music reviews"],
         url: siteUrl,
+        keywords: ["music reviews", "music discovery", "track ratings", "listening notes", "music criticism"],
         description:
           "Read music reviews, track listening notes, discover active songs, and explore public taste profiles on Kocteau.",
         publisher: {
@@ -184,6 +185,7 @@ export function buildHomePageJsonLd() {
         name: "Kocteau",
         url: siteUrl,
         applicationCategory: "MultimediaApplication",
+        keywords: ["music reviews", "music discovery", "track ratings", "listening notes", "music criticism"],
         operatingSystem: "Web",
         description:
           "A music review and taste discovery app for ratings, listening notes, saved reviews, and public taste profiles.",
