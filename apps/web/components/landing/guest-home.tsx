@@ -82,6 +82,11 @@ function GuestHomeHero() {
         <p className="mt-6 font-circular text-[14px] font-medium leading-6 text-muted-foreground/72 sm:text-[15px]">
           Music reviews from real listeners.
         </p>
+        <p className="mt-3 max-w-[37rem] text-pretty font-circular text-[13px] font-medium leading-6 text-muted-foreground/65">
+          Read the impressions that stayed with other listeners, from the records they return to
+          and the tracks they cannot forget. Find a song, leave a rating or a listening note,
+          and discover what to hear next through people whose taste speaks to you.
+        </p>
         <div className="mt-8 flex flex-wrap items-center gap-2.5">
           <Link
             href="/signup"

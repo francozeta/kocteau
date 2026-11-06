@@ -39,6 +39,13 @@ Forced origin failures may still record React error `419`. Covered canonical
 identity failures now show Retry in the local matrix; this does not claim a fix
 for `419`, legacy/provider policies or the separate private wait in #265.
 
+## Agent-readiness candidate
+
+The `fix/agent-readiness` task branch adds Markdown homepage negotiation,
+machine-readable public API documentation, structured API errors, agent 404s,
+and product discovery signals. Unit/HTTP verification and deployment review
+remain pending. These changes are not confirmed in production.
+
 ## Next
 
 Use PR #270's rollout record to confirm same-worker browser/byte checks,
