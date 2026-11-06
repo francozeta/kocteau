@@ -66,7 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           pnpm --filter web add react@19.3.1 react-dom@19.3.1
-          pnpm --filter web add -D vinext@1.4.3 @vitejs/plugin-rsc@0.5.38 react-server-dom-webpack@19.3.1
+          pnpm --filter web add -D vinext@1.4.3 vite@8.2.2 @vitejs/plugin-react@6.1.1 @vitejs/plugin-rsc@0.5.38 react-server-dom-webpack@19.3.1
           node -e 'const fs=require("node:fs"); const path="apps/web/package.json"; const pkg=JSON.parse(fs.readFileSync(path,"utf8")); pkg.type="module"; fs.writeFileSync(path,JSON.stringify(pkg,null,2)+String.fromCharCode(10));'
           cat > apps/web/vite.config.ts <<'EOF'
           import { defineConfig } from "vite";
