@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  appendVaryAccept, homepageMarkdown, isUnknownTopLevelPage,
+  homepageMarkdown, isUnknownTopLevelPage,
   markdownNotFoundBody, markdownPageResponse, preferredPageRepresentation,
 } from "./agent-http";
 
@@ -15,13 +15,6 @@ describe("public document content negotiation", () => {
     assert.equal(preferredPageRepresentation("text/html;q=0, */*;q=1"), "markdown");
     assert.equal(preferredPageRepresentation("application/json"), "not-acceptable");
     assert.equal(preferredPageRepresentation(null), "html");
-  });
-
-  it("preserves other Vary entries and does not duplicate Accept", () => {
-    const headers = new Headers({ Vary: "rsc, next-router-prefetch" });
-    appendVaryAccept(headers);
-    appendVaryAccept(headers);
-    assert.equal(headers.get("Vary"), "rsc, next-router-prefetch, Accept");
   });
 
   it("returns genuine Markdown 404s with a useful index and noindex", async () => {

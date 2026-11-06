@@ -7,16 +7,5 @@
   ],
   "regions": [
     "gru1"
-  ],
-  "headers": [
-    {
-      "source": "/",
-      "headers": [
-        {
-          "key": "Vary",
-          "value": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept"
-        }
-      ]
-    }
   ]
 }

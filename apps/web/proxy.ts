@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { appendVaryAccept, homepageMarkdown, isUnknownTopLevelPage, markdownNotFoundBody, markdownPageResponse, preferredPageRepresentation } from "@/lib/agent-http";
+import { homepageMarkdown, isUnknownTopLevelPage, markdownNotFoundBody, markdownPageResponse, preferredPageRepresentation } from "@/lib/agent-http";
 import { createServerClient } from "@supabase/ssr";
 import { isFeedView } from "@/lib/feed-view";
 import {
@@ -222,7 +222,6 @@ export async function proxy(request: NextRequest) {
         headers: { "Content-Type": "text/plain; charset=utf-8", "Vary": "Accept" },
       });
     }
-    appendVaryAccept(response.headers);
   }
 
   // Unknown top-level documents receive a useful 404 to Markdown agents.

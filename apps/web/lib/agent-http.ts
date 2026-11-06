@@ -55,15 +55,6 @@ export function preferredPageRepresentation(accept: string | null): PageRepresen
     : "html";
 }
 
-export function appendVaryAccept(headers: Headers) {
-  const current = headers.get("Vary");
-  if (!current) {
-    headers.set("Vary", "Accept");
-  } else if (!current.split(",").some((part) => part.trim().toLowerCase() === "accept")) {
-    headers.set("Vary", `${current}, Accept`);
-  }
-}
-
 // This guard is only for unknown *top-level* document routes. Known roots are
 // left to Next.js, preserving all dynamic URLs, authenticated pages and 404 UX.
 const knownPageRoots = new Set([

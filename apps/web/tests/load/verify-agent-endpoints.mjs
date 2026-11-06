@@ -21,7 +21,6 @@ assert.ok(mdHome.text.length >= 500 && mdHome.text.startsWith("# Kocteau"));
 const htmlHome = await inspect("/", "text/html");
 assert.equal(htmlHome.response.status, 200, "HTML homepage status");
 contentType(htmlHome.response, /^text\/html/i);
-checkVary(htmlHome.response);
 assert.match(htmlHome.text, /<h1\b/i);
 assert.match(htmlHome.text, /<h2\b/i);
 assert.match(htmlHome.text, /Music reviews from real listeners/i);
