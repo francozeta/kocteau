@@ -4,6 +4,7 @@ import { searchReadinessHeaders } from "@/lib/search/readiness";
 import { searchCatalog } from "@/lib/search/catalog";
 import { kocteauSearchQuerySchema } from "@/lib/validation/schemas";
 import { validationErrorResponse } from "@/lib/validation/server";
+import { jsonApiError } from "@/lib/validation/api-response";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -38,10 +39,13 @@ export async function GET(req: Request) {
 
       if (!results.length && (hasProviderError || readiness.local === "degraded")) {
         console.error("[search.catalog] failed with no fallback", { queryLength: q.length, type, source });
-        return NextResponse.json(
-          { error: "Music search is taking longer than usual. Try again in a moment." },
-          { status: 502, headers },
-        );
+        return jsonApiError({
+          status: 502,
+          code: "SEARCH_UPSTREAM_UNAVAILABLE",
+          message: "Music search is taking longer than usual. Try again in a moment.",
+          hint: "Retry the search shortly, or set source=local.",
+          headers,
+        });
       }
       return NextResponse.json(results, { headers });
     } catch (error) {

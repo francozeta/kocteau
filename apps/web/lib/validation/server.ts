@@ -12,6 +12,8 @@ export function validationErrorResponse(
     {
       error: formatted.message ?? fallbackMessage,
       code: "VALIDATION_ERROR",
+      message: formatted.message ?? fallbackMessage,
+      hint: "Review the invalid query or field values and retry.",
       fieldErrors: formatted.fieldErrors,
       formErrors: formatted.formErrors,
     },

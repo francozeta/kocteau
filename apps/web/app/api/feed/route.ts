@@ -4,6 +4,7 @@ import { isFeedView } from "@/lib/feed-view";
 import { getFeedPageBundle, type FeedPageBundle } from "@/lib/queries/feed";
 import { getViewerFollowingProfileIds } from "@/lib/queries/profile-follows";
 import { measureServerTask } from "@/lib/perf";
+import { jsonApiError } from "@/lib/validation/api-response";
 
 async function getFeedResponse(req: Request) {
   const url = new URL(req.url);
@@ -22,13 +23,13 @@ async function getFeedResponse(req: Request) {
       includeActiveUsers: false,
     });
   } catch {
-    return NextResponse.json(
-      { error: "Reviews are temporarily unavailable. Please try again." },
-      {
-        status: 503,
-        headers: { "Cache-Control": "private, no-store", "Retry-After": "5" },
-      },
-    );
+    return jsonApiError({
+      status: 503,
+      code: "FEED_UNAVAILABLE",
+      message: "Reviews are temporarily unavailable. Please try again.",
+      hint: "Retry after five seconds.",
+      headers: { "Cache-Control": "private, no-store", "Retry-After": "5" },
+    });
   }
   const activeUsers = bundle.activeUsers.filter(
     (profile) => profile.id !== userId,

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { appendVaryAccept, homepageMarkdown, isUnknownTopLevelPage, markdownNotFoundBody, markdownPageResponse, preferredPageRepresentation } from "@/lib/agent-http";
 import { createServerClient } from "@supabase/ssr";
 import { isFeedView } from "@/lib/feed-view";
 import {
@@ -40,7 +41,10 @@ function getResolverRejectionResponse() {
   });
 }
 
-function getPublicRouteNotFoundResponse() {
+function getPublicRouteNotFoundResponse(request: NextRequest) {
+  if (preferredPageRepresentation(request.headers.get("accept")) === "markdown") {
+    return markdownPageResponse(markdownNotFoundBody(), 404, request.method);
+  }
   return new NextResponse(null, {
     status: 404,
     headers: {
@@ -205,6 +209,30 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
+  // Answer the canonical homepage in Markdown before session redirects.
+  // Browser HTML, auth cookies, and the existing page renderer are unchanged.
+  if (pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
+    const preferred = preferredPageRepresentation(request.headers.get("accept"));
+    if (preferred === "markdown") {
+      return markdownPageResponse(homepageMarkdown, 200, request.method);
+    }
+    if (preferred === "not-acceptable") {
+      return new Response("Available representations: text/html, text/markdown", {
+        status: 406,
+        headers: { "Content-Type": "text/plain; charset=utf-8", "Vary": "Accept" },
+      });
+    }
+    appendVaryAccept(response.headers);
+  }
+
+  // Unknown top-level documents receive a useful 404 to Markdown agents.
+  // Known roots keep their Next.js routing and existing HTML 404 experience.
+  if ((request.method === "GET" || request.method === "HEAD") &&
+      preferredPageRepresentation(request.headers.get("accept")) === "markdown" &&
+      isUnknownTopLevelPage(pathname)) {
+    return markdownPageResponse(markdownNotFoundBody(), 404, request.method);
+  }
+
   if (isMetadataRequest(pathname)) {
     return response;
   }
@@ -219,7 +247,7 @@ export async function proxy(request: NextRequest) {
 
   const publicRouteLookup = getPublicRouteLookup(pathname);
   if (publicRouteLookup === false) {
-    return getPublicRouteNotFoundResponse();
+    return getPublicRouteNotFoundResponse(request);
   }
 
   if (
@@ -227,7 +255,7 @@ export async function proxy(request: NextRequest) {
     (request.method === "HEAD" || isKnownCrawler(request)) &&
     !(await publicRouteExists(publicRouteLookup))
   ) {
-    return getPublicRouteNotFoundResponse();
+    return getPublicRouteNotFoundResponse(request);
   }
 
   const shortIdRedirectPath = getShortIdRedirectPath(pathname);
