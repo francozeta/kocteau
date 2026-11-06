@@ -1,0 +1,77 @@
+name: Kocteau Cloudflare compatibility (experiment)
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cloudflare-compatibility.yml"
+      - "cloudflare/**"
+      - "docs/cloudflare-workers-spike.md"
+      - "apps/web/**"
+      - "pnpm-lock.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kocteau-cloudflare-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    name: Cloudflare probe and vinext checks
+    if: github.head_ref == 'test/cloudflare-workers-spike'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_SITE_URL: https://kocteau.local
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test isolated infrastructure probe
+        run: node --test cloudflare/edge-probe/worker.test.mjs
+
+      - name: Inspect app compatibility
+        working-directory: apps/web
+        run: pnpm dlx vinext@1.4.3 check
+
+      - name: Verify Cloudflare probe via HTTPS
+        run: |
+          set -euo pipefail
+          url="https://kocteau-edge-probe.francozeta.workers.dev"
+          curl --fail --silent --show-error --retry 3 --max-time 15 "$url/health" > /tmp/kocteau-edge.json
+          node --input-type=module -e 'import fs from "node:fs"; const x=JSON.parse(fs.readFileSync("/tmp/kocteau-edge.json","utf8")); if(x.status!=="ok"||x.appDeployed!==false||x.loginEnabled!==false) process.exit(1); console.log("Kocteau infrastructure probe passed: app not deployed.");'
+          status="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 15 "$url/search")"
+          test "$status" = "404"
+
+      - name: Attempt isolated vinext production build (no live secrets or DB)
+        env:
+          CI: "false"
+          SENTRY_AUTH_TOKEN: ""
+        run: |
+          set -euo pipefail
+          pnpm --filter web add react@19.3.1 react-dom@19.3.1
+          pnpm --filter web add -D vinext@1.4.3 @vitejs/plugin-rsc@0.5.38 react-server-dom-webpack@19.3.1
+          node -e 'const fs=require("node:fs"); const path="apps/web/package.json"; const pkg=JSON.parse(fs.readFileSync(path,"utf8")); pkg.type="module"; fs.writeFileSync(path,JSON.stringify(pkg,null,2)+String.fromCharCode(10));'
+          cat > apps/web/vite.config.ts <<'EOF'
+          import { defineConfig } from "vite";
+          import vinext from "vinext";
+          export default defineConfig({ plugins: [vinext()] });
+          EOF
+          cd apps/web
+          pnpm exec vite build
