@@ -14,6 +14,19 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["radix-ui", "@hugeicons/core-free-icons"],
   },
+  async headers() {
+    // Keep the App Router RSC vary keys and include Accept for the alternate
+    // Markdown representation of the public homepage.
+    return [
+      {
+        source: "/",
+        headers: [{
+          key: "Vary",
+          value: "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept",
+        }],
+      },
+    ];
+  },
   async redirects() {
     return [
       {
