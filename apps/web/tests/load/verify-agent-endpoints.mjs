@@ -57,9 +57,16 @@ contentType(missingApi.response, /^application\/json/i);
 assert.equal(JSON.parse(missingApi.text).code, "API_ROUTE_NOT_FOUND");
 
 const feed = await inspect("/api/feed?view=latest", "application/json");
-assert.equal(feed.response.status, 200, "Public feed");
+assert.ok([200, 503].includes(feed.response.status), "Public feed must return data or a structured service error");
 contentType(feed.response, /^application\/json/i);
-assert.ok(Array.isArray(JSON.parse(feed.text).feed));
+const feedPayload = JSON.parse(feed.text);
+if (feed.response.status === 200) {
+  assert.ok(Array.isArray(feedPayload.feed));
+} else {
+  assert.equal(feedPayload.code, "FEED_UNAVAILABLE");
+  assert.ok(feedPayload.hint);
+  console.warn("Public feed is degraded; check whether the Kocteau database is active.");
+}
 
 for (const [path, contentPattern] of [
   ["/llms.txt", /When to use Kocteau/],

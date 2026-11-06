@@ -108,12 +108,12 @@ export default function HomePage() {
         revalidateSeconds: 5 * 60,
       }),
     { route: "/" },
-  ).then((bundle) => bundle.feed);
+  ).then((bundle) => bundle.feed, () => [] as FeedBundleReview[]);
   const starterTracks = measureServerTask(
     "getPublicHomeStarters",
     () => getPublicStarterTracks({ limit: 6, contextKey: "home" }),
     { route: "/" },
-  );
+  ).catch(() => [] as StarterTrack[]);
   return (
     <div
       data-kocteau-document-canvas="landing"
