@@ -111,8 +111,7 @@ To group reviews correctly, `entities` should remain unique by:
 
 ## 5. For You feed
 
-`/feed` is the primary For You feed for signed-in users. Authenticated visits to
-`/` redirect there; signed-out visits to `/` see the public landing.
+`/` is the primary personalized For You feed for authenticated users. Signed-out visits to `/` redirect to the public, indexable marketing landing at `/home`; signed-in listeners can still open `/home`. `/feed` is a compatibility redirect, not a second app route.
 
 For You combines:
 

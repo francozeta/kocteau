@@ -47,9 +47,9 @@ Prefer fixing noisy PR titles before merge. Avoid hand-editing generated release
 
 After deploy:
 
-1. Open `/`.
-2. Sign in and confirm `/feed` loads For You.
-3. Open search.
+1. Open `/` while signed out and verify the redirect to `/home` (public canonical, indexable).
+2. Sign in and confirm `/` loads the personalized, noindex For You feed. Visit `/home` while signed in and confirm the public landing still works.
+3. Open search and confirm its return capsule goes to Feed at `/`. Verify `/feed` is a compatibility redirect.
 4. Open a track page.
 5. Open a profile page.
 6. Check login/signup OTP flow only if auth changed.

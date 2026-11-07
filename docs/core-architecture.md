@@ -35,7 +35,7 @@ primitive layer.
 
 ## Routes And Data Flow
 
-`/` serves the public landing and redirects authenticated listeners to `/feed`.
+`/` serves the authenticated For You feed. Without a valid session it redirects to the public landing at `/home`, which remains accessible and indexable for signed-in users too. `/feed` permanently redirects to `/` for compatibility.
 `/docs` renders selected repository Markdown as static, public contributor guides.
 `/search` is the discovery canvas. Canonical public music routes use
 `/tracks/{slug}/{id}`, `/albums/{slug}/{id}`, and `/artists/{slug}/{id}`;
@@ -48,8 +48,7 @@ taste loop. `/studio/starter`, `/studio/health`, and `/studio/curators` are priv
 role-gated tools; an official badge is not permission to use them.
 
 Post-auth `next` paths are checked by `apps/web/lib/internal-path.ts` against browser URL
-normalization. Guest review recovery targets `/feed?compose=1&draft=review`
-directly so the landing redirect cannot discard the composer state.
+normalization. Guest review recovery targets `/?compose=1&draft=review` and preserves its query through login; the authenticated root does not discard the composer state.
 
 Typical writes follow:
 
