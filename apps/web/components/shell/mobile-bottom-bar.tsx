@@ -69,16 +69,14 @@ function NavTab({
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-11 min-w-11 items-center justify-center rounded-full text-foreground/48 transition-[transform,color] duration-150 ease-out hover:text-foreground/80 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
-        active
-          ? "gap-1.5 px-3 text-foreground/96"
-          : "",
+        "group relative flex h-[45px] min-w-[45px] items-center justify-center rounded-full px-[11px] text-foreground/65 transition-[background-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-dock-tab-hover)] hover:text-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 motion-reduce:transition-none max-[350px]:min-w-[41px] max-[350px]:px-[9px]",
+        active &&
+          "bg-[var(--kocteau-dock-tab-active)] px-[13px] text-foreground/95 shadow-[var(--kocteau-dock-selected-shadow)] hover:bg-[var(--kocteau-dock-tab-active)] hover:text-foreground max-[350px]:px-[9px]",
       )}
     >
-      {active ? <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/[0.14]" /> : null}
-      <span className="relative z-[1] flex items-center gap-1.5">
+      <span className="flex items-center gap-1.5 max-[350px]:gap-1">
         <Icon
-          className={cn("size-[1.04rem] shrink-0", active && "text-foreground")}
+          className={cn("size-[1.2rem] shrink-0", active && "text-foreground")}
           weight={active ? "fill" : "regular"}
         />
         {active ? (
@@ -172,8 +170,8 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
         aria-label="Primary navigation"
         className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
       >
-        <div className="flex items-center gap-2">
-          <div className="flex h-11 items-center gap-1 rounded-full bg-white/[0.08] backdrop-blur-2xl backdrop-saturate-150">
+        <div className="flex items-center gap-[9px] max-[350px]:gap-[7px]">
+          <div className="flex h-[53px] items-center gap-0.5 rounded-full bg-[var(--kocteau-dock-surface)] p-[3px] shadow-[var(--kocteau-dock-shadow)] max-[350px]:gap-0">
             {navItems.map((item) => (
               <NavTab key={item.href} item={item} pathname={pathname} />
             ))}
@@ -184,14 +182,12 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
                 aria-label="Profile"
                 aria-current={isProfileActive ? "page" : undefined}
                 className={cn(
-                  "relative flex h-11 min-w-11 items-center justify-center rounded-full text-foreground/48 transition-[transform,color] duration-150 hover:text-foreground/80 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70",
-                  isProfileActive && "gap-1.5 px-2.5 text-foreground/96",
+                  "relative flex h-[45px] min-w-[45px] items-center justify-center rounded-full px-[9px] text-foreground/65 transition-[background-color,color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-dock-tab-hover)] hover:text-foreground active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 motion-reduce:transition-none max-[350px]:min-w-[41px] max-[350px]:px-[7px]",
+                  isProfileActive &&
+                    "bg-[var(--kocteau-dock-tab-active)] px-[11px] text-foreground/95 shadow-[var(--kocteau-dock-selected-shadow)] hover:bg-[var(--kocteau-dock-tab-active)] hover:text-foreground max-[350px]:px-[7px]",
                 )}
               >
-                {isProfileActive ? (
-                  <span aria-hidden="true" className="absolute inset-0 rounded-full bg-white/[0.14]" />
-                ) : null}
-                <span className="relative z-[1] flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 max-[350px]:gap-1">
                   <UserAvatar
                     avatarUrl={profile.avatar_url}
                     displayName={profile.display_name}
@@ -212,7 +208,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           <button
             type="button"
             aria-label={reviewEntryLabel}
-            className="flex size-11 items-center justify-center rounded-full bg-white/[0.08] text-foreground backdrop-blur-2xl backdrop-saturate-150 transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            className="flex size-[53px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-review-surface)] text-foreground shadow-[var(--kocteau-dock-shadow)] transition-[transform,background-color] duration-150 ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-dock-review-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 motion-reduce:transition-none max-[350px]:size-[49px]"
             onClick={() => {
               window.dispatchEvent(new CustomEvent(OPEN_NEW_REVIEW_SHORTCUT_EVENT));
             }}
