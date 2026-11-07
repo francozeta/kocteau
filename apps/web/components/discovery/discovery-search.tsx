@@ -90,7 +90,7 @@ export default function DiscoverySearch({
   const isActiveViewport = mobile === isMobileViewport;
   const showResults =
     isActiveViewport && (isFocused || query.length > 0) && (mobile ? hasQuery : true);
-  const showClose = isFocused || query.length > 0;
+  const showClose = mobile ? query.length > 0 : isFocused || query.length > 0;
   const resultListId = mobile
     ? "mobile-discovery-seed-results"
     : "discovery-seed-results";
@@ -301,11 +301,18 @@ export default function DiscoverySearch({
       <div className="overflow-hidden">
         <button
           type="button"
-          aria-label="Close search"
+          aria-label={mobile ? "Clear search" : "Close search"}
           aria-hidden={!showClose}
           tabIndex={showClose ? 0 : -1}
           onPointerDown={(event) => event.preventDefault()}
-          onClick={() => closeSearch()}
+          onClick={() => {
+            if (mobile) {
+              onQueryChange("");
+              inputRef.current?.focus();
+            } else {
+              closeSearch();
+            }
+          }}
           className={cn(
             "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 md:size-8",
             mobile && "size-11 bg-[var(--kocteau-dock-tab-active)] shadow-none hover:bg-[var(--kocteau-dock-tab-hover)]",

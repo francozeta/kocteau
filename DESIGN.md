@@ -151,11 +151,16 @@ Avoid motion on:
 ## Search Canvas
 
 - Preserve the Feed shell's dimensions and dark background; desktop Search lives
-  in its existing header. On mobile, keep one mounted navigation surface:
-  the original dock smoothly changes its width and children into a Search
-  field (or selected-music actions) rather than rendering a second bar above it.
+  in its existing header. On mobile, keep two mounted dock surfaces: primary
+  navigation (Home, Reviews, Library and Profile when authenticated) and a
+  separate right-side Search capsule. Opening Search contracts the left
+  navigation into a one-tap return to the previous in-app route and expands
+  that same right Search capsule into the input (or selected-music actions).
+  All transitions must be interruptible/reversible; no third floating bar
+  replaces the dock. The X inside Search clears the text, not the route.
   Review-detail comments may use an independent contextual shelf. The public
-  landing page does not mount the app dock.
+  landing page does not mount the app dock. The active tab uses a surface and
+  label, while **all navigation icons retain regular/outline weight**.
 - Floating covers, negative space, and restrained spatial disorder carry the
   personality. Do not replace the canvas with a dashboard or a visible graph.
 - Selecting a cover expands discovery in place. Keep some previous covers and
@@ -167,9 +172,9 @@ Avoid motion on:
   saving remain quieter controls.
 - Mobile search scopes float above the dock as independent slim rounded
   chips (28px visual surfaces inside 44px touch targets); the 53px original
-  dock becomes the Search field with a 45px inner target and 4px concentric
-  padding. Only the original dock owns its background, radius and depth; do
-  not nest additional shadowed input bars inside it. The shared backdrop blur
+  right-hand 53px Search capsule becomes the Search field with a 45px inner
+  target and 4px concentric padding. Only the persistent dock surfaces own
+  their backgrounds, radii and depth; do not nest extra shadowed input bars. The shared backdrop blur
   softens the top and bottom without obscuring artwork.
 - Selecting music on mobile replaces the header with one compact cover/title/
   artist link. The leading back arrow replaces the sidebar trigger and returns

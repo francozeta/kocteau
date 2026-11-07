@@ -1,20 +1,20 @@
 "use client";
 
-import type { ComponentType, CSSProperties, SVGProps } from "react";
+import { useEffect, useState, type ComponentType, type CSSProperties, type SVGProps } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import {
   KocteauHomeIcon,
   KocteauLibraryIcon,
+  KocteauReviewsIcon,
   KocteauSearchIcon,
 } from "@/components/icons/kocteau-icons";
-import ReviewGlyphIcon from "@/components/icons/review-glyph-icon";
 import { useRouteHeader } from "@/components/shell/route-header-context";
 import UserAvatar from "@/components/profile/user-avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { OPEN_NEW_REVIEW_SHORTCUT_EVENT } from "@/hooks/use-global-shortcuts";
 import { cn } from "@/lib/utils";
 
 const ReviewCommentDock = dynamic(
@@ -103,7 +103,7 @@ function NavTab({
       <span className="flex items-center gap-1.5 max-[350px]:gap-1">
         <Icon
           className={cn("size-[1.2rem] shrink-0", active && "text-foreground")}
-          weight={active ? "fill" : "regular"}
+          weight="regular"
         />
         {active ? (
           <span aria-hidden="true" className="whitespace-nowrap text-[12px] font-medium leading-none">
@@ -122,12 +122,21 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const isMobile = useIsMobile();
   const reduceMotion = useReducedMotion();
 
-  // The guest landing lives outside AppShell; never mount app navigation there.
-  if (!isMobile || pathname === "/") {
-    return null;
-  }
-
   const isSearchRoute = pathname.startsWith("/search");
+  const fallbackRoute = profile ? "/feed" : "/reviews";
+  const [previousRoute, setPreviousRoute] = useState(fallbackRoute);
+
+  // Remember the actual in-app page rather than relying on browser history
+  // (which may contain Search's canvas/selection states or an external page).
+  useEffect(() => {
+    if (!isSearchRoute && pathname !== "/") {
+      setPreviousRoute(pathname);
+    }
+  }, [isSearchRoute, pathname]);
+
+  // The public landing intentionally has no app dock.
+  if (!isMobile || pathname === "/") return null;
+
   const pathSegments = pathname.split("/").filter(Boolean);
   const isReviewDetail =
     detailHeader?.kind === "review" &&
@@ -143,10 +152,13 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       active: (current) => current === (profile ? "/feed" : "/"),
     },
     {
-      href: "/search",
-      label: "Search",
-      icon: KocteauSearchIcon,
-      active: (current) => current.startsWith("/search") || current.startsWith("/track"),
+      href: "/reviews",
+      label: "Reviews",
+      icon: KocteauReviewsIcon,
+      active: (current) =>
+        current === "/reviews" ||
+        current.startsWith("/reviews/") ||
+        current.startsWith("/review/"),
     },
     ...(profile
       ? [
@@ -154,13 +166,19 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
             href: "/library",
             label: "Library",
             icon: KocteauLibraryIcon,
-            active: (current: string) => current.startsWith("/library") || current.startsWith("/saved"),
+            active: (current: string) =>
+              current.startsWith("/library") || current.startsWith("/saved"),
           },
         ]
       : []),
   ];
   const isProfileActive = profile ? pathname.startsWith(`/u/${profile.username}`) : false;
-  const reviewEntryLabel = profile ? "Review a track" : "Find a track to review";
+  const returnTab = navItems.find((item) => item.active(previousRoute));
+  const returnToProfile = Boolean(
+    profile && previousRoute.startsWith(`/u/${profile.username}`),
+  );
+  const ReturnIcon = returnTab?.icon;
+  const returnLabel = returnTab?.label ?? (returnToProfile ? "Profile" : "previous page");
   const dockTransition = reduceMotion
     ? { duration: 0 }
     : { type: "spring" as const, stiffness: 380, damping: 42, mass: 0.9 };
@@ -189,24 +207,22 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
         </nav>
       ) : null}
       <nav
-        aria-label={isSearchRoute ? "Search and navigation" : "Primary navigation"}
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
+        aria-label={isSearchRoute ? "Search and return navigation" : "Primary navigation"}
+        className={cn(
+          "fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 -translate-x-1/2 md:hidden",
+          isSearchRoute
+            ? "w-[calc(100%-2rem)] max-w-[28rem]"
+            : "w-max max-w-[calc(100%-2rem)]",
+        )}
       >
-        <div
-          className={cn(
-            "flex items-center transition-[gap] duration-300 ease-[var(--kocteau-ease)] motion-reduce:transition-none",
-            isSearchRoute ? "gap-0" : "gap-[9px] max-[350px]:gap-[7px]",
-          )}
-        >
-          {/* This surface never unmounts during in-app route changes. Only its contents morph. */}
+        <div className="flex h-[53px] w-full items-center gap-[9px] max-[350px]:gap-[7px]">
+          {/* The existing nav capsule contracts into a real return control. */}
           <motion.div
             layout={reduceMotion ? false : "size"}
             transition={{ layout: dockTransition }}
             className={cn(
-              "relative h-[53px] shrink-0 overflow-hidden rounded-full bg-[var(--kocteau-dock-surface)] p-[4px] shadow-[var(--kocteau-dock-shadow)]",
-              isSearchRoute
-                ? "w-[calc(100vw-2rem)] max-w-[28rem] focus-within:ring-2 focus-within:ring-foreground/20"
-                : "w-fit",
+              "relative h-[53px] min-w-[53px] shrink-0 overflow-hidden rounded-full bg-[var(--kocteau-dock-surface)] p-[4px] shadow-[var(--kocteau-dock-shadow)]",
+              isSearchRoute ? "w-[53px]" : "w-fit",
             )}
           >
             <motion.div
@@ -217,7 +233,9 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               transition={dockTransition}
               className={cn(
                 "flex h-[45px] items-center gap-0.5 max-[350px]:gap-0",
-                isSearchRoute ? "pointer-events-none absolute inset-[4px]" : "relative",
+                isSearchRoute
+                  ? "pointer-events-none absolute inset-[4px]"
+                  : "relative",
               )}
             >
             {navItems.map((item) => (
@@ -253,6 +271,71 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
             ) : null}
             </motion.div>
             <motion.div
+              aria-hidden={!isSearchRoute}
+              inert={!isSearchRoute}
+              initial={false}
+              animate={{ opacity: isSearchRoute ? 1 : 0, scale: isSearchRoute ? 1 : 0.96 }}
+              transition={dockTransition}
+              className={cn(
+                "absolute inset-[4px]",
+                !isSearchRoute && "pointer-events-none",
+              )}
+            >
+              <Link
+                href={previousRoute}
+                aria-label={`Back to ${returnLabel}`}
+                title={`Back to ${returnLabel}`}
+                className="flex size-[45px] items-center justify-center rounded-full text-foreground/90 transition-colors hover:bg-[var(--kocteau-dock-tab-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+              >
+                {ReturnIcon ? (
+                  <ReturnIcon className="size-[1.2rem]" weight="regular" />
+                ) : returnToProfile && profile ? (
+                  <UserAvatar
+                    avatarUrl={profile.avatar_url}
+                    displayName={profile.display_name}
+                    username={profile.username}
+                    className="size-7"
+                    sizes="28px"
+                  />
+                ) : (
+                  <ArrowLeft className="size-[1.2rem]" strokeWidth={1.6} />
+                )}
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* The *same* right-hand Search capsule grows into the input.
+              Neither surface is replaced, so the motion can reverse midway. */}
+          <motion.div
+            layout={reduceMotion ? false : "size"}
+            transition={{ layout: dockTransition }}
+            className={cn(
+              "relative h-[53px] min-w-0 overflow-hidden rounded-full bg-[var(--kocteau-dock-review-surface)] p-[4px] shadow-[var(--kocteau-dock-shadow)]",
+              isSearchRoute
+                ? "flex-1 focus-within:ring-2 focus-within:ring-foreground/20"
+                : "w-[53px] shrink-0",
+            )}
+          >
+            <motion.div
+              aria-hidden={isSearchRoute}
+              inert={isSearchRoute}
+              initial={false}
+              animate={{ opacity: isSearchRoute ? 0 : 1, scale: isSearchRoute ? 0.96 : 1 }}
+              transition={dockTransition}
+              className={cn(
+                "absolute inset-[4px]",
+                isSearchRoute && "pointer-events-none",
+              )}
+            >
+              <Link
+                href="/search"
+                aria-label="Search music"
+                className="flex size-full items-center justify-center rounded-full text-foreground transition-colors hover:bg-[var(--kocteau-dock-review-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+              >
+                <KocteauSearchIcon className="size-[1.2rem]" weight="regular" />
+              </Link>
+            </motion.div>
+            <motion.div
               id="mobile-search-dock"
               aria-hidden={!isSearchRoute}
               inert={!isSearchRoute}
@@ -265,23 +348,6 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               )}
             />
           </motion.div>
-          <button
-            type="button"
-            aria-label={reviewEntryLabel}
-            aria-hidden={isSearchRoute}
-            tabIndex={isSearchRoute ? -1 : undefined}
-            className={cn(
-              "flex h-[53px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--kocteau-dock-review-surface)] text-foreground shadow-[var(--kocteau-dock-shadow)] transition-[width,opacity,transform,background-color] duration-300 ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-dock-review-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 motion-reduce:transition-none max-[350px]:h-[49px]",
-              isSearchRoute
-                ? "pointer-events-none w-0 scale-90 opacity-0 max-[350px]:w-0"
-                : "w-[53px] scale-100 opacity-100 max-[350px]:w-[49px]",
-            )}
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent(OPEN_NEW_REVIEW_SHORTCUT_EVENT));
-            }}
-          >
-            <ReviewGlyphIcon className="size-[1.12rem] shrink-0" weight="fill" />
-          </button>
         </div>
       </nav>
     </>
