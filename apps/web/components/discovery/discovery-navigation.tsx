@@ -84,7 +84,7 @@ export default function DiscoveryNavigation({
       aria-label="Search for"
       className={cn(
         "no-scrollbar flex min-w-0 items-center gap-0.5 overflow-x-auto",
-        mobile && "h-[53px] flex-1 gap-0 rounded-full bg-[var(--kocteau-dock-surface)] p-[3px] shadow-[var(--kocteau-dock-shadow)]",
+        mobile && "h-11 flex-1 gap-2",
       )}
     >
       {scopes.map((option) => (
@@ -98,19 +98,19 @@ export default function DiscoveryNavigation({
           }}
           className={cn(
             "group flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            mobile && "min-h-[45px] px-[2px] text-[12px] max-[350px]:text-[11px]",
+            mobile && "min-h-11 px-0 text-[12px] max-[350px]:text-[11px]",
           )}
         >
           <span
             className={cn(
-              "flex min-h-7 items-center rounded-full px-2.5 transition-colors duration-150",
-              mobile && "min-h-[43px] px-3 max-[350px]:px-2.5",
+              "flex min-h-7 items-center rounded-full px-2.5 transition-[background-color,color,box-shadow] duration-150",
+              mobile && "min-h-11 px-3.5 shadow-[var(--kocteau-dock-selected-shadow)] max-[350px]:px-3",
               scope === option.value
                 ? mobile
-                  ? "bg-[var(--kocteau-dock-tab-active)] text-foreground shadow-[var(--kocteau-dock-selected-shadow)]"
+                  ? "bg-[var(--kocteau-dock-tab-active)] text-foreground shadow-[var(--kocteau-dock-shadow)]"
                   : "bg-[var(--kocteau-surface-control-hover)] text-foreground"
                 : mobile
-                  ? "bg-transparent text-muted-foreground group-hover:bg-[var(--kocteau-dock-tab-hover)] group-hover:text-foreground"
+                  ? "bg-[var(--kocteau-dock-surface)] text-muted-foreground group-hover:bg-[var(--kocteau-dock-review-hover)] group-hover:text-foreground"
                   : "bg-[var(--kocteau-surface-control)] text-muted-foreground group-hover:text-foreground",
             )}
           >
@@ -306,7 +306,7 @@ export default function DiscoveryNavigation({
               >
                 {scopeControls}
                 {!seed ? (
-                  <div className="flex size-[53px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-review-surface)] shadow-[var(--kocteau-dock-shadow)]">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-surface)] shadow-[var(--kocteau-dock-selected-shadow)]">
                     {options}
                   </div>
                 ) : null}

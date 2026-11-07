@@ -242,11 +242,14 @@ export default function DiscoverySearch({
       }}
       role="search"
     >
-      <div className="relative min-w-0">
+      <div className={cn("relative min-w-0", mobile && "group/search-field")}>
         <label htmlFor={inputId} className="sr-only">
           {searchLabel}
         </label>
-        <KocteauSearchIcon className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.05rem] -translate-y-1/2 text-muted-foreground/62" />
+        <KocteauSearchIcon className={cn(
+          "pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.05rem] -translate-y-1/2 text-muted-foreground/62",
+          mobile && "left-[1.15rem] size-5 text-foreground/75 transition-colors group-focus-within/search-field:text-foreground",
+        )} />
         <Input
           ref={inputRef}
           id={inputId}
@@ -280,7 +283,7 @@ export default function DiscoverySearch({
           aria-controls={resultListId}
           className={cn(
             "h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]",
-            mobile && "h-[53px] bg-[var(--kocteau-dock-surface)] shadow-[var(--kocteau-dock-shadow)]",
+            mobile && "h-[60px] border-0 bg-[var(--kocteau-dock-tab-active)] pl-[3.4rem] pr-5 text-[16px] font-medium text-foreground shadow-[var(--kocteau-dock-shadow)] ring-1 ring-inset ring-foreground/10 placeholder:text-muted-foreground/75 focus-visible:ring-2 focus-visible:ring-foreground/25",
           )}
         />
         <span className="sr-only" role="status" aria-live="polite">
@@ -337,7 +340,7 @@ export default function DiscoverySearch({
         </button>
       </div>
     ) : (
-      <div className={cn("grid gap-1", mobile && "gap-2")}>
+      <div className={cn("grid gap-1", mobile && "gap-2.5")}>
         {mobile ? <div data-discovery-mobile-filters /> : null}
         {searchForm}
       </div>
