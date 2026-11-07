@@ -87,7 +87,7 @@ test("pending review draft routes back to the composer through login", () => {
   assert.equal(getPendingReviewDraftReturnPath(), "/?compose=1&draft=review");
   assert.equal(
     getPendingReviewDraftLoginPath(),
-    "/login?next=%2Ffeed%3Fcompose%3D1%26draft%3Dreview",
+    "/login?next=%2F%3Fcompose%3D1%26draft%3Dreview",
   );
 });
 
