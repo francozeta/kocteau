@@ -1417,3 +1417,32 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
 }
+
+/* Mobile header: progressive blur in four overlapping masked layers.
+   Adapted from Craft's site-shell.tsx / globals.css. Scoped to Kocteau's
+   standard and contextual mobile headers; desktop layout is unchanged. */
+@media (max-width: 767px) {
+  .kocteau-mobile-header-blur-layer {
+    -webkit-mask-image: linear-gradient(
+      to top,
+      transparent var(--header-blur-start),
+      black var(--header-blur-end)
+    );
+    mask-image: linear-gradient(
+      to top,
+      transparent var(--header-blur-start),
+      black var(--header-blur-end)
+    );
+    -webkit-backdrop-filter: blur(var(--header-blur));
+    backdrop-filter: blur(var(--header-blur));
+  }
+
+  .kocteau-mobile-header-blur-tint {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--kocteau-document-canvas) 85%, transparent),
+      color-mix(in oklab, var(--kocteau-document-canvas) 50%, transparent) 55%,
+      transparent
+    );
+  }
+}

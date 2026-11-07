@@ -10,6 +10,7 @@ import {
   KocteauShareIcon,
 } from "@/components/icons/kocteau-icons";
 import ReviewActionsMenu from "@/components/reviews/review-actions-menu";
+import ProgressiveMobileHeaderBlur from "@/components/shell/progressive-mobile-header-blur";
 import { useRouteHeader } from "@/components/shell/route-header-context";
 import { Button } from "@/components/ui/button";
 import {
@@ -173,10 +174,7 @@ export default function Header({
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
     )}>
-      <div
-        className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-document-canvas)_0%,color-mix(in_oklch,var(--kocteau-document-canvas)_94%,transparent)_42%,transparent_100%)] md:hidden"
-        aria-hidden="true"
-      />
+      <ProgressiveMobileHeaderBlur />
 
       <div className="group/search-header relative z-10 flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
         <div className="relative z-10 flex items-center gap-2 max-md:group-has-[[data-kocteau-search-mobile-header-slot]:not(:empty)]/search-header:invisible">
@@ -317,10 +315,7 @@ export default function Header({
     return (
       <>
         <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
-          <div
-            className="pointer-events-none absolute left-1/2 top-0 h-24 w-screen -translate-x-1/2 bg-[linear-gradient(to_bottom,var(--kocteau-document-canvas)_0%,color-mix(in_oklch,var(--kocteau-document-canvas)_94%,transparent)_42%,transparent_100%)]"
-            aria-hidden="true"
-          />
+          <ProgressiveMobileHeaderBlur />
 
           <div className="relative z-10 flex h-11 items-center justify-between gap-3">
             <button
