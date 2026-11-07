@@ -4,7 +4,7 @@ import DiscoverEditorialEdition from "@/components/discovery/discover-editorial-
 import { getCurrentUserId } from "@/lib/auth/server";
 import { getDiscoverySeedPath } from "@/lib/discovery/seed";
 import { createPageMetadata } from "@/lib/metadata";
-import { getPublicStarterTracks } from "@/lib/queries/starter";
+import { getSearchStarterTracks } from "@/lib/discovery/search-starters";
 
 export async function generateMetadata({
   searchParams,
@@ -40,7 +40,7 @@ export default async function SearchPage({
   const params = await searchParams;
   const initialQuery = params.q?.trim() ?? "";
   const [starterTracks, viewerId] = await Promise.all([
-    getPublicStarterTracks({ limit: 32, contextKey: "search-orbit" }),
+    getSearchStarterTracks(),
     getCurrentUserId(),
   ]);
   const legacySeedTrack = params.seed
