@@ -3,10 +3,10 @@
 import { useEffect, useState, type ComponentType, type CSSProperties, type SVGProps } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import {
+  KocteauChevronLeftMediumIcon,
   KocteauHomeIcon,
   KocteauLibraryIcon,
   KocteauReviewsIcon,
@@ -298,7 +298,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
                     sizes="28px"
                   />
                 ) : (
-                  <ArrowLeft className="size-[1.2rem]" strokeWidth={1.6} />
+                  <KocteauChevronLeftMediumIcon className="size-[1.2rem]" weight="regular" />
                 )}
               </Link>
             </motion.div>
