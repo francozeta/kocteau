@@ -43,7 +43,7 @@ export function NavSecondary({
                 tooltip={item.title}
                 className={sidebarNavButtonClassName}
               >
-                <Link href={item.url} onClick={onNavigate}>
+                <Link href={item.url} aria-current={item.isActive ? "page" : undefined} onClick={onNavigate}>
                   <item.icon weight="regular" />
                   <span className="kocteau-sidebar-label">{item.title}</span>
                 </Link>

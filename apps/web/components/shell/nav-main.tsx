@@ -49,6 +49,7 @@ export function NavMain({
                 {item.external ? (
                   <a
                     href={item.url}
+                    aria-current={item.isActive ? "page" : undefined}
                     target="_blank"
                     rel="noreferrer"
                     onClick={() => {
@@ -62,6 +63,7 @@ export function NavMain({
                 ) : (
                   <Link
                     href={item.url}
+                    aria-current={item.isActive ? "page" : undefined}
                     onClick={() => {
                       item.onClick?.();
                       onNavigate?.();
