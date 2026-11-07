@@ -72,7 +72,7 @@ export function NavUser({
     return (
       <div className="kocteau-sidebar-expand-only kocteau-sidebar-note rounded-[0.95rem] p-3 text-[13px] leading-5 text-muted-foreground">
         <div className="mb-1.5 flex items-center gap-2 text-sidebar-foreground">
-          <SparkleIcon className="size-3.5" weight="fill" />
+          <SparkleIcon className="size-3.5" weight="regular" />
           <span className="font-medium">Sign in to participate</span>
         </div>
         <p>

@@ -56,7 +56,7 @@ export function NavMain({
                       onNavigate?.();
                     }}
                   >
-                    <item.icon weight={item.isActive ? "fill" : "regular"} />
+                    <item.icon weight="regular" />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </a>
                 ) : (
@@ -67,7 +67,7 @@ export function NavMain({
                       onNavigate?.();
                     }}
                   >
-                    <item.icon weight={item.isActive ? "fill" : "regular"} />
+                    <item.icon weight="regular" />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </Link>
                 )}

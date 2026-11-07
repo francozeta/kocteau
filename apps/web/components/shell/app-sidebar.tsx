@@ -106,6 +106,11 @@ function SidebarHeaderAction({
     </button>
   );
 
+  // Touch users already see the button labels in the open sidebar.
+  // Do not mount a tooltip trigger on mobile: long taps could leave
+  // floating desktop shortcuts visible over the drawer.
+  if (isMobile) return action;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>{action}</TooltipTrigger>
