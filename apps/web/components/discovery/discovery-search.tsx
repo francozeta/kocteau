@@ -337,7 +337,7 @@ export default function DiscoverySearch({
         </button>
       </div>
     ) : (
-      <div className="grid gap-1">
+      <div className={cn("grid gap-1", mobile && "gap-2")}>
         {mobile ? <div data-discovery-mobile-filters /> : null}
         {searchForm}
       </div>
