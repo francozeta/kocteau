@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BrandLogo from "@/components/brand/brand-logo";
+import ProgressiveMobileHeaderBlur from "@/components/shell/progressive-mobile-header-blur";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +9,11 @@ export default function GuestHeader() {
     <>
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 z-20 h-20 bg-[linear-gradient(to_bottom,var(--kocteau-landing-canvas)_0%,color-mix(in_oklch,var(--kocteau-landing-canvas)_72%,transparent)_52%,transparent_100%)]"
+        className="pointer-events-none fixed inset-x-0 top-0 z-20 hidden h-20 bg-[linear-gradient(to_bottom,var(--kocteau-landing-canvas)_0%,color-mix(in_oklch,var(--kocteau-landing-canvas)_72%,transparent)_52%,transparent_100%)] md:block"
       />
       <header className="kocteau-guest-typography fixed inset-x-0 top-0 z-30">
-        <div className="relative flex h-14 w-full items-center justify-between px-4 sm:h-16 sm:px-6">
+        <ProgressiveMobileHeaderBlur canvas="landing" />
+        <div className="relative z-10 flex h-12 w-full translate-y-[5px] items-center justify-between px-4 sm:h-16 sm:translate-y-0 sm:px-6">
           <Link
             href="/"
             className="-m-2 inline-flex items-center rounded-full p-2 transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
@@ -27,7 +29,7 @@ export default function GuestHeader() {
             <Link
               href="/"
               aria-current="page"
-              className="font-circular text-[12px] font-medium leading-5 text-foreground transition-colors duration-150 sm:text-[13px]"
+              className="hidden font-circular text-[12px] font-medium leading-5 text-foreground transition-colors duration-150 sm:block sm:text-[13px]"
             >
               Home
             </Link>

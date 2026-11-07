@@ -5,7 +5,7 @@ import { getCurrentUserId } from "@/lib/auth/server";
 import { isDeezerProviderId } from "@/lib/deezer";
 import { createPageMetadata } from "@/lib/metadata";
 import { getDiscoverySeed } from "@/lib/queries/discovery-seed";
-import { getPublicStarterTracks } from "@/lib/queries/starter";
+import { getSearchStarterTracks } from "@/lib/discovery/search-starters";
 import { isSearchEntityType } from "@/lib/search-types";
 
 type DiscoveryRouteProps = {
@@ -50,7 +50,7 @@ export default async function DiscoveryRoute({ params }: DiscoveryRouteProps) {
 
   const [initialSeed, starterTracks, viewerId] = await Promise.all([
     getDiscoverySeed(route.type, route.providerId),
-    getPublicStarterTracks({ limit: 32, contextKey: "search-orbit" }),
+    getSearchStarterTracks(),
     getCurrentUserId(),
   ]);
 

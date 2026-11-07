@@ -116,7 +116,7 @@ export default function DiscoveryActions({
       <div
         role="group"
         aria-label={`Actions for ${seed.title}`}
-        className="flex min-w-0 flex-1 items-center gap-2"
+        className="flex min-w-0 flex-1 items-center gap-1.5"
       >
         {seed.type === "track" ? (
           <>
@@ -147,7 +147,7 @@ export default function DiscoveryActions({
               className={mobileActionClassName}
             >
               <span
-                className={`${mobileActionSurfaceClassName} bg-[var(--kocteau-surface-control)] text-foreground ring-1 ring-inset ring-white/[0.12] group-hover:bg-[var(--kocteau-surface-control-hover)]`}
+                className={`${mobileActionSurfaceClassName} bg-[var(--kocteau-dock-tab-active)] text-foreground group-hover:bg-[var(--kocteau-dock-tab-hover)]`}
               >
                 {save.isPending
                   ? "Saving…"
@@ -174,7 +174,7 @@ export default function DiscoveryActions({
               className={mobileActionClassName}
             >
               <span
-                className={`${mobileActionSurfaceClassName} bg-[var(--kocteau-surface-control)] text-foreground ring-1 ring-inset ring-white/[0.12]`}
+                className={`${mobileActionSurfaceClassName} bg-[var(--kocteau-dock-tab-active)] text-foreground`}
               >
                 Share
               </span>

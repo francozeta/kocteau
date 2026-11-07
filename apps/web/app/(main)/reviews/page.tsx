@@ -103,7 +103,7 @@ async function PublicReviewsList() {
 
 export default function ReviewsPage() {
   return (
-    <section className="w-full max-w-3xl space-y-5 pb-4 sm:space-y-6">
+    <section className="w-full max-w-3xl space-y-5 pb-4 pt-6 sm:space-y-6 md:pt-0">
       <header className="space-y-2">
         <h1 className="font-heading text-[2rem] font-medium leading-[1.05] tracking-normal text-foreground sm:text-[2.45rem]">
           Music reviews

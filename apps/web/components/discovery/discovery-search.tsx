@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { motion, useReducedMotion } from "motion/react";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/icons/kocteau-icons";
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,8 @@ export default function DiscoverySearch({
       : `Search ${scope === "track" ? "songs" : `${scope}s`}`;
   const [isFocused, setIsFocused] = useState(Boolean(query));
   const isMobileViewport = useIsMobile();
+  const reduceMotion = useReducedMotion();
+  const filterPortalTarget = usePortalTarget("#mobile-search-filters");
   const inputPortalTarget = usePortalTarget(
     mobile ? "#mobile-search-dock" : "[data-kocteau-search-header-slot]",
   );
@@ -87,7 +90,7 @@ export default function DiscoverySearch({
   const isActiveViewport = mobile === isMobileViewport;
   const showResults =
     isActiveViewport && (isFocused || query.length > 0) && (mobile ? hasQuery : true);
-  const showClose = isFocused || query.length > 0;
+  const showClose = mobile ? query.length > 0 : isFocused || query.length > 0;
   const resultListId = mobile
     ? "mobile-discovery-seed-results"
     : "discovery-seed-results";
@@ -131,7 +134,7 @@ export default function DiscoverySearch({
       className={cn(
         "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
         mobile
-          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+8rem)] pt-3 sm:px-6"
+          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+10rem)] pt-3 sm:px-6"
           : "bg-[var(--kocteau-shell)] px-6 pb-8 pt-5",
       )}
     >
@@ -229,9 +232,11 @@ export default function DiscoverySearch({
   const searchForm = (
     <form
       className={cn(
-        "grid min-w-0 items-center transition-[grid-template-columns,gap] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
+        "grid h-full w-full min-w-0 items-center transition-[grid-template-columns,gap] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
         showClose
-          ? "grid-cols-[minmax(0,1fr)_2.75rem] gap-3"
+          ? mobile
+            ? "grid-cols-[minmax(0,1fr)_2.75rem] gap-0"
+            : "grid-cols-[minmax(0,1fr)_2.75rem] gap-3"
           : "grid-cols-[minmax(0,1fr)_0fr] gap-0",
       )}
       onSubmit={(event) => {
@@ -240,11 +245,14 @@ export default function DiscoverySearch({
       }}
       role="search"
     >
-      <div className="relative min-w-0">
+      <div className={cn("relative min-w-0", mobile && "group/search-field")}>
         <label htmlFor={inputId} className="sr-only">
           {searchLabel}
         </label>
-        <KocteauSearchIcon className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.05rem] -translate-y-1/2 text-muted-foreground/62" />
+        <KocteauSearchIcon className={cn(
+          "pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.05rem] -translate-y-1/2 text-muted-foreground/62",
+          mobile && "left-[1.15rem] size-5 text-foreground/75 transition-colors group-focus-within/search-field:text-foreground",
+        )} />
         <Input
           ref={inputRef}
           id={inputId}
@@ -276,7 +284,10 @@ export default function DiscoverySearch({
           aria-describedby={hasError ? `${resultListId}-error` : undefined}
           aria-expanded={showResults}
           aria-controls={resultListId}
-          className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]"
+          className={cn(
+            "h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]",
+            mobile && "h-[45px] border-0 bg-transparent pl-[2.9rem] pr-3 text-[16px] font-medium text-foreground shadow-none placeholder:text-muted-foreground/75 focus-visible:ring-0 focus-visible:border-transparent",
+          )}
         />
         <span className="sr-only" role="status" aria-live="polite">
           {hasError
@@ -290,13 +301,21 @@ export default function DiscoverySearch({
       <div className="overflow-hidden">
         <button
           type="button"
-          aria-label="Close search"
+          aria-label={mobile ? "Clear search" : "Close search"}
           aria-hidden={!showClose}
           tabIndex={showClose ? 0 : -1}
           onPointerDown={(event) => event.preventDefault()}
-          onClick={() => closeSearch()}
+          onClick={() => {
+            if (mobile) {
+              onQueryChange("");
+              inputRef.current?.focus();
+            } else {
+              closeSearch();
+            }
+          }}
           className={cn(
             "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 md:size-8",
+            mobile && "size-11 bg-[var(--kocteau-dock-tab-active)] shadow-none hover:bg-[var(--kocteau-dock-tab-hover)]",
             showClose
               ? "scale-100 opacity-100"
               : "pointer-events-none scale-95 opacity-0",
@@ -309,10 +328,25 @@ export default function DiscoverySearch({
   );
 
   const showActions = Boolean(actions) && !isFocused && !query;
-  const dock =
-    mobile && showActions ? (
-      <div className="flex items-center gap-2">
-        {actions}
+  // Both inner states stay mounted. Changing the target interrupts and reverses
+  // from the current frame, instead of replaying an enter/exit animation.
+  const contentTransition = reduceMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 370, damping: 40, mass: 0.85 };
+  const dock = mobile ? (
+    <div className="relative h-full w-full">
+      <motion.div
+        aria-hidden={!showActions}
+        inert={!showActions}
+        initial={false}
+        animate={{ opacity: showActions ? 1 : 0, scale: showActions ? 1 : 0.97 }}
+        transition={contentTransition}
+        className={cn(
+          "absolute inset-0 flex items-center gap-1.5",
+          !showActions && "pointer-events-none",
+        )}
+      >
+        <div className="flex min-w-0 flex-1 items-center">{actions}</div>
         <button
           type="button"
           aria-label="Search music"
@@ -321,23 +355,44 @@ export default function DiscoverySearch({
             setIsFocused(true);
             requestAnimationFrame(() => inputRef.current?.focus());
           }}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-[45px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-tab-active)] text-foreground transition-[background-color,transform] duration-150 hover:bg-[var(--kocteau-dock-tab-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
         >
-          <span className="flex size-9 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] ring-1 ring-inset ring-white/[0.08]">
-            <KocteauSearchIcon className="size-[1.125rem]" />
-          </span>
+          <KocteauSearchIcon className="size-[1.125rem]" />
         </button>
-      </div>
-    ) : (
-      <div className="grid gap-1">
-        {mobile ? <div data-discovery-mobile-filters /> : null}
+      </motion.div>
+      <motion.div
+        aria-hidden={showActions}
+        inert={showActions}
+        initial={false}
+        animate={{ opacity: showActions ? 0 : 1, scale: showActions ? 1.03 : 1 }}
+        transition={contentTransition}
+        className={cn("absolute inset-0", showActions && "pointer-events-none")}
+      >
         {searchForm}
-      </div>
-    );
+      </motion.div>
+    </div>
+  ) : (
+    searchForm
+  );
 
   return (
     <>
       {createPortal(dock, inputPortalTarget)}
+      {mobile && filterPortalTarget
+        ? createPortal(
+            <motion.div
+              inert={showActions}
+              aria-hidden={showActions}
+              initial={false}
+              animate={{ opacity: showActions ? 0 : 1, y: showActions ? 5 : 0 }}
+              transition={contentTransition}
+              className={cn(showActions && "pointer-events-none")}
+            >
+              <div data-discovery-mobile-filters />
+            </motion.div>,
+            filterPortalTarget,
+          )
+        : null}
       {portaledResultList}
       {!mobile && showActions && desktopActionsTarget
         ? createPortal(actions, desktopActionsTarget)

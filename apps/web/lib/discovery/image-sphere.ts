@@ -162,6 +162,9 @@ export class ImageSphere {
   private velY = 0;
   private lastDX = 0;
   private lastDY = 0;
+  private activePointerId: number | null = null;
+  private lastPointerTimestamp = 0;
+  private lastDragSampleTimestamp = 0;
   private invQuat = new THREE.Quaternion();
   private worldPos = new THREE.Vector3();
   private centerPos = new THREE.Vector3();
@@ -174,6 +177,8 @@ export class ImageSphere {
   private disposed = false;
   private pointerCanHover = false;
   private imageGeneration = 0;
+  private lastImageUrls: string[] | null = null;
+  private pendingResize = false;
   private ro?: ResizeObserver;
   private cleanup: Array<() => void> = [];
   private removalTimers = new Set<ReturnType<typeof setTimeout>>();
@@ -240,9 +245,18 @@ export class ImageSphere {
       return;
     }
 
+    const nextUrls = Array.from(new Set(urls));
+    // New React arrays with identical covers must not cancel in-flight textures.
+    if (
+      this.lastImageUrls &&
+      this.anchorIndex === anchorIndex &&
+      this.lastImageUrls.length === nextUrls.length &&
+      this.lastImageUrls.every((url, index) => url === nextUrls[index])
+    ) return;
+
+    this.lastImageUrls = nextUrls;
     const generation = ++this.imageGeneration;
     this.anchorIndex = anchorIndex;
-    const nextUrls = Array.from(new Set(urls));
     const nextUrlSet = new Set(nextUrls);
     const reusableByUrl = new Map<string, PlaneMesh>();
 
@@ -337,12 +351,21 @@ export class ImageSphere {
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = "anonymous";
 
-    nextUrls.forEach((url, index) => {
-      if (reusableByUrl.has(url)) {
-        return;
-      }
-
-      loader.load(url, (texture) => {
+    // Avoid 16 simultaneous image decodes / GPU uploads on mobile.
+    // Loading four covers at a time keeps the first results responsive.
+    const pending = nextUrls
+      .map((url, index) => ({ url, index }))
+      .filter(({ url }) => !reusableByUrl.has(url));
+    const maxConcurrent = this.width < 640 ? 4 : 6;
+    let cursor = 0;
+    let active = 0;
+    const pump = () => {
+      if (this.disposed || generation !== this.imageGeneration) return;
+      while (active < maxConcurrent && cursor < pending.length) {
+        const { url, index } = pending[cursor++];
+        active += 1;
+        loader.load(url, (texture) => {
+          active -= 1;
         if (this.disposed || generation !== this.imageGeneration) {
           texture.dispose();
           return;
@@ -404,8 +427,14 @@ export class ImageSphere {
           this.readyNotified = true;
           this.onReady?.();
         }
-      });
-    });
+        pump();
+        }, undefined, () => {
+          active -= 1;
+          pump();
+        });
+      }
+    };
+    pump();
   }
 
   private removePlane(plane: PlaneMesh) {
@@ -452,18 +481,41 @@ export class ImageSphere {
   private bindEvents() {
     const host = this.host;
     const localMouse = (clientX: number, clientY: number) => {
+      // Only measure bounds for hover/tap, never on every captured drag event.
       const rect = host.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
       this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -(((clientY - rect.top) / rect.height) * 2 - 1);
     };
 
     let downX = 0;
     let downY = 0;
+    const release = (applyInertia: boolean) => {
+      if (!this.dragging) return;
+
+      this.dragging = false;
+      const wasMovingRecently = performance.now() - this.lastDragSampleTimestamp < 85;
+      const shouldFlick = applyInertia && wasMovingRecently && !this.reducedMotion;
+      this.velY = shouldFlick ? this.lastDX * FLICK_SCALE : 0;
+      this.velX = shouldFlick ? -this.lastDY * FLICK_SCALE : 0;
+      this.activePointerId = null;
+      this.renderer.domElement.style.cursor = "grab";
+      // Safari's URL bar can adjust viewport height during an upward swipe.
+      // Avoid reallocating the WebGL drawing buffer in the middle of the drag.
+      if (this.pendingResize) {
+        this.pendingResize = false;
+        this.resize();
+      }
+    };
     const onDown = (event: PointerEvent) => {
+      if (this.activePointerId !== null || !event.isPrimary) return;
       localMouse(event.clientX, event.clientY);
       this.dragging = true;
+      this.activePointerId = event.pointerId;
       this.startX = event.clientX;
       this.startY = event.clientY;
+      this.lastPointerTimestamp = event.timeStamp;
+      this.lastDragSampleTimestamp = performance.now();
       downX = event.clientX;
       downY = event.clientY;
       this.velX = 0;
@@ -472,49 +524,46 @@ export class ImageSphere {
       this.lastDY = 0;
       this.setPressed(this.pick());
       this.renderer.domElement.style.cursor = "grabbing";
-      this.renderer.domElement.setPointerCapture(event.pointerId);
+      // Capture on the same element that receives pointermove, so a vertical
+      // drag can leave the canvas bounds without becoming a new gesture.
+      host.setPointerCapture(event.pointerId);
     };
     const onMove = (event: PointerEvent) => {
-      localMouse(event.clientX, event.clientY);
-
       if (!this.dragging) {
+        if (this.pointerCanHover) localMouse(event.clientX, event.clientY);
         return;
       }
+      if (event.pointerId !== this.activePointerId) return;
 
-      if (Math.hypot(event.clientX - downX, event.clientY - downY) > CLICK_SLOP) {
+      // Coalesced events let iOS deliver the most recent touch position when
+      // its event loop batches moves. We care about the total displacement.
+      const coalesced = event.getCoalescedEvents?.();
+      const point = coalesced?.length ? coalesced[coalesced.length - 1] : event;
+      if (Math.hypot(point.clientX - downX, point.clientY - downY) > CLICK_SLOP) {
         this.setPressed(null);
       }
 
-      const deltaX = event.clientX - this.startX;
-      const deltaY = event.clientY - this.startY;
+      const deltaX = point.clientX - this.startX;
+      const deltaY = point.clientY - this.startY;
       this.rotationY += deltaX;
       this.rotationX -= deltaY;
-      this.lastDX = deltaX;
-      this.lastDY = deltaY;
-      this.startX = event.clientX;
-      this.startY = event.clientY;
-    };
-    const release = () => {
-      if (!this.dragging) {
-        return;
-      }
 
-      this.dragging = false;
-      this.velY = this.lastDX * FLICK_SCALE;
-      this.velX = -this.lastDY * FLICK_SCALE;
-
-      if (this.reducedMotion) {
-        this.velX = 0;
-        this.velY = 0;
-      }
-
-      this.renderer.domElement.style.cursor = "grab";
+      // Normalize the final flick impulse to 60Hz, regardless of whether the
+      // browser batches events or dispatches them at 60/120Hz.
+      const elapsed = Math.max(1, point.timeStamp - this.lastPointerTimestamp);
+      const perFrame = Math.min(2.5, 16.667 / elapsed);
+      this.lastDX = deltaX * perFrame;
+      this.lastDY = deltaY * perFrame;
+      this.lastPointerTimestamp = point.timeStamp;
+      this.lastDragSampleTimestamp = performance.now();
+      this.startX = point.clientX;
+      this.startY = point.clientY;
     };
     const onUp = (event: PointerEvent) => {
+      if (event.pointerId !== this.activePointerId) return;
       const moved = Math.hypot(event.clientX - downX, event.clientY - downY);
       const pressed = this.pressed;
-      release();
-
+      release(true);
       if (moved > CLICK_SLOP || !this.running) {
         this.setPressed(null);
         return;
@@ -525,35 +574,50 @@ export class ImageSphere {
       localMouse(event.clientX, event.clientY);
       const hit = pressed ?? this.pick();
       this.setPressed(null);
-
-      if (hit) {
-        this.onSelect?.(hit.userData.index as number);
-      }
+      if (hit) this.onSelect?.(hit.userData.index as number);
+    };
+    const onCancel = (event: PointerEvent) => {
+      if (event.pointerId !== this.activePointerId) return;
+      release(false);
+      this.setPressed(null);
+      this.mouse.set(-2, -2);
+    };
+    const onLostCapture = (event: PointerEvent) => {
+      if (event.pointerId !== this.activePointerId) return;
+      release(false);
+      this.setPressed(null);
     };
     const onLeave = () => {
-      release();
+      // On touch, pointer capture deliberately persists past the visual bounds.
+      // Releasing here was cutting vertical drags short on mobile Safari.
+      if (this.dragging) return;
       this.setPressed(null);
       this.mouse.set(-2, -2);
     };
-    const onCancel = () => {
-      release();
-      this.setPressed(null);
-      this.mouse.set(-2, -2);
-    };
+
+    host.style.touchAction = "none";
     host.addEventListener("pointerdown", onDown);
     host.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onCancel);
+    host.addEventListener("lostpointercapture", onLostCapture);
     host.addEventListener("pointerleave", onLeave);
     this.cleanup.push(() => {
       host.removeEventListener("pointerdown", onDown);
       host.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onCancel);
+      host.removeEventListener("lostpointercapture", onLostCapture);
       host.removeEventListener("pointerleave", onLeave);
+      host.style.removeProperty("touch-action");
     });
-
-    this.ro = new ResizeObserver(() => this.resize());
+    this.ro = new ResizeObserver(() => {
+      if (this.dragging) {
+        this.pendingResize = true;
+        return;
+      }
+      this.resize();
+    });
     this.ro.observe(host);
   }
 
@@ -565,7 +629,7 @@ export class ImageSphere {
     const width = this.host.clientWidth;
     const height = this.host.clientHeight;
 
-    if (!width || !height) {
+    if (!width || !height || (width === this.width && height === this.height)) {
       return;
     }
 
@@ -671,8 +735,9 @@ export class ImageSphere {
       : getFrameEase(SCALE_EASE, deltaSeconds);
 
     if (!this.dragging && (this.velX !== 0 || this.velY !== 0)) {
-      this.rotationY += this.velY;
-      this.rotationX -= this.velX;
+      const frameScale = deltaSeconds * 60;
+      this.rotationY += this.velY * frameScale;
+      this.rotationX -= this.velX * frameScale;
       const inertiaDecay = Math.pow(INERTIA_DECAY, deltaSeconds * 60);
       this.velX *= inertiaDecay;
       this.velY *= inertiaDecay;
@@ -697,6 +762,8 @@ export class ImageSphere {
       this.hoverDetection();
     }
 
+    // The sphere group is rotation-only at the origin: direct quaternion
+    // projection avoids repeated scene graph traversal and stale matrix reads.
     this.invQuat.copy(this.group.quaternion).invert();
 
     for (const plane of this.planes) {
@@ -707,7 +774,7 @@ export class ImageSphere {
       if (isAnchor) {
         this.centerPos.set(0, 0, ANCHOR_WORLD_Z);
         this.tmpPos.copy(this.centerPos);
-        this.group.worldToLocal(this.tmpPos);
+        this.tmpPos.applyQuaternion(this.invQuat);
         home.lerp(this.tmpPos, homeEase);
       } else if (homeTarget) {
         home.lerp(homeTarget, homeEase);
@@ -723,7 +790,7 @@ export class ImageSphere {
         plane.position.copy(home);
       }
 
-      plane.getWorldPosition(this.worldPos);
+      this.worldPos.copy(plane.position).applyQuaternion(this.group.quaternion);
       const depth = this.worldPos.z;
       const depthScale = getDepthScale(depth);
       const isHovered = plane.userData.isHovered === true;
@@ -783,13 +850,13 @@ export class ImageSphere {
       if (plane.userData.isAnchor === true) {
         this.centerPos.set(0, 0, ANCHOR_WORLD_Z);
         this.tmpPos.copy(this.centerPos);
-        this.group.worldToLocal(this.tmpPos);
+        this.tmpPos.applyQuaternion(this.invQuat);
         plane.position.copy(this.tmpPos);
       }
 
       plane.quaternion.copy(this.invQuat);
       plane.rotateZ((plane.userData.tilt as number | undefined) ?? 0);
-      plane.getWorldPosition(this.worldPos);
+      this.worldPos.copy(plane.position).applyQuaternion(this.group.quaternion);
       const depth = this.worldPos.z;
       const depthScale = getDepthScale(depth);
       const isAnchor = plane.userData.isAnchor === true;
