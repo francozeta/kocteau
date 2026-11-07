@@ -160,14 +160,15 @@ export function buildSiteGraphJsonLd() {
 
 export function buildHomePageJsonLd() {
   const siteUrl = absoluteUrl("/");
+  const homeUrl = absoluteUrl("/home");
 
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebPage",
-        "@id": `${siteUrl}#webpage`,
-        url: siteUrl,
+        "@id": `${homeUrl}#webpage`,
+        url: homeUrl,
         name: "Music reviews from real listeners",
         description:
           "Keep a record of what music leaves behind. Read track reviews, save listening notes, and discover music through people whose taste you trust.",

@@ -51,7 +51,7 @@ export default async function TasteOnboardingPage({
   }
 
   if (profile?.taste_onboarded && !isEditMode) {
-    redirect(nextPath ?? "/feed");
+    redirect(nextPath ?? "/");
   }
 
   const [{ data: tags }, { data: selectedTags }] = await Promise.all([

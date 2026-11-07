@@ -1,8 +1,7 @@
 import Link from "next/link";
 import BrandLogo from "@/components/brand/brand-logo";
 import ProgressiveMobileHeaderBlur from "@/components/shell/progressive-mobile-header-blur";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import LandingSessionAction from "@/components/landing/landing-session-action";
 
 export default function GuestHeader() {
   return (
@@ -15,7 +14,7 @@ export default function GuestHeader() {
         <ProgressiveMobileHeaderBlur canvas="landing" />
         <div className="relative z-10 flex h-12 w-full translate-y-[5px] items-center justify-between px-4 sm:h-16 sm:translate-y-0 sm:px-6">
           <Link
-            href="/"
+            href="/home"
             className="-m-2 inline-flex items-center rounded-full p-2 transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
             aria-label="Kocteau home"
           >
@@ -27,7 +26,7 @@ export default function GuestHeader() {
             className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3 sm:gap-5"
           >
             <Link
-              href="/"
+              href="/home"
               aria-current="page"
               className="hidden font-circular text-[12px] font-medium leading-5 text-foreground transition-colors duration-150 sm:block sm:text-[13px]"
             >
@@ -47,15 +46,7 @@ export default function GuestHeader() {
             </Link>
           </nav>
 
-          <Link
-            href="/login"
-            className={cn(
-              buttonVariants({ variant: "default", size: "sm" }),
-              "h-8 rounded-full border-0 px-2.5 font-circular text-[12px] font-medium shadow-none sm:px-3 sm:text-[13px]",
-            )}
-          >
-            Log in
-          </Link>
+          <LandingSessionAction />
         </div>
       </header>
     </>

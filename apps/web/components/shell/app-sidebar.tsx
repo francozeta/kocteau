@@ -106,6 +106,11 @@ function SidebarHeaderAction({
     </button>
   );
 
+  // Touch users already see the button labels in the open sidebar.
+  // Do not mount a tooltip trigger on mobile: long taps could leave
+  // floating desktop shortcuts visible over the drawer.
+  if (isMobile) return action;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>{action}</TooltipTrigger>
@@ -172,9 +177,9 @@ export default function AppSidebar({
   const mainItems = [
     {
       title: "Feed",
-      url: profile ? "/feed" : "/",
+      url: profile ? "/" : "/home",
       icon: KocteauHomeIcon,
-      isActive: profile ? pathname === "/feed" : pathname === "/",
+      isActive: profile ? pathname === "/" : pathname === "/home",
     },
     {
       title: "Search",
@@ -273,7 +278,7 @@ export default function AppSidebar({
                   className={sidebarPrimaryNavButtonClassName}
                 >
                   <PrefetchLink
-                    href="/feed"
+                    href="/"
                     onClick={() => {
                       setAppRouteTransitionDirection(-1);
                       closeMobileSidebar();
@@ -288,7 +293,7 @@ export default function AppSidebar({
           ) : (
             <div className="flex min-h-10 items-center justify-between gap-2 px-1.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0">
               <PrefetchLink
-                href={profile ? "/feed" : "/"}
+                href={profile ? "/" : "/home"}
                 onClick={closeMobileSidebar}
                 queryWarmup={{ kind: "feed" }}
                 aria-label="Kocteau home"

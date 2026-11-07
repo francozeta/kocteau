@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { isFeedView } from "@/lib/feed-view";
 import {
   getShortRouteId,
   isFullUuid,
@@ -158,6 +157,7 @@ async function publicRouteExists(lookup: PublicRouteLookup) {
 function canReceiveAuthCallback(pathname: string) {
   return (
     pathname === "/" ||
+    pathname === "/home" ||
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/onboarding" ||
@@ -185,21 +185,6 @@ function copyResponseCookies(source: NextResponse, target: NextResponse) {
   });
 }
 
-function getFeedLoginRedirect(request: NextRequest, response?: NextResponse) {
-  const loginUrl = request.nextUrl.clone();
-  const nextPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
-
-  loginUrl.pathname = "/login";
-  loginUrl.search = "";
-  loginUrl.searchParams.set("next", nextPath);
-  const redirectResponse = NextResponse.redirect(loginUrl);
-
-  if (response) {
-    copyResponseCookies(response, redirectResponse);
-  }
-
-  return redirectResponse;
-}
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -243,9 +228,22 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(callbackUrl);
   }
 
+  // Keep historical Feed links working without a second app-facing route.
+  if (pathname === "/feed") {
+    const target = request.nextUrl.clone();
+    target.pathname = "/";
+    return NextResponse.redirect(target, 308);
+  }
+
   const hasSbCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
   if (!hasSbCookie) {
-    return pathname === "/feed" ? getFeedLoginRedirect(request) : response;
+    if (pathname === "/") {
+      const target = request.nextUrl.clone();
+      target.pathname = "/home";
+      target.search = "";
+      return NextResponse.redirect(target);
+    }
+    return response;
   }
 
   const supabase = createServerClient(
@@ -271,31 +269,12 @@ export async function proxy(request: NextRequest) {
 
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
 
-  if (pathname === "/feed" && (claimsError || !claimsData?.claims?.sub)) {
-    return getFeedLoginRedirect(request, response);
-  }
-
-  if (pathname === "/" && !claimsError && claimsData?.claims?.sub) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/feed";
-    redirectUrl.search = "";
-    const requestedView = request.nextUrl.searchParams.get("view") ?? undefined;
-
-    if (
-      isFeedView(requestedView) &&
-      requestedView !== "for-you" &&
-      requestedView !== "latest"
-    ) {
-      redirectUrl.searchParams.set("view", requestedView);
-    }
-
-    if (request.nextUrl.searchParams.get("welcome") === "kocteau") {
-      redirectUrl.searchParams.set("welcome", "kocteau");
-    }
-
-    const redirectResponse = NextResponse.redirect(redirectUrl);
+  if (pathname === "/" && (claimsError || !claimsData?.claims?.sub)) {
+    const target = request.nextUrl.clone();
+    target.pathname = "/home";
+    target.search = "";
+    const redirectResponse = NextResponse.redirect(target);
     copyResponseCookies(response, redirectResponse);
-
     return redirectResponse;
   }
 

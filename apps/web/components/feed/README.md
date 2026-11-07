@@ -2,7 +2,7 @@
 
 ## Entry Points
 
-- Route: `app/(main)/feed/page.tsx`; composition: `authenticated-feed-surface.tsx`.
+- Canonical route: `app/(main)/page.tsx` (`/` with session); `/feed` retains only a compatibility redirect. Composition: `authenticated-feed-surface.tsx`.
 - Views and lists: `feed-view-tabs.tsx`, `feed-review-list.tsx`.
 - Discovery: `feed-starter-layer.tsx`, `feed-starter-shelf.tsx`, `feed-in-rotation-shelf.tsx`.
 - Reads: `lib/queries/feed.ts`; client state: `queries/feed.ts`.

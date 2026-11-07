@@ -526,7 +526,9 @@ function SidebarMenuButton({
     />
   )
 
-  if (!tooltip) {
+  // Preserve the collapsed-desktop hover tooltip, but never attach its
+  // trigger to mobile navigation items (including Sheet/Drawer touch users).
+  if (!tooltip || isMobile) {
     return button
   }
 

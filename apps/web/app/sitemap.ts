@@ -155,7 +155,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: new URL("/", metadataBase).toString(),
+      url: new URL("/home", metadataBase).toString(),
       changeFrequency: "hourly",
       priority: 1,
     },

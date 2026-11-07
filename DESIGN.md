@@ -73,6 +73,14 @@ Prefer:
 - Buttons should have at least a 40px usable hit area on touch surfaces.
 - Use `active:scale-[0.96]` for tactile press feedback when it fits the control.
 - Icon and text controls need optical alignment, not just geometric centering.
+- Sidebar and bottom navigation icons keep the same regular/outline glyph in
+  active and inactive states. Communicate the active route with the surface,
+  label and `aria-current`, not a filled icon variant.
+- Sidebar shortcut tooltips are desktop-only; mobile drawers show their labels
+  directly and must not leave hover/long-press tooltip overlays behind.
+- Continue the staged Radix → Base UI migration in #232 and #234. Do not
+  replace the Sheet/Tooltip primitives ad hoc in a navigation styling PR;
+  verify focus return, escape/dismiss, and mobile gestures per migrated family.
 - Copy/save/like/bookmark feedback should happen close to the control whenever
   possible. Avoid redundant toast noise for success states that can be shown
   inline.
@@ -154,12 +162,12 @@ Avoid motion on:
   in its existing header. On mobile, keep two mounted dock surfaces: primary
   navigation (Home, Reviews, Library and Profile when authenticated) and a
   separate right-side Search capsule. Opening Search contracts the left
-  navigation into a one-tap return to the previous in-app route and expands
+  navigation into a one-tap return to the canonical Feed route (`/`) and expands
   that same right Search capsule into the input (or selected-music actions).
   All transitions must be interruptible/reversible; no third floating bar
   replaces the dock. The X inside Search clears the text, not the route.
   Review-detail comments may use an independent contextual shelf. The public
-  landing page does not mount the app dock. The active tab uses a surface and
+  landing page (`/home`) does not mount the app dock. The active tab uses a surface and
   label, while **all navigation icons retain regular/outline weight**.
 - Floating covers, negative space, and restrained spatial disorder carry the
   personality. Do not replace the canvas with a dashboard or a visible graph.

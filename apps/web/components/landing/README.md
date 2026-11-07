@@ -4,7 +4,7 @@
 
 - Public home: `guest-home.tsx`; navigation: `guest-header.tsx`, `guest-footer.tsx`.
 - Supporting visuals and testimonials stay in this directory.
-- Signed-in home redirects to `/feed` through `proxy.ts`.
+- Public landing is `/home` for everyone, with canonical metadata and public caching. The header CTA shows **Open app** after a browser session is detected; signed-out `/` requests redirect to `/home` through `proxy.ts`.
 
 ## Preserve
 
@@ -14,7 +14,7 @@ in [DESIGN.md](../../../../DESIGN.md).
 
 ## Check
 
-Run lint and the web build. Check public navigation, signed-in redirect, mobile
+Run lint and the web build. Check `/home` for both auth states, signed-out root redirect, signed-in `/` Feed, mobile
 overflow, keyboard focus, reduced motion, and the documentation footer link.
 
 ## Data Boundaries

@@ -3,7 +3,7 @@ import { getMetadataBase } from "@/lib/metadata";
 
 export default function robots(): MetadataRoute.Robots {
   const metadataBase = getMetadataBase();
-  const publicAllow = ["/"];
+  const publicAllow = ["/", "/home"];
   const privateDisallow = [
     "/login",
     "/signup",

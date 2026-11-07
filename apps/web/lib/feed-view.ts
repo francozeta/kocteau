@@ -27,5 +27,5 @@ export function getAuthenticatedFeedView(
 }
 
 export function getFeedViewHref(view: FeedView) {
-  return view === "for-you" ? "/feed" : `/feed?view=${view}`;
+  return view === "for-you" ? "/" : `/?view=${view}`;
 }

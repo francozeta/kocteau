@@ -95,7 +95,7 @@ export default function Header({
       return detailHeader?.shareLabel ?? "Review";
     }
 
-    if (pathname === "/feed") {
+    if (pathname === "/") {
       return "Feed";
     }
 
@@ -140,7 +140,7 @@ export default function Header({
     router.push(
       isProfileDetailRoute
         ? profile
-          ? "/feed"
+          ? "/"
           : "/"
         : isMobileReviewRoute
           ? "/reviews"

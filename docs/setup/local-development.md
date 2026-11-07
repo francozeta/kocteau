@@ -53,8 +53,7 @@ pnpm supabase:types
 pnpm dev:web
 ```
 
-Open [localhost:3000](http://localhost:3000). `/` is the public landing; signed-in
-listeners reach For You at `/feed`. The local email inbox shown by Supabase status,
+Open [localhost:3000/home](http://localhost:3000/home) for the public landing. `/` is the personalized For You route with a valid session and redirects anonymous visitors to `/home`. The local email inbox shown by Supabase status,
 normally [localhost:54324](http://127.0.0.1:54324), captures six-digit OTP codes for
 `/login` and `/signup`.
 

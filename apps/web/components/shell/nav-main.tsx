@@ -49,6 +49,7 @@ export function NavMain({
                 {item.external ? (
                   <a
                     href={item.url}
+                    aria-current={item.isActive ? "page" : undefined}
                     target="_blank"
                     rel="noreferrer"
                     onClick={() => {
@@ -56,18 +57,19 @@ export function NavMain({
                       onNavigate?.();
                     }}
                   >
-                    <item.icon weight={item.isActive ? "fill" : "regular"} />
+                    <item.icon weight="regular" />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </a>
                 ) : (
                   <Link
                     href={item.url}
+                    aria-current={item.isActive ? "page" : undefined}
                     onClick={() => {
                       item.onClick?.();
                       onNavigate?.();
                     }}
                   >
-                    <item.icon weight={item.isActive ? "fill" : "regular"} />
+                    <item.icon weight="regular" />
                     <span className="kocteau-sidebar-label">{item.title}</span>
                   </Link>
                 )}
