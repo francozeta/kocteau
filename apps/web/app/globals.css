@@ -1444,9 +1444,9 @@
   .kocteau-mobile-header-blur-tint {
     background: linear-gradient(
       to bottom,
-      color-mix(in oklab, var(--kocteau-mobile-header-canvas, var(--kocteau-document-canvas)) 82%, transparent),
-      color-mix(in oklab, var(--kocteau-mobile-header-canvas, var(--kocteau-document-canvas)) 42%, transparent) 38%,
-      color-mix(in oklab, var(--kocteau-mobile-header-canvas, var(--kocteau-document-canvas)) 12%, transparent) 72%,
+      color-mix(in oklab, var(--kocteau-mobile-header-canvas, var(--kocteau-document-canvas)) 76%, transparent),
+      color-mix(in oklab, var(--kocteau-mobile-header-canvas, var(--kocteau-document-canvas)) 36%, transparent) 38%,
+      color-mix(in oklab, var(--kocteau-mobile-header-canvas, var(--kocteau-document-canvas)) 9%, transparent) 72%,
       transparent
     );
   }
