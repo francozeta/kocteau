@@ -154,12 +154,12 @@ Avoid motion on:
   in its existing header. On mobile, keep two mounted dock surfaces: primary
   navigation (Home, Reviews, Library and Profile when authenticated) and a
   separate right-side Search capsule. Opening Search contracts the left
-  navigation into a one-tap return to the previous in-app route and expands
+  navigation into a one-tap return to the canonical Feed route (`/`) and expands
   that same right Search capsule into the input (or selected-music actions).
   All transitions must be interruptible/reversible; no third floating bar
   replaces the dock. The X inside Search clears the text, not the route.
   Review-detail comments may use an independent contextual shelf. The public
-  landing page does not mount the app dock. The active tab uses a surface and
+  landing page (`/home`) does not mount the app dock. The active tab uses a surface and
   label, while **all navigation icons retain regular/outline weight**.
 - Floating covers, negative space, and restrained spatial disorder carry the
   personality. Do not replace the canvas with a dashboard or a visible graph.
