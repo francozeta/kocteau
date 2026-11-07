@@ -49,15 +49,17 @@ type NavItem = {
 // Keep this decorative and behind the three mobile dock variants.
 const BOTTOM_BLUR_STRENGTHS = [1, 3, 6] as const;
 
-function BottomBlur({ expanded = false }: { expanded?: boolean }) {
+function BottomBlur({ mode = "standard" }: { mode?: "standard" | "search" | "review" }) {
   return (
     <div
       aria-hidden="true"
       className={cn(
         "pointer-events-none fixed inset-x-0 bottom-0 z-40 overflow-hidden md:hidden",
-        expanded
+        mode === "review"
           ? "h-[calc(13rem+env(safe-area-inset-bottom))]"
-          : "h-[calc(7rem+env(safe-area-inset-bottom))]",
+          : mode === "search"
+            ? "h-[calc(9rem+env(safe-area-inset-bottom))]"
+            : "h-[calc(7rem+env(safe-area-inset-bottom))]",
       )}
     >
       {BOTTOM_BLUR_STRENGTHS.map((blur, index) => (
@@ -165,7 +167,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   return (
     <>
-      <BottomBlur expanded={isSearchRoute || isReviewDetail} />
+      <BottomBlur mode={isReviewDetail ? "review" : isSearchRoute ? "search" : "standard"} />
       {/* Filters float above the dock; the dock itself is one stable surface. */}
       {isSearchRoute ? (
         <div

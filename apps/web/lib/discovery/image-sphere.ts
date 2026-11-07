@@ -351,12 +351,21 @@ export class ImageSphere {
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = "anonymous";
 
-    nextUrls.forEach((url, index) => {
-      if (reusableByUrl.has(url)) {
-        return;
-      }
-
-      loader.load(url, (texture) => {
+    // Avoid 16 simultaneous image decodes / GPU uploads on mobile.
+    // Loading four covers at a time keeps the first results responsive.
+    const pending = nextUrls
+      .map((url, index) => ({ url, index }))
+      .filter(({ url }) => !reusableByUrl.has(url));
+    const maxConcurrent = this.width < 640 ? 4 : 6;
+    let cursor = 0;
+    let active = 0;
+    const pump = () => {
+      if (this.disposed || generation !== this.imageGeneration) return;
+      while (active < maxConcurrent && cursor < pending.length) {
+        const { url, index } = pending[cursor++];
+        active += 1;
+        loader.load(url, (texture) => {
+          active -= 1;
         if (this.disposed || generation !== this.imageGeneration) {
           texture.dispose();
           return;
@@ -418,8 +427,14 @@ export class ImageSphere {
           this.readyNotified = true;
           this.onReady?.();
         }
-      });
-    });
+        pump();
+        }, undefined, () => {
+          active -= 1;
+          pump();
+        });
+      }
+    };
+    pump();
   }
 
   private removePlane(plane: PlaneMesh) {
