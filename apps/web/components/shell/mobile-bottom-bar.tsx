@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ComponentType, type CSSProperties, type SVGProps } from "react";
+import { useState, type ComponentType, type CSSProperties, type SVGProps } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
@@ -124,15 +124,20 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   const isSearchRoute = pathname.startsWith("/search");
   const fallbackRoute = profile ? "/feed" : "/reviews";
-  const [previousRoute, setPreviousRoute] = useState(fallbackRoute);
+  const [observedRoute, setObservedRoute] = useState(pathname);
+  const [previousRoute, setPreviousRoute] = useState(
+    pathname !== "/" && !isSearchRoute ? pathname : fallbackRoute,
+  );
 
-  // Remember the actual in-app page rather than relying on browser history
-  // (which may contain Search's canvas/selection states or an external page).
-  useEffect(() => {
-    if (!isSearchRoute && pathname !== "/") {
+  // When the route prop changes, adjust the last known non-Search destination
+  // in render (React's guarded previous-prop state pattern). Avoid a state
+  // update inside an effect, and retain the route while Search is active.
+  if (observedRoute !== pathname) {
+    setObservedRoute(pathname);
+    if (pathname !== "/" && !isSearchRoute) {
       setPreviousRoute(pathname);
     }
-  }, [isSearchRoute, pathname]);
+  }
 
   // The public landing intentionally has no app dock.
   if (!isMobile || pathname === "/") return null;
