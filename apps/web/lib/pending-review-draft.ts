@@ -31,7 +31,7 @@ export type StoredPendingReviewDraft = PendingReviewDraft & {
 export const pendingReviewDraftStorageKey = "kocteau:pending-review-draft";
 
 export function getPendingReviewDraftReturnPath() {
-  return "/feed?compose=1&draft=review";
+  return "/?compose=1&draft=review";
 }
 
 export function getPendingReviewDraftLoginPath() {

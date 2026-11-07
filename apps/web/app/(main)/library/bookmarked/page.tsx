@@ -45,7 +45,7 @@ export default async function LibraryBookmarkedPage() {
             </EmptyHeader>
             <CardContent className="p-0 pt-2">
               <PrefetchLink
-                href="/feed"
+                href="/"
                 queryWarmup={{ kind: "feed" }}
                 className="inline-flex min-h-10 items-center rounded-full bg-white/[0.08] px-4 text-sm font-medium text-foreground transition-[transform,background-color] duration-150 hover:bg-white/[0.12] active:scale-[0.96]"
               >
