@@ -1,79 +1,15 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
-import { OnboardingWelcomeFromUrl } from "@/components/auth/onboarding-welcome-dialog";
-import AuthenticatedFeedSurface from "@/components/feed/authenticated-feed-surface";
-import { getCurrentUserId, getCurrentViewerProfile } from "@/lib/auth/server";
-import { getAuthenticatedFeedView } from "@/lib/feed-view";
-import { createPageMetadata } from "@/lib/metadata";
-import { measureServerTask } from "@/lib/perf";
-import { getFeedPageBundle } from "@/lib/queries/feed";
-import { getStarterTracksForSurface } from "@/lib/queries/starter";
-
-export const dynamic = "force-dynamic";
-
-export const metadata = createPageMetadata({
-  title: "Feed",
-  description: "Your Kocteau music review feed.",
-  path: "/feed",
-  noIndex: true,
-});
-
-export default async function FeedPage({
+// Keep historical links usable; "/" is the authenticated Feed.
+export default async function LegacyFeedRedirect({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; welcome?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [params, userId] = await Promise.all([
-    searchParams,
-    measureServerTask("getFeedViewer", getCurrentUserId, { route: "/feed" }),
-  ]);
-
-  if (!userId) {
-    redirect("/login?next=/feed");
+  const params = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") query.set(key, value);
   }
-
-  const activeView = getAuthenticatedFeedView(params.view);
-  const starterTracks = getStarterTracksForSurface({
-    viewerId: userId,
-    limit: 6,
-    surface: "home",
-    contextKey: "home",
-  }).catch(() => []);
-  const { feedPage, viewerProfile } = await measureServerTask(
-    "getAuthenticatedFeedData",
-    async () => {
-      const feedPagePromise = getFeedPageBundle(userId, activeView, {
-        includeActiveUsers: false,
-      });
-      const viewerProfilePromise = getCurrentViewerProfile();
-      const [feedPage, viewerProfile] = await Promise.all([
-        feedPagePromise,
-        viewerProfilePromise,
-      ]);
-      return { feedPage, viewerProfile };
-    },
-    { route: "/feed", view: activeView },
-  );
-  const feedData = {
-    view: feedPage.view,
-    nextCursor: feedPage.nextCursor,
-    activeUsers: [],
-    feed: feedPage.feed.map((review) => ({
-      ...review,
-      viewer_has_liked: feedPage.likedReviewIds.has(review.id),
-      viewer_has_bookmarked: feedPage.bookmarkedReviewIds.has(review.id),
-    })),
-    requiresAuth: false,
-  };
-  return (
-    <>
-      {params.welcome === "kocteau" ? <OnboardingWelcomeFromUrl /> : null}
-      <AuthenticatedFeedSurface
-        initialView={activeView}
-        initialPage={feedData}
-        viewer={viewerProfile}
-        starterTracks={starterTracks}
-      />
-    </>
-  );
+  permanentRedirect(`/${query.size ? `?${query.toString()}` : ""}`);
 }

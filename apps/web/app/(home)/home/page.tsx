@@ -31,7 +31,7 @@ export const metadata = createPageMetadata({
   title: "Music reviews from real listeners",
   description:
     "Keep a record of what music leaves behind. Read track reviews, save listening notes, and discover music through people whose taste you trust.",
-  path: "/",
+  path: "/home",
 });
 
 async function HomeProductPreview({
@@ -107,12 +107,12 @@ export default function HomePage() {
         publicOnly: true,
         revalidateSeconds: 5 * 60,
       }),
-    { route: "/" },
+    { route: "/home" },
   ).then((bundle) => bundle.feed);
   const starterTracks = measureServerTask(
     "getPublicHomeStarters",
     () => getPublicStarterTracks({ limit: 6, contextKey: "home" }),
-    { route: "/" },
+    { route: "/home" },
   );
   return (
     <div
