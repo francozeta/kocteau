@@ -178,6 +178,7 @@ export class ImageSphere {
   private pointerCanHover = false;
   private imageGeneration = 0;
   private lastImageUrls: string[] | null = null;
+  private pendingResize = false;
   private ro?: ResizeObserver;
   private cleanup: Array<() => void> = [];
   private removalTimers = new Set<ReturnType<typeof setTimeout>>();
@@ -484,6 +485,12 @@ export class ImageSphere {
       this.velX = shouldFlick ? -this.lastDY * FLICK_SCALE : 0;
       this.activePointerId = null;
       this.renderer.domElement.style.cursor = "grab";
+      // Safari's URL bar can adjust viewport height during an upward swipe.
+      // Avoid reallocating the WebGL drawing buffer in the middle of the drag.
+      if (this.pendingResize) {
+        this.pendingResize = false;
+        this.resize();
+      }
     };
     const onDown = (event: PointerEvent) => {
       if (this.activePointerId !== null || !event.isPrimary) return;
@@ -589,7 +596,13 @@ export class ImageSphere {
       host.removeEventListener("pointerleave", onLeave);
       host.style.removeProperty("touch-action");
     });
-    this.ro = new ResizeObserver(() => this.resize());
+    this.ro = new ResizeObserver(() => {
+      if (this.dragging) {
+        this.pendingResize = true;
+        return;
+      }
+      this.resize();
+    });
     this.ro.observe(host);
   }
 

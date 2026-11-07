@@ -192,7 +192,8 @@ export default function DiscoveryOrbit({
     const anchor = centerSeed && seed ? 0 : undefined;
     const applied = appliedImagesRef.current;
     if (
-      applied?.anchor === anchor &&
+      applied !== null &&
+      applied.anchor === anchor &&
       applied.urls.length === imageUrls.length &&
       applied.urls.every((url, index) => url === imageUrls[index])
     ) return;
