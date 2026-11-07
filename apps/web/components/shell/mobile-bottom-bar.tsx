@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, type ComponentType, type CSSProperties, type SVGProps } from "react";
+import type { ComponentType, CSSProperties, SVGProps } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import {
-  KocteauChevronLeftMediumIcon,
   KocteauHomeIcon,
   KocteauLibraryIcon,
   KocteauReviewsIcon,
@@ -123,21 +122,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const reduceMotion = useReducedMotion();
 
   const isSearchRoute = pathname.startsWith("/search");
-  const fallbackRoute = profile ? "/feed" : "/reviews";
-  const [observedRoute, setObservedRoute] = useState(pathname);
-  const [previousRoute, setPreviousRoute] = useState(
-    pathname !== "/" && !isSearchRoute ? pathname : fallbackRoute,
-  );
-
-  // When the route prop changes, adjust the last known non-Search destination
-  // in render (React's guarded previous-prop state pattern). Avoid a state
-  // update inside an effect, and retain the route while Search is active.
-  if (observedRoute !== pathname) {
-    setObservedRoute(pathname);
-    if (pathname !== "/" && !isSearchRoute) {
-      setPreviousRoute(pathname);
-    }
-  }
+  // Search always exits to Feed for members, never to the previous route.
+  // Signed-out visitors return to the public Home instead of the auth-gated Feed.
+  const returnRoute = profile ? "/feed" : "/";
+  const returnLabel = profile ? "Feed" : "Home";
 
   // The public landing intentionally has no app dock.
   if (!isMobile || pathname === "/") return null;
@@ -178,12 +166,6 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       : []),
   ];
   const isProfileActive = profile ? pathname.startsWith(`/u/${profile.username}`) : false;
-  const returnTab = navItems.find((item) => item.active(previousRoute));
-  const returnToProfile = Boolean(
-    profile && previousRoute.startsWith(`/u/${profile.username}`),
-  );
-  const ReturnIcon = returnTab?.icon;
-  const returnLabel = returnTab?.label ?? (returnToProfile ? "Profile" : "previous page");
   const dockTransition = reduceMotion
     ? { duration: 0 }
     : { type: "spring" as const, stiffness: 380, damping: 42, mass: 0.9 };
@@ -221,7 +203,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
         )}
       >
         <div className="flex h-[53px] w-full items-center gap-[9px] max-[350px]:gap-[7px]">
-          {/* The existing nav capsule contracts into a real return control. */}
+          {/* The nav capsule contracts into a permanent Feed exit control. */}
           <motion.div
             layout={reduceMotion ? false : "size"}
             transition={{ layout: dockTransition }}
@@ -287,24 +269,12 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
               )}
             >
               <Link
-                href={previousRoute}
+                href={returnRoute}
                 aria-label={`Back to ${returnLabel}`}
                 title={`Back to ${returnLabel}`}
                 className="flex size-[45px] items-center justify-center rounded-full text-foreground/90 transition-colors hover:bg-[var(--kocteau-dock-tab-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
               >
-                {ReturnIcon ? (
-                  <ReturnIcon className="size-[1.2rem]" weight="regular" />
-                ) : returnToProfile && profile ? (
-                  <UserAvatar
-                    avatarUrl={profile.avatar_url}
-                    displayName={profile.display_name}
-                    username={profile.username}
-                    className="size-7"
-                    sizes="28px"
-                  />
-                ) : (
-                  <KocteauChevronLeftMediumIcon className="size-[1.2rem]" weight="regular" />
-                )}
+                <KocteauHomeIcon className="size-[1.2rem]" weight="regular" />
               </Link>
             </motion.div>
           </motion.div>
