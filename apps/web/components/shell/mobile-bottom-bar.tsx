@@ -124,11 +124,11 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const isSearchRoute = pathname.startsWith("/search");
   // Search always exits to Feed for members, never to the previous route.
   // Signed-out visitors return to the public Home instead of the auth-gated Feed.
-  const returnRoute = profile ? "/feed" : "/";
+  const returnRoute = profile ? "/" : "/home";
   const returnLabel = profile ? "Feed" : "Home";
 
   // The public landing intentionally has no app dock.
-  if (!isMobile || pathname === "/") return null;
+  if (!isMobile || pathname === "/home") return null;
 
   const pathSegments = pathname.split("/").filter(Boolean);
   const isReviewDetail =
@@ -139,10 +139,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   const navItems: NavItem[] = [
     {
-      href: profile ? "/feed" : "/",
+      href: profile ? "/" : "/home",
       label: "Home",
       icon: KocteauHomeIcon,
-      active: (current) => current === (profile ? "/feed" : "/"),
+      active: (current) => current === (profile ? "/" : "/home"),
     },
     {
       href: "/reviews",
