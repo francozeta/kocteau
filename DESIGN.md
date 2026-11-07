@@ -73,6 +73,14 @@ Prefer:
 - Buttons should have at least a 40px usable hit area on touch surfaces.
 - Use `active:scale-[0.96]` for tactile press feedback when it fits the control.
 - Icon and text controls need optical alignment, not just geometric centering.
+- Sidebar and bottom navigation icons keep the same regular/outline glyph in
+  active and inactive states. Communicate the active route with the surface,
+  label and `aria-current`, not a filled icon variant.
+- Sidebar shortcut tooltips are desktop-only; mobile drawers show their labels
+  directly and must not leave hover/long-press tooltip overlays behind.
+- Continue the staged Radix → Base UI migration in #232 and #234. Do not
+  replace the Sheet/Tooltip primitives ad hoc in a navigation styling PR;
+  verify focus return, escape/dismiss, and mobile gestures per migrated family.
 - Copy/save/like/bookmark feedback should happen close to the control whenever
   possible. Avoid redundant toast noise for success states that can be shown
   inline.
