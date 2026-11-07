@@ -389,6 +389,20 @@
     0 0 0 1px var(--kocteau-line);
   --kocteau-shadow-control:
     0 0 0 1px var(--kocteau-line-soft);
+  /* Mobile dock surface study: scoped depth tokens, separate from card/control shadows. */
+  --kocteau-dock-surface: #ffffff;
+  --kocteau-dock-review-surface: #ffffff;
+  --kocteau-dock-review-hover: #f5f4f2;
+  --kocteau-dock-tab-hover: rgba(0, 0, 0, 0.045);
+  --kocteau-dock-tab-active: #efeeec;
+  --kocteau-dock-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.065),
+    0 1px 2px -1px rgba(0, 0, 0, 0.08),
+    0 3px 7px rgba(0, 0, 0, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.075);
+  --kocteau-dock-selected-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.035),
+    0 1px 2px rgba(0, 0, 0, 0.035);
   --kocteau-radius-card: 0.82rem;
   --kocteau-radius-control: 0.68rem;
   --kocteau-ease: cubic-bezier(0.2, 0, 0, 1);
@@ -469,6 +483,25 @@
     0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 7%, transparent);
   --kocteau-shadow-control:
     0 0 0 1px color-mix(in oklch, var(--kocteau-gray-12) 5.5%, transparent);
+  --kocteau-dock-surface:
+    color-mix(in oklch, var(--kocteau-gray-2) 60%, var(--kocteau-gray-1));
+  --kocteau-dock-review-surface: var(--kocteau-surface-control);
+  --kocteau-dock-review-hover: var(--kocteau-surface-control-hover);
+  --kocteau-dock-tab-hover: rgba(255, 255, 255, 0.065);
+  --kocteau-dock-tab-active:
+    color-mix(in oklch, var(--kocteau-gray-3) 64%, var(--kocteau-gray-2));
+  --kocteau-dock-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.048),
+    0 0 0 1px rgba(0, 0, 0, 0.19),
+    0 2px 2px rgba(0, 0, 0, 0.14),
+    0 4px 6px rgba(0, 0, 0, 0.16),
+    0 10px 17px rgba(0, 0, 0, 0.16),
+    0 20px 32px rgba(0, 0, 0, 0.14);
+  --kocteau-dock-selected-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.038),
+    0 1px 2px rgba(0, 0, 0, 0.14);
   --kocteau-radius-card: 0.74rem;
   --kocteau-radius-control: 0.62rem;
   background-image: none;
