@@ -159,6 +159,9 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   ];
   const isProfileActive = profile ? pathname.startsWith(`/u/${profile.username}`) : false;
   const reviewEntryLabel = profile ? "Review a track" : "Find a track to review";
+  const dockTransition = reduceMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 380, damping: 42, mass: 0.9 };
 
   return (
     <>
@@ -196,7 +199,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
           {/* This surface never unmounts during in-app route changes. Only its contents morph. */}
           <motion.div
             layout={reduceMotion ? false : "size"}
-            transition={{ layout: { type: "spring", duration: 0.3, bounce: 0 } }}
+            transition={{ layout: dockTransition }}
             className={cn(
               "relative h-[53px] shrink-0 overflow-hidden rounded-full bg-[var(--kocteau-dock-surface)] p-[4px] shadow-[var(--kocteau-dock-shadow)]",
               isSearchRoute
@@ -204,14 +207,15 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
                 : "w-fit",
             )}
           >
-            <div
+            <motion.div
               aria-hidden={isSearchRoute}
               inert={isSearchRoute}
+              initial={false}
+              animate={{ opacity: isSearchRoute ? 0 : 1, scale: isSearchRoute ? 0.96 : 1 }}
+              transition={dockTransition}
               className={cn(
-                "flex h-[45px] items-center gap-0.5 transition-[opacity,transform,filter] duration-200 ease-[var(--kocteau-ease)] motion-reduce:transition-none max-[350px]:gap-0",
-                isSearchRoute
-                  ? "pointer-events-none absolute inset-[4px] scale-[0.97] opacity-0 blur-[2px]"
-                  : "relative scale-100 opacity-100 blur-0",
+                "flex h-[45px] items-center gap-0.5 max-[350px]:gap-0",
+                isSearchRoute ? "pointer-events-none absolute inset-[4px]" : "relative",
               )}
             >
             {navItems.map((item) => (
@@ -245,16 +249,17 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
                 </span>
               </Link>
             ) : null}
-            </div>
-            <div
+            </motion.div>
+            <motion.div
               id="mobile-search-dock"
               aria-hidden={!isSearchRoute}
               inert={!isSearchRoute}
+              initial={false}
+              animate={{ opacity: isSearchRoute ? 1 : 0, scale: isSearchRoute ? 1 : 1.03 }}
+              transition={dockTransition}
               className={cn(
-                "absolute inset-[4px] z-10 transition-[opacity,transform,filter] duration-200 ease-[var(--kocteau-ease)] motion-reduce:transition-none",
-                isSearchRoute
-                  ? "scale-100 opacity-100 blur-0"
-                  : "pointer-events-none scale-[1.02] opacity-0 blur-[2px]",
+                "absolute inset-[4px] z-10",
+                !isSearchRoute && "pointer-events-none",
               )}
             />
           </motion.div>

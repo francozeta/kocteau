@@ -201,7 +201,7 @@ export default function DiscoveryOrbit({
     <div className="relative h-full min-h-0 overflow-hidden">
       <div
         ref={hostRef}
-        className="relative h-full min-h-0 overflow-hidden bg-transparent"
+        className="relative h-full min-h-0 touch-none overflow-hidden bg-transparent"
         aria-label="A draggable 3D sphere of music covers"
       >
         <div

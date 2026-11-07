@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/icons/kocteau-icons";
 import { Input } from "@/components/ui/input";
@@ -321,48 +321,48 @@ export default function DiscoverySearch({
   );
 
   const showActions = Boolean(actions) && !isFocused && !query;
-  const contentTransition = reduceMotion ? { duration: 0 } : { duration: 0.17 };
+  // Both inner states stay mounted. Changing the target interrupts and reverses
+  // from the current frame, instead of replaying an enter/exit animation.
+  const contentTransition = reduceMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 370, damping: 40, mass: 0.85 };
   const dock = mobile ? (
     <div className="relative h-full w-full">
-      <AnimatePresence initial={false} mode="sync">
-        {showActions ? (
-          <motion.div
-            key="selected-music-actions"
-            className="absolute inset-0 flex items-center gap-1.5"
-            initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={contentTransition}
-          >
-            <div className="flex min-w-0 flex-1 items-center">
-              {actions}
-            </div>
-            <button
-              type="button"
-              aria-label="Search music"
-              data-global-search-trigger
-              onClick={() => {
-                setIsFocused(true);
-                requestAnimationFrame(() => inputRef.current?.focus());
-              }}
-              className="flex size-[45px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-tab-active)] text-foreground transition-[background-color,transform] duration-150 hover:bg-[var(--kocteau-dock-tab-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
-            >
-              <KocteauSearchIcon className="size-[1.125rem]" />
-            </button>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="music-search-input"
-            className="absolute inset-0"
-            initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={contentTransition}
-          >
-            {searchForm}
-          </motion.div>
+      <motion.div
+        aria-hidden={!showActions}
+        inert={!showActions}
+        initial={false}
+        animate={{ opacity: showActions ? 1 : 0, scale: showActions ? 1 : 0.97 }}
+        transition={contentTransition}
+        className={cn(
+          "absolute inset-0 flex items-center gap-1.5",
+          !showActions && "pointer-events-none",
         )}
-      </AnimatePresence>
+      >
+        <div className="flex min-w-0 flex-1 items-center">{actions}</div>
+        <button
+          type="button"
+          aria-label="Search music"
+          data-global-search-trigger
+          onClick={() => {
+            setIsFocused(true);
+            requestAnimationFrame(() => inputRef.current?.focus());
+          }}
+          className="flex size-[45px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-tab-active)] text-foreground transition-[background-color,transform] duration-150 hover:bg-[var(--kocteau-dock-tab-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+        >
+          <KocteauSearchIcon className="size-[1.125rem]" />
+        </button>
+      </motion.div>
+      <motion.div
+        aria-hidden={showActions}
+        inert={showActions}
+        initial={false}
+        animate={{ opacity: showActions ? 0 : 1, scale: showActions ? 1.03 : 1 }}
+        transition={contentTransition}
+        className={cn("absolute inset-0", showActions && "pointer-events-none")}
+      >
+        {searchForm}
+      </motion.div>
     </div>
   ) : (
     searchForm
@@ -371,9 +371,18 @@ export default function DiscoverySearch({
   return (
     <>
       {createPortal(dock, inputPortalTarget)}
-      {mobile && !showActions && filterPortalTarget
+      {mobile && filterPortalTarget
         ? createPortal(
-            <div data-discovery-mobile-filters />,
+            <motion.div
+              inert={showActions}
+              aria-hidden={showActions}
+              initial={false}
+              animate={{ opacity: showActions ? 0 : 1, y: showActions ? 5 : 0 }}
+              transition={contentTransition}
+              className={cn(showActions && "pointer-events-none")}
+            >
+              <div data-discovery-mobile-filters />
+            </motion.div>,
             filterPortalTarget,
           )
         : null}
