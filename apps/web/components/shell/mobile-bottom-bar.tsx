@@ -124,10 +124,12 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   }
 
   const isSearchRoute = pathname.startsWith("/search");
+  const pathSegments = pathname.split("/").filter(Boolean);
   const isReviewDetail =
     detailHeader?.kind === "review" &&
     Boolean(detailHeader.reviewId) &&
-    (/^\\/review\\/[^/]+$/.test(pathname) || /^\\/reviews\\/[^/]+\\/[^/]+$/.test(pathname));
+    ((pathSegments[0] === "review" && pathSegments.length === 2) ||
+      (pathSegments[0] === "reviews" && pathSegments.length === 3));
 
   const navItems: NavItem[] = [
     {
