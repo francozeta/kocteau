@@ -151,7 +151,10 @@ Avoid motion on:
 ## Search Canvas
 
 - Preserve the Feed shell's dimensions and dark background; desktop Search lives
-  in its existing header, while mobile uses the existing bottom dock.
+  in its existing header. On mobile, the primary bottom navigation persists
+  across app routes (including Search and review details), with Search and
+  comment controls in a separate contextual shelf directly above it. The
+  public landing page does not mount the app dock.
 - Floating covers, negative space, and restrained spatial disorder carry the
   personality. Do not replace the canvas with a dashboard or a visible graph.
 - Selecting a cover expands discovery in place. Keep some previous covers and
@@ -161,18 +164,20 @@ Avoid motion on:
   without a filled label background or hover-only tooltip. The centered cover
   remains the current object. Review is the primary track action; sharing and
   saving remain quieter controls.
-- Mobile search scopes sit directly above the bottom input as slim rounded
-  chips using the same opaque control surface as the input. The shared mobile
-  header gradient softens the top edge; the bottom dock gradient softens the
-  bottom edge. Artwork extends behind the header without a solid band.
+- Mobile search scopes sit directly above the input as separate slim rounded
+  chips (36px visible surfaces inside 44px targets); the 53px input matches the
+  persistent primary dock height, with soft concentric radii and shadow edges
+  rather than prominent borders. Subtle progressive blur softens the top and
+  bottom edges. Artwork continues behind the header without a solid band.
 - Selecting music on mobile replaces the header with one compact cover/title/
   artist link. The leading back arrow replaces the sidebar trigger and returns
   to all starter covers; the trailing options button holds sharing and memory
   actions. Desktop retains its existing header and previous-canvas navigation.
-- The mobile selected-track dock has two text actions, Review and Save, plus a
-  separate search icon. Visible surfaces are 36px high inside 44px touch targets.
-  Album/artist seeds offer Open and Share. Recovering search restores its scopes
-  and input. Hover alone must not switch the dock.
+- The mobile selected-track shelf has two text actions, Review and Save, plus a
+  separate search icon, above the persistent primary dock. Visible action surfaces
+  are 36px high inside 44px touch targets. Album/artist seeds offer Open and
+  Share. Recovering search restores its scopes and input, not a different
+  navigation component. Hover alone must not switch the dock.
 - Each selected song, album, or artist has a shareable Search route that follows
   the focused canvas seed. Back restores the previous route and canvas frame.
   Share the Search route from the canvas. Keep canonical entity routes as

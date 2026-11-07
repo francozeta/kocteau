@@ -131,7 +131,7 @@ export default function DiscoverySearch({
       className={cn(
         "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
         mobile
-          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+8rem)] pt-3 sm:px-6"
+          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+13rem)] pt-3 sm:px-6"
           : "bg-[var(--kocteau-shell)] px-6 pb-8 pt-5",
       )}
     >
@@ -283,7 +283,7 @@ export default function DiscoverySearch({
           aria-controls={resultListId}
           className={cn(
             "h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]",
-            mobile && "h-[60px] border-0 bg-[var(--kocteau-dock-tab-active)] pl-[3.4rem] pr-5 text-[16px] font-medium text-foreground shadow-[var(--kocteau-dock-shadow)] ring-1 ring-inset ring-foreground/10 placeholder:text-muted-foreground/75 focus-visible:ring-2 focus-visible:ring-foreground/25",
+            mobile && "h-[53px] border-0 bg-[var(--kocteau-dock-surface)] pl-[3.25rem] pr-5 text-[16px] font-medium text-foreground shadow-[var(--kocteau-dock-shadow)] placeholder:text-muted-foreground/75 focus-visible:ring-2 focus-visible:ring-foreground/25",
           )}
         />
         <span className="sr-only" role="status" aria-live="polite">

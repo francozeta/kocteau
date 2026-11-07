@@ -104,10 +104,10 @@ export default function DiscoveryNavigation({
           <span
             className={cn(
               "flex min-h-7 items-center rounded-full px-2.5 transition-[background-color,color,box-shadow] duration-150",
-              mobile && "min-h-11 px-3.5 shadow-[var(--kocteau-dock-selected-shadow)] max-[350px]:px-3",
+              mobile && "min-h-9 px-3.5 shadow-[var(--kocteau-dock-selected-shadow)] max-[350px]:px-3",
               scope === option.value
                 ? mobile
-                  ? "bg-[var(--kocteau-dock-tab-active)] text-foreground shadow-[var(--kocteau-dock-shadow)]"
+                  ? "bg-[var(--kocteau-dock-tab-active)] text-foreground"
                   : "bg-[var(--kocteau-surface-control-hover)] text-foreground"
                 : mobile
                   ? "bg-[var(--kocteau-dock-surface)] text-muted-foreground group-hover:bg-[var(--kocteau-dock-review-hover)] group-hover:text-foreground"

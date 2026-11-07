@@ -48,11 +48,16 @@ type NavItem = {
 // Keep this decorative and behind the three mobile dock variants.
 const BOTTOM_BLUR_STRENGTHS = [1, 3, 6] as const;
 
-function BottomBlur() {
+function BottomBlur({ expanded = false }: { expanded?: boolean }) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-[calc(7rem+env(safe-area-inset-bottom))] overflow-hidden md:hidden"
+      className={cn(
+        "pointer-events-none fixed inset-x-0 bottom-0 z-40 overflow-hidden md:hidden",
+        expanded
+          ? "h-[calc(13rem+env(safe-area-inset-bottom))]"
+          : "h-[calc(7rem+env(safe-area-inset-bottom))]",
+      )}
     >
       {BOTTOM_BLUR_STRENGTHS.map((blur, index) => (
         <div
@@ -113,46 +118,16 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const { detailHeader } = useRouteHeader();
   const isMobile = useIsMobile();
 
-  if (!isMobile) {
+  // The guest landing lives outside AppShell; never mount app navigation there.
+  if (!isMobile || pathname === "/") {
     return null;
   }
 
-  if (pathname.startsWith("/search")) {
-    return (
-      <>
-        <BottomBlur />
-        <nav
-          aria-label="Search controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-40 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
-        >
-          <div id="mobile-search-dock" />
-        </nav>
-      </>
-    );
-  }
-
-  if (
+  const isSearchRoute = pathname.startsWith("/search");
+  const isReviewDetail =
     detailHeader?.kind === "review" &&
-    detailHeader.reviewId &&
-    (/^\/review\/[^/]+$/.test(pathname) || /^\/reviews\/[^/]+\/[^/]+$/.test(pathname))
-  ) {
-    return (
-      <>
-        <BottomBlur />
-        <nav
-          aria-label="Comment controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
-        >
-          <ReviewCommentDock
-            reviewId={detailHeader.reviewId}
-            initialCount={detailHeader.commentsCount ?? 0}
-            profile={profile}
-            returnPath={pathname}
-          />
-        </nav>
-      </>
-    );
-  }
+    Boolean(detailHeader.reviewId) &&
+    (/^\\/review\\/[^/]+$/.test(pathname) || /^\\/reviews\\/[^/]+\\/[^/]+$/.test(pathname));
 
   const navItems: NavItem[] = [
     {
@@ -183,13 +158,34 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   return (
     <>
-      <BottomBlur />
+      <BottomBlur expanded={isSearchRoute || isReviewDetail} />
+      {isSearchRoute ? (
+        <nav
+          aria-label="Search controls"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+        >
+          <div id="mobile-search-dock" />
+        </nav>
+      ) : null}
+      {isReviewDetail && detailHeader?.reviewId ? (
+        <nav
+          aria-label="Comment controls"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+        >
+          <ReviewCommentDock
+            reviewId={detailHeader.reviewId}
+            initialCount={detailHeader.commentsCount ?? 0}
+            profile={profile}
+            returnPath={pathname}
+          />
+        </nav>
+      ) : null}
       <nav
         aria-label="Primary navigation"
         className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
       >
         <div className="flex items-center gap-[9px] max-[350px]:gap-[7px]">
-          <div className="flex h-[53px] items-center gap-0.5 rounded-full bg-[var(--kocteau-dock-surface)] p-[3px] shadow-[var(--kocteau-dock-shadow)] max-[350px]:gap-0">
+          <div className="flex h-[53px] items-center gap-0.5 rounded-full bg-[var(--kocteau-dock-surface)] p-[4px] shadow-[var(--kocteau-dock-shadow)] max-[350px]:gap-0">
             {navItems.map((item) => (
               <NavTab key={item.href} item={item} pathname={pathname} />
             ))}
