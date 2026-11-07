@@ -1451,3 +1451,22 @@
     );
   }
 }
+
+/* Progressive mobile bottom haze: blur what's behind the docks without
+   darkening or hiding review text through an opaque canvas gradient. */
+@media (max-width: 767px) {
+  .kocteau-mobile-bottom-blur-layer {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent var(--bottom-blur-start),
+      black var(--bottom-blur-end)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent var(--bottom-blur-start),
+      black var(--bottom-blur-end)
+    );
+    -webkit-backdrop-filter: blur(var(--bottom-blur));
+    backdrop-filter: blur(var(--bottom-blur));
+  }
+}
