@@ -148,11 +148,20 @@ export function useDiscoveryCanvas(
         `${memoryKey}:session`,
         JSON.stringify({ savedAt: Date.now(), scope, session }),
       );
+    } catch {
+      /* Continue in memory when browser storage is full or disabled. */
+    }
+  }, [memoryKey, ready, scope, session]);
+
+  // Memory changes less often than canvas frames; serialize only on actual change.
+  useEffect(() => {
+    if (!ready) return;
+    try {
       localStorage.setItem(memoryKey, JSON.stringify(memory));
     } catch {
       /* Continue in memory when browser storage is full or disabled. */
     }
-  }, [memory, memoryKey, ready, scope, session]);
+  }, [memory, memoryKey, ready]);
 
   useEffect(() => {
     if (!ready || !focus || resolved) return;

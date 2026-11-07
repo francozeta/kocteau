@@ -86,6 +86,7 @@ export default function DiscoveryOrbit({
   const imageUrlsRef = useRef(imageUrls);
   const centerSeedRef = useRef(centerSeed);
   const seedRef = useRef(seed);
+  const appliedImagesRef = useRef<{ urls: string[]; anchor?: number } | null>(null);
   const onSelectRef = useRef(onSelect);
 
   useEffect(() => {
@@ -160,6 +161,10 @@ export default function DiscoveryOrbit({
           },
         });
         sphereRef.current = sphere;
+        appliedImagesRef.current = {
+          urls: [...imageUrlsRef.current],
+          anchor: centerSeedRef.current && seedRef.current ? 0 : undefined,
+        };
 
         if (onScreen && !document.hidden) {
           sphere.start();
@@ -177,13 +182,22 @@ export default function DiscoveryOrbit({
       document.removeEventListener("visibilitychange", onVisibilityChange);
       sphere?.destroy();
       sphereRef.current = null;
+      appliedImagesRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    sphereRef.current?.updateImages(imageUrls, {
-      anchorIndex: centerSeed && seed ? 0 : undefined,
-    });
+    const sphere = sphereRef.current;
+    if (!sphere) return;
+    const anchor = centerSeed && seed ? 0 : undefined;
+    const applied = appliedImagesRef.current;
+    if (
+      applied?.anchor === anchor &&
+      applied.urls.length === imageUrls.length &&
+      applied.urls.every((url, index) => url === imageUrls[index])
+    ) return;
+    appliedImagesRef.current = { urls: imageUrls, anchor };
+    sphere.updateImages(imageUrls, { anchorIndex: anchor });
   }, [centerSeed, imageUrls, seed]);
 
   useEffect(() => {

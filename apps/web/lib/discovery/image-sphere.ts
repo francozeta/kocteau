@@ -177,6 +177,7 @@ export class ImageSphere {
   private disposed = false;
   private pointerCanHover = false;
   private imageGeneration = 0;
+  private lastImageUrls: string[] | null = null;
   private ro?: ResizeObserver;
   private cleanup: Array<() => void> = [];
   private removalTimers = new Set<ReturnType<typeof setTimeout>>();
@@ -243,9 +244,18 @@ export class ImageSphere {
       return;
     }
 
+    const nextUrls = Array.from(new Set(urls));
+    // New React arrays with identical covers must not cancel in-flight textures.
+    if (
+      this.lastImageUrls &&
+      this.anchorIndex === anchorIndex &&
+      this.lastImageUrls.length === nextUrls.length &&
+      this.lastImageUrls.every((url, index) => url === nextUrls[index])
+    ) return;
+
+    this.lastImageUrls = nextUrls;
     const generation = ++this.imageGeneration;
     this.anchorIndex = anchorIndex;
-    const nextUrls = Array.from(new Set(urls));
     const nextUrlSet = new Set(nextUrls);
     const reusableByUrl = new Map<string, PlaneMesh>();
 
@@ -724,6 +734,8 @@ export class ImageSphere {
       this.hoverDetection();
     }
 
+    // The sphere group is rotation-only at the origin: direct quaternion
+    // projection avoids repeated scene graph traversal and stale matrix reads.
     this.invQuat.copy(this.group.quaternion).invert();
 
     for (const plane of this.planes) {
@@ -734,7 +746,7 @@ export class ImageSphere {
       if (isAnchor) {
         this.centerPos.set(0, 0, ANCHOR_WORLD_Z);
         this.tmpPos.copy(this.centerPos);
-        this.group.worldToLocal(this.tmpPos);
+        this.tmpPos.applyQuaternion(this.invQuat);
         home.lerp(this.tmpPos, homeEase);
       } else if (homeTarget) {
         home.lerp(homeTarget, homeEase);
@@ -750,7 +762,7 @@ export class ImageSphere {
         plane.position.copy(home);
       }
 
-      plane.getWorldPosition(this.worldPos);
+      this.worldPos.copy(plane.position).applyQuaternion(this.group.quaternion);
       const depth = this.worldPos.z;
       const depthScale = getDepthScale(depth);
       const isHovered = plane.userData.isHovered === true;
@@ -810,13 +822,13 @@ export class ImageSphere {
       if (plane.userData.isAnchor === true) {
         this.centerPos.set(0, 0, ANCHOR_WORLD_Z);
         this.tmpPos.copy(this.centerPos);
-        this.group.worldToLocal(this.tmpPos);
+        this.tmpPos.applyQuaternion(this.invQuat);
         plane.position.copy(this.tmpPos);
       }
 
       plane.quaternion.copy(this.invQuat);
       plane.rotateZ((plane.userData.tilt as number | undefined) ?? 0);
-      plane.getWorldPosition(this.worldPos);
+      this.worldPos.copy(plane.position).applyQuaternion(this.group.quaternion);
       const depth = this.worldPos.z;
       const depthScale = getDepthScale(depth);
       const isAnchor = plane.userData.isAnchor === true;
