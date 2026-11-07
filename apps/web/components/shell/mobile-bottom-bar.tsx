@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentType, SVGProps } from "react";
+import type { ComponentType, CSSProperties, SVGProps } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -44,12 +44,30 @@ type NavItem = {
   active: (pathname: string) => boolean;
 };
 
-function BottomFade() {
+// Subtle progressive backdrop blur instead of an opaque black bottom fade.
+// Keep this decorative and behind the three mobile dock variants.
+const BOTTOM_BLUR_STRENGTHS = [1, 3, 6] as const;
+
+function BottomBlur() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-28 bg-[linear-gradient(to_top,var(--kocteau-document-canvas)_0%,color-mix(in_oklch,var(--kocteau-document-canvas)_94%,transparent)_42%,transparent_100%)] md:hidden"
-    />
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-[calc(7rem+env(safe-area-inset-bottom))] overflow-hidden md:hidden"
+    >
+      {BOTTOM_BLUR_STRENGTHS.map((blur, index) => (
+        <div
+          key={blur}
+          className="kocteau-mobile-bottom-blur-layer absolute inset-0"
+          style={
+            {
+              "--bottom-blur": `${blur}px`,
+              "--bottom-blur-start": `${index * 30}%`,
+              "--bottom-blur-end": `${index * 30 + 40}%`,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </div>
   );
 }
 
@@ -102,10 +120,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   if (pathname.startsWith("/search")) {
     return (
       <>
-        <BottomFade />
+        <BottomBlur />
         <nav
           aria-label="Search controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-40 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-40 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
         >
           <div id="mobile-search-dock" />
         </nav>
@@ -120,10 +138,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   ) {
     return (
       <>
-        <BottomFade />
+        <BottomBlur />
         <nav
           aria-label="Comment controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
         >
           <ReviewCommentDock
             reviewId={detailHeader.reviewId}
@@ -165,10 +183,10 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
 
   return (
     <>
-      <BottomFade />
+      <BottomBlur />
       <nav
         aria-label="Primary navigation"
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
       >
         <div className="flex items-center gap-[9px] max-[350px]:gap-[7px]">
           <div className="flex h-[53px] items-center gap-0.5 rounded-full bg-[var(--kocteau-dock-surface)] p-[3px] shadow-[var(--kocteau-dock-shadow)] max-[350px]:gap-0">

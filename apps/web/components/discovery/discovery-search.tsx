@@ -231,7 +231,9 @@ export default function DiscoverySearch({
       className={cn(
         "grid min-w-0 items-center transition-[grid-template-columns,gap] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
         showClose
-          ? "grid-cols-[minmax(0,1fr)_2.75rem] gap-3"
+          ? mobile
+            ? "grid-cols-[minmax(0,1fr)_3.3125rem] gap-2.5"
+            : "grid-cols-[minmax(0,1fr)_2.75rem] gap-3"
           : "grid-cols-[minmax(0,1fr)_0fr] gap-0",
       )}
       onSubmit={(event) => {
@@ -240,11 +242,14 @@ export default function DiscoverySearch({
       }}
       role="search"
     >
-      <div className="relative min-w-0">
+      <div className={cn("relative min-w-0", mobile && "group/search-field")}>
         <label htmlFor={inputId} className="sr-only">
           {searchLabel}
         </label>
-        <KocteauSearchIcon className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.05rem] -translate-y-1/2 text-muted-foreground/62" />
+        <KocteauSearchIcon className={cn(
+          "pointer-events-none absolute left-3.5 top-1/2 z-10 size-[1.05rem] -translate-y-1/2 text-muted-foreground/62",
+          mobile && "left-[1.15rem] size-5 text-foreground/75 transition-colors group-focus-within/search-field:text-foreground",
+        )} />
         <Input
           ref={inputRef}
           id={inputId}
@@ -276,7 +281,10 @@ export default function DiscoverySearch({
           aria-describedby={hasError ? `${resultListId}-error` : undefined}
           aria-expanded={showResults}
           aria-controls={resultListId}
-          className="h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]"
+          className={cn(
+            "h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]",
+            mobile && "h-[60px] border-0 bg-[var(--kocteau-dock-tab-active)] pl-[3.4rem] pr-5 text-[16px] font-medium text-foreground shadow-[var(--kocteau-dock-shadow)] ring-1 ring-inset ring-foreground/10 placeholder:text-muted-foreground/75 focus-visible:ring-2 focus-visible:ring-foreground/25",
+          )}
         />
         <span className="sr-only" role="status" aria-live="polite">
           {hasError
@@ -297,6 +305,7 @@ export default function DiscoverySearch({
           onClick={() => closeSearch()}
           className={cn(
             "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 md:size-8",
+            mobile && "size-[53px] bg-[var(--kocteau-dock-review-surface)] shadow-[var(--kocteau-dock-shadow)] hover:bg-[var(--kocteau-dock-review-hover)]",
             showClose
               ? "scale-100 opacity-100"
               : "pointer-events-none scale-95 opacity-0",
@@ -311,8 +320,10 @@ export default function DiscoverySearch({
   const showActions = Boolean(actions) && !isFocused && !query;
   const dock =
     mobile && showActions ? (
-      <div className="flex items-center gap-2">
-        {actions}
+      <div className="flex w-full items-center gap-[9px] max-[350px]:gap-[7px]">
+        <div className="flex h-[53px] min-w-0 flex-1 items-center rounded-full bg-[var(--kocteau-dock-surface)] p-[3px] shadow-[var(--kocteau-dock-shadow)]">
+          {actions}
+        </div>
         <button
           type="button"
           aria-label="Search music"
@@ -321,15 +332,15 @@ export default function DiscoverySearch({
             setIsFocused(true);
             requestAnimationFrame(() => inputRef.current?.focus());
           }}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-[53px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-review-surface)] text-foreground shadow-[var(--kocteau-dock-shadow)] transition-[transform,background-color] duration-150 hover:bg-[var(--kocteau-dock-review-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 max-[350px]:size-[49px]"
         >
-          <span className="flex size-9 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] ring-1 ring-inset ring-white/[0.08]">
+          <span className="flex size-9 items-center justify-center rounded-full">
             <KocteauSearchIcon className="size-[1.125rem]" />
           </span>
         </button>
       </div>
     ) : (
-      <div className="grid gap-1">
+      <div className={cn("grid gap-1", mobile && "gap-2.5")}>
         {mobile ? <div data-discovery-mobile-filters /> : null}
         {searchForm}
       </div>
