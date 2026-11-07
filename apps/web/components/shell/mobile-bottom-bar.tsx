@@ -3,6 +3,7 @@
 import type { ComponentType, CSSProperties, SVGProps } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import {
   KocteauHomeIcon,
@@ -117,6 +118,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   const pathname = usePathname();
   const { detailHeader } = useRouteHeader();
   const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
 
   // The guest landing lives outside AppShell; never mount app navigation there.
   if (!isMobile || pathname === "/") {
@@ -161,13 +163,12 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
   return (
     <>
       <BottomBlur expanded={isSearchRoute || isReviewDetail} />
+      {/* Filters float above the dock; the dock itself is one stable surface. */}
       {isSearchRoute ? (
-        <nav
-          aria-label="Search controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
-        >
-          <div id="mobile-search-dock" />
-        </nav>
+        <div
+          id="mobile-search-filters"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] left-1/2 z-50 w-[calc(100%-2rem)] max-w-[28rem] -translate-x-1/2 md:hidden"
+        />
       ) : null}
       {isReviewDetail && detailHeader?.reviewId ? (
         <nav
@@ -183,11 +184,36 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
         </nav>
       ) : null}
       <nav
-        aria-label="Primary navigation"
+        aria-label={isSearchRoute ? "Search and navigation" : "Primary navigation"}
         className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 -translate-x-1/2 md:hidden"
       >
-        <div className="flex items-center gap-[9px] max-[350px]:gap-[7px]">
-          <div className="flex h-[53px] items-center gap-0.5 rounded-full bg-[var(--kocteau-dock-surface)] p-[4px] shadow-[var(--kocteau-dock-shadow)] max-[350px]:gap-0">
+        <div
+          className={cn(
+            "flex items-center transition-[gap] duration-300 ease-[var(--kocteau-ease)] motion-reduce:transition-none",
+            isSearchRoute ? "gap-0" : "gap-[9px] max-[350px]:gap-[7px]",
+          )}
+        >
+          {/* This surface never unmounts during in-app route changes. Only its contents morph. */}
+          <motion.div
+            layout={reduceMotion ? false : "size"}
+            transition={{ layout: { type: "spring", duration: 0.3, bounce: 0 } }}
+            className={cn(
+              "relative h-[53px] shrink-0 overflow-hidden rounded-full bg-[var(--kocteau-dock-surface)] p-[4px] shadow-[var(--kocteau-dock-shadow)]",
+              isSearchRoute
+                ? "w-[calc(100vw-2rem)] max-w-[28rem] focus-within:ring-2 focus-within:ring-foreground/20"
+                : "w-fit",
+            )}
+          >
+            <div
+              aria-hidden={isSearchRoute}
+              inert={isSearchRoute}
+              className={cn(
+                "flex h-[45px] items-center gap-0.5 transition-[opacity,transform,filter] duration-200 ease-[var(--kocteau-ease)] motion-reduce:transition-none max-[350px]:gap-0",
+                isSearchRoute
+                  ? "pointer-events-none absolute inset-[4px] scale-[0.97] opacity-0 blur-[2px]"
+                  : "relative scale-100 opacity-100 blur-0",
+              )}
+            >
             {navItems.map((item) => (
               <NavTab key={item.href} item={item} pathname={pathname} />
             ))}
@@ -219,17 +245,35 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
                 </span>
               </Link>
             ) : null}
-          </div>
-
+            </div>
+            <div
+              id="mobile-search-dock"
+              aria-hidden={!isSearchRoute}
+              inert={!isSearchRoute}
+              className={cn(
+                "absolute inset-[4px] z-10 transition-[opacity,transform,filter] duration-200 ease-[var(--kocteau-ease)] motion-reduce:transition-none",
+                isSearchRoute
+                  ? "scale-100 opacity-100 blur-0"
+                  : "pointer-events-none scale-[1.02] opacity-0 blur-[2px]",
+              )}
+            />
+          </motion.div>
           <button
             type="button"
             aria-label={reviewEntryLabel}
-            className="flex size-[53px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-review-surface)] text-foreground shadow-[var(--kocteau-dock-shadow)] transition-[transform,background-color] duration-150 ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-dock-review-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 motion-reduce:transition-none max-[350px]:size-[49px]"
+            aria-hidden={isSearchRoute}
+            tabIndex={isSearchRoute ? -1 : undefined}
+            className={cn(
+              "flex h-[53px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--kocteau-dock-review-surface)] text-foreground shadow-[var(--kocteau-dock-shadow)] transition-[width,opacity,transform,background-color] duration-300 ease-[var(--kocteau-ease)] hover:bg-[var(--kocteau-dock-review-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 motion-reduce:transition-none max-[350px]:h-[49px]",
+              isSearchRoute
+                ? "pointer-events-none w-0 scale-90 opacity-0 max-[350px]:w-0"
+                : "w-[53px] scale-100 opacity-100 max-[350px]:w-[49px]",
+            )}
             onClick={() => {
               window.dispatchEvent(new CustomEvent(OPEN_NEW_REVIEW_SHORTCUT_EVENT));
             }}
           >
-            <ReviewGlyphIcon className="size-[1.12rem]" weight="fill" />
+            <ReviewGlyphIcon className="size-[1.12rem] shrink-0" weight="fill" />
           </button>
         </div>
       </nav>

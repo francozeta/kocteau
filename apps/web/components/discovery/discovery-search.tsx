@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/icons/kocteau-icons";
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,8 @@ export default function DiscoverySearch({
       : `Search ${scope === "track" ? "songs" : `${scope}s`}`;
   const [isFocused, setIsFocused] = useState(Boolean(query));
   const isMobileViewport = useIsMobile();
+  const reduceMotion = useReducedMotion();
+  const filterPortalTarget = usePortalTarget("#mobile-search-filters");
   const inputPortalTarget = usePortalTarget(
     mobile ? "#mobile-search-dock" : "[data-kocteau-search-header-slot]",
   );
@@ -131,7 +134,7 @@ export default function DiscoverySearch({
       className={cn(
         "absolute inset-0 z-40 overflow-y-auto overscroll-contain",
         mobile
-          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+13rem)] pt-3 sm:px-6"
+          ? "bg-[var(--kocteau-shell)] px-3 pb-[calc(env(safe-area-inset-bottom)+10rem)] pt-3 sm:px-6"
           : "bg-[var(--kocteau-shell)] px-6 pb-8 pt-5",
       )}
     >
@@ -229,10 +232,10 @@ export default function DiscoverySearch({
   const searchForm = (
     <form
       className={cn(
-        "grid min-w-0 items-center transition-[grid-template-columns,gap] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
+        "grid h-full w-full min-w-0 items-center transition-[grid-template-columns,gap] duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none",
         showClose
           ? mobile
-            ? "grid-cols-[minmax(0,1fr)_3.3125rem] gap-2.5"
+            ? "grid-cols-[minmax(0,1fr)_2.75rem] gap-0"
             : "grid-cols-[minmax(0,1fr)_2.75rem] gap-3"
           : "grid-cols-[minmax(0,1fr)_0fr] gap-0",
       )}
@@ -283,7 +286,7 @@ export default function DiscoverySearch({
           aria-controls={resultListId}
           className={cn(
             "h-11 rounded-full border-transparent bg-[var(--kocteau-surface-control)] pl-10 pr-4 text-base shadow-none placeholder:text-muted-foreground/58 focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring/70 md:h-8 md:text-[13px]",
-            mobile && "h-[53px] border-0 bg-[var(--kocteau-dock-surface)] pl-[3.25rem] pr-5 text-[16px] font-medium text-foreground shadow-[var(--kocteau-dock-shadow)] placeholder:text-muted-foreground/75 focus-visible:ring-2 focus-visible:ring-foreground/25",
+            mobile && "h-[45px] border-0 bg-transparent pl-[2.9rem] pr-3 text-[16px] font-medium text-foreground shadow-none placeholder:text-muted-foreground/75 focus-visible:ring-0 focus-visible:border-transparent",
           )}
         />
         <span className="sr-only" role="status" aria-live="polite">
@@ -305,7 +308,7 @@ export default function DiscoverySearch({
           onClick={() => closeSearch()}
           className={cn(
             "flex size-11 items-center justify-center rounded-full bg-[var(--kocteau-surface-control)] text-foreground transition-[opacity,scale,background-color] duration-150 hover:bg-[var(--kocteau-surface-control-hover)] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 md:size-8",
-            mobile && "size-[53px] bg-[var(--kocteau-dock-review-surface)] shadow-[var(--kocteau-dock-shadow)] hover:bg-[var(--kocteau-dock-review-hover)]",
+            mobile && "size-11 bg-[var(--kocteau-dock-tab-active)] shadow-none hover:bg-[var(--kocteau-dock-tab-hover)]",
             showClose
               ? "scale-100 opacity-100"
               : "pointer-events-none scale-95 opacity-0",
@@ -318,37 +321,62 @@ export default function DiscoverySearch({
   );
 
   const showActions = Boolean(actions) && !isFocused && !query;
-  const dock =
-    mobile && showActions ? (
-      <div className="flex w-full items-center gap-[9px] max-[350px]:gap-[7px]">
-        <div className="flex h-[53px] min-w-0 flex-1 items-center rounded-full bg-[var(--kocteau-dock-surface)] p-[3px] shadow-[var(--kocteau-dock-shadow)]">
-          {actions}
-        </div>
-        <button
-          type="button"
-          aria-label="Search music"
-          data-global-search-trigger
-          onClick={() => {
-            setIsFocused(true);
-            requestAnimationFrame(() => inputRef.current?.focus());
-          }}
-          className="flex size-[53px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-review-surface)] text-foreground shadow-[var(--kocteau-dock-shadow)] transition-[transform,background-color] duration-150 hover:bg-[var(--kocteau-dock-review-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 max-[350px]:size-[49px]"
-        >
-          <span className="flex size-9 items-center justify-center rounded-full">
-            <KocteauSearchIcon className="size-[1.125rem]" />
-          </span>
-        </button>
-      </div>
-    ) : (
-      <div className={cn("grid gap-1", mobile && "gap-2.5")}>
-        {mobile ? <div data-discovery-mobile-filters /> : null}
-        {searchForm}
-      </div>
-    );
+  const contentTransition = reduceMotion ? { duration: 0 } : { duration: 0.17 };
+  const dock = mobile ? (
+    <div className="relative h-full w-full">
+      <AnimatePresence initial={false} mode="sync">
+        {showActions ? (
+          <motion.div
+            key="selected-music-actions"
+            className="absolute inset-0 flex items-center gap-1.5"
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={contentTransition}
+          >
+            <div className="flex min-w-0 flex-1 items-center">
+              {actions}
+            </div>
+            <button
+              type="button"
+              aria-label="Search music"
+              data-global-search-trigger
+              onClick={() => {
+                setIsFocused(true);
+                requestAnimationFrame(() => inputRef.current?.focus());
+              }}
+              className="flex size-[45px] shrink-0 items-center justify-center rounded-full bg-[var(--kocteau-dock-tab-active)] text-foreground transition-[background-color,transform] duration-150 hover:bg-[var(--kocteau-dock-tab-hover)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+            >
+              <KocteauSearchIcon className="size-[1.125rem]" />
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="music-search-input"
+            className="absolute inset-0"
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={contentTransition}
+          >
+            {searchForm}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  ) : (
+    searchForm
+  );
 
   return (
     <>
       {createPortal(dock, inputPortalTarget)}
+      {mobile && !showActions && filterPortalTarget
+        ? createPortal(
+            <div data-discovery-mobile-filters />,
+            filterPortalTarget,
+          )
+        : null}
       {portaledResultList}
       {!mobile && showActions && desktopActionsTarget
         ? createPortal(actions, desktopActionsTarget)

@@ -98,13 +98,13 @@ export default function DiscoveryNavigation({
           }}
           className={cn(
             "group flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            mobile && "min-h-11 px-0 text-[12px] max-[350px]:text-[11px]",
+            mobile && "min-h-11 px-0 text-[11px] max-[350px]:text-[10.5px]",
           )}
         >
           <span
             className={cn(
               "flex min-h-7 items-center rounded-full px-2.5 transition-[background-color,color,box-shadow] duration-150",
-              mobile && "min-h-9 px-3.5 shadow-[var(--kocteau-dock-selected-shadow)] max-[350px]:px-3",
+              mobile && "min-h-7 px-3 shadow-[var(--kocteau-dock-selected-shadow)] max-[350px]:px-2.5",
               scope === option.value
                 ? mobile
                   ? "bg-[var(--kocteau-dock-tab-active)] text-foreground"
