@@ -1,8 +1,7 @@
 import Link from "next/link";
 import BrandLogo from "@/components/brand/brand-logo";
 import ProgressiveMobileHeaderBlur from "@/components/shell/progressive-mobile-header-blur";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import LandingSessionAction from "@/components/landing/landing-session-action";
 
 export default function GuestHeader() {
   return (
@@ -47,15 +46,7 @@ export default function GuestHeader() {
             </Link>
           </nav>
 
-          <Link
-            href="/login"
-            className={cn(
-              buttonVariants({ variant: "default", size: "sm" }),
-              "h-8 rounded-full border-0 px-2.5 font-circular text-[12px] font-medium shadow-none sm:px-3 sm:text-[13px]",
-            )}
-          >
-            Log in
-          </Link>
+          <LandingSessionAction />
         </div>
       </header>
     </>
