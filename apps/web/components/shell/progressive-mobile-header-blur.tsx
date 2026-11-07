@@ -1,14 +1,14 @@
 import type { CSSProperties } from "react";
 
-// Same four progressive blur strengths and vertical mask stops as Craft's mobile header.
+// Progressive blur adapted from Craft, intensified and extended for Kocteau's mobile headers.
 // Keep the effect behind header controls so search portals, actions and back buttons stay sharp.
-const BLUR_STRENGTHS = [1, 2, 4, 8] as const;
+const BLUR_STRENGTHS = [2, 4, 8, 16] as const;
 
-export default function ProgressiveMobileHeaderBlur() {
+export default function ProgressiveMobileHeaderBlur({ canvas = "app" }: { canvas?: "app" | "landing" }) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[calc(100%+3rem)] overflow-hidden md:hidden"
+      className={`pointer-events-none absolute inset-x-0 top-0 z-0 h-[calc(100%+8rem)] overflow-hidden md:hidden ${canvas === "landing" ? "kocteau-mobile-header-blur-landing" : ""}`}
     >
       {BLUR_STRENGTHS.map((blur, index) => (
         <div

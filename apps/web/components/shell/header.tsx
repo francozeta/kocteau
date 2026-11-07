@@ -169,7 +169,7 @@ export default function Header({
 
   const standardHeader = (
     <header className={cn(
-      "pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:pointer-events-auto md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
+      "pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.3rem)] md:pointer-events-auto md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
       isSearchRoute && "md:shadow-none",
       isMobileReviewRoute && "max-md:hidden",
       shouldUseContextualHeader && "max-md:hidden",
@@ -314,7 +314,7 @@ export default function Header({
   if (shouldUseContextualHeader) {
     return (
       <>
-        <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.55rem)] md:hidden">
+        <header className="pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.3rem)] md:hidden">
           <ProgressiveMobileHeaderBlur />
 
           <div className="relative z-10 flex h-11 items-center justify-between gap-3">
