@@ -9,13 +9,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+import { Drawer } from "@base-ui/react/drawer"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -129,9 +123,11 @@ function SidebarProvider({
     <SidebarContext.Provider value={contextValue}>
       <div
         data-slot="sidebar-wrapper"
+        data-mobile-sidebar-open={isMobile && openMobile}
         style={
           {
             "--sidebar-width": SIDEBAR_WIDTH,
+            "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE,
             "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
             ...style,
           } as React.CSSProperties
@@ -180,27 +176,40 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
-          dir={dir}
-          data-sidebar="sidebar"
-          data-slot="sidebar"
-          data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
+      <Drawer.Root
+        open={openMobile}
+        onOpenChange={setOpenMobile}
+        swipeDirection={side === "left" ? "left" : "right"}
+        modal="trap-focus"
+      >
+        <Drawer.Portal>
+          <Drawer.Viewport className="pointer-events-none fixed inset-0 z-30 md:hidden">
+            <Drawer.Popup
+              dir={dir}
+              data-sidebar="sidebar"
+              data-slot="sidebar"
+              data-mobile="true"
+              className={cn(
+                "kocteau-mobile-sidebar-underlay pointer-events-auto relative flex h-svh w-(--sidebar-width-mobile) flex-col overflow-hidden bg-sidebar p-0 text-sidebar-foreground",
+                side === "right" && "ml-auto",
+                className,
+              )}
+              {...props}
+            >
+              <Drawer.Title className="sr-only">Sidebar</Drawer.Title>
+              <Drawer.Description className="sr-only">
+                Navigation for Kocteau. Swipe to close or select a destination.
+              </Drawer.Description>
+              <Drawer.Content
+                data-base-ui-swipe-ignore="y"
+                className="flex h-full min-h-0 w-full flex-col"
+              >
+                {children}
+              </Drawer.Content>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer.Root>
     )
   }
 
@@ -306,7 +315,9 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
-function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
+function SidebarInset({ className, children, ...props }: React.ComponentProps<"main">) {
+  const { isMobile, openMobile, setOpenMobile } = useSidebar()
+
   return (
     <main
       data-slot="sidebar-inset"
@@ -316,7 +327,18 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
         className
       )}
       {...props}
-    />
+    >
+      {children}
+      {isMobile && openMobile ? (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Close sidebar"
+          onClick={() => setOpenMobile(false)}
+          className="absolute inset-0 z-[80] cursor-default bg-black/[0.08]"
+        />
+      ) : null}
+    </main>
   )
 }
 

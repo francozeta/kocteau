@@ -235,3 +235,18 @@ Speed can hide flaws. At slower playback, check:
 - Does the motion clarify the product, or is it just decoration?
 
 Fix what shows up at slow speed. The full-speed interaction will feel better.
+
+### Mobile sidebar reveal / Base UI experiment
+
+- The left navigation is an **underlay**, not an overlay Sheet: the existing
+  content surface slides right and gains a gentle left-side radius/shadow while
+  the original sidebar remains behind it. Reuse the existing menu rows, icons,
+  labels, colors, hierarchy, guest CTA and active states unchanged.
+- Base UI Drawer owns accessible open/close state, swipe dismissal and focus
+  semantics only for the mobile sidebar. The desktop sidebar and unrelated
+  Sheet/Tooltip/Dialog components keep their current implementation.
+- Opening and closing must reverse smoothly, dismiss when tapping the exposed
+  main surface, honor reduced motion and not intercept Search's 3D canvas drag.
+- Ship as a separate preview PR. Verify iOS Safari scroll restoration, bottom
+  bar and fixed header movement, focus return, nested menus and no mobile
+  tooltips before merging to main.
