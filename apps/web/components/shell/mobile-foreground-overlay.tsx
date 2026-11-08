@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { motion, useTransform } from "motion/react";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+function subscribeHydration() {
+  return () => {};
+}
+function hydrated() {
+  return true;
+}
+function serverSnapshot() {
+  return false;
+}
 import { useSidebar } from "@/components/ui/sidebar";
 
 /**
@@ -15,11 +25,9 @@ import { useSidebar } from "@/components/ui/sidebar";
 export default function MobileForegroundOverlay({ children, depthShadow = false }: { children: ReactNode; depthShadow?: boolean }) {
   const isMobile = useIsMobile();
   const { openMobile, revealProgress, revealDistance } = useSidebar();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(subscribeHydration, hydrated, serverSnapshot);
   const overlayX = useTransform(revealProgress, [0, 1], [0, revealDistance]);
   const depthOpacity = useTransform(revealProgress, value => Math.max(0, Math.min(1, value)));
-
-  useEffect(() => setMounted(true), []);
 
   if (!mounted || !isMobile) return <>{children}</>;
 
