@@ -335,7 +335,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
-function SidebarInset({ className, children, ...props }: React.ComponentProps<"main">) {
+function SidebarInset({ className, children, ...props }: React.ComponentProps<typeof motion.main>) {
   const { isMobile, openMobile, setOpenMobile, revealProgress } = useSidebar()
   const [revealDistance, setRevealDistance] = React.useState(288)
 
