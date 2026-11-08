@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Drawer } from "@base-ui/react/drawer"
-import { motion, useReducedMotion, useSpring, useTransform, type MotionValue } from "motion/react"
+import { motion, useSpring, useTransform, type MotionValue } from "motion/react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -25,6 +25,17 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const REDUCE_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
+
+function subscribeReducedMotion(callback: () => void) {
+  const preference = window.matchMedia(REDUCE_MOTION_QUERY)
+  preference.addEventListener("change", callback)
+  return () => preference.removeEventListener("change", callback)
+}
+
+function getReducedMotion() {
+  return window.matchMedia(REDUCE_MOTION_QUERY).matches
+}
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -65,7 +76,8 @@ function SidebarProvider({
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
   const [revealDistance, setRevealDistance] = React.useState(304)
-  const reduceMotion = useReducedMotion()
+  // Unlike a mount-time snapshot, this responds when iOS Reduce Motion changes.
+  const reduceMotion = React.useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false)
 
   React.useEffect(() => {
     if (!isMobile) return
@@ -75,7 +87,7 @@ function SidebarProvider({
     window.addEventListener("resize", measure)
     return () => window.removeEventListener("resize", measure)
   }, [isMobile])
-  // One interruptible spring moves the foreground, radius, shadow and menu content.
+  // One interruptible spring moves the foreground, radius and menu content.
   // Keeping it above the route content means 3D Search and the bottom dock never remount.
   const revealProgress = useSpring(0, { stiffness: 310, damping: 39, mass: 1 })
 
@@ -372,9 +384,8 @@ function SidebarInset({ className, children, ...props }: Omit<React.ComponentPro
 
   const insetX = useTransform(revealProgress, [0, 1], [0, revealDistance])
   const leftRadius = useTransform(revealProgress, value => `${(22 * value).toFixed(2)}px`)
-  const leftShadow = useTransform(revealProgress, value =>
-    `-16px 0 36px rgb(0 0 0 / ${(0.17 * value).toFixed(3)})`
-  )
+  // The viewport-sized shadow lives in MobileForegroundOverlay: animating a
+  // long scrolling main's box-shadow on every frame causes expensive paints.
 
   return (
     <motion.main
@@ -383,7 +394,6 @@ function SidebarInset({ className, children, ...props }: Omit<React.ComponentPro
         x: insetX,
         borderTopLeftRadius: leftRadius,
         borderBottomLeftRadius: leftRadius,
-        boxShadow: leftShadow,
       } : undefined}
       data-slot="sidebar-inset"
       className={cn(

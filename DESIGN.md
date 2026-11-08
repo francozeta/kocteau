@@ -286,3 +286,22 @@ Fix what shows up at slow speed. The full-speed interaction will feel better.
   Library, Search, and Settings routes. Moving between `(main)` and `(studio)`
   remounts their distinct Next layouts; cross-group persistence is **not**
   established and must not be claimed until a common owner is implemented.
+
+### Phase 5 — compositor and accessibility polish
+
+- Replace animated full-height document `box-shadow` with one fixed 100dvh
+  shadow layer hosted in the persistent mobile header overlay. Only its
+  `opacity` animates, driven by the same revealProgress MotionValue; avoid
+  expensive frame-by-frame paint on a long review feed. The dock overlay
+  intentionally does not duplicate that depth layer.
+- Keep foreground translation and corner radius coordinated to that same
+  spring. No scale trick, independent fade, or remount of Search WebGL.
+- Subscribe to `prefers-reduced-motion` through `useSyncExternalStore`
+  so changing the iPhone accessibility setting mid-session immediately jumps to
+  the correct open/closed state.
+- Direct finger tracking is still experimental in the Continuity navigation lab
+  (https://github.com/francozeta/continuity/pull/5). Do not copy it into Kocteau
+  before validating iOS scroll, VoiceOver, edge gestures and WebGL pointer capture.
+- Note: shell lifetime is shared within a Next route group, not across distinct
+  `(main)` and `(studio)` layouts. Cross-group identity requires an owning
+  layout above both; do not mistake duplicate AppShell components for persistence.

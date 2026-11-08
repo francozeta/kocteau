@@ -72,7 +72,7 @@ export default async function AppShell({
         data-kocteau-scroll-boundary
         className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]"
       >
-        <MobileForegroundOverlay>
+        <MobileForegroundOverlay depthShadow>
           <Header profile={safeProfile} />
         </MobileForegroundOverlay>
         <DesktopScrollBridge />

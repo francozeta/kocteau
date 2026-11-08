@@ -12,11 +12,12 @@ import { useSidebar } from "@/components/ui/sidebar";
  * Portal them to the viewport, but drive their x position with the very same
  * reveal progress as the foreground. Header and bottom dock stay in lockstep.
  */
-export default function MobileForegroundOverlay({ children }: { children: ReactNode }) {
+export default function MobileForegroundOverlay({ children, depthShadow = false }: { children: ReactNode; depthShadow?: boolean }) {
   const isMobile = useIsMobile();
   const { openMobile, revealProgress, revealDistance } = useSidebar();
   const [mounted, setMounted] = useState(false);
   const overlayX = useTransform(revealProgress, [0, 1], [0, revealDistance]);
+  const depthOpacity = useTransform(revealProgress, value => Math.max(0, Math.min(1, value)));
 
   useEffect(() => setMounted(true), []);
 
@@ -30,6 +31,13 @@ export default function MobileForegroundOverlay({ children }: { children: ReactN
       style={{ x: overlayX }}
       className="pointer-events-none fixed inset-0 z-50 h-dvh md:hidden"
     >
+      {depthShadow ? (
+        <motion.div
+          aria-hidden="true"
+          style={{ opacity: depthOpacity }}
+          className="pointer-events-none absolute inset-y-0 left-0 z-0 w-px shadow-[-14px_0_30px_12px_rgba(0,0,0,0.16)]"
+        />
+      ) : null}
       {children}
     </motion.div>,
     document.body,
