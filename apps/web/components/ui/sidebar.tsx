@@ -204,18 +204,14 @@ function Sidebar({
 
   React.useEffect(() => {
     if (!isMobile) return
-    if (openMobile) {
-      setDrawerPresent(true)
-      return
-    }
-    // Base UI keeps its focus/swipe semantics until the foreground finishes
-    // covering the menu; only then may it hide the popup.
-    const finishClose = (value: number) => {
-      if (value <= 0.005) setDrawerPresent(false)
-    }
-    finishClose(revealProgress.get())
-    return revealProgress.on("change", finishClose)
-  }, [isMobile, openMobile, revealProgress])
+    // External Motion events may update React state; avoid synchronously
+    // setting it in an effect. While closing, keep the Base UI portal present
+    // until the foreground has covered the underlay.
+    return revealProgress.on("change", (value: number) => {
+      const present = value > 0.005
+      setDrawerPresent(previous => previous === present ? previous : present)
+    })
+  }, [isMobile, revealProgress])
 
   if (collapsible === "none") {
     return (
@@ -235,7 +231,7 @@ function Sidebar({
   if (isMobile) {
     return (
       <Drawer.Root
-        open={drawerPresent}
+        open={openMobile || drawerPresent}
         onOpenChange={setOpenMobile}
         swipeDirection={side === "left" ? "left" : "right"}
         modal="trap-focus"
