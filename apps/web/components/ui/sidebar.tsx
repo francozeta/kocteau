@@ -346,7 +346,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
-function SidebarInset({ className, children, ...props }: React.ComponentProps<typeof motion.main>) {
+function SidebarInset({ className, children, ...props }: Omit<React.ComponentProps<typeof motion.main>, "children"> & { children?: React.ReactNode }) {
   const { isMobile, openMobile, setOpenMobile, revealProgress, revealDistance } = useSidebar()
 
   const insetX = useTransform(revealProgress, [0, 1], [0, revealDistance])
