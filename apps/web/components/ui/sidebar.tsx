@@ -77,7 +77,7 @@ function SidebarProvider({
   }, [isMobile])
   // One interruptible spring moves the foreground, radius, shadow and menu content.
   // Keeping it above the route content means 3D Search and the bottom dock never remount.
-  const revealProgress = useSpring(0, { stiffness: 260, damping: 35, mass: 1 })
+  const revealProgress = useSpring(0, { stiffness: 310, damping: 39, mass: 1 })
 
   React.useEffect(() => {
     const target = isMobile && openMobile ? 1 : 0
@@ -185,8 +185,9 @@ function Sidebar({
   const { isMobile, state, openMobile, setOpenMobile, revealProgress, revealDistance } = useSidebar()
   // The foreground and the menu share a single progress value, so reversing
   // direction never restarts an independent entrance animation.
-  const menuX = useTransform(revealProgress, [0, 1], [-20, 0])
-  const menuOpacity = useTransform(revealProgress, [0, 1], [0.88, 1])
+  // Keep the underlay visually present. A subtle lateral reveal is enough;
+  // fading the entire menu makes the two surfaces feel disconnected.
+  const menuX = useTransform(revealProgress, [0, 1], [-12, 0])
   const [drawerPresent, setDrawerPresent] = React.useState(false)
 
   React.useEffect(() => {
@@ -251,7 +252,7 @@ function Sidebar({
                 className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-x-clip"
               >
                 <motion.div
-                  style={{ x: menuX, opacity: menuOpacity }}
+                  style={{ x: menuX }}
                   className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-x-clip"
                 >
                   {children}

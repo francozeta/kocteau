@@ -267,3 +267,22 @@ Fix what shows up at slow speed. The full-speed interaction will feel better.
 - Keep Base UI's popup present during a closing spring, and let it finish closing
   only after the foreground covers it. On open, re-target the same spring. Avoid
   separate keyframes, unnecessary bounce or extra stage delays.
+
+### Mobile navigation motion study (November 2026)
+
+- Physical continuity matters more than animation spectacle. The menu stays
+  legible and nearly stationary beneath the foreground; only a restrained
+  12px offset follows the same near-critically damped spring as the main frame.
+- Do not fade the entire menu on open: the foreground's translation is already
+  its reveal. Avoid independent opacity timelines that make it feel synthetic.
+- Keep the gesture on a narrow explicit region, not the scrollable main or 3D
+  canvas, until direct-manipulation QA is proven on touch hardware.
+- Apple HIG motion: https://developer.apple.com/design/human-interface-guidelines/motion
+- Emil Kowalski, Great Animations: https://www.hackdesign.org/lessons/great-animations/
+- Jakub Krehel, drag gestures: https://jakub.kr/work/drag-gesture
+- Gustavo Fior, Interruptibility: https://craft.gustavofior.com/interruptibility
+- Continuity navigation study: https://github.com/francozeta/continuity/tree/feat/persistent-navigation-study
+- The `(main)` shared AppShell preserves the bottom dock across Feed, Reviews,
+  Library, Search, and Settings routes. Moving between `(main)` and `(studio)`
+  remounts their distinct Next layouts; cross-group persistence is **not**
+  established and must not be claimed until a common owner is implemented.
