@@ -1470,26 +1470,3 @@
     backdrop-filter: blur(var(--bottom-blur));
   }
 }
-
-/* Mobile reveal / inlay navigation: keep the actual sidebar behind the app
-   instead of sliding a second drawer on top of it. Only transform the
-   foreground page (GPU-friendly) and preserve its live scroll / 3D canvas. */
-@media (max-width: 767px) {
-  [data-slot="sidebar-wrapper"] {
-    overflow-x: clip;
-  }
-
-  [data-slot="sidebar-inset"] {
-    /* Motion owns the transform, corner radius and depth in one spring. */
-    z-index: 40;
-  }
-
-  [data-mobile-sidebar-open="true"] [data-slot="sidebar-inset"] {
-    overflow: clip;
-  }
-
-  .kocteau-mobile-sidebar-underlay {
-    /* Base UI still owns swipe dismissal; the menu's contents follow Motion. */
-    transform: translateX(var(--drawer-swipe-movement-x, 0px));
-  }
-}
