@@ -9,13 +9,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+import { Drawer } from "@base-ui/react/drawer"
+import { useSpring, type MotionValue } from "motion/react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -30,6 +25,23 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const REDUCE_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
+
+function subscribeViewport(callback: () => void) {
+  window.addEventListener("resize", callback)
+  return () => window.removeEventListener("resize", callback)
+}
+function viewportWidth() {
+  return window.innerWidth
+}
+function subscribeReducedMotion(callback: () => void) {
+  const media = window.matchMedia(REDUCE_MOTION_QUERY)
+  media.addEventListener("change", callback)
+  return () => media.removeEventListener("change", callback)
+}
+function reducedMotion() {
+  return window.matchMedia(REDUCE_MOTION_QUERY).matches
+}
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -38,6 +50,8 @@ type SidebarContextProps = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
+  revealProgress: MotionValue<number>
+  revealDistance: number
   toggleSidebar: () => void
 }
 
@@ -67,6 +81,27 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const width = React.useSyncExternalStore(subscribeViewport, viewportWidth, () => 390)
+  const reduceMotion = React.useSyncExternalStore(subscribeReducedMotion, reducedMotion, () => false)
+  const revealDistance = Math.max(0, Math.min(width - 76, 304))
+  // Craft's interruptibility: one spring, always retarget from its CURRENT
+  // position and velocity. No animation locks, remounts, or keyframes.
+  const revealProgress = useSpring(0, { stiffness: 310, damping: 39, mass: 1 })
+
+  React.useEffect(() => {
+    const target = isMobile && openMobile ? 1 : 0
+    if (reduceMotion) revealProgress.jump(target)
+    else revealProgress.set(target)
+  }, [isMobile, openMobile, reduceMotion, revealProgress])
+
+  React.useEffect(() => {
+    if (!isMobile || !openMobile) return
+    const dismissWithEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenMobile(false)
+    }
+    document.addEventListener("keydown", dismissWithEscape)
+    return () => document.removeEventListener("keydown", dismissWithEscape)
+  }, [isMobile, openMobile])
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -120,9 +155,11 @@ function SidebarProvider({
       isMobile,
       openMobile,
       setOpenMobile,
+      revealProgress,
+      revealDistance,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, revealProgress, revealDistance, toggleSidebar]
   )
 
   return (
@@ -161,7 +198,18 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, revealProgress, revealDistance } = useSidebar()
+  const [drawerPresent, setDrawerPresent] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!isMobile) return
+    // Preserve the underlay through the full closing spring. Motion changes
+    // are external events, so there is no synchronous state update in an effect.
+    return revealProgress.on("change", value => {
+      const visible = value > 0.005
+      setDrawerPresent(wasVisible => wasVisible === visible ? wasVisible : visible)
+    })
+  }, [isMobile, revealProgress])
 
   if (collapsible === "none") {
     return (
@@ -180,27 +228,41 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
-          dir={dir}
-          data-sidebar="sidebar"
-          data-slot="sidebar"
-          data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
+      <Drawer.Root
+        open={openMobile || drawerPresent}
+        onOpenChange={setOpenMobile}
+        modal="trap-focus"
+        swipeDirection="left"
+      >
+        <Drawer.Portal keepMounted>
+          <Drawer.Viewport className="pointer-events-none fixed inset-0 z-30 md:hidden">
+            <Drawer.Popup
+              dir={dir}
+              data-sidebar="sidebar"
+              data-slot="sidebar"
+              data-mobile="true"
+              className={cn(
+                "pointer-events-auto relative box-border flex h-dvh min-w-0 max-w-full shrink-0 flex-col overflow-hidden bg-sidebar p-0 text-sidebar-foreground",
+                side === "right" && "ml-auto",
+                className,
+              )}
+              style={{ width: Math.max(0, revealDistance - 14) }}
+              {...props}
+            >
+              <Drawer.Title className="sr-only">Navigation</Drawer.Title>
+              <Drawer.Description className="sr-only">
+                Kocteau navigation beneath the current page.
+              </Drawer.Description>
+              <Drawer.Content
+                data-base-ui-swipe-ignore=""
+                className="flex h-full min-h-0 min-w-0 w-full max-w-full flex-col overflow-x-hidden"
+              >
+                {children}
+              </Drawer.Content>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer.Root>
     )
   }
 
