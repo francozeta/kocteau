@@ -64,19 +64,20 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
-  const [revealDistance, setRevealDistance] = React.useState(288)
+  const [revealDistance, setRevealDistance] = React.useState(304)
   const reduceMotion = useReducedMotion()
 
   React.useEffect(() => {
     if (!isMobile) return
-    const measure = () => setRevealDistance(Math.min(window.innerWidth * 0.78, 288))
+    // Leave a usable strip of foreground and enough room for the menu's own gutter.
+    const measure = () => setRevealDistance(Math.max(0, Math.min(window.innerWidth - 76, 304)))
     measure()
     window.addEventListener("resize", measure)
     return () => window.removeEventListener("resize", measure)
   }, [isMobile])
   // One interruptible spring moves the foreground, radius, shadow and menu content.
   // Keeping it above the route content means 3D Search and the bottom dock never remount.
-  const revealProgress = useSpring(0, { stiffness: 360, damping: 36, mass: 0.9 })
+  const revealProgress = useSpring(0, { stiffness: 260, damping: 35, mass: 1 })
 
   React.useEffect(() => {
     const target = isMobile && openMobile ? 1 : 0
@@ -181,9 +182,27 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile, revealProgress } = useSidebar()
-  const menuX = useTransform(revealProgress, [0, 1], [-34, 0])
-  const menuOpacity = useTransform(revealProgress, [0, 1], [0.3, 1])
+  const { isMobile, state, openMobile, setOpenMobile, revealProgress, revealDistance } = useSidebar()
+  // The foreground and the menu share a single progress value, so reversing
+  // direction never restarts an independent entrance animation.
+  const menuX = useTransform(revealProgress, [0, 1], [-20, 0])
+  const menuOpacity = useTransform(revealProgress, [0, 1], [0.88, 1])
+  const [drawerPresent, setDrawerPresent] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!isMobile) return
+    if (openMobile) {
+      setDrawerPresent(true)
+      return
+    }
+    // Base UI keeps its focus/swipe semantics until the foreground finishes
+    // covering the menu; only then may it hide the popup.
+    const finishClose = (value: number) => {
+      if (value <= 0.005) setDrawerPresent(false)
+    }
+    finishClose(revealProgress.get())
+    return revealProgress.on("change", finishClose)
+  }, [isMobile, openMobile, revealProgress])
 
   if (collapsible === "none") {
     return (
@@ -203,7 +222,7 @@ function Sidebar({
   if (isMobile) {
     return (
       <Drawer.Root
-        open={openMobile}
+        open={drawerPresent}
         onOpenChange={setOpenMobile}
         swipeDirection={side === "left" ? "left" : "right"}
         modal="trap-focus"
@@ -216,10 +235,11 @@ function Sidebar({
               data-slot="sidebar"
               data-mobile="true"
               className={cn(
-                "kocteau-mobile-sidebar-underlay pointer-events-auto relative flex h-svh w-(--sidebar-width-mobile) flex-col overflow-hidden bg-sidebar p-0 text-sidebar-foreground transition-opacity duration-[360ms] ease-[var(--kocteau-ease)] data-starting-style:opacity-0 data-ending-style:opacity-0 data-swiping:duration-0 motion-reduce:transition-none",
+                "kocteau-mobile-sidebar-underlay pointer-events-auto relative box-border flex h-dvh min-w-0 max-w-full shrink-0 flex-col overflow-x-clip overflow-y-hidden bg-sidebar p-0 text-sidebar-foreground",
                 side === "right" && "ml-auto",
                 className,
               )}
+              style={{ width: Math.max(0, revealDistance - 16) }}
               {...props}
             >
               <Drawer.Title className="sr-only">Sidebar</Drawer.Title>
@@ -228,11 +248,11 @@ function Sidebar({
               </Drawer.Description>
               <Drawer.Content
                 data-base-ui-swipe-ignore="y"
-                className="flex h-full min-h-0 w-full flex-col"
+                className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-x-clip"
               >
                 <motion.div
                   style={{ x: menuX, opacity: menuOpacity }}
-                  className="flex h-full min-h-0 w-full flex-col"
+                  className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-x-clip"
                 >
                   {children}
                 </motion.div>
@@ -445,7 +465,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "no-scrollbar flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-0 overflow-x-hidden overflow-y-auto group-data-[collapsible=icon]:overflow-hidden",
         className
       )}
       {...props}
@@ -526,7 +546,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn("flex w-full min-w-0 flex-col gap-px", className)}
+      className={cn("flex w-full min-w-0 max-w-full flex-col gap-px", className)}
       {...props}
     />
   )
@@ -544,7 +564,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-[calc(var(--radius-sm)+2px)] p-2 text-left text-xs ring-sidebar-ring outline-hidden transition-[width,height,padding,gap,background-color,color,box-shadow] duration-[180ms] ease-[var(--kocteau-ease)] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+  "peer/menu-button group/menu-button flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-[calc(var(--radius-sm)+2px)] p-2 text-left text-xs ring-sidebar-ring outline-hidden transition-[width,height,padding,gap,background-color,color,box-shadow] duration-[180ms] ease-[var(--kocteau-ease)] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
   {
     variants: {
       variant: {

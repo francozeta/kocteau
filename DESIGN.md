@@ -257,3 +257,13 @@ Fix what shows up at slow speed. The full-speed interaction will feel better.
 - Ship as a separate preview PR. Verify iOS Safari scroll restoration, bottom
   bar and fixed header movement, focus return, nested menus and no mobile
   tooltips before merging to main.
+
+- Mobile drawer geometry cannot rely on CSS variables scoped to the SidebarProvider:
+  Base UI portals into document.body, outside that CSS inheritance tree. Pass
+  explicit measured width to the popup, leave a 16px gap before the foreground,
+  constrain all internal flex children to min-width: 0/max-width: 100%, and let
+  guest copy wrap naturally within the panel. The foreground and menu use one
+  near-critically damped Motion spring; no independent popup opacity transition.
+- Keep Base UI's popup present during a closing spring, and let it finish closing
+  only after the foreground covers it. On open, re-target the same spring. Avoid
+  separate keyframes, unnecessary bounce or extra stage delays.

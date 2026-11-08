@@ -24,3 +24,7 @@ dialogs and server-rendered page content. Focus and motion rules live in
 
 Run lint and the web build. Check route transitions, Cmd/Ctrl+K and N, dialog focus
 restoration, desktop scrolling, mobile bottom navigation, and loading dimensions.
+
+- Mobile Drawer portals outside `SidebarProvider`; popup width is supplied as
+  a measured inline style, not inherited from a wrapper-only CSS variable.
+  Guest footer text and menu controls must fit inside that width at 320px–430px.

@@ -267,7 +267,7 @@ export default function AppSidebar({
         className="group-data-[collapsible=icon]:border-none"
         {...props}
       >
-        <SidebarHeader className="gap-2 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
+        <SidebarHeader className="min-w-0 max-w-full gap-2 p-2.5 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
           {isSettingsRoute ? (
             <SidebarMenu>
               <SidebarMenuItem>
@@ -324,7 +324,7 @@ export default function AppSidebar({
           )}
         </SidebarHeader>
 
-        <SidebarContent className="gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
+        <SidebarContent className="min-w-0 max-w-full gap-1.5 px-1 pb-2.5 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:pb-1.5">
           {isSettingsRoute ? (
             <NavMain
               items={settingsItems}
@@ -352,7 +352,7 @@ export default function AppSidebar({
           )}
         </SidebarContent>
 
-        <SidebarFooter className="px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
+        <SidebarFooter className="min-w-0 max-w-full px-1 pb-2.5 pt-2 group-data-[collapsible=icon]:px-0.5 group-data-[collapsible=icon]:py-1.5">
           <NavUser
             profile={profile}
             onNavigate={closeMobileSidebar}
