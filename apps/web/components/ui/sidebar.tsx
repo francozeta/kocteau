@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Drawer } from "@base-ui/react/drawer"
+import { motion, useReducedMotion, useSpring, useTransform, type MotionValue } from "motion/react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -32,6 +33,7 @@ type SidebarContextProps = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
+  revealProgress: MotionValue<number>
   toggleSidebar: () => void
 }
 
@@ -61,6 +63,16 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const reduceMotion = useReducedMotion()
+  // One interruptible spring moves the foreground, radius, shadow and menu content.
+  // Keeping it above the route content means 3D Search and the bottom dock never remount.
+  const revealProgress = useSpring(0, { stiffness: 360, damping: 36, mass: 0.9 })
+
+  React.useEffect(() => {
+    const target = isMobile && openMobile ? 1 : 0
+    if (reduceMotion) revealProgress.jump(target)
+    else revealProgress.set(target)
+  }, [isMobile, openMobile, reduceMotion, revealProgress])
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -114,9 +126,10 @@ function SidebarProvider({
       isMobile,
       openMobile,
       setOpenMobile,
+      revealProgress,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, revealProgress, toggleSidebar]
   )
 
   return (
@@ -157,7 +170,9 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, revealProgress } = useSidebar()
+  const menuX = useTransform(revealProgress, [0, 1], [-34, 0])
+  const menuOpacity = useTransform(revealProgress, [0, 1], [0.3, 1])
 
   if (collapsible === "none") {
     return (
@@ -182,7 +197,7 @@ function Sidebar({
         swipeDirection={side === "left" ? "left" : "right"}
         modal="trap-focus"
       >
-        <Drawer.Portal>
+        <Drawer.Portal keepMounted>
           <Drawer.Viewport className="pointer-events-none fixed inset-0 z-30 md:hidden">
             <Drawer.Popup
               dir={dir}
@@ -190,7 +205,7 @@ function Sidebar({
               data-slot="sidebar"
               data-mobile="true"
               className={cn(
-                "kocteau-mobile-sidebar-underlay pointer-events-auto relative flex h-svh w-(--sidebar-width-mobile) flex-col overflow-hidden bg-sidebar p-0 text-sidebar-foreground",
+                "kocteau-mobile-sidebar-underlay pointer-events-auto relative flex h-svh w-(--sidebar-width-mobile) flex-col overflow-hidden bg-sidebar p-0 text-sidebar-foreground transition-opacity duration-[360ms] ease-[var(--kocteau-ease)] data-starting-style:opacity-0 data-ending-style:opacity-0 data-swiping:duration-0 motion-reduce:transition-none",
                 side === "right" && "ml-auto",
                 className,
               )}
@@ -204,7 +219,12 @@ function Sidebar({
                 data-base-ui-swipe-ignore="y"
                 className="flex h-full min-h-0 w-full flex-col"
               >
-                {children}
+                <motion.div
+                  style={{ x: menuX, opacity: menuOpacity }}
+                  className="flex h-full min-h-0 w-full flex-col"
+                >
+                  {children}
+                </motion.div>
               </Drawer.Content>
             </Drawer.Popup>
           </Drawer.Viewport>
@@ -316,14 +336,36 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 }
 
 function SidebarInset({ className, children, ...props }: React.ComponentProps<"main">) {
-  const { isMobile, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, openMobile, setOpenMobile, revealProgress } = useSidebar()
+  const [revealDistance, setRevealDistance] = React.useState(288)
+
+  React.useEffect(() => {
+    if (!isMobile) return
+    const updateDistance = () => setRevealDistance(Math.min(window.innerWidth * 0.78, 288))
+    updateDistance()
+    window.addEventListener("resize", updateDistance)
+    return () => window.removeEventListener("resize", updateDistance)
+  }, [isMobile])
+
+  const insetX = useTransform(revealProgress, [0, 1], [0, revealDistance])
+  const leftRadius = useTransform(revealProgress, value => `${(22 * value).toFixed(2)}px`)
+  const leftShadow = useTransform(revealProgress, value =>
+    `-16px 0 36px rgb(0 0 0 / ${(0.17 * value).toFixed(3)})`
+  )
 
   return (
-    <main
+    <motion.main
+      initial={false}
+      style={isMobile ? {
+        x: insetX,
+        borderTopLeftRadius: leftRadius,
+        borderBottomLeftRadius: leftRadius,
+        boxShadow: leftShadow,
+      } : undefined}
       data-slot="sidebar-inset"
       className={cn(
         /* md:peer-data-[variant=inset]:m-2 */
-        "relative flex w-full flex-1 flex-col bg-background transition-[margin,border-radius] duration-[240ms] ease-[var(--kocteau-ease)] md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+        "relative flex w-full flex-1 flex-col bg-background transition-[margin] duration-[240ms] ease-[var(--kocteau-ease)] md:transition-[margin,border-radius] md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
         className
       )}
       {...props}
@@ -338,7 +380,7 @@ function SidebarInset({ className, children, ...props }: React.ComponentProps<"m
           className="absolute inset-0 z-[80] cursor-default bg-black/[0.08]"
         />
       ) : null}
-    </main>
+    </motion.main>
   )
 }
 
