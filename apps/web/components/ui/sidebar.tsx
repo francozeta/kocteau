@@ -34,6 +34,7 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   revealProgress: MotionValue<number>
+  revealDistance: number
   toggleSidebar: () => void
 }
 
@@ -63,7 +64,16 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [revealDistance, setRevealDistance] = React.useState(288)
   const reduceMotion = useReducedMotion()
+
+  React.useEffect(() => {
+    if (!isMobile) return
+    const measure = () => setRevealDistance(Math.min(window.innerWidth * 0.78, 288))
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [isMobile])
   // One interruptible spring moves the foreground, radius, shadow and menu content.
   // Keeping it above the route content means 3D Search and the bottom dock never remount.
   const revealProgress = useSpring(0, { stiffness: 360, damping: 36, mass: 0.9 })
@@ -127,9 +137,10 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       revealProgress,
+      revealDistance,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, revealProgress, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, revealProgress, revealDistance, toggleSidebar]
   )
 
   return (
@@ -336,16 +347,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 }
 
 function SidebarInset({ className, children, ...props }: React.ComponentProps<typeof motion.main>) {
-  const { isMobile, openMobile, setOpenMobile, revealProgress } = useSidebar()
-  const [revealDistance, setRevealDistance] = React.useState(288)
-
-  React.useEffect(() => {
-    if (!isMobile) return
-    const updateDistance = () => setRevealDistance(Math.min(window.innerWidth * 0.78, 288))
-    updateDistance()
-    window.addEventListener("resize", updateDistance)
-    return () => window.removeEventListener("resize", updateDistance)
-  }, [isMobile])
+  const { isMobile, openMobile, setOpenMobile, revealProgress, revealDistance } = useSidebar()
 
   const insetX = useTransform(revealProgress, [0, 1], [0, revealDistance])
   const leftRadius = useTransform(revealProgress, value => `${(22 * value).toFixed(2)}px`)

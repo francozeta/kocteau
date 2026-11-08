@@ -247,11 +247,13 @@ Fix what shows up at slow speed. The full-speed interaction will feel better.
   Sheet/Tooltip/Dialog components keep their current implementation.
 - Opening and closing must reverse smoothly, dismiss when tapping the exposed
   main surface, honor reduced motion and not intercept Search's 3D canvas drag.
-- The persistent SidebarProvider owns one Motion spring progress value. Animate
-  the full SidebarInset (including header, Search canvas, bottom dock and haze),
-  its left radii/shadow, and the underlay menu entrance from that same progress;
-  never add a second transform to the dock or fixed header. Base UI retains swipe,
-  focus and dismiss ownership; keep the portal present for its exit lifecycle.
+- The persistent SidebarProvider owns one Motion spring progress and measured
+  reveal distance. Animate the SidebarInset, its left radii/shadow and the menu
+  entrance from that same progress; keep Base UI responsible for swipe, focus
+  and dismissal. The mobile fixed header and dock/haze portal to viewport-sized
+  sibling overlays that use this **same** spring, rather than staying fixed
+  inside a transformed long-scrolling main (which breaks fixed positioning).
+  Avoid independent animation timelines and remounts during open/close.
 - Ship as a separate preview PR. Verify iOS Safari scroll restoration, bottom
   bar and fixed header movement, focus return, nested menus and no mobile
   tooltips before merging to main.
