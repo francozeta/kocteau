@@ -70,13 +70,13 @@ export function NavUser({
 
   if (!profile) {
     return (
-      <div className="kocteau-sidebar-expand-only kocteau-sidebar-note box-border w-full max-w-full min-w-0 overflow-hidden rounded-[0.95rem] p-3 text-[13px] leading-5 text-muted-foreground">
-        <div className="mb-1.5 flex min-w-0 items-center gap-2 text-sidebar-foreground">
-          <SparkleIcon className="size-3.5 shrink-0" weight="regular" />
-          <span className="min-w-0 font-medium leading-snug">Sign in to participate</span>
+      <div className="kocteau-sidebar-expand-only kocteau-sidebar-note rounded-[0.95rem] p-3 text-[13px] leading-5 text-muted-foreground">
+        <div className="mb-1.5 flex items-center gap-2 text-sidebar-foreground">
+          <SparkleIcon className="size-3.5" weight="regular" />
+          <span className="font-medium">Sign in to participate</span>
         </div>
-        <p className="min-w-0 max-w-full whitespace-normal wrap-break-word">
-          Browse freely. Sign in to review, save, and join the conversation.
+        <p>
+          Browse freely, then log in when you want to write reviews, save favorites, and join the conversation.
         </p>
       </div>
     );
