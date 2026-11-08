@@ -8,6 +8,7 @@ import DesktopScrollBridge from "@/components/shell/desktop-scroll-bridge";
 import GlobalShortcuts from "@/components/shell/global-shortcuts";
 import Header from "@/components/shell/header";
 import MobileBottomBar from "@/components/shell/mobile-bottom-bar";
+import MobileForegroundOverlay from "@/components/shell/mobile-foreground-overlay";
 import { RouteHeaderProvider } from "@/components/shell/route-header-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
@@ -71,7 +72,9 @@ export default async function AppShell({
         data-kocteau-scroll-boundary
         className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]"
       >
-        <Header profile={safeProfile} />
+        <MobileForegroundOverlay depthShadow>
+          <Header profile={safeProfile} />
+        </MobileForegroundOverlay>
         <DesktopScrollBridge />
         <div className="kocteau-content-frame mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] has-[[data-kocteau-search-surface]]:!max-w-none has-[[data-kocteau-search-surface]]:!p-0 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-7 lg:py-0 xl:px-8">
           {isStudio ? (
@@ -102,7 +105,9 @@ export default async function AppShell({
           )}
         </div>
       </div>
-      <MobileBottomBar profile={safeProfile} />
+      <MobileForegroundOverlay>
+        <MobileBottomBar profile={safeProfile} />
+      </MobileForegroundOverlay>
       <DeferredToaster />
     </>
   );

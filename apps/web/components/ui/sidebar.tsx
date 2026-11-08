@@ -9,13 +9,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+import { Drawer } from "@base-ui/react/drawer"
+import { motion, useSpring, useTransform, type MotionValue } from "motion/react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -30,6 +25,17 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const REDUCE_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
+
+function subscribeReducedMotion(callback: () => void) {
+  const preference = window.matchMedia(REDUCE_MOTION_QUERY)
+  preference.addEventListener("change", callback)
+  return () => preference.removeEventListener("change", callback)
+}
+
+function getReducedMotion() {
+  return window.matchMedia(REDUCE_MOTION_QUERY).matches
+}
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -38,6 +44,8 @@ type SidebarContextProps = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
+  revealProgress: MotionValue<number>
+  revealDistance: number
   toggleSidebar: () => void
 }
 
@@ -67,6 +75,27 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [revealDistance, setRevealDistance] = React.useState(304)
+  // Unlike a mount-time snapshot, this responds when iOS Reduce Motion changes.
+  const reduceMotion = React.useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false)
+
+  React.useEffect(() => {
+    if (!isMobile) return
+    // Leave a usable strip of foreground and enough room for the menu's own gutter.
+    const measure = () => setRevealDistance(Math.max(0, Math.min(window.innerWidth - 76, 304)))
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [isMobile])
+  // One interruptible spring moves the foreground, radius and menu content.
+  // Keeping it above the route content means 3D Search and the bottom dock never remount.
+  const revealProgress = useSpring(0, { stiffness: 310, damping: 39, mass: 1 })
+
+  React.useEffect(() => {
+    const target = isMobile && openMobile ? 1 : 0
+    if (reduceMotion) revealProgress.jump(target)
+    else revealProgress.set(target)
+  }, [isMobile, openMobile, reduceMotion, revealProgress])
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -120,18 +149,22 @@ function SidebarProvider({
       isMobile,
       openMobile,
       setOpenMobile,
+      revealProgress,
+      revealDistance,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, revealProgress, revealDistance, toggleSidebar]
   )
 
   return (
     <SidebarContext.Provider value={contextValue}>
       <div
         data-slot="sidebar-wrapper"
+        data-mobile-sidebar-open={isMobile && openMobile}
         style={
           {
             "--sidebar-width": SIDEBAR_WIDTH,
+            "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE,
             "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
             ...style,
           } as React.CSSProperties
@@ -161,7 +194,24 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, revealProgress, revealDistance } = useSidebar()
+  // The foreground and the menu share a single progress value, so reversing
+  // direction never restarts an independent entrance animation.
+  // Keep the underlay visually present. A subtle lateral reveal is enough;
+  // fading the entire menu makes the two surfaces feel disconnected.
+  const menuX = useTransform(revealProgress, [0, 1], [-12, 0])
+  const [drawerPresent, setDrawerPresent] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!isMobile) return
+    // External Motion events may update React state; avoid synchronously
+    // setting it in an effect. While closing, keep the Base UI portal present
+    // until the foreground has covered the underlay.
+    return revealProgress.on("change", (value: number) => {
+      const present = value > 0.005
+      setDrawerPresent(previous => previous === present ? previous : present)
+    })
+  }, [isMobile, revealProgress])
 
   if (collapsible === "none") {
     return (
@@ -180,27 +230,46 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
-          dir={dir}
-          data-sidebar="sidebar"
-          data-slot="sidebar"
-          data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
+      <Drawer.Root
+        open={openMobile || drawerPresent}
+        onOpenChange={setOpenMobile}
+        swipeDirection={side === "left" ? "left" : "right"}
+        modal="trap-focus"
+      >
+        <Drawer.Portal keepMounted>
+          <Drawer.Viewport className="pointer-events-none fixed inset-0 z-30 md:hidden">
+            <Drawer.Popup
+              dir={dir}
+              data-sidebar="sidebar"
+              data-slot="sidebar"
+              data-mobile="true"
+              className={cn(
+                "kocteau-mobile-sidebar-underlay pointer-events-auto relative box-border flex h-dvh min-w-0 max-w-full shrink-0 flex-col overflow-x-clip overflow-y-hidden bg-sidebar p-0 text-sidebar-foreground",
+                side === "right" && "ml-auto",
+                className,
+              )}
+              style={{ width: Math.max(0, revealDistance - 16) }}
+              {...props}
+            >
+              <Drawer.Title className="sr-only">Sidebar</Drawer.Title>
+              <Drawer.Description className="sr-only">
+                Navigation for Kocteau. Swipe to close or select a destination.
+              </Drawer.Description>
+              <Drawer.Content
+                data-base-ui-swipe-ignore="y"
+                className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-x-clip"
+              >
+                <motion.div
+                  style={{ x: menuX }}
+                  className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-x-clip"
+                >
+                  {children}
+                </motion.div>
+              </Drawer.Content>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer.Root>
     )
   }
 
@@ -306,17 +375,41 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   )
 }
 
-function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
+function SidebarInset({ className, children, ...props }: Omit<React.ComponentProps<typeof motion.main>, "children"> & { children?: React.ReactNode }) {
+  const { isMobile, openMobile, setOpenMobile, revealProgress, revealDistance } = useSidebar()
+
+  const insetX = useTransform(revealProgress, [0, 1], [0, revealDistance])
+  const leftRadius = useTransform(revealProgress, value => `${(22 * value).toFixed(2)}px`)
+  // The viewport-sized shadow lives in MobileForegroundOverlay: animating a
+  // long scrolling main's box-shadow on every frame causes expensive paints.
+
   return (
-    <main
+    <motion.main
+      initial={false}
+      style={isMobile ? {
+        x: insetX,
+        borderTopLeftRadius: leftRadius,
+        borderBottomLeftRadius: leftRadius,
+      } : undefined}
       data-slot="sidebar-inset"
       className={cn(
         /* md:peer-data-[variant=inset]:m-2 */
-        "relative flex w-full flex-1 flex-col bg-background transition-[margin,border-radius] duration-[240ms] ease-[var(--kocteau-ease)] md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+        "relative flex w-full flex-1 flex-col bg-background transition-[margin] duration-[240ms] ease-[var(--kocteau-ease)] md:transition-[margin,border-radius] md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
         className
       )}
       {...props}
-    />
+    >
+      {children}
+      {isMobile && openMobile ? (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Close sidebar"
+          onClick={() => setOpenMobile(false)}
+          className="absolute inset-0 z-[80] cursor-default bg-black/[0.08]"
+        />
+      ) : null}
+    </motion.main>
   )
 }
 
@@ -379,7 +472,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "no-scrollbar flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-0 overflow-x-hidden overflow-y-auto group-data-[collapsible=icon]:overflow-hidden",
         className
       )}
       {...props}
@@ -460,7 +553,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn("flex w-full min-w-0 flex-col gap-px", className)}
+      className={cn("flex w-full min-w-0 max-w-full flex-col gap-px", className)}
       {...props}
     />
   )
@@ -478,7 +571,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-[calc(var(--radius-sm)+2px)] p-2 text-left text-xs ring-sidebar-ring outline-hidden transition-[width,height,padding,gap,background-color,color,box-shadow] duration-[180ms] ease-[var(--kocteau-ease)] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+  "peer/menu-button group/menu-button flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-[calc(var(--radius-sm)+2px)] p-2 text-left text-xs ring-sidebar-ring outline-hidden transition-[width,height,padding,gap,background-color,color,box-shadow] duration-[180ms] ease-[var(--kocteau-ease)] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
   {
     variants: {
       variant: {

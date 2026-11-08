@@ -177,13 +177,13 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       {isSearchRoute ? (
         <div
           id="mobile-search-filters"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] left-1/2 z-50 w-[calc(100%-2rem)] max-w-[28rem] -translate-x-1/2 md:hidden"
+          className="pointer-events-auto fixed bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] left-1/2 z-50 w-[calc(100%-2rem)] max-w-[28rem] -translate-x-1/2 md:hidden"
         />
       ) : null}
       {isReviewDetail && detailHeader?.reviewId ? (
         <nav
           aria-label="Comment controls"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
+          className="pointer-events-auto fixed bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] left-1/2 z-50 w-[calc(100%-2rem)] -translate-x-1/2 md:hidden"
         >
           <ReviewCommentDock
             reviewId={detailHeader.reviewId}
@@ -196,7 +196,7 @@ export default function MobileBottomBar({ profile }: MobileBottomBarProps) {
       <nav
         aria-label={isSearchRoute ? "Search and return navigation" : "Primary navigation"}
         className={cn(
-          "fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 -translate-x-1/2 md:hidden",
+          "pointer-events-auto fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 -translate-x-1/2 md:hidden",
           isSearchRoute
             ? "w-[calc(100%-2rem)] max-w-[28rem]"
             : "w-max max-w-[calc(100%-2rem)]",

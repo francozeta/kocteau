@@ -235,3 +235,73 @@ Speed can hide flaws. At slower playback, check:
 - Does the motion clarify the product, or is it just decoration?
 
 Fix what shows up at slow speed. The full-speed interaction will feel better.
+
+### Mobile sidebar reveal / Base UI experiment
+
+- The left navigation is an **underlay**, not an overlay Sheet: the existing
+  content surface slides right and gains a gentle left-side radius/shadow while
+  the original sidebar remains behind it. Reuse the existing menu rows, icons,
+  labels, colors, hierarchy, guest CTA and active states unchanged.
+- Base UI Drawer owns accessible open/close state, swipe dismissal and focus
+  semantics only for the mobile sidebar. The desktop sidebar and unrelated
+  Sheet/Tooltip/Dialog components keep their current implementation.
+- Opening and closing must reverse smoothly, dismiss when tapping the exposed
+  main surface, honor reduced motion and not intercept Search's 3D canvas drag.
+- The persistent SidebarProvider owns one Motion spring progress and measured
+  reveal distance. Animate the SidebarInset, its left radii/shadow and the menu
+  entrance from that same progress; keep Base UI responsible for swipe, focus
+  and dismissal. The mobile fixed header and dock/haze portal to viewport-sized
+  sibling overlays that use this **same** spring, rather than staying fixed
+  inside a transformed long-scrolling main (which breaks fixed positioning).
+  Avoid independent animation timelines and remounts during open/close.
+- Ship as a separate preview PR. Verify iOS Safari scroll restoration, bottom
+  bar and fixed header movement, focus return, nested menus and no mobile
+  tooltips before merging to main.
+
+- Mobile drawer geometry cannot rely on CSS variables scoped to the SidebarProvider:
+  Base UI portals into document.body, outside that CSS inheritance tree. Pass
+  explicit measured width to the popup, leave a 16px gap before the foreground,
+  constrain all internal flex children to min-width: 0/max-width: 100%, and let
+  guest copy wrap naturally within the panel. The foreground and menu use one
+  near-critically damped Motion spring; no independent popup opacity transition.
+- Keep Base UI's popup present during a closing spring, and let it finish closing
+  only after the foreground covers it. On open, re-target the same spring. Avoid
+  separate keyframes, unnecessary bounce or extra stage delays.
+
+### Mobile navigation motion study (November 2026)
+
+- Physical continuity matters more than animation spectacle. The menu stays
+  legible and nearly stationary beneath the foreground; only a restrained
+  12px offset follows the same near-critically damped spring as the main frame.
+- Do not fade the entire menu on open: the foreground's translation is already
+  its reveal. Avoid independent opacity timelines that make it feel synthetic.
+- Keep the gesture on a narrow explicit region, not the scrollable main or 3D
+  canvas, until direct-manipulation QA is proven on touch hardware.
+- Apple HIG motion: https://developer.apple.com/design/human-interface-guidelines/motion
+- Emil Kowalski, Great Animations: https://www.hackdesign.org/lessons/great-animations/
+- Jakub Krehel, drag gestures: https://jakub.kr/work/drag-gesture
+- Gustavo Fior, Interruptibility: https://craft.gustavofior.com/interruptibility
+- Continuity navigation study: https://github.com/francozeta/continuity/tree/feat/persistent-navigation-study
+- The `(main)` shared AppShell preserves the bottom dock across Feed, Reviews,
+  Library, Search, and Settings routes. Moving between `(main)` and `(studio)`
+  remounts their distinct Next layouts; cross-group persistence is **not**
+  established and must not be claimed until a common owner is implemented.
+
+### Phase 5 — compositor and accessibility polish
+
+- Replace animated full-height document `box-shadow` with one fixed 100dvh
+  shadow layer hosted in the persistent mobile header overlay. Only its
+  `opacity` animates, driven by the same revealProgress MotionValue; avoid
+  expensive frame-by-frame paint on a long review feed. The dock overlay
+  intentionally does not duplicate that depth layer.
+- Keep foreground translation and corner radius coordinated to that same
+  spring. No scale trick, independent fade, or remount of Search WebGL.
+- Subscribe to `prefers-reduced-motion` through `useSyncExternalStore`
+  so changing the iPhone accessibility setting mid-session immediately jumps to
+  the correct open/closed state.
+- Direct finger tracking is still experimental in the Continuity navigation lab
+  (https://github.com/francozeta/continuity/pull/5). Do not copy it into Kocteau
+  before validating iOS scroll, VoiceOver, edge gestures and WebGL pointer capture.
+- Note: shell lifetime is shared within a Next route group, not across distinct
+  `(main)` and `(studio)` layouts. Cross-group identity requires an owning
+  layout above both; do not mistake duplicate AppShell components for persistence.
