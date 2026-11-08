@@ -83,6 +83,7 @@ export default function SidebarMotionLab() {
   return (
     <div className={s.stage} data-sidebar-lab>
       <nav
+        id="sidebar-lab-list"
         className={s.sidebar}
         aria-label="Experimental underlay navigation"
         aria-hidden={!open}
@@ -127,6 +128,7 @@ export default function SidebarMotionLab() {
             aria-expanded={open}
             className={s.menuButton}
             style={{ touchAction: "pan-y" }}
+            onPointerDown={() => { didDrag.current = false; }}
             onPanStart={() => {
               didDrag.current = true;
               gestureStart.current = progress.get();
@@ -190,7 +192,6 @@ export default function SidebarMotionLab() {
         {open && <button type="button" className={s.dismiss}
           aria-label="Dismiss navigation" onClick={() => move(false)}/>}
       </motion.section>
-      <div id="sidebar-lab-list" className={s.srOnly}>Sidebar navigation labels: Feed, Search, Reviews, Library.</div>
     </div>
   );
 }
