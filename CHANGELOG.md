@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.17](https://github.com/francozeta/kocteau/compare/v0.3.16...v0.3.17) (2026-11-13)
+
+
+### Bug Fixes
+
+* **sidebar:** restore classic mobile overlay navigation ([e151d18](https://github.com/francozeta/kocteau/commit/e151d18956f292a7d8f027d47e751700ba0745a6))
+
 ## [0.3.16](https://github.com/francozeta/kocteau/compare/v0.3.15...v0.3.16) (2026-11-08)
 
 
