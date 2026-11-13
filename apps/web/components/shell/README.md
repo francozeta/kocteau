@@ -22,25 +22,16 @@ dialogs and server-rendered page content. Focus and motion rules live in
 Run lint and the web build. Check route transitions, Cmd/Ctrl+K and N, dialog focus
 restoration, desktop scrolling, mobile bottom navigation, and loading dimensions.
 
-## Mobile reveal (preview-only, November 2026)
+## Mobile sidebar overlay
 
-The stable mobile Sheet is replaced in an experimental branch with a static
-Base UI underlay and ONE motion foreground. This is intentionally different
-from the reverted #294, which portaled the header and bottom bar to distinct
-motion layers and failed on iPhone Brave.
+Mobile navigation uses the existing `AppSidebar` in a controlled Base UI Drawer.
+It slides over the page; the header, Search canvas and bottom dock do not move.
+Keep the original navigation links, visual tokens, and desktop sidebar.
 
-- `SidebarProvider` owns one `useSpring` progress value. Consecutive toggles
-  always retarget the same spring; no isAnimating gate or CSS keyframes.
-- The 100dvh mobile `MobileRevealInset` owns header, scrollable content and the
-  bottom dock. The content-frame scrolls internally only on mobile to keep fixed
-  elements rooted in one moving viewport; desktop continues unchanged.
-- The sidebar is still the real AppSidebar with existing links, permissions
-  and styling. Base UI Drawer provides semantics; its swipe is disabled on
-  drawer content until shared drag integration is device-verified.
-- The original `ProgressiveMobileHeaderBlur` and `BottomBlur` remain intact,
-  in the shared foreground; no independent overlay portals.
-- Check iPhone Brave and Safari gesture reversal, content scrolling, search
-  WebGL positioning, header and dock alignment, route changes, narrow widths,
-  focused inputs, VoiceOver/focus, reduced motion, and landscape before merge.
-- Source reference: https://craft.gustavofior.com/interruptibility
-- Do NOT merge to main without real-device approval.
+- The drawer handles backdrop dismissal, focus trap/return, Escape and swipe
+  dismissal. Route changes continue to close the sidebar in `AppSidebar`.
+- CSS transitions can reverse mid-flight and respect reduced motion.
+- The mobile shell uses the original `SidebarInset` scrolling behavior.
+- Validate iPhone Safari/Brave, rapid reversals, outside tap, keyboard/VoiceOver,
+  safe areas, landscape, Search WebGL, dock and desktop before merging.
+- The previous underlay experiment remains recorded in PR #299.
