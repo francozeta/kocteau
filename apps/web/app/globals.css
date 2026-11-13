@@ -1470,3 +1470,43 @@
     backdrop-filter: blur(var(--bottom-blur));
   }
 }
+
+/* Mobile navigation overlays the unchanged page, header and bottom dock. */
+@media (max-width: 767px) {
+  [data-kocteau-mobile-sidebar-backdrop] {
+    opacity: calc(0.48 * (1 - var(--drawer-swipe-progress, 0)));
+    transition: opacity 220ms var(--kocteau-ease, cubic-bezier(0.2, 0, 0, 1));
+  }
+
+  [data-kocteau-mobile-sidebar-backdrop][data-starting-style],
+  [data-kocteau-mobile-sidebar-backdrop][data-ending-style] {
+    opacity: 0;
+  }
+
+  [data-kocteau-mobile-sidebar-popup] {
+    transform: translateX(var(--drawer-swipe-movement-x, 0px));
+    transition: transform 230ms var(--kocteau-ease, cubic-bezier(0.2, 0, 0, 1));
+  }
+
+  [data-kocteau-mobile-sidebar-popup][data-side="left"][data-starting-style],
+  [data-kocteau-mobile-sidebar-popup][data-side="left"][data-ending-style] {
+    transform: translateX(calc(-100% + var(--drawer-swipe-movement-x, 0px)));
+  }
+
+  [data-kocteau-mobile-sidebar-popup][data-side="right"][data-starting-style],
+  [data-kocteau-mobile-sidebar-popup][data-side="right"][data-ending-style] {
+    transform: translateX(calc(100% + var(--drawer-swipe-movement-x, 0px)));
+  }
+
+  [data-kocteau-mobile-sidebar-popup][data-swiping],
+  [data-kocteau-mobile-sidebar-backdrop][data-swiping] {
+    transition-duration: 0ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-kocteau-mobile-sidebar-popup],
+  [data-kocteau-mobile-sidebar-backdrop] {
+    transition-duration: 0ms;
+  }
+}
