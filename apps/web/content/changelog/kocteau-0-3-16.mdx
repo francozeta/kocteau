@@ -1,0 +1,133 @@
+{/*
+Editorial prompt:
+Please rewrite this generated public changelog draft for Kocteau 0.3.16.
+Audience: listeners, writers, early users.
+Tone: premium, editorial, minimal, human, music-native.
+Avoid: raw commit language, SaaS phrasing, hype, implementation details, fake claims.
+Keep: concrete user-facing changes, why they matter, concise sections.
+
+Technical release source:
+Features:
+- **catalog:** preserve source evidence and retry history (#205)
+- **landing:** show Open app for signed-in visitors without dynamic public HTML
+- **perf:** trace public read queue and response stages
+- polish search action dock and improve mobile navigation experience
+- **routing:** authenticated / Feed and public /home landing
+- **routing:** authenticated Feed at / and public landing at /home
+- **sidebar:** interruptible mobile reveal with unified shell (#299)
+- **sidebar:** native-feeling mobile underlay reveal (#294)
+- **studio:** clarify context progress (#210)
+- **studio:** connect drafts to catalog research (#207)
+- **studio:** integrate source-backed curation (#209)
+- add progressive blur to mobile headers
+- clarify search discovery and navigation (#204)
+- floating Search morph with persistent return navigation
+- independent Search capsule with persistent return route
+- match mobile discovery filter chips to dock styling
+- morph persistent mobile dock into Search with shared layout
+- refine mobile header spacing and bottom progressive blur
+- unify mobile Search dock with bottom bar surfaces
+
+Bug Fixes:
+- **cache:** preserve public reads and reuse provider lookups (#239)
+- **public-reads:** allow measured cloud cold-start latency
+- **reviews:** recover anonymous lists after read failures (#241)
+- **routes:** address recovery review and verification gaps
+- **routes:** recover canonical pages from public read failures
+- **routes:** recover canonical pages from public read failures (#266)
+- **search:** bound starter catalog wait without blocking route
+- **search:** bound typing requests and recover discovery state
+- **search:** guard cover cache and defer canvas resize during drags
+- **search:** preserve refresh health and cancel independent waiters
+- **search:** recover discovery state and bound typing requests (#223)
+- **search:** refine mobile fades and filter controls (#203)
+- **seo:** permit public discovery crawlers and harden sitemap (#273)
+- **sidebar:** keep outline nav icons and disable mobile tooltips
+- **ui:** match document and browser backgrounds to each page (#283)
+- extend progressive blur and refine mobile landing header
+- keep progressive header blur subtle and content readable
+- lower mobile reviews heading below header blur
+- match review detail routes without fragile regex escaping
+- persist primary dock across Search and review details
+- preserve review drafts and organize product flows
+- return Search to Feed with a stable outline Home icon
+- reuse existing Kocteau back icon for Search return
+- soften progressive mobile header blur
+- track previous Search route with guarded state update
+
+Performance:
+- bound external search work and expose stage timings
+- colocate backend with Supabase and reuse catalog links
+- display local search results while the external catalog loads (#214)
+- **feed:** bundle authenticated reads and preserve recovery
+- **music:** paginate discussions and aggregate review ratings (#219)
+- **music:** reuse track reads and overlap recommendation sources
+- **public-reads:** bound data work and coalesce catalog refreshes
+- **public-reads:** bound data work and coalesce catalog refreshes
+- **public-reads:** bound data work and trace read stages
+- **reviews:** defer the closed review editor (#270)
+- **reviews:** lazy-load comments UI and reduce idle client work (#278)
+- **reviews:** stream content before slow public data (#277)
+- **routes:** reduce canonical navigation origin reads (#268)
+- **search:** limit cover uploads and mobile blur composition
+- **search:** skip stale sphere matrix work and repeated cover loads
+- **starter:** hydrate public content after ranking (#257)
+- **tracing:** correlate sampled request journeys (#264)
+- **tracing:** correlate sampled server tasks and public reads
+- keep editorial reads off primary home and feed rendering
+- smooth vertical canvas drag and reversible dock transitions
+
+Documentation:
+- align Feed, landing, and dock contract with canonical routes
+- **cache:** record integrated production verification
+- **design:** codify outline navigation and desktop-only tooltips
+- **feed:** record verified bundle rollout and remaining limits
+- link reliability investigation pull request
+- **perf:** clarify capacity limits and investigation handoff
+- **perf:** clarify tracing delivery handoff
+- **perf:** prioritize end-to-end reliability evidence
+- **perf:** record canonical route latency investigation
+- **perf:** record capacity audit and recovery
+- **perf:** record read-stage evidence and staged delivery
+- **perf:** record reproduced canonical read failures
+- **perf:** record verified primary-render rollout
+- **perf:** record verified starter rollout and SQL limits
+- **repo:** record integrated audit and deployment verification
+- **reviews:** record verified anonymous production recovery
+- **routing:** document private root and canonical public /home
+- **search:** distinguish deployment status from smoke evidence
+- **search:** record production recovery and staged rollout status
+- **search:** record verified production recovery (#224)
+- **search:** separate deployment and smoke evidence (#225)
+- **search:** state deployment and unversioned smoke observations separately
+- **tracing:** retain durable verification outcomes
+- draft public changelog for v0.3.15 (#201)
+
+Refactors:
+- **auth:** default login and onboarding to canonical root Feed
+- **feed:** preserve composer and onboarding redirects at root
+- **nav:** route Feed and Search return through authenticated root
+- integrate Craft-inspired mobile bottom bar
+- restore floating Search filters and emphasize input
+
+Tests:
+- **auth:** expect canonical root in pending review login redirect
+- **load:** distinguish normal cache refresh from degraded reads
+- **perf:** measure first-byte and response timing on public routes (#276)
+- restore Deezer public contract coverage
+- **search:** await refresh completion and record cold-read limits
+- **search:** require healthy readiness in native comparisons
+- **security:** add bounded public smoke and traffic baseline (#275)
+- **tracing:** harden isolated transport verification
+*/}
+## What changed
+
+- **catalog:** preserve source evidence and retry history (#205).
+- **landing:** show Open app for signed-in visitors without dynamic public HTML.
+- **perf:** trace public read queue and response stages.
+- Polish search action dock and improve mobile navigation experience.
+- **routing:** authenticated / Feed and public /home landing.
+
+## Why it matters
+
+This release should describe what changed for Kocteau listeners and writers, not the internal engineering work behind it. Keep the final note calm, specific, and editorial before merging.
