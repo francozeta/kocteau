@@ -2,6 +2,7 @@
 
 ## Entry Points
 
+- Initial `/search` frame: `discovery-initial-grid.tsx` shows a scrollable responsive grid of unique editorial starter covers, preserving the existing search and dock controls. Selecting a cover enters the gallery canvas; browser Back or restart restores the grid. No fake picks or extra catalog requests are added.
 - Visual discovery renderer: `discovery-orbit.tsx` uses a CSS 3D gallery rather than WebGL. Side covers recenter on tap; activating the centered cover explores through the existing canvas state. Horizontal drag, wheel and arrow keys move the gallery. At most five covers render at a time. Gallery + Traces adds deterministic tapered ink paths from the centered cover to four neighbors; paths redraw only on focus/content changes, without a per-frame loop. ResizeObserver keeps their endpoints aligned as viewport dimensions change. Reduced-motion users see static connections. The old sphere implementation remains available for historical comparison, but is not imported by Search.
 
 - Route: `app/(main)/search/page.tsx`; surface: `discovery-map.tsx`.
