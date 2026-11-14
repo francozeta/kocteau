@@ -1,10 +1,12 @@
 import {
   advanceMotion,
+  advanceInk,
   hashUnit,
   sampleInk,
   type GalleryPose,
   type MotionValue,
   type Point,
+  type InkGesture,
 } from "@/lib/discovery/gallery-motion";
 
 export type GalleryScene = {
@@ -12,6 +14,7 @@ export type GalleryScene = {
   height: number;
   mobile: boolean;
   cardWidth: number;
+  originId: string | null;
   nodes: { id: string; pose: GalleryPose; wheel: GalleryPose }[];
   connections: { from: string; to: string }[];
 };
@@ -25,6 +28,7 @@ type Connection = {
   c2: MovingPoint;
   salt: number;
   opacity: MotionValue;
+  ink: InkGesture;
 };
 type MovingPoint = { x: MotionValue; y: MotionValue };
 
@@ -68,14 +72,27 @@ function paintInk(
   to: Point,
   edge: Connection,
   opacity: number,
+  fromRadius: number,
+  toRadius: number,
 ) {
+  if (edge.ink.progress === 0) return;
+  // Spend the gesture on the exposed ink, rather than spending most of its
+  // duration drawing invisibly underneath the artwork at either endpoint.
+  const length = Math.max(1, Math.hypot(to.x - from.x, to.y - from.y));
+  const start = Math.min(0.49, fromRadius / length);
+  const end = Math.max(start, 1 - toRadius / length);
+  const progress =
+    edge.ink.progress === 1 ? 1 : start + (end - start) * edge.ink.progress;
   const points = sampleInk(
     from,
     point(edge.c1),
     point(edge.c2),
     to,
     edge.salt * 100,
+    40,
+    progress,
   );
+  if (points.length < 2) return;
   ctx.beginPath();
   for (const side of [1, -1]) {
     for (let offset = 0; offset < points.length; offset += 1) {
@@ -98,6 +115,22 @@ function paintInk(
   ctx.closePath();
   ctx.globalAlpha = opacity * 0.32;
   ctx.fill();
+  // A fine, uneven dry bristle gives the pressure contour a pen edge. It uses
+  // material coordinates, so previously painted ink never flickers in time.
+  ctx.beginPath();
+  points.forEach((sample, index) => {
+    const x =
+      sample.x + Math.sin(index * 1.7 + edge.salt * 100) * sample.radius * 0.4;
+    const y =
+      sample.y + Math.cos(index * 1.3 + edge.salt * 100) * sample.radius * 0.4;
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.lineWidth = 0.4;
+  ctx.lineCap = "round";
+  ctx.globalAlpha = opacity * 0.14;
+  ctx.stroke();
 }
 
 // DOM artwork and ink consume one set of screen coordinates in one RAF. React
@@ -121,6 +154,7 @@ export function createGalleryRenderer(
     height: 1,
     mobile: false,
     cardWidth: 1,
+    originId: null,
     nodes: [],
     connections: [],
   };
@@ -189,6 +223,8 @@ export function createGalleryRenderer(
       ctx.clearRect(0, 0, scene.width, scene.height);
       for (const [key, edge] of edges) {
         const targetOpacity = connectionKeys.has(key) ? 1 : 0;
+        if (targetOpacity)
+          moving = advanceInk(edge.ink, seconds, instant) || moving;
         if (instant) {
           edge.opacity.value = targetOpacity;
           edge.opacity.velocity = 0;
@@ -217,7 +253,15 @@ export function createGalleryRenderer(
                 advanceMotion(current[key], target[key], seconds, 18) || moving;
           }
         }
-        paintInk(ctx, a, b, edge, opacity);
+        paintInk(
+          ctx,
+          a,
+          b,
+          edge,
+          opacity,
+          scene.cardWidth * from.scale.value * 0.5,
+          scene.cardWidth * to.scale.value * 0.5,
+        );
       }
     }
     if (moving) wake(false);
@@ -274,22 +318,27 @@ export function createGalleryRenderer(
   return {
     setScene(next: GalleryScene) {
       const first = poses.size === 0;
-      const anchor = poses.values().next().value;
+      const anchor =
+        poses.get(next.originId ?? "") ??
+        poses.get(scene.originId ?? "") ??
+        poses.values().next().value;
       for (const node of next.nodes) {
         if (!poses.has(node.id)) {
-          poses.set(
-            node.id,
-            movingPose(
-              first
-                ? node.pose
-                : {
-                    ...node.pose,
-                    x: anchor?.x.value ?? node.pose.x,
-                    y: anchor?.y.value ?? node.pose.y,
-                    opacity: 0,
-                  },
-            ),
+          const pose = movingPose(
+            first
+              ? node.pose
+              : {
+                  ...node.pose,
+                  x: anchor?.x.value ?? node.pose.x,
+                  y: anchor?.y.value ?? node.pose.y,
+                  opacity: 0,
+                },
           );
+          if (!first && anchor) {
+            pose.x.velocity = anchor.x.velocity;
+            pose.y.velocity = anchor.y.velocity;
+          }
+          poses.set(node.id, pose);
         }
       }
       targets = new Map(next.nodes.map((node) => [node.id, node.pose]));
@@ -323,6 +372,22 @@ export function createGalleryRenderer(
           c1: movingPoint(c1),
           c2: movingPoint(c2),
           opacity: { value: first ? 1 : 0, velocity: 0 },
+          ink: {
+            elapsed: 0,
+            progress: 0,
+            duration: Math.min(
+              1.35,
+              0.65 +
+                Math.hypot(
+                  (targets.get(edge.to)?.x ?? to.x.value) -
+                    (targets.get(edge.from)?.x ?? from.x.value),
+                  (targets.get(edge.to)?.y ?? to.y.value) -
+                    (targets.get(edge.from)?.y ?? from.y.value),
+                ) /
+                  1000,
+            ),
+            delay: (edges.size * 0.045) % 0.27,
+          },
         });
       }
       const ratio = Math.min(window.devicePixelRatio || 1, 2);

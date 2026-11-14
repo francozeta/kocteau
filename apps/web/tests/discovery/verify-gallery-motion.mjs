@@ -44,6 +44,7 @@ try {
       durations: [],
       endpoints: 0,
       maxEndpointError: 0,
+      growingHeads: 0,
       checkEndpoints: false,
     });
     const raf = window.requestAnimationFrame.bind(window);
@@ -89,15 +90,22 @@ try {
                   rect.y + rect.height / 2 - bounds.y,
                 ]);
               const half = path.length / 2;
-              for (const [a, b] of [
+              const ends = [
                 [path[0], path.at(-1)],
                 [path[half - 1], path[half]],
-              ]) {
+              ];
+              for (const [index, [a, b]] of ends.entries()) {
                 const x = (a[0] + b[0]) / 2;
                 const y = (a[1] + b[1]) / 2;
                 const distance = Math.min(
                   ...anchors.map((p) => Math.hypot(p[0] - x, p[1] - y)),
                 );
+                // A new stroke's brush tip is intentionally between covers.
+                // The deposited start must remain attached throughout growth.
+                if (index === 1 && path.length < 82) {
+                  diagnostics.growingHeads += 1;
+                  continue;
+                }
                 diagnostics.maxEndpointError = Math.max(
                   diagnostics.maxEndpointError,
                   distance,

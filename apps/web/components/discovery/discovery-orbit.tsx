@@ -92,7 +92,7 @@ export default function DiscoveryOrbit({
       ),
     ];
     const covers = new Set<string>();
-    return combined
+    const deduped = combined
       .filter((item) => {
         const normalized = item.coverUrl.split("?")[0]?.toLowerCase();
         if (!normalized || covers.has(normalized)) return false;
@@ -100,6 +100,15 @@ export default function DiscoveryOrbit({
         return true;
       })
       .slice(0, isMobile ? 16 : 30);
+    if (!seed) return deduped;
+    const [focus, ...neighbors] = deduped;
+    // Put the best six candidates nearest either side of the seed. A circular
+    // gallery must not promote the tail of a ranked list into the first view.
+    return [
+      focus,
+      ...neighbors.filter((_, index) => index % 2 === 0),
+      ...neighbors.filter((_, index) => index % 2 === 1).reverse(),
+    ].filter(Boolean);
   }, [isMobile, items, seed]);
 
   const context = seed?.id ?? "root";
@@ -250,6 +259,7 @@ export default function DiscoveryOrbit({
       ...viewport,
       mobile: isMobile,
       cardWidth,
+      originId: seed?.id ?? activeItem?.id ?? null,
       nodes: visible.map(({ item, distance }) => {
         const pose = getGalleryPose(
           distance,
@@ -268,6 +278,9 @@ export default function DiscoveryOrbit({
         };
       }),
       connections: visible.flatMap(({ item, index }) => {
+        if (seed && visible.some((node) => node.item.id === seed.id)) {
+          return item.id === seed.id ? [] : [{ from: seed.id, to: item.id }];
+        }
         const next = galleryItems[(index + 1) % count];
         return next &&
           next.id !== item.id &&
@@ -285,6 +298,7 @@ export default function DiscoveryOrbit({
       activeItem?.id,
       galleryItems,
       count,
+      seed,
       composition,
     ],
   );

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  advanceInk,
   advanceMotion,
   getGalleryPose,
   sampleInk,
@@ -99,4 +100,35 @@ test("ink remains finite when endpoints and controls overlap during a reversal",
   );
   assert.deepEqual({ x: points[0].x, y: points[0].y }, point);
   assert.deepEqual({ x: points.at(-1)!.x, y: points.at(-1)!.y }, point);
+});
+
+test("a live brush deposits a growing material prefix, retaining ink while its endpoints move", () => {
+  const gesture = { elapsed: 0, duration: 1, delay: 0.1, progress: 0 };
+  advanceInk(gesture, 0.05);
+  assert.equal(gesture.progress, 0);
+  advanceInk(gesture, 0.45);
+  const progress = gesture.progress;
+  assert.ok(progress > 0 && progress < 1);
+  const a = { x: 0, y: 0 };
+  const b = { x: 100, y: 0 };
+  const partial = sampleInk(a, a, b, b, 2, 40, progress);
+  assert.ok(partial.at(-1)!.x > 0 && partial.at(-1)!.x < 100);
+  assert.ok(partial.length < sampleInk(a, a, b, b, 2, 40).length);
+  const deformed = sampleInk(
+    a,
+    { x: 0, y: 50 },
+    { x: 100, y: 50 },
+    b,
+    2,
+    40,
+    progress,
+  );
+  assert.equal(deformed.length, partial.length);
+  assert.ok(deformed.at(-1)!.y > partial.at(-1)!.y);
+  advanceInk(gesture, 1);
+  assert.equal(gesture.progress, 1);
+  assert.equal(advanceInk(gesture, 1), false);
+  const reduced = { elapsed: 0, duration: 1, delay: 0.2, progress: 0 };
+  assert.equal(advanceInk(reduced, 0, true), false);
+  assert.equal(reduced.progress, 1);
 });

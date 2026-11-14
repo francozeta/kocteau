@@ -146,10 +146,13 @@ export function sampleInk(
   to: Point,
   salt: number,
   count = 32,
+  progress = 1,
 ) {
+  progress = Math.max(0, Math.min(1, progress));
+  if (progress === 0) return [];
   const points: (Point & { radius: number })[] = [];
-  for (let index = 0; index <= count; index += 1) {
-    const t = index / count;
+  for (let index = 0; index <= Math.ceil(count * progress); index += 1) {
+    const t = Math.min(progress, index / count);
     const inv = 1 - t;
     const tx =
       3 * inv ** 2 * (control1.x - from.x) +
@@ -176,8 +179,34 @@ export function sampleInk(
         (tx / length) * grain,
       radius:
         (0.12 + 1.7 * Math.sin(Math.PI * t) ** 0.7) *
-        (0.85 + 0.15 * Math.sin(t * 19 + salt)),
+        (0.85 + 0.15 * Math.sin(t * 19 + salt)) *
+        (progress < 1
+          ? Math.max(0.12, Math.min(1, ((progress - t) * count) / 2))
+          : 1),
     });
   }
   return points;
+}
+
+export type InkGesture = {
+  elapsed: number;
+  duration: number;
+  delay: number;
+  progress: number;
+};
+
+export function advanceInk(
+  gesture: InkGesture,
+  seconds: number,
+  instant = false,
+) {
+  gesture.elapsed += Math.max(0, seconds);
+  const t = instant
+    ? 1
+    : Math.max(
+        0,
+        Math.min(1, (gesture.elapsed - gesture.delay) / gesture.duration),
+      );
+  gesture.progress = t * t * (3 - 2 * t);
+  return gesture.progress < 1;
 }
