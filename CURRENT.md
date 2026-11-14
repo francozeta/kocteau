@@ -6,6 +6,8 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
+Search Gallery is being evaluated on `feat/search-gallery`: a preview-only renderer swap for `/search`. Search controls, candidate ranking, history, API boundaries and `/home` are unchanged. The old sphere remains in source; no merge or production approval is implied. Validate the mobile gestures and keyboard flow before integration.
+
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
 editor code on reading routes. The [editor plan](./.plan/review-editor-loading.md)
