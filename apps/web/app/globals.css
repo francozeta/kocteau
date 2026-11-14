@@ -1510,3 +1510,36 @@
     transition-duration: 0ms;
   }
 }
+
+
+/* Search Gallery: hand-drawn connections that react only to discovery state. */
+@keyframes kocteau-gallery-trace-write {
+  from { stroke-dashoffset: 1; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes kocteau-gallery-trace-appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+[data-kocteau-trace-line] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: kocteau-gallery-trace-write 420ms var(--kocteau-ease) both;
+}
+
+[data-kocteau-trace-ink] {
+  animation: kocteau-gallery-trace-appear 360ms var(--kocteau-ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-kocteau-trace-line] {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  [data-kocteau-trace-ink] {
+    animation: none;
+  }
+}
