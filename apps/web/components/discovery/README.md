@@ -2,7 +2,7 @@
 
 ## Entry Points
 
-- Visual discovery renderer: `discovery-orbit.tsx` uses a CSS 3D gallery rather than WebGL. Side covers recenter on tap; activating the centered cover explores through the existing canvas state. Horizontal drag, wheel and arrow keys move the gallery. At most five covers render at a time. Gallery + Traces adds deterministic tapered ink paths from the centered cover to four neighbors; paths redraw only on focus/content changes, without a per-frame loop. ResizeObserver keeps their endpoints aligned as viewport dimensions change. Reduced-motion users see static connections. The old sphere implementation remains available for historical comparison, but is not imported by Search.
+- Visual discovery renderer: `discovery-orbit.tsx` uses a CSS 3D gallery rather than WebGL. Side covers recenter on tap; activating the centered cover explores through the existing canvas state. Horizontal drag, wheel and arrow keys move the gallery. The preview constellation keeps one clear center and up to five mobile / six desktop satellites in irregular but deterministic positions per focus. Traces use tapered ink paths, a short draw-in, and a very subtle traveling highlight; no WebGL or JavaScript animation loop runs. ResizeObserver aligns the paths with the viewport. Motion is disabled when the user prefers reduced motion. The old sphere implementation remains available for historical comparison, but is not imported by Search.
 
 - Route: `app/(main)/search/page.tsx`; surface: `discovery-map.tsx`.
 - Interaction: `hooks/use-discovery-canvas.ts`, `hooks/use-kocteau-search.ts`.
