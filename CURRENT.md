@@ -6,7 +6,7 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-Search Gallery + Traces is being evaluated on `feat/search-gallery-traces`, branched from `feat/search-gallery`: a preview-only rendering experiment in `/search`. It adds restrained hand-drawn connections to the CSS 3D gallery; existing Search controls, candidate ranking, history, API boundaries and `/home` stay untouched. The prior sphere remains in source. Validate mobile gestures, visual hierarchy, keyboard navigation and reduced-motion behavior before integration; no merge or production approval is implied.
+The Search constellation preview on `feat/search-constellation` builds on Gallery + Traces. The canvas places a focus cover among deterministic irregular satellites with tapered animated connections. Search controls, candidate ranking, history, APIs and `/home` are unchanged; the prior sphere remains in source. Confirm touch/keyboard behavior and motion readability on mobile before considering integration. No production release is implied.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
