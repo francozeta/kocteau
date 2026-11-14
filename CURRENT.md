@@ -1,10 +1,18 @@
 # Current Project State
 
-Last checked: 2026-10-26. Reliability diagnosis and recoverable public reads remain
+Last checked: 2026-11-04. Reliability diagnosis and recoverable public reads remain
 the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
+
+[#284](https://github.com/francozeta/kocteau/issues/284) tracks gradual drawer
+consolidation. Its [consumer audit](https://github.com/francozeta/kocteau/issues/284#issuecomment-6629546736)
+owns the inventory and migration boundaries. The first pilot changes only the
+Help mobile menu and awaits visual review plus physical iOS Safari/VoiceOver
+verification. Later consumers and final canonicalization wait for that review.
+HTML Background [PR #283](https://github.com/francozeta/kocteau/pull/283) is
+integrated at `11d9781` and deployed to production.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

@@ -129,6 +129,12 @@ function DrawerBaseContent({
   );
 }
 
+function DrawerBaseBody({
+  ...props
+}: DrawerPrimitive.Content.Props) {
+  return <DrawerPrimitive.Content data-slot="drawer-base-body" {...props} />;
+}
+
 function DrawerBaseBackdrop({
   className,
   ...props
@@ -266,6 +272,7 @@ function DrawerBaseDescription({
 export {
   DrawerBase,
   DrawerBaseBackdrop,
+  DrawerBaseBody,
   DrawerBaseClose,
   DrawerBaseContent,
   DrawerBaseDescription,
