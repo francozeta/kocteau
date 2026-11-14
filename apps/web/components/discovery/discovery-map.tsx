@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import DiscoveryOrbit, {
   type DiscoveryOrbitItem,
 } from "@/components/discovery/discovery-orbit";
+import DiscoveryInitialGrid from "@/components/discovery/discovery-initial-grid";
 import DiscoverySearch from "@/components/discovery/discovery-search";
 import DiscoveryNavigation from "@/components/discovery/discovery-navigation";
 import DiscoveryActions from "@/components/discovery/discovery-actions";
@@ -219,12 +220,16 @@ export default function DiscoveryMap({
       />
 
       <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
-        <DiscoveryOrbit
-          seed={orbitSeed}
-          items={orbitItems}
-          centerSeed={Boolean(orbitSeed)}
-          onSelect={selectCover}
-        />
+        {selectedSeed ? (
+          <DiscoveryOrbit
+            seed={orbitSeed}
+            items={orbitItems}
+            centerSeed
+            onSelect={selectCover}
+          />
+        ) : (
+          <DiscoveryInitialGrid items={orbitItems} onSelect={selectCover} />
+        )}
       </div>
 
       {canvas.hasError ? (
@@ -235,11 +240,6 @@ export default function DiscoveryMap({
         >
           Some paths couldn’t load. Retry
         </button>
-      ) : null}
-      {!orbitItems.length && !selectedSeed ? (
-        <p className="pointer-events-none absolute inset-x-6 top-1/2 text-center text-sm text-muted-foreground">
-          Search for music to start exploring.
-        </p>
       ) : null}
     </section>
   );
