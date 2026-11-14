@@ -2,6 +2,8 @@
 
 ## Entry Points
 
+- Visual discovery renderer: `discovery-orbit.tsx` uses a CSS 3D gallery rather than WebGL. Side covers recenter on tap; activating the centered cover explores through the existing canvas state. Horizontal drag, wheel and arrow keys move the gallery. At most five covers render at a time. The old sphere implementation remains available for historical comparison, but is not imported by Search.
+
 - Route: `app/(main)/search/page.tsx`; surface: `discovery-map.tsx`.
 - Interaction: `hooks/use-discovery-canvas.ts`, `hooks/use-kocteau-search.ts`.
 - State/navigation: `lib/discovery`; search ordering: `lib/search/kocteau-first.ts`.
