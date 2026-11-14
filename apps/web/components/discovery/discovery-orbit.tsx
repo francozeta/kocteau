@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -43,6 +44,15 @@ type PointerStart = {
   dragging: boolean;
 };
 
+type Point = { x: number; y: number };
+type Layout = Point & {
+  scale: number;
+  rotateY: number;
+  rotateZ: number;
+  opacity: number;
+  depth: number;
+};
+
 function getArtistLabel(item: Pick<DiscoveryOrbitItem, "type" | "artistName">) {
   return item.type === "artist"
     ? "Artist"
@@ -54,11 +64,117 @@ function shortestDistance(index: number, active: number, count: number) {
   return distance > count / 2 ? distance - count : distance;
 }
 
-/**
- * Gallery keeps Search's discovery data and actions unchanged. The former
- * WebGL sphere was only a renderer; CSS perspective makes five nearby covers
- * visible at a time without starting a continuous animation loop.
- */
+function getLayout(
+  distance: number,
+  mobile: boolean,
+  viewport: { width: number; height: number },
+): Layout {
+  const { width, height } = viewport;
+  const centerX = width * 0.5;
+  const centerY = height * (mobile ? 0.47 : 0.49);
+  const depth = Math.abs(distance);
+  if (depth === 0) {
+    return {
+      x: centerX,
+      y: centerY,
+      scale: 1,
+      rotateY: 0,
+      rotateZ: 0,
+      opacity: 1,
+      depth: 0,
+    };
+  }
+
+  const side = Math.sign(distance);
+  const spacing = mobile
+    ? Math.min(width * 0.44, 184)
+    : Math.min(width * 0.305, 370);
+  const vertical = Math.min(height, 740);
+
+  return {
+    x: centerX + side * spacing * (depth === 1 ? 1 : 1.53),
+    y:
+      centerY +
+      vertical *
+        (depth === 1
+          ? side < 0
+            ? -0.145
+            : 0.13
+          : side < 0
+            ? 0.205
+            : -0.185),
+    scale: depth === 1 ? 0.73 : 0.56,
+    rotateY: -side * (depth === 1 ? 24 : 41),
+    rotateZ: side * (depth === 1 ? -2.3 : 3.2),
+    opacity: depth === 1 ? 0.83 : 0.46,
+    depth,
+  };
+}
+
+// A narrow filled contour simulates pressure from an ink or pencil nib.
+// Jitter is deterministic; no animation loop or per-frame random layout.
+function inkTrace(from: Point, to: Point, salt: number) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  const nx = -dy / length;
+  const ny = dx / length;
+  const bend = (salt % 2 === 0 ? 1 : -1) * Math.min(32, length * 0.105);
+  const control1 = {
+    x: from.x + dx * 0.28 + nx * bend,
+    y: from.y + dy * 0.28 + ny * bend,
+  };
+  const control2 = {
+    x: from.x + dx * 0.7 + nx * bend * 0.6,
+    y: from.y + dy * 0.7 + ny * bend * 0.6,
+  };
+  const left: Point[] = [];
+  const right: Point[] = [];
+  const center: Point[] = [];
+  const count = 28;
+
+  for (let index = 0; index <= count; index += 1) {
+    const t = index / count;
+    const inv = 1 - t;
+    const x =
+      inv ** 3 * from.x +
+      3 * inv ** 2 * t * control1.x +
+      3 * inv * t ** 2 * control2.x +
+      t ** 3 * to.x;
+    const y =
+      inv ** 3 * from.y +
+      3 * inv ** 2 * t * control1.y +
+      3 * inv * t ** 2 * control2.y +
+      t ** 3 * to.y;
+    const disturbance =
+      Math.sin(t * 21 + salt * 1.7) * Math.sin(Math.PI * t) * 1.4;
+    const pressure =
+      (0.16 + 1.35 * Math.sin(Math.PI * t) ** 0.72) *
+      (1 + 0.13 * Math.sin(t * 29 + salt));
+
+    center.push({ x: x + nx * disturbance, y: y + ny * disturbance });
+    left.push({
+      x: x + nx * (disturbance + pressure),
+      y: y + ny * (disturbance + pressure),
+    });
+    right.push({
+      x: x + nx * (disturbance - pressure),
+      y: y + ny * (disturbance - pressure),
+    });
+  }
+
+  const serialize = (point: Point) =>
+    point.x.toFixed(1) + " " + point.y.toFixed(1);
+  const stroke =
+    "M " +
+    left.map(serialize).join(" L ") +
+    " L " +
+    right.reverse().map(serialize).join(" L ") +
+    " Z";
+  const line = "M " + center.map(serialize).join(" L ");
+  return { stroke, line };
+}
+
 export default function DiscoveryOrbit({
   seed = null,
   items,
@@ -70,6 +186,7 @@ export default function DiscoveryOrbit({
   const lastWheelRef = useRef(0);
   const suppressClickRef = useRef(false);
   const [dragging, setDragging] = useState(false);
+  const [viewport, setViewport] = useState({ width: 960, height: 640 });
   const [focused, setFocused] = useState<{
     context: string;
     itemId: string | null;
@@ -96,13 +213,35 @@ export default function DiscoveryOrbit({
   }, [isMobile, items, seed]);
 
   const context = seed?.id ?? "root";
-  const remembered = focused.context === context
-    ? galleryItems.findIndex((item) => item.id === focused.itemId)
-    : -1;
+  const remembered =
+    focused.context === context
+      ? galleryItems.findIndex((item) => item.id === focused.itemId)
+      : -1;
   const activeIndex = remembered >= 0 ? remembered : 0;
   const activeItem = galleryItems[activeIndex];
   const count = galleryItems.length;
-  const spacing = isMobile ? 136 : 250;
+  const cardWidth = isMobile
+    ? Math.min(viewport.width * 0.51, 218)
+    : Math.min(Math.max(viewport.width * 0.235, 220), 338);
+
+  useEffect(() => {
+    const host = galleryRef.current;
+    if (!host) return;
+    const update = () => {
+      const width = Math.round(host.clientWidth);
+      const height = Math.round(host.clientHeight);
+      if (width < 1 || height < 1) return;
+      setViewport((previous) =>
+        previous.width === width && previous.height === height
+          ? previous
+          : { width, height },
+      );
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [count > 0]);
 
   const focusAt = (index: number) => {
     if (!count) return;
@@ -125,13 +264,17 @@ export default function DiscoveryOrbit({
     if (!pointer || pointer.id !== event.pointerId) return;
     pointerRef.current = null;
     galleryRef.current?.style.setProperty("--kocteau-gallery-drag", "0px");
+
     if (pointer.dragging) {
       setDragging(false);
       suppressClickRef.current = true;
-      const change = event.clientX - pointer.x;
-      if (!cancelled && Math.abs(change) >= 35) step(change < 0 ? 1 : -1);
-      window.setTimeout(() => { suppressClickRef.current = false; }, 0);
+      const delta = event.clientX - pointer.x;
+      if (!cancelled && Math.abs(delta) >= 35) step(delta < 0 ? 1 : -1);
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
     }
+
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -155,9 +298,10 @@ export default function DiscoveryOrbit({
   };
 
   const onGalleryWheel = (event: WheelEvent<HTMLDivElement>) => {
-    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
-      ? event.deltaX
-      : event.deltaY;
+    const delta =
+      Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
     if (count < 2 || Math.abs(delta) < 12) return;
     event.preventDefault();
     const now = Date.now();
@@ -165,6 +309,19 @@ export default function DiscoveryOrbit({
     lastWheelRef.current = now;
     step(delta > 0 ? 1 : -1);
   };
+
+  const visible = galleryItems.flatMap((item, index) => {
+    const distance = shortestDistance(index, activeIndex, count);
+    if (Math.abs(distance) > 2) return [];
+    return [
+      {
+        item,
+        distance,
+        layout: getLayout(distance, isMobile, viewport),
+      },
+    ];
+  });
+  const center = getLayout(0, isMobile, viewport);
 
   if (!count) return <div className="h-full" />;
 
@@ -178,7 +335,7 @@ export default function DiscoveryOrbit({
       data-discovery-gallery=""
       data-dragging={dragging ? "true" : "false"}
       className="relative h-full min-h-0 touch-pan-y select-none overflow-hidden bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
-      style={{ perspective: isMobile ? "1000px" : "1400px" }}
+      style={{ perspective: isMobile ? "1050px" : "1400px" }}
       onKeyDown={onGalleryKeyDown}
       onWheel={onGalleryWheel}
       onPointerDown={(event) => {
@@ -201,10 +358,10 @@ export default function DiscoveryOrbit({
           setDragging(true);
           event.currentTarget.setPointerCapture(event.pointerId);
         }
-        const bounded = Math.max(-115, Math.min(115, dx * 0.55));
+        const offset = Math.max(-115, Math.min(115, dx * 0.55));
         event.currentTarget.style.setProperty(
           "--kocteau-gallery-drag",
-          String(bounded) + "px",
+          offset + "px",
         );
       }}
       onPointerUp={(event) => endPointer(event)}
@@ -222,26 +379,66 @@ export default function DiscoveryOrbit({
         {" "}Select the centered cover to explore related music.
       </div>
 
-      {galleryItems.map((item, index) => {
-        const distance = shortestDistance(index, activeIndex, count);
-        const depth = Math.abs(distance);
-        if (depth > 2) return null;
+      <svg
+        aria-hidden="true"
+        viewBox={"0 0 " + viewport.width + " " + viewport.height}
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible text-foreground"
+        preserveAspectRatio="none"
+        style={{
+          transform: "translateX(var(--kocteau-gallery-drag, 0px))",
+        }}
+      >
+        {visible
+          .filter(({ distance }) => distance !== 0)
+          .map(({ item, distance, layout }) => {
+            const depth = Math.abs(distance);
+            const trace = inkTrace(center, layout, Math.abs(distance * 11 + activeIndex * 7));
+            return (
+              <g key={context + ":" + activeItem.id + ":" + item.id}>
+                <path
+                  d={trace.stroke}
+                  fill="currentColor"
+                  opacity={depth === 1 ? 0.18 : 0.095}
+                  data-kocteau-trace-ink=""
+                  style={{ animationDelay: depth === 1 ? "35ms" : "95ms" }}
+                />
+                <path
+                  d={trace.line}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={depth === 1 ? 0.75 : 0.55}
+                  strokeLinecap="round"
+                  opacity={depth === 1 ? 0.42 : 0.25}
+                  pathLength={1}
+                  data-kocteau-trace-line=""
+                  style={{ animationDelay: depth === 1 ? "30ms" : "95ms" }}
+                />
+              </g>
+            );
+          })}
+      </svg>
+
+      {visible.map(({ item, distance, layout }) => {
         const central = distance === 0;
         const style: CSSProperties = {
-          width: isMobile ? "min(47vw, 15rem)" : "clamp(13rem, 24vw, 21rem)",
-          top: isMobile ? "47%" : "50%",
-          left: "50%",
-          zIndex: 10 - depth,
-          opacity: central ? 1 : depth === 1 ? 0.68 : 0.32,
+          width: cardWidth,
+          top: layout.y,
+          left: layout.x,
+          zIndex: 10 - layout.depth,
+          opacity: layout.opacity,
           transform:
-            "translate3d(calc(-50% + " + (distance * spacing) +
-            "px + var(--kocteau-gallery-drag, 0px)), -50%, " +
-            (-depth * (isMobile ? 140 : 210)) + "px) " +
-            "rotateY(" + (-distance * 49) + "deg) " +
-            "scale(" + (1 - depth * 0.1) + ")",
+            "translate3d(calc(-50% + var(--kocteau-gallery-drag, 0px)), -50%, " +
+            (-layout.depth * (isMobile ? 120 : 175)) +
+            "px) rotateY(" +
+            layout.rotateY +
+            "deg) rotateZ(" +
+            layout.rotateZ +
+            "deg) scale(" +
+            layout.scale +
+            ")",
           transition: dragging
             ? "none"
-            : "transform 300ms var(--kocteau-ease), opacity 240ms var(--kocteau-ease)",
+            : "transform 340ms var(--kocteau-ease), left 340ms var(--kocteau-ease), top 340ms var(--kocteau-ease), opacity 260ms var(--kocteau-ease)",
           backfaceVisibility: "hidden",
         };
         return (
@@ -263,7 +460,7 @@ export default function DiscoveryOrbit({
             <EntityCoverImage
               src={item.coverUrl}
               alt=""
-              sizes={isMobile ? "47vw" : "(max-width: 1024px) 24vw, 336px"}
+              sizes={isMobile ? "51vw" : "(max-width: 1024px) 24vw, 338px"}
               variant="card"
               className="aspect-square w-full rounded-[0.55rem] bg-foreground/[0.04] shadow-[0_1px_2px_rgba(0,0,0,0.36),0_20px_56px_rgba(0,0,0,0.3)] ring-1 ring-inset ring-white/[0.08]"
             />
