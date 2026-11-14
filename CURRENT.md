@@ -6,7 +6,7 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-Search Gallery is being evaluated on `feat/search-gallery`: a preview-only renderer swap for `/search`. Search controls, candidate ranking, history, API boundaries and `/home` are unchanged. The old sphere remains in source; no merge or production approval is implied. Validate the mobile gestures and keyboard flow before integration.
+Search Gallery + Traces is being evaluated on `feat/search-gallery-traces`, branched from `feat/search-gallery`: a preview-only rendering experiment in `/search`. It adds restrained hand-drawn connections to the CSS 3D gallery; existing Search controls, candidate ranking, history, API boundaries and `/home` stay untouched. The prior sphere remains in source. Validate mobile gestures, visual hierarchy, keyboard navigation and reduced-motion behavior before integration; no merge or production approval is implied.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
