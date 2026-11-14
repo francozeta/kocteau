@@ -64,15 +64,54 @@ function shortestDistance(index: number, active: number, count: number) {
   return distance > count / 2 ? distance - count : distance;
 }
 
+type SatelliteSlot = {
+  x: number;
+  y: number;
+  scale: number;
+  rotateY: number;
+  rotateZ: number;
+  opacity: number;
+};
+
+const DESKTOP_SLOTS: SatelliteSlot[] = [
+  { x: 0.81, y: 0.29, scale: 0.68, rotateY: -24, rotateZ: 3, opacity: 0.76 },
+  { x: 0.19, y: 0.30, scale: 0.64, rotateY: 27, rotateZ: -5, opacity: 0.72 },
+  { x: 0.73, y: 0.76, scale: 0.59, rotateY: -22, rotateZ: -5, opacity: 0.57 },
+  { x: 0.26, y: 0.74, scale: 0.60, rotateY: 19, rotateZ: 6, opacity: 0.60 },
+  { x: 0.92, y: 0.52, scale: 0.51, rotateY: -37, rotateZ: 4, opacity: 0.45 },
+  { x: 0.09, y: 0.55, scale: 0.49, rotateY: 39, rotateZ: -3, opacity: 0.40 },
+];
+
+const MOBILE_SLOTS: SatelliteSlot[] = [
+  { x: 0.81, y: 0.29, scale: 0.62, rotateY: -23, rotateZ: 4, opacity: 0.70 },
+  { x: 0.17, y: 0.30, scale: 0.62, rotateY: 23, rotateZ: -6, opacity: 0.67 },
+  { x: 0.79, y: 0.73, scale: 0.55, rotateY: -22, rotateZ: -5, opacity: 0.50 },
+  { x: 0.20, y: 0.72, scale: 0.59, rotateY: 18, rotateZ: 6, opacity: 0.54 },
+  { x: 0.88, y: 0.52, scale: 0.47, rotateY: -31, rotateZ: 5, opacity: 0.35 },
+];
+
+// The slot shape stays recognizable; tiny item-based deviations make each
+// discovery frame feel composed rather than random or symmetrical.
+function hashUnit(input: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) / 4_294_967_295;
+}
+
 function getLayout(
   distance: number,
   mobile: boolean,
   viewport: { width: number; height: number },
+  activeId: string,
 ): Layout {
   const { width, height } = viewport;
   const centerX = width * 0.5;
-  const centerY = height * (mobile ? 0.47 : 0.49);
+  const centerY = height * (mobile ? 0.48 : 0.49);
   const depth = Math.abs(distance);
+
   if (depth === 0) {
     return {
       x: centerX,
@@ -85,28 +124,25 @@ function getLayout(
     };
   }
 
-  const side = Math.sign(distance);
-  const spacing = mobile
-    ? Math.min(width * 0.44, 184)
-    : Math.min(width * 0.305, 370);
-  const vertical = Math.min(height, 740);
+  const slotIndex =
+    distance === 1 ? 0 :
+    distance === -1 ? 1 :
+    distance === 2 ? 2 :
+    distance === -2 ? 3 :
+    distance === 3 ? 4 : 5;
+  const slots = mobile ? MOBILE_SLOTS : DESKTOP_SLOTS;
+  const slot = slots[slotIndex % slots.length];
+  const deviationX = (hashUnit(activeId + ":" + slotIndex + ":x") - 0.5) * 0.057;
+  const deviationY = (hashUnit(activeId + ":" + slotIndex + ":y") - 0.5) * 0.052;
+  const deviationAngle = (hashUnit(activeId + ":" + slotIndex + ":r") - 0.5) * 7;
 
   return {
-    x: centerX + side * spacing * (depth === 1 ? 1 : 1.53),
-    y:
-      centerY +
-      vertical *
-        (depth === 1
-          ? side < 0
-            ? -0.145
-            : 0.13
-          : side < 0
-            ? 0.205
-            : -0.185),
-    scale: depth === 1 ? 0.73 : 0.56,
-    rotateY: -side * (depth === 1 ? 24 : 41),
-    rotateZ: side * (depth === 1 ? -2.3 : 3.2),
-    opacity: depth === 1 ? 0.83 : 0.46,
+    x: width * (slot.x + deviationX),
+    y: height * (slot.y + deviationY),
+    scale: slot.scale,
+    rotateY: slot.rotateY,
+    rotateZ: slot.rotateZ + deviationAngle,
+    opacity: slot.opacity,
     depth,
   };
 }
@@ -312,16 +348,16 @@ export default function DiscoveryOrbit({
 
   const visible = galleryItems.flatMap((item, index) => {
     const distance = shortestDistance(index, activeIndex, count);
-    if (Math.abs(distance) > 2) return [];
+    if (Math.abs(distance) > 3 || (isMobile && distance === -3)) return [];
     return [
       {
         item,
         distance,
-        layout: getLayout(distance, isMobile, viewport),
+        layout: getLayout(distance, isMobile, viewport, activeItem.id),
       },
     ];
   });
-  const center = getLayout(0, isMobile, viewport);
+  const center = getLayout(0, isMobile, viewport, activeItem?.id ?? "root");
 
   if (!count) return <div className="h-full" />;
 
@@ -384,34 +420,54 @@ export default function DiscoveryOrbit({
         viewBox={"0 0 " + viewport.width + " " + viewport.height}
         className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible text-foreground"
         preserveAspectRatio="none"
-        style={{
-          transform: "translateX(var(--kocteau-gallery-drag, 0px))",
-        }}
+        style={{ transform: "translateX(var(--kocteau-gallery-drag, 0px))" }}
       >
         {visible
           .filter(({ distance }) => distance !== 0)
-          .map(({ item, distance, layout }) => {
+          .map(({ item, distance, layout }, index) => {
             const depth = Math.abs(distance);
-            const trace = inkTrace(center, layout, Math.abs(distance * 11 + activeIndex * 7));
+            const trace = inkTrace(
+              center,
+              layout,
+              Math.round(hashUnit(activeItem.id + ":" + item.id) * 1000),
+            );
+            const delay = index * 65;
             return (
-              <g key={context + ":" + activeItem.id + ":" + item.id}>
+              <g
+                key={context + ":" + activeItem.id + ":" + item.id}
+                data-kocteau-trace-group=""
+                style={{ animationDelay: delay + "ms" }}
+              >
                 <path
                   d={trace.stroke}
                   fill="currentColor"
-                  opacity={depth === 1 ? 0.18 : 0.095}
+                  opacity={depth === 1 ? 0.15 : depth === 2 ? 0.10 : 0.07}
                   data-kocteau-trace-ink=""
-                  style={{ animationDelay: depth === 1 ? "35ms" : "95ms" }}
                 />
                 <path
                   d={trace.line}
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth={depth === 1 ? 0.75 : 0.55}
+                  strokeWidth={depth === 1 ? 0.72 : 0.52}
                   strokeLinecap="round"
-                  opacity={depth === 1 ? 0.42 : 0.25}
+                  opacity={depth === 1 ? 0.38 : 0.22}
                   pathLength={1}
                   data-kocteau-trace-line=""
-                  style={{ animationDelay: depth === 1 ? "30ms" : "95ms" }}
+                  style={{ animationDelay: delay + "ms" }}
+                />
+                <path
+                  d={trace.line}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={depth === 1 ? 1.05 : 0.7}
+                  strokeLinecap="round"
+                  opacity={depth === 1 ? 0.24 : 0.12}
+                  pathLength={1}
+                  data-kocteau-trace-flow=""
+                  style={{
+                    animationDelay: (delay + 410) + "ms",
+                    animationDuration: (4100 + index * 550) + "ms",
+                  }}
                 />
               </g>
             );
@@ -428,7 +484,7 @@ export default function DiscoveryOrbit({
           opacity: layout.opacity,
           transform:
             "translate3d(calc(-50% + var(--kocteau-gallery-drag, 0px)), -50%, " +
-            (-layout.depth * (isMobile ? 120 : 175)) +
+            (-layout.depth * (isMobile ? 94 : 145)) +
             "px) rotateY(" +
             layout.rotateY +
             "deg) rotateZ(" +
