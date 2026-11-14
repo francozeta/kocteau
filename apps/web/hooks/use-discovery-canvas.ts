@@ -20,6 +20,7 @@ import {
   readDiscoveryMemory,
 } from "@/lib/discovery/memory";
 import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
+import { frameVariation } from "@/lib/discovery/variation";
 import { matchDiscoverySessionToPath } from "@/lib/discovery/navigation";
 import {
   mergeTrackRecommendationGroups,
@@ -29,6 +30,7 @@ import {
 async function fetchCandidates(
   seed: DiscoverySeed,
   lane: "fast" | "deep",
+  variation: number,
   signal: AbortSignal,
 ) {
   const params = new URLSearchParams({
@@ -36,6 +38,7 @@ async function fetchCandidates(
     seedType: seed.type,
     title: seed.title,
     lane,
+    variation: String(variation),
   });
   if (seed.artist_name) params.set("artistName", seed.artist_name);
   if (seed.artist_provider_id)
@@ -170,19 +173,22 @@ export function useDiscoveryCanvas(
     const done: string[] = [];
     const errors: string[] = [];
     const lanes = ["fast", "deep"] as const;
+    const variation = frameVariation(frameId);
     const keys = lanes.map((lane) => [
-      "discovery-candidates",
+      "discovery-candidates-v2",
       seedKey(focus),
+      variation,
       lane,
     ]);
     lanes.forEach((lane, index) => {
       void queryClient
         .fetchQuery({
           queryKey: keys[index],
-          queryFn: ({ signal }) => fetchCandidates(focus, lane, signal),
+          queryFn: ({ signal }) =>
+            fetchCandidates(focus, lane, variation, signal),
           staleTime: (lane === "fast" ? 5 : 10) * 60 * 1000,
           gcTime: 15 * 60 * 1000,
-          retry: lane === "fast" ? 1 : 0,
+          retry: 0,
         })
         .then((result) => {
           if (!active) return;

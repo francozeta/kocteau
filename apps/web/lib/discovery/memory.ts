@@ -24,6 +24,7 @@ const sessionSchema = z
           focus: seed.nullable(),
           depth: z.number().int().nonnegative(),
           resolved: z.boolean(),
+          recommendationVersion: z.literal(2).optional(),
           nodes: z
             .array(
               z.object({
@@ -79,7 +80,19 @@ export function parseCanvasSnapshot(
   )
     return null;
   if (scope && scope !== result.data.scope) return null;
-  return result.data.session;
+  return {
+    ...result.data.session,
+    frames: result.data.session.frames.map((frame) =>
+      frame.focus && frame.recommendationVersion !== 2
+        ? {
+            ...frame,
+            nodes: [],
+            resolved: false,
+            recommendationVersion: 2 as const,
+          }
+        : frame,
+    ),
+  };
 }
 
 export function readDiscoveryMemory(raw: string | null, now: number) {

@@ -148,6 +148,7 @@ const deezerResourceRetryDelaysMs = [300] as const;
 const deezerResourceRevalidateSeconds = 24 * 60 * 60;
 
 type DeezerSearchOptions = { signal?: AbortSignal };
+type DeezerResourceOptions = DeezerSearchOptions & { throwOnError?: boolean };
 
 export function isDeezerProviderId(value: string) {
   return /^[1-9]\d{0,19}$/.test(value);
@@ -331,6 +332,7 @@ export async function searchDeezerAlbums(
 
 export async function getDeezerArtist(
   artistId: string,
+  { signal, throwOnError = false }: DeezerResourceOptions = {},
 ): Promise<DeezerArtistResult | null> {
   if (!isDeezerProviderId(artistId)) {
     return null;
@@ -343,6 +345,8 @@ export async function getDeezerArtist(
       errorMessage: "Deezer artist request failed",
       revalidate: deezerResourceRevalidateSeconds,
       scope: "artist",
+      signal,
+      throwOnError,
     },
   );
 
@@ -351,7 +355,7 @@ export async function getDeezerArtist(
 
 export async function getDeezerAlbum(
   albumId: string,
-  { throwOnError = false }: { throwOnError?: boolean } = {},
+  { signal, throwOnError = false }: DeezerResourceOptions = {},
 ): Promise<DeezerAlbumResult | null> {
   if (!isDeezerProviderId(albumId)) {
     if (throwOnError) {
@@ -367,6 +371,7 @@ export async function getDeezerAlbum(
       errorMessage: "Deezer album request failed",
       revalidate: deezerResourceRevalidateSeconds,
       scope: "album",
+      signal,
       throwOnError,
     },
   );
@@ -381,6 +386,7 @@ export async function getDeezerAlbum(
 export async function getDeezerRelatedArtists(
   artistId: string,
   limit = 8,
+  { signal, throwOnError = false }: DeezerResourceOptions = {},
 ): Promise<DeezerArtistResult[]> {
   const url = `https://api.deezer.com/artist/${encodeURIComponent(artistId)}/related?limit=${limit}`;
   const json = await fetchOptionalDeezerJson<DeezerRelatedArtistsResponse & { error?: unknown }>(
@@ -389,6 +395,8 @@ export async function getDeezerRelatedArtists(
       errorMessage: "Deezer related artists request failed",
       revalidate: 300,
       scope: "related_artists",
+      signal,
+      throwOnError,
     },
   );
 
@@ -405,6 +413,7 @@ export async function getDeezerRelatedArtists(
 export async function getDeezerArtistAlbums(
   artistId: string,
   limit = 8,
+  { signal, throwOnError = false }: DeezerResourceOptions = {},
 ): Promise<DeezerAlbumResult[]> {
   const url = `https://api.deezer.com/artist/${encodeURIComponent(artistId)}/albums?limit=${limit}`;
   const json = await fetchOptionalDeezerJson<DeezerArtistAlbumsResponse & { error?: unknown }>(
@@ -413,6 +422,8 @@ export async function getDeezerArtistAlbums(
       errorMessage: "Deezer artist albums request failed",
       revalidate: 300,
       scope: "artist_albums",
+      signal,
+      throwOnError,
     },
   );
 
@@ -463,6 +474,7 @@ export async function getDeezerAlbumTracks(
   >,
   artist: Pick<DeezerArtistResult, "id" | "name" | "fan_count">,
   limit = 12,
+  { signal, throwOnError = false }: DeezerResourceOptions = {},
 ): Promise<DeezerTrackResult[]> {
   const url = `https://api.deezer.com/album/${encodeURIComponent(album.id)}/tracks?limit=${limit}`;
   const json = await fetchOptionalDeezerJson<DeezerAlbumTracksResponse & { error?: unknown }>(
@@ -471,6 +483,8 @@ export async function getDeezerAlbumTracks(
       errorMessage: "Deezer album tracks request failed",
       revalidate: 300,
       scope: "album_tracks",
+      signal,
+      throwOnError,
     },
   );
 
@@ -494,7 +508,7 @@ export async function getDeezerAlbumTracks(
 
 export async function getDeezerTrack(
   providerId: string,
-  { throwOnError = false }: { throwOnError?: boolean } = {},
+  { signal, throwOnError = false }: DeezerResourceOptions = {},
 ): Promise<DeezerTrackResult | null> {
   if (!isDeezerProviderId(providerId)) {
     if (throwOnError) {
@@ -510,6 +524,7 @@ export async function getDeezerTrack(
       errorMessage: "Deezer track request failed",
       revalidate: deezerResourceRevalidateSeconds,
       scope: "track",
+      signal,
       throwOnError,
     },
   );

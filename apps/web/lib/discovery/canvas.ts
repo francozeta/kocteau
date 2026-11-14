@@ -1,3 +1,4 @@
+import { discoveryUnit } from "./variation";
 import type { DiscoverySeed } from "./seed";
 import type { TrackRecommendationGroup } from "../recommendations/track-recommendation-ranking";
 
@@ -30,6 +31,7 @@ export type CanvasFrame = {
   nodes: CanvasNode[];
   depth: number;
   resolved: boolean;
+  recommendationVersion?: 2;
 };
 export type CanvasSession = { frames: CanvasFrame[]; cursor: number };
 
@@ -73,7 +75,7 @@ export function evaluateCandidate({
 }: {
   seed: DiscoverySeed;
   candidate: DiscoveryCandidate;
-  context: { memory: DiscoveryVisit[]; now: number };
+  context: { memory: DiscoveryVisit[]; now: number; variation?: string };
 }) {
   if (!candidate.seed.cover_url || seedKey(seed) === seedKey(candidate.seed))
     return -Infinity;
@@ -99,7 +101,12 @@ export function evaluateCandidate({
     Math.log1p(Math.max(0, candidate.score)) +
     Math.min(familiarity, 3) +
     (visited ? -4 : 2) -
-    (artist && artist === artistKey(seed) ? 2 : 0)
+    (artist && artist === artistKey(seed) ? 2 : 0) +
+    (context.variation
+      ? discoveryUnit(
+          `${seedKey(seed)}:${context.variation}:${seedKey(candidate.seed)}`,
+        ) * 0.8
+      : 0)
   );
 }
 
@@ -130,6 +137,7 @@ export function rankDiscoveryCandidates(
   candidates: DiscoveryCandidate[],
   memory: DiscoveryVisit[],
   now: number,
+  variation?: string,
 ) {
   const lanes: TrackRecommendationGroup["id"][] = [
     "nearby",
@@ -142,7 +150,11 @@ export function rankDiscoveryCandidates(
       .filter((candidate) => candidate.lane === lane)
       .map((candidate) => ({
         candidate,
-        score: evaluateCandidate({ seed, candidate, context: { memory, now } }),
+        score: evaluateCandidate({
+          seed,
+          candidate,
+          context: { memory, now, variation },
+        }),
       }))
       .filter(({ score }) => Number.isFinite(score))
       .sort(
@@ -192,7 +204,8 @@ export function createCanvasFrame(
     focus,
     depth: 0,
     resolved: false,
-    nodes: seeds.slice(0, CANVAS_LIMIT).map((seed) => ({
+    recommendationVersion: 2,
+    nodes: (focus ? [] : seeds).slice(0, CANVAS_LIMIT).map((seed) => ({
       seed,
       from: null,
       depth: 0,
@@ -215,19 +228,10 @@ export function focusCanvasNode(
     focus: seed,
     depth: restart || !current.focus ? 0 : current.depth + 1,
     resolved: false,
-    nodes: [
-      ...(current.focus
-        ? [
-            {
-              seed: current.focus,
-              from: null,
-              reason: "Your path",
-              depth: current.depth,
-            },
-          ]
-        : []),
-      ...current.nodes.filter((node) => seedKey(node.seed) !== seedKey(seed)),
-    ].slice(0, CANVAS_LIMIT),
+    recommendationVersion: 2,
+    // A new seed owns its recommendations. Prior frames remain reachable via
+    // Back; starter cards and old suggestions are never a recommendation fallback.
+    nodes: [],
   };
   const frames = [...session.frames.slice(0, session.cursor + 1), frame].slice(
     -PATH_LIMIT,
@@ -244,38 +248,20 @@ export function expandCanvasFrame(
 ): CanvasSession {
   const frame = session.frames[session.cursor];
   if (frame.id !== frameId || !frame.focus) return session;
-  const ranked = rankDiscoveryCandidates(frame.focus, candidates, memory, now);
-  if (!ranked.length) return session;
+  const ranked = rankDiscoveryCandidates(
+    frame.focus,
+    candidates,
+    memory,
+    now,
+    frame.id,
+  );
   const focusKey = seedKey(frame.focus);
-  // Keep a small piece of the previous space while new branches enter it.
-  const retained = frame.nodes
-    .filter((node) => node.from !== focusKey)
-    .slice(0, 6);
-  const nodes = [...retained];
-  const keys = new Set([
-    focusKey,
-    ...retained.map((node) => seedKey(node.seed)),
-  ]);
-  const covers = new Set([
-    frame.focus.cover_url,
-    ...retained.map((node) => node.seed.cover_url),
-  ]);
-  for (const candidate of ranked) {
-    if (
-      keys.has(seedKey(candidate.seed)) ||
-      covers.has(candidate.seed.cover_url)
-    )
-      continue;
-    nodes.push({
-      seed: candidate.seed,
-      from: focusKey,
-      reason: candidate.reason,
-      depth: frame.depth + 1,
-    });
-    keys.add(seedKey(candidate.seed));
-    covers.add(candidate.seed.cover_url);
-    if (nodes.length >= CANVAS_LIMIT) break;
-  }
+  const nodes = ranked.map((candidate) => ({
+    seed: candidate.seed,
+    from: focusKey,
+    reason: candidate.reason,
+    depth: frame.depth + 1,
+  }));
   const frames = session.frames.with(session.cursor, { ...frame, nodes });
   return { ...session, frames };
 }

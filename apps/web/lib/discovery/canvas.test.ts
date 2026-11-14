@@ -59,6 +59,63 @@ test("focusing a cover preserves the previous frame and opens a branch", () => {
   assert.equal(next.frames[next.cursor].depth, 0);
   assert.deepEqual(next.frames[0], original.frames[0]);
   assert.equal(focusCanvasNode(next, seed(1), "ignored"), next);
+  assert.deepEqual(
+    next.frames[next.cursor].nodes,
+    [],
+    "Starters belong only to the unseeded canvas",
+  );
+  assert.deepEqual(createCanvasFrame([seed(2)], seed(1), "direct").nodes, []);
+});
+
+test("candidate expansion displays actual recommendations first and never recycles the initial starters", () => {
+  const initial = {
+    frames: [
+      createCanvasFrame(
+        Array.from({ length: 30 }, (_, i) => seed(i + 1)),
+        null,
+        "root",
+      ),
+    ],
+    cursor: 0,
+  };
+  const focused = focusCanvasNode(initial, seed(1), "new");
+  const expanded = expandCanvasFrame(
+    focused,
+    "new",
+    [candidate(80), candidate(81), candidate(82)],
+    [],
+    now,
+  );
+  assert.deepEqual(
+    expanded.frames
+      .at(-1)!
+      .nodes.map((n) => n.seed.provider_id)
+      .sort(),
+    ["80", "81", "82"],
+  );
+  const failed = expandCanvasFrame(focused, "new", [], [], now);
+  assert.deepEqual(failed.frames.at(-1)!.nodes, []);
+  assert.equal(failed.frames[0], initial.frames[0]);
+});
+
+test("legacy seeded snapshots refresh their candidate pool while retaining history and taste scope", () => {
+  const legacy = { ...focusCanvasNode(session(), seed(1), "old") };
+  const frame = legacy.frames[1];
+  delete frame.recommendationVersion;
+  frame.nodes = [
+    { seed: seed(2), from: null, reason: "Starting point", depth: 0 },
+  ];
+  frame.resolved = true;
+  const restored = parseCanvasSnapshot(
+    { scope: "account", savedAt: now, session: legacy },
+    now,
+    "account",
+  )!;
+  assert.equal(restored.frames.length, legacy.frames.length);
+  assert.deepEqual(restored.frames[1].focus, seed(1));
+  assert.deepEqual(restored.frames[1].nodes, []);
+  assert.equal(restored.frames[1].resolved, false);
+  assert.equal(restored.frames[1].recommendationVersion, 2);
 });
 
 test("late candidates cannot replace another branch; expansion is idempotent", () => {
@@ -164,7 +221,10 @@ test("storage rejects corruption and expired sessions and separates accounts", (
   const snapshot = { savedAt: now, scope: "account-a", session: session() };
   assert.deepEqual(parseCanvasSnapshot(snapshot, now, "account-a"), session());
   assert.equal(parseCanvasSnapshot(snapshot, now, "account-b"), null);
-  assert.equal(parseCanvasSnapshot(snapshot, now + 9 * 3600_000, "account-a"), null);
+  assert.equal(
+    parseCanvasSnapshot(snapshot, now + 9 * 3600_000, "account-a"),
+    null,
+  );
   assert.notEqual(discoveryMemoryKey("a"), discoveryMemoryKey("b"));
   assert.notEqual(discoveryMemoryKey(null), discoveryMemoryKey("a"));
   assert.equal(readCanvasSession("broken", now), null);
