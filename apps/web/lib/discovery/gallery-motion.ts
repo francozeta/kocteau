@@ -51,24 +51,63 @@ const SLOTS = [
   { x: 0.09, y: 0.54, scale: 0.43, rotation: -3 },
 ];
 
+const LOOSE_SLOTS = [
+  { x: 0.75, y: 0.22, scale: 0.58, rotation: -4 },
+  { x: 0.23, y: 0.28, scale: 0.57, rotation: 4 },
+  { x: 0.79, y: 0.72, scale: 0.58, rotation: 5 },
+  { x: 0.27, y: 0.78, scale: 0.51, rotation: -3 },
+  { x: 0.88, y: 0.48, scale: 0.42, rotation: -6 },
+  { x: 0.1, y: 0.54, scale: 0.43, rotation: 3 },
+];
+
+export type GalleryComposition = "constellation" | "loose" | "line";
+
 export function getGalleryPose(
   distance: number,
   mobile: boolean,
   viewport: { width: number; height: number },
   activeId: string,
+  composition: GalleryComposition = "constellation",
 ): GalleryPose {
   const { width, height } = viewport;
+  if (composition === "line") {
+    return {
+      x: width * (0.5 + distance * (mobile ? 0.10 : 0.142)),
+      y: height * ((mobile ? 0.43 : 0.47) + distance * (mobile ? 0.12 : -0.07)),
+      scale: distance === 0 ? (mobile ? 0.82 : 1) : 0.53 - Math.abs(distance) * 0.035,
+      rotation: distance * -1.5,
+      opacity: distance === 0 ? 1 : 0.8,
+    };
+  }
   if (distance === 0) {
     return { x: width * 0.5, y: height * 0.47, scale: 1, rotation: 0, opacity: 1 };
   }
   const slotIndex = (Math.abs(distance) - 1) * 2 + (distance < 0 ? 1 : 0);
-  const slot = SLOTS[slotIndex % SLOTS.length];
+  const slots = composition === "loose" ? LOOSE_SLOTS : SLOTS;
+  const slot = slots[slotIndex % slots.length];
   return {
     x: width * (slot.x + (hashUnit(activeId + slotIndex + ":x") - 0.5) * 0.035),
     y: height * (slot.y + (hashUnit(activeId + slotIndex + ":y") - 0.5) * 0.03),
     scale: slot.scale * (mobile ? 0.94 : 1),
     rotation: slot.rotation + (hashUnit(activeId + slotIndex + ":r") - 0.5) * 4,
     opacity: Math.abs(distance) === 1 ? 0.85 : Math.abs(distance) === 2 ? 0.68 : 0.52,
+  };
+}
+
+export function getWheelPose(
+  distance: number,
+  count: number,
+  mobile: boolean,
+  viewport: { width: number; height: number },
+): GalleryPose {
+  const { width, height } = viewport;
+  const angle = -Math.PI / 2 + distance * Math.PI * 2 / count;
+  return {
+    x: width * 0.5 + Math.cos(angle) * width * (mobile ? 0.31 : 0.29),
+    y: (height - (mobile ? 84 : 30)) * 0.5 + Math.sin(angle) * height * 0.22,
+    scale: distance === 0 ? 0.66 : mobile ? 0.52 : 0.57,
+    rotation: Math.sin(angle + Math.PI / 2) * 5,
+    opacity: distance === 0 ? 1 : 0.86,
   };
 }
 

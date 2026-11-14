@@ -12,7 +12,7 @@ import {
   type WheelEvent,
 } from "react";
 import { createGalleryRenderer, type GalleryScene } from "@/components/discovery/gallery-renderer";
-import { getGalleryPose, shortestDistance } from "@/lib/discovery/gallery-motion";
+import { getGalleryPose, getWheelPose, shortestDistance } from "@/lib/discovery/gallery-motion";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { SearchEntityType } from "@/lib/search-types";
@@ -100,6 +100,7 @@ export default function DiscoveryOrbit({
       : -1;
   const activeIndex = remembered >= 0 ? remembered : 0;
   const activeItem = galleryItems[activeIndex];
+  const composition = activeIndex % 3 === 1 ? "loose" : activeIndex % 3 === 2 ? "line" : "constellation";
   const count = galleryItems.length;
   const hasItems = count > 0;
   const cardWidth = isMobile
@@ -216,17 +217,19 @@ export default function DiscoveryOrbit({
 
   const scene: GalleryScene = useMemo(() => ({
     ...viewport,
+    mobile: isMobile,
     cardWidth,
     nodes: visible.map(({ item, distance }) => ({
       id: item.id,
-      pose: getGalleryPose(distance, isMobile, viewport, activeItem?.id ?? "root"),
+      pose: getGalleryPose(distance, isMobile, viewport, activeItem?.id ?? "root", composition),
+      wheel: getWheelPose(distance, visible.length, isMobile, viewport),
     })),
     connections: visible.flatMap(({ item, index }) => {
       const next = galleryItems[(index + 1) % count];
-      return next && next.id !== item.id && visible.some((node) => node.item.id === next.id)
+      return next && next.id !== item.id && (count !== 2 || index === 0) && visible.some((node) => node.item.id === next.id)
         ? [{ from: item.id, to: next.id }] : [];
     }),
-  }), [visible, viewport, cardWidth, isMobile, activeItem?.id, galleryItems, count]);
+  }), [visible, viewport, cardWidth, isMobile, activeItem?.id, galleryItems, count, composition]);
 
   useEffect(() => {
     const host = galleryRef.current;
@@ -250,10 +253,13 @@ export default function DiscoveryOrbit({
       tabIndex={0}
       data-discovery-gallery=""
       data-dragging={dragging ? "true" : "false"}
+      data-gallery-composition={dragging ? "wheel" : composition}
       className="relative h-full min-h-0 touch-pan-y select-none overflow-hidden bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
       onKeyDown={onGalleryKeyDown}
       onWheel={onGalleryWheel}
+      onDragStart={(event) => event.preventDefault()}
       onPointerDown={(event) => {
+        if (!event.isPrimary || pointerRef.current) return;
         if (event.pointerType === "mouse" && event.button !== 0) return;
         pointerRef.current = {
           id: event.pointerId,
@@ -274,10 +280,11 @@ export default function DiscoveryOrbit({
           event.currentTarget.setPointerCapture(event.pointerId);
         }
         const offset = Math.max(-115, Math.min(115, dx * 0.55));
-        rendererRef.current?.setDrag(offset);
+        rendererRef.current?.setDrag(offset, true);
       }}
       onPointerUp={(event) => endPointer(event)}
       onPointerCancel={(event) => endPointer(event, true)}
+      onLostPointerCapture={(event) => endPointer(event, true)}
       onClickCapture={(event) => {
         if (!suppressClickRef.current) return;
         event.preventDefault();
