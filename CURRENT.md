@@ -6,7 +6,7 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-The `feat/search-initial-grid` branch is an unmerged Search interface experiment: a cover-first grid for the initial frame, with the current Gallery + Traces interaction retained after selection. Build, mobile/desktop interaction and deployment verification are pending; production has not changed.
+The `feat/search-recent-gallery` branch is an unmerged Search experiment that adapts a compact masonry wall (inspired by recent.design) to real starter covers; Curated, A–Z and By artist controls work without new catalog queries. Gallery + Traces remains after selection. Preview build and mobile/desktop interaction verification are pending; production has not changed.
 
 Search Gallery + Traces is being evaluated on `feat/search-gallery-traces`, branched from `feat/search-gallery`: a preview-only rendering experiment in `/search`. It adds restrained hand-drawn connections to the CSS 3D gallery; existing Search controls, candidate ranking, history, API boundaries and `/home` stay untouched. The prior sphere remains in source. Validate mobile gestures, visual hierarchy, keyboard navigation and reduced-motion behavior before integration; no merge or production approval is implied.
 
