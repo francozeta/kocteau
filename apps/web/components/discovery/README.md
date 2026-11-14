@@ -2,7 +2,8 @@
 
 ## Entry Points
 
-- Visual discovery renderer: `discovery-orbit.tsx` keeps covers as accessible DOM buttons and delegates their transforms and Canvas 2D ink to `gallery-renderer.ts`. One demand-driven animation clock reads shared positions for covers and connection endpoints. Critically damped motion retains position and velocity on interruption; persistent connections follow the same catalog neighbors across focus changes. The ink uses deterministic pressure/contour samples, without dash reveals or idle shimmer. Departing covers remain until their exit settles. No React state updates or layout reads run per animation frame. ResizeObserver measures the viewport; the canvas caps pixel density at 2. Rendering pauses offscreen/in hidden tabs and stops at rest. Reduced motion resolves targets immediately. Tap to recenter, activate the focused cover to explore, drag, wheel and keyboard interactions remain within this renderer. The historical sphere is not imported by Search.
+- Visual discovery renderer: `discovery-orbit.tsx` keeps covers as accessible DOM buttons; `gallery-renderer.ts` shares one motion clock with Canvas 2D ink. Position and velocity survive interruption, and persistent connections follow catalog neighbors rather than rebuilding around each focus. The ink has stable pressure/contour irregularities and softly lagging controls; it has no dash reveal or idle shimmer. Drag gathers the covers into a wheel (including the focused cover); release disperses them into a deterministic constellation or looser arrangement. Tapping a satellite recenters it; activating the focus explores through the existing canvas state. Wheel, arrows, Home/End and horizontal swipe remain available. The discarded linear arrangement is recoverable in experiment commit `aa73cf0`.
+- Renderer limits: at most six mobile/seven desktop current covers plus temporary exits. The demand-driven RAF writes transforms/opacity and paints connections without React updates or layout reads per frame. Departing covers/edges fade while retaining their geometry. ResizeObserver measures the viewport; pixel density is capped at 2. Rendering stops at rest, pauses offscreen/in hidden tabs, and resolves immediately for reduced motion. Cover images, labels and hit targets remain DOM elements; WebGL is not used by Search.
 
 - Route: `app/(main)/search/page.tsx`; surface: `discovery-map.tsx`.
 - Interaction: `hooks/use-discovery-canvas.ts`, `hooks/use-kocteau-search.ts`.
@@ -152,3 +153,34 @@ For an existing disposable authenticated session,
 header. Keep it out of Git; the fixture creates no accounts or activity.
 This is a browser regression check with simulated API failures, not a load test or
 a test on a physical iPhone/TikTok browser.
+
+## Gallery motion verification
+
+`lib/discovery/gallery-motion.test.ts` checks interruptible trajectories, 60/120 Hz
+consistency, delayed frames, small-screen bounds and degenerate ink geometry.
+The browser check uses an external Playwright installation, as above; it does not
+add an application dependency:
+
+```bash
+KOCTEAU_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright \
+  GALLERY_URL=http://localhost:3000/search \
+  node apps/web/tests/discovery/verify-gallery-motion.mjs
+```
+
+Set `GALLERY_BROWSER=webkit` for WebKit; `GALLERY_WIDTH`/`GALLERY_HEIGHT` select
+viewport dimensions. `GALLERY_HEADED=1` selects a visible browser.
+`GALLERY_CONTROLLED_CLOCK=1` uses Playwright's animation clock for functional
+geometry checks when a headless compositor throttles RAF; it omits CPU timings.
+`GALLERY_CHROMIUM_EXECUTABLE` can select an installed Chromium.
+Use a populated isolated app or an authorized Vercel preview. The local check
+stubs recommendation expansion only; it does not validate providers, auth or data
+writes. It measures ink-to-artwork attachment during reversals, card identity,
+swipe focus, reduced motion, idle/offscreen repaints and the 3x-display resolution
+cap. It reports renderer CPU time separately from visual review; workstation
+measurements do not establish physical iPhone/Safari/Brave performance.
+
+Canvas 2D was selected for pressure-shaped contours without per-frame SVG path
+serialization. SVG with Motion Values remains viable for a few simple curves;
+dash reveals alone cannot deform connections. Canvas artwork/hit testing and WebGL
+were unnecessary because existing DOM covers preserve the current interactions.
+The original motion reference video was not available in the checkout.

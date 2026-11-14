@@ -20,7 +20,10 @@ export function advanceMotion(
   const decay = Math.exp(-frequency * seconds);
   motion.value = target + (delta + momentum * seconds) * decay;
   motion.velocity = (motion.velocity - frequency * momentum * seconds) * decay;
-  if (Math.abs(motion.value - target) < 0.001 && Math.abs(motion.velocity) < 0.01) {
+  if (
+    Math.abs(motion.value - target) < 0.001 &&
+    Math.abs(motion.velocity) < 0.01
+  ) {
     motion.value = target;
     motion.velocity = 0;
     return false;
@@ -44,7 +47,7 @@ export function shortestDistance(index: number, active: number, count: number) {
 
 const SLOTS = [
   { x: 0.79, y: 0.28, scale: 0.62, rotation: 3 },
-  { x: 0.19, y: 0.29, scale: 0.60, rotation: -5 },
+  { x: 0.19, y: 0.29, scale: 0.6, rotation: -5 },
   { x: 0.74, y: 0.74, scale: 0.55, rotation: -5 },
   { x: 0.25, y: 0.73, scale: 0.56, rotation: 6 },
   { x: 0.88, y: 0.51, scale: 0.43, rotation: 4 },
@@ -60,7 +63,7 @@ const LOOSE_SLOTS = [
   { x: 0.1, y: 0.54, scale: 0.43, rotation: 3 },
 ];
 
-export type GalleryComposition = "constellation" | "loose" | "line";
+export type GalleryComposition = "constellation" | "loose";
 
 export function getGalleryPose(
   distance: number,
@@ -70,27 +73,50 @@ export function getGalleryPose(
   composition: GalleryComposition = "constellation",
 ): GalleryPose {
   const { width, height } = viewport;
-  if (composition === "line") {
-    return {
-      x: width * (0.5 + distance * (mobile ? 0.10 : 0.142)),
-      y: height * ((mobile ? 0.43 : 0.47) + distance * (mobile ? 0.12 : -0.07)),
-      scale: distance === 0 ? (mobile ? 0.82 : 1) : 0.53 - Math.abs(distance) * 0.035,
-      rotation: distance * -1.5,
-      opacity: distance === 0 ? 1 : 0.8,
-    };
-  }
+  const centerY = mobile ? (height - 130) * 0.47 + 20 : height * 0.47;
+  const focusScale = mobile && height < 720 ? 0.86 : 1;
   if (distance === 0) {
-    return { x: width * 0.5, y: height * 0.47, scale: 1, rotation: 0, opacity: 1 };
+    return {
+      x: width * 0.5,
+      y: centerY,
+      scale: focusScale,
+      rotation: 0,
+      opacity: 1,
+    };
   }
   const slotIndex = (Math.abs(distance) - 1) * 2 + (distance < 0 ? 1 : 0);
   const slots = composition === "loose" ? LOOSE_SLOTS : SLOTS;
   const slot = slots[slotIndex % slots.length];
+  const scale = slot.scale * (mobile ? (height < 720 ? 0.82 : 0.94) : 1);
+  let y =
+    height * (slot.y + (hashUnit(activeId + slotIndex + ":y") - 0.5) * 0.03);
+  if (mobile) {
+    const cardWidth = Math.min(width * 0.51, 218);
+    const halfCover = cardWidth * scale * 0.5;
+    if (Math.abs(distance) === 1)
+      y = Math.max(
+        126,
+        centerY - cardWidth * focusScale * 0.5 - halfCover - 32,
+      );
+    else if (Math.abs(distance) === 2)
+      y = centerY + cardWidth * focusScale * 0.5 + halfCover + 54;
+    else y = centerY + 10;
+    y += (hashUnit(activeId + slotIndex + ":y") - 0.5) * 16;
+    y = Math.max(74 + halfCover, Math.min(height - 140 - halfCover, y));
+  }
+  let x =
+    width * (slot.x + (hashUnit(activeId + slotIndex + ":x") - 0.5) * 0.035);
+  if (mobile) {
+    const margin = Math.min(width * 0.51, 218) * scale * 0.55 + 10;
+    x = Math.max(margin, Math.min(width - margin, x));
+  }
   return {
-    x: width * (slot.x + (hashUnit(activeId + slotIndex + ":x") - 0.5) * 0.035),
-    y: height * (slot.y + (hashUnit(activeId + slotIndex + ":y") - 0.5) * 0.03),
-    scale: slot.scale * (mobile ? 0.94 : 1),
+    x,
+    y,
+    scale,
     rotation: slot.rotation + (hashUnit(activeId + slotIndex + ":r") - 0.5) * 4,
-    opacity: Math.abs(distance) === 1 ? 0.85 : Math.abs(distance) === 2 ? 0.68 : 0.52,
+    opacity:
+      Math.abs(distance) === 1 ? 0.85 : Math.abs(distance) === 2 ? 0.68 : 0.52,
   };
 }
 
@@ -101,7 +127,7 @@ export function getWheelPose(
   viewport: { width: number; height: number },
 ): GalleryPose {
   const { width, height } = viewport;
-  const angle = -Math.PI / 2 + distance * Math.PI * 2 / count;
+  const angle = -Math.PI / 2 + (distance * Math.PI * 2) / count;
   return {
     x: width * 0.5 + Math.cos(angle) * width * (mobile ? 0.31 : 0.29),
     y: (height - (mobile ? 84 : 30)) * 0.5 + Math.sin(angle) * height * 0.22,
@@ -125,18 +151,31 @@ export function sampleInk(
   for (let index = 0; index <= count; index += 1) {
     const t = index / count;
     const inv = 1 - t;
-    const tx = 3 * inv ** 2 * (control1.x - from.x) +
-      6 * inv * t * (control2.x - control1.x) + 3 * t ** 2 * (to.x - control2.x);
-    const ty = 3 * inv ** 2 * (control1.y - from.y) +
-      6 * inv * t * (control2.y - control1.y) + 3 * t ** 2 * (to.y - control2.y);
+    const tx =
+      3 * inv ** 2 * (control1.x - from.x) +
+      6 * inv * t * (control2.x - control1.x) +
+      3 * t ** 2 * (to.x - control2.x);
+    const ty =
+      3 * inv ** 2 * (control1.y - from.y) +
+      6 * inv * t * (control2.y - control1.y) +
+      3 * t ** 2 * (to.y - control2.y);
     const length = Math.max(1, Math.hypot(tx, ty));
     const grain = Math.sin(t * 31 + salt) * Math.sin(Math.PI * t) * 0.65;
     points.push({
-      x: inv ** 3 * from.x + 3 * inv ** 2 * t * control1.x +
-        3 * inv * t ** 2 * control2.x + t ** 3 * to.x - ty / length * grain,
-      y: inv ** 3 * from.y + 3 * inv ** 2 * t * control1.y +
-        3 * inv * t ** 2 * control2.y + t ** 3 * to.y + tx / length * grain,
-      radius: (0.12 + 1.7 * Math.sin(Math.PI * t) ** 0.7) *
+      x:
+        inv ** 3 * from.x +
+        3 * inv ** 2 * t * control1.x +
+        3 * inv * t ** 2 * control2.x +
+        t ** 3 * to.x -
+        (ty / length) * grain,
+      y:
+        inv ** 3 * from.y +
+        3 * inv ** 2 * t * control1.y +
+        3 * inv * t ** 2 * control2.y +
+        t ** 3 * to.y +
+        (tx / length) * grain,
+      radius:
+        (0.12 + 1.7 * Math.sin(Math.PI * t) ** 0.7) *
         (0.85 + 0.15 * Math.sin(t * 19 + salt)),
     });
   }

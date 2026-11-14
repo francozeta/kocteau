@@ -6,7 +6,7 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-The Search experiment on `feat/search-constellation` now has a local Canvas 2D motion candidate: DOM covers and pressure-shaped connections share interruptible positions and velocity. The earlier deployed preview remains the comparison baseline. The initial constellation has been inspected on desktop/mobile Chromium; wheel/dispersal experimentation and final preview verification are pending. Search controls, ranking, history, APIs and `/home` remain outside the change. No production release is implied.
+The Search preview candidate on `feat/search-constellation` couples DOM covers and Canvas 2D ink through persistent, interruptible positions and velocity. The selected behavior gathers every cover into a wheel during drag, then disperses into deterministic constellation/free layouts; the tested linear layout was discarded. Chromium and WebKit desktop/mobile captures, sparse states and recenter/explore/Back/reload have been inspected with isolated data. 227 unit tests, lint and the isolated-data build pass. Chromium and WebKit attachment, idle/offscreen and reduced-motion checks pass; WebKit used a virtual display with software compositing, so its timings are not device evidence. Physical iPhone Safari/Brave and comparison with the earlier Vercel preview remain the review gate. Search controls, ranking, history, APIs and `/home` are unchanged. This is preview work, not a production release.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

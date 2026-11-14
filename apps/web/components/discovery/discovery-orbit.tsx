@@ -11,8 +11,15 @@ import {
   type PointerEvent,
   type WheelEvent,
 } from "react";
-import { createGalleryRenderer, type GalleryScene } from "@/components/discovery/gallery-renderer";
-import { getGalleryPose, getWheelPose, shortestDistance } from "@/lib/discovery/gallery-motion";
+import {
+  createGalleryRenderer,
+  type GalleryScene,
+} from "@/components/discovery/gallery-renderer";
+import {
+  getGalleryPose,
+  getWheelPose,
+  shortestDistance,
+} from "@/lib/discovery/gallery-motion";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { SearchEntityType } from "@/lib/search-types";
@@ -62,7 +69,9 @@ export default function DiscoveryOrbit({
   const galleryRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cardRefs = useRef(new Map<string, HTMLButtonElement>());
-  const rendererRef = useRef<ReturnType<typeof createGalleryRenderer> | null>(null);
+  const rendererRef = useRef<ReturnType<typeof createGalleryRenderer> | null>(
+    null,
+  );
   const pointerRef = useRef<PointerStart | null>(null);
   const lastWheelRef = useRef(0);
   const suppressClickRef = useRef(false);
@@ -100,7 +109,7 @@ export default function DiscoveryOrbit({
       : -1;
   const activeIndex = remembered >= 0 ? remembered : 0;
   const activeItem = galleryItems[activeIndex];
-  const composition = activeIndex % 3 === 1 ? "loose" : activeIndex % 3 === 2 ? "line" : "constellation";
+  const composition = activeIndex % 2 === 1 ? "loose" : "constellation";
   const count = galleryItems.length;
   const hasItems = count > 0;
   const cardWidth = isMobile
@@ -142,7 +151,10 @@ export default function DiscoveryOrbit({
     if (seed?.id !== item.id) onSelect(item);
   };
 
-  const endPointer = (event: PointerEvent<HTMLDivElement>, cancelled = false) => {
+  const endPointer = (
+    event: PointerEvent<HTMLDivElement>,
+    cancelled = false,
+  ) => {
     const pointer = pointerRef.current;
     if (!pointer || pointer.id !== event.pointerId) return;
     pointerRef.current = null;
@@ -193,54 +205,110 @@ export default function DiscoveryOrbit({
     step(delta > 0 ? 1 : -1);
   };
 
-  const visible = useMemo(() => galleryItems.flatMap((item, index) => {
-    const distance = shortestDistance(index, activeIndex, count);
-    if (Math.abs(distance) > 3 || (isMobile && distance === -3)) return [];
-    return [{ item, index, distance }];
-  }), [galleryItems, activeIndex, count, isMobile]);
+  const visible = useMemo(
+    () =>
+      galleryItems.flatMap((item, index) => {
+        const distance = shortestDistance(index, activeIndex, count);
+        if (Math.abs(distance) > 3 || (isMobile && distance === -3)) return [];
+        return [{ item, index, distance }];
+      }),
+    [galleryItems, activeIndex, count, isMobile],
+  );
 
   // Retain departing covers until the shared motion clock finishes their exit.
   // Comparing inputs during render keeps entering elements available before the
   // renderer receives its next targets, without an effect-driven extra frame.
-  const [rendered, setRendered] = useState({ source: visible, entries: visible });
+  const [rendered, setRendered] = useState({
+    source: visible,
+    entries: visible,
+  });
   if (rendered.source !== visible) {
     const incoming = new Set(visible.map(({ item }) => item.id));
     setRendered({
       source: visible,
-      entries: [...visible, ...rendered.entries.filter(({ item }) => !incoming.has(item.id))],
+      entries: [
+        ...visible,
+        ...rendered.entries.filter(({ item }) => !incoming.has(item.id)),
+      ],
     });
   }
-  const onRest = useCallback(() => {
-    setRendered((current) => current.entries.length === current.source.length
-      ? current : { source: current.source, entries: current.source });
+  const onRest = useCallback((ids: string[]) => {
+    const completed = new Set(ids);
+    setRendered((current) => {
+      if (
+        current.entries.length === current.source.length ||
+        current.source.length !== completed.size ||
+        current.source.some(({ item }) => !completed.has(item.id))
+      )
+        return current;
+      return { source: current.source, entries: current.source };
+    });
   }, []);
 
-  const scene: GalleryScene = useMemo(() => ({
-    ...viewport,
-    mobile: isMobile,
-    cardWidth,
-    nodes: visible.map(({ item, distance }) => ({
-      id: item.id,
-      pose: getGalleryPose(distance, isMobile, viewport, activeItem?.id ?? "root", composition),
-      wheel: getWheelPose(distance, visible.length, isMobile, viewport),
-    })),
-    connections: visible.flatMap(({ item, index }) => {
-      const next = galleryItems[(index + 1) % count];
-      return next && next.id !== item.id && (count !== 2 || index === 0) && visible.some((node) => node.item.id === next.id)
-        ? [{ from: item.id, to: next.id }] : [];
+  const scene: GalleryScene = useMemo(
+    () => ({
+      ...viewport,
+      mobile: isMobile,
+      cardWidth,
+      nodes: visible.map(({ item, distance }) => {
+        const pose = getGalleryPose(
+          distance,
+          isMobile,
+          viewport,
+          activeItem?.id ?? "root",
+          composition,
+        );
+        return {
+          id: item.id,
+          pose,
+          wheel:
+            visible.length < 3
+              ? pose
+              : getWheelPose(distance, visible.length, isMobile, viewport),
+        };
+      }),
+      connections: visible.flatMap(({ item, index }) => {
+        const next = galleryItems[(index + 1) % count];
+        return next &&
+          next.id !== item.id &&
+          (count !== 2 || index === 0) &&
+          visible.some((node) => node.item.id === next.id)
+          ? [{ from: item.id, to: next.id }]
+          : [];
+      }),
     }),
-  }), [visible, viewport, cardWidth, isMobile, activeItem?.id, galleryItems, count, composition]);
+    [
+      visible,
+      viewport,
+      cardWidth,
+      isMobile,
+      activeItem?.id,
+      galleryItems,
+      count,
+      composition,
+    ],
+  );
 
   useEffect(() => {
     const host = galleryRef.current;
     const canvas = canvasRef.current;
     if (!host || !canvas) return;
-    const renderer = createGalleryRenderer(host, canvas, cardRefs.current, onRest);
+    const renderer = createGalleryRenderer(
+      host,
+      canvas,
+      cardRefs.current,
+      onRest,
+    );
     rendererRef.current = renderer;
-    return () => { renderer.dispose(); rendererRef.current = null; };
+    return () => {
+      renderer.dispose();
+      rendererRef.current = null;
+    };
   }, [onRest, hasItems]);
 
-  useEffect(() => { rendererRef.current?.setScene(scene); }, [scene]);
+  useEffect(() => {
+    rendererRef.current?.setScene(scene);
+  }, [scene]);
 
   if (!count) return <div className="h-full" />;
 
@@ -293,9 +361,9 @@ export default function DiscoveryOrbit({
       }}
     >
       <div aria-live="polite" className="sr-only">
-        {activeItem.title} by {getArtistLabel(activeItem)}.
-        {" "}Cover {activeIndex + 1} of {count}.
-        {" "}Select the centered cover to explore related music.
+        {activeItem.title} by {getArtistLabel(activeItem)}. Cover{" "}
+        {activeIndex + 1} of {count}. Select the centered cover to explore
+        related music.
       </div>
 
       <canvas
@@ -331,7 +399,9 @@ export default function DiscoveryOrbit({
             aria-hidden={!present || undefined}
             aria-label={
               (central ? "Explore related music from " : "Center ") +
-              item.title + " by " + getArtistLabel(item)
+              item.title +
+              " by " +
+              getArtistLabel(item)
             }
             tabIndex={central ? 0 : -1}
             onClick={() => present && selectCard(item, present.distance)}
