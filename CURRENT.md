@@ -6,7 +6,7 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-The Search constellation preview on `feat/search-constellation` builds on Gallery + Traces. The canvas places a focus cover among deterministic irregular satellites with tapered animated connections. Search controls, candidate ranking, history, APIs and `/home` are unchanged; the prior sphere remains in source. Confirm touch/keyboard behavior and motion readability on mobile before considering integration. No production release is implied.
+The Search experiment on `feat/search-constellation` now has a local Canvas 2D motion candidate: DOM covers and pressure-shaped connections share interruptible positions and velocity. The earlier deployed preview remains the comparison baseline. The initial constellation has been inspected on desktop/mobile Chromium; wheel/dispersal experimentation and final preview verification are pending. Search controls, ranking, history, APIs and `/home` remain outside the change. No production release is implied.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
