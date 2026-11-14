@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useIsPresent, useReducedMotion } from "motion/react";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import { KocteauSearchIcon } from "@/components/icons/kocteau-icons";
 import { Input } from "@/components/ui/input";
@@ -75,6 +75,7 @@ export default function DiscoverySearch({
       : `Search ${scope === "track" ? "songs" : `${scope}s`}`;
   const [isFocused, setIsFocused] = useState(Boolean(query));
   const isMobileViewport = useIsMobile();
+  const present = useIsPresent();
   const reduceMotion = useReducedMotion();
   const filterPortalTarget = usePortalTarget("#mobile-search-filters");
   const inputPortalTarget = usePortalTarget(
@@ -99,6 +100,7 @@ export default function DiscoverySearch({
     : "discovery-seed-search";
 
   useEffect(() => () => onFocusChange?.(false), [onFocusChange]);
+  if (!present) return null;
 
   const closeSearch = (restoreFocus = true) => {
     onQueryChange("");

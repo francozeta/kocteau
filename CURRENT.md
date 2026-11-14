@@ -6,7 +6,9 @@ the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 
 ## Active Work
 
-The Search follow-up on `feat/search-constellation` replaces inherited starter cards with track-specific catalog candidates and a bounded, stable exploration variant. Browser-local opens/revisits rank the pool within the existing account/guest memory scope; no listening-profile or audio-similarity claim is made. Old seeded snapshots refresh their pools without losing the Back path. Source identity, variant, cancellation, failure and legacy-snapshot checks pass with isolated fixtures. Live brush deposition and the overlapping Search header fix are being verified next. The previous deployed motion preview remains the comparison baseline; no production release is implied.
+The Search follow-up on `feat/search-constellation` now paints new connections as live brush gestures, preserves deposited ink during motion and spawns candidates from the current seed's position/velocity. Each track owns a variable catalog pool; starters are entry points only. Ranking uses bounded, account/guest-scoped browser opens/revisits, not account-wide listening history or audio analysis. Legacy seeded snapshots refresh candidates while preserving the Back path.
+
+The overlapping Search header was reproduced at two simultaneous owners on desktop/mobile. Search seed routes now share one transition key, and exiting routes release their shell portals. Chromium/WebKit regression checks observe at most one header/input/action/canvas owner through rapid Back/Forward; they also cover isolated seed pools, snapshots and failure/retry without starters. 239 unit tests, lint and the isolated-data build pass. WebKit uses a software-composited virtual display, not a physical iPhone. The next gate is exact-preview catalog/visual review and Safari/Brave device validation against the earlier `55ecb3f` preview. No production release is implied.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

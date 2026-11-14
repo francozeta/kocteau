@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { useIsPresent } from "motion/react";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import PrefetchLink from "@/components/shared/prefetch-link";
 import { KocteauMoreIcon } from "@/components/icons/kocteau-icons";
@@ -63,6 +64,7 @@ export default function DiscoveryNavigation({
   onForget: () => void;
 }) {
   const mobile = useIsMobile();
+  const present = useIsPresent();
   const [open, setOpen] = useState(false);
   const headerTarget = usePortalTarget(
     "[data-kocteau-search-mobile-header-slot]",
@@ -77,6 +79,8 @@ export default function DiscoveryNavigation({
   const Header = mobile ? DrawerHeader : DialogHeader;
   const Title = mobile ? DrawerTitle : DialogTitle;
   const Description = mobile ? DrawerDescription : DialogDescription;
+  // Header portals sit outside the fading route and must leave with its exit.
+  if (!present) return null;
 
   const scopeControls = (
     <div

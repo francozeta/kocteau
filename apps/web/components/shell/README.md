@@ -6,6 +6,11 @@
 - Route state: `route-header-context.tsx`.
 - Navigation: `nav-*`; loading geometry: `route-loading-skeletons.tsx`.
 - Shortcuts: `global-shortcuts.tsx`; route motion: `app-route-transition.tsx`.
+- Search seed URLs share the `/search` transition key: they update the existing
+  canvas/header rather than crossfading two complete Search routes. Exiting
+  Search components release shell portals immediately; portals are outside the
+  fading route container and would otherwise overlap the next header. Other
+  routes retain their existing transition keys and motion.
 - The deferred composer mounts on the review event or `compose=1` URL state.
 - Omit `initialSelection` when no event selection exists so the dialog reads URL
   state. Explicit `null` switches off URL initialization.

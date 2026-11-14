@@ -171,9 +171,14 @@ Avoid motion on:
   label, while **all navigation icons retain regular/outline weight**.
 - Floating covers, negative space, and restrained spatial disorder carry the
   personality. Do not replace the canvas with a dashboard or a visible graph.
-- Selecting a cover expands discovery in place. Keep some previous covers and
-  their positions so the space remains recognizable; back restores the earlier
-  composition. The entity page is an explicit secondary link.
+- Selecting a cover expands discovery in place. Keep its current position and
+  motion while its own candidate pool arrives; let earlier covers exit without
+  recycling them as recommendations. Back restores the earlier composition.
+  Paint new connections as a continuous brush gesture, and preserve deposited
+  material when positions change. The entity page is an explicit secondary link.
+- Seed navigation updates one mounted Search header. Never crossfade two header
+  identities or action groups through the global route transition; its motion
+  belongs to the canvas. Exiting routes must relinquish their header portals.
 - Give every visible cover a title and artist label that follows its position,
   without a filled label background or hover-only tooltip. The centered cover
   remains the current object. Review is the primary track action; sharing and
