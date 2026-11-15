@@ -14,27 +14,20 @@ in [DESIGN.md](../../../../DESIGN.md).
 
 ## Landing motion
 
-The hero uses Interfere's publicly documented `opacity: 0 → 1`, `blur(10px) → 0`,
-and `translateY(20%) → 0` reveal, with separate timings for title words,
-description and CTA. Timing is tuned for visual testing; Interfere does not
-publish exact duration or stagger values in its write-up.
+The public hero and existing Kocteau mini UI form **one initial page-entry
+sequence**. The navigation fades in, the headline reveals word by word, and
+description/CTAs follow as blocks. The original mock Feed preview is unchanged:
+same navigation, tabs, review, editorial rail, copy and markup as on main.
+A scoped CSS module stages the existing sidebar, Feed header, tabs, review and
+editorial rail without adding activity timelines or other content.
 
-The mock-feed preview is an actual composition of Kocteau UI components,
-not a screenshot. A viewport-triggered sequence now establishes the shell,
-brings in navigation and Feed tabs, and reveals the review's author, cover,
-writing and actions in separate beats. A compact mock Listening activity list
-in the desktop right rail (or above the review in the clipped mobile mini UI) uses Interfere's documented timeline grammar: each connector
-draws down, its marker appears, then the event copy fades in; the next item's
-line begins after the previous line completes. The event descriptions are
-illustrative, not live events. Exact timing is our interpretation, not copied
-from proprietary Interfere source.
-
-The observer/animation director is a small client-only wrapper around
-server-rendered markup. If JS or IntersectionObserver is unavailable, the
-entire preview remains visible and useful. Reduced-motion visitors see
-unanimated content. The landing and Feed routes, public SEO/ISR, hero,
-artwork and main mock UI geometry are unchanged. Check the clipped mobile
-mini-UI, activity-rail height and Safari motion before merging.
+This follows Interfere's documented hero entrance properties
+(`blur(10px) → 0`, `opacity: 0 → 1`, `translateY(20%) → 0`).
+Exact durations are adapted to Kocteau because their source timing values
+are not published. **No IntersectionObserver, scroll trigger or animation
+library** is required. SSR remains readable without JavaScript and reduced
+motion disables the sequence. CSS may replay on a fresh page mount, unlike
+Interfere's first-visit-only behavior; that can be refined later if desired.
 
 ## Check
 
