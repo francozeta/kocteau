@@ -67,7 +67,7 @@ test("focusing a cover preserves the previous frame and opens a branch", () => {
   assert.deepEqual(createCanvasFrame([seed(2)], seed(1), "direct").nodes, []);
 });
 
-test("candidate expansion displays actual recommendations first and never recycles the initial starters", () => {
+test("candidate expansion displays the provider pool without inheriting starter nodes", () => {
   const initial = {
     frames: [
       createCanvasFrame(

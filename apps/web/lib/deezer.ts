@@ -148,6 +148,8 @@ const deezerResourceRetryDelaysMs = [300] as const;
 const deezerResourceRevalidateSeconds = 24 * 60 * 60;
 
 type DeezerSearchOptions = { signal?: AbortSignal };
+// Strict lookups surface failures without the optional-resource retry, except
+// artist top tracks, which explicitly retain their enrichment retry policy.
 type DeezerResourceOptions = DeezerSearchOptions & { throwOnError?: boolean };
 
 export function isDeezerProviderId(value: string) {
@@ -350,6 +352,9 @@ export async function getDeezerArtist(
     },
   );
 
+  if (json && throwOnError && (String(json.id) !== artistId || !json.name)) {
+    throw new DeezerRequestError("Invalid Deezer artist response");
+  }
   return json ? mapDeezerArtist(json) : null;
 }
 

@@ -173,7 +173,7 @@ export function createGalleryRenderer(
     const instant = reducedMotion.matches;
     let moving = false;
     if (instant) {
-      wheelMix.value = 0;
+      wheelMix.value = exploring ? 1 : 0;
       wheelMix.velocity = 0;
     } else
       moving =
@@ -236,7 +236,6 @@ export function createGalleryRenderer(
         if (!from || !to) continue;
         const opacity =
           Math.min(from.opacity.value, to.opacity.value) * edge.opacity.value;
-        if (opacity < 0.002) continue;
         const a = point(from);
         const b = point(to);
         const [c1, c2] = controls(a, b, edge.salt);
@@ -253,6 +252,7 @@ export function createGalleryRenderer(
                 advanceMotion(current[key], target[key], seconds, 18) || moving;
           }
         }
+        if (opacity < 0.002) continue;
         paintInk(
           ctx,
           a,

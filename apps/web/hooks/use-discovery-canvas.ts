@@ -188,6 +188,8 @@ export function useDiscoveryCanvas(
             fetchCandidates(focus, lane, variation, signal),
           staleTime: (lane === "fast" ? 5 : 10) * 60 * 1000,
           gcTime: 15 * 60 * 1000,
+          // A retry restarts the entire provider fan-out and deadline. Keep
+          // recovery explicit instead of silently repeating a failed lane.
           retry: 0,
         })
         .then((result) => {

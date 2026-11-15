@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { DeezerRequestError, getDeezerAlbum, getDeezerArtistTopTracks } from "./deezer.ts";
+import { DeezerRequestError, getDeezerAlbum, getDeezerArtist, getDeezerArtistTopTracks } from "./deezer.ts";
 import { withSearchDeadline } from "./search/deadline.ts";
 
 const artist = { id: "399", fan_count: 100 };
 
 describe("optional Deezer resources", () => {
+  it("strict artist lookups reject malformed or mismatched provider identities", async (t) => {
+    for (const response of [{ id: 399 }, { id: 400, name: "Wrong artist" }]) {
+      t.mock.method(globalThis, "fetch", async () => Response.json(response));
+      await assert.rejects(getDeezerArtist("399", { throwOnError: true }),
+        /Invalid Deezer artist response/);
+    }
+  });
   it("propagates cancellation through the default artist-track fallback", async (t) => {
     const controller = new AbortController();
     const warn = t.mock.method(console, "warn", () => {});

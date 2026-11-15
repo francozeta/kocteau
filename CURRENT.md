@@ -1,16 +1,14 @@
 # Current Project State
 
-Last checked: 2026-10-26. Reliability diagnosis and recoverable public reads remain
-the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
+Last checked: 2026-11-15. Approved Search integration is active alongside
+reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
 
-The approved Search delivery is tracked in [PR #303](https://github.com/francozeta/kocteau/pull/303), from `feat/search-constellation` into `main`. It paints new connections as live brush gestures, preserves deposited ink during motion and spawns candidates from the current seed's position/velocity. Each track owns a variable catalog pool; starters are entry points only. Ranking uses bounded, account/guest-scoped browser opens/revisits, not account-wide listening history or audio analysis. Legacy seeded snapshots refresh candidates while preserving the Back path.
+The approved Search delivery is tracked in [PR #303](https://github.com/francozeta/kocteau/pull/303), from `feat/search-constellation` into `main`. The `e6da873` preview received visual approval for integration. The [Discovery guide](./apps/web/components/discovery/README.md) owns canvas motion, per-seed candidate pools, header ownership and ASCII cover-loading behavior.
 
-Search seed routes share one transition key, and exiting routes release their shell portals. Chromium/WebKit checks observe at most one header/input/action/canvas owner through rapid Back/Forward; they also cover isolated seed pools, snapshots and failure/retry without starters. 239 unit tests, lint and the isolated-data build pass. Preview checks also cover live catalog probes, actual candidate expansion and motion continuity. The `e6da873` preview received visual approval for integration. WebKit uses a software-composited virtual display; physical iPhone Safari/Brave validation remains follow-up work. PR checks and Vercel deployment state establish integration and delivery separately.
-
-Canvas covers use subtle ASCII discs while images load, with finite CSS grain animation and stable geometry. Delayed, cached and failed loads, animation cleanup and reduced motion pass local Chromium/WebKit checks at desktop and mobile widths; the approved preview also passes the cover-loading checks. Canvas motion still stops at rest.
+Local checks cover unit tests, lint, the isolated-data build and Chromium/WebKit desktop/mobile regressions; preview checks cover live catalog expansion, motion continuity, header history and delayed/cached/failed covers. Integration hardening addresses review edge cases and updates the native verifier's existing ISR assertion to the canonical `/home` route. The PR owns CI and integration status; Vercel deployment state is verified separately. WebKit uses a virtual display, and physical iPhone Safari/Brave validation remains follow-up work.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

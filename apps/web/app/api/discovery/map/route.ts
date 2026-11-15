@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { isDeezerProviderId } from "@/lib/deezer";
+import { getDeezerErrorDetails, isDeezerProviderId } from "@/lib/deezer";
 import { getDiscoveryCandidates } from "@/lib/discovery/candidates";
 import { validationErrorResponse } from "@/lib/validation/server";
 
@@ -40,6 +40,7 @@ export async function GET(request: Request) {
     const result = await getDiscoveryCandidates({
       providerId: parsed.data.providerId,
       seedType: parsed.data.seedType,
+      artistProviderId: parsed.data.artistProviderId,
       lane,
       variation: parsed.data.variation,
       signal: request.signal,
@@ -58,7 +59,12 @@ export async function GET(request: Request) {
           : "public, s-maxage=300, stale-while-revalidate=3600",
       },
     });
-  } catch {
+  } catch (error) {
+    if (!request.signal.aborted)
+      console.error(
+        "[discovery.map] candidate lookup failed",
+        getDeezerErrorDetails(error),
+      );
     return NextResponse.json(
       { error: "This music neighborhood could not load. Try again." },
       {

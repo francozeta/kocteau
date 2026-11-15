@@ -149,11 +149,35 @@ test("missing identity never falls back to a title search or editorial tracks", 
   assert.deepEqual(calls, []);
 });
 
+test("album seeds retain the selected artist fallback and use the highest ranked bounded track", async () => {
+  const { source } = fixture();
+  const album = await source.album("1");
+  assert.ok(album);
+  source.album = async () => ({ ...album, artist_id: null });
+  source.tracks = async (_, artist, limit) => {
+    assert.equal(artist.id, "45");
+    assert.equal(limit, 12);
+    return [
+      { ...track("10"), rank: 1 },
+      { ...track("11"), rank: 90 },
+    ];
+  };
+  const result = await getDiscoveryCandidates(
+    { ...input, seedType: "album", artistProviderId: "45" },
+    source,
+  );
+  assert.equal(result?.seedProviderId, "11");
+  assert.ok(ids(result)!.length > 0);
+});
+
 test("cancellation reaches the provider and prevents a second wave of requests", async () => {
   const { source, calls } = fixture();
   const abort = new AbortController();
-  source.track = async (_, options) =>
+  let providerSignal: AbortSignal | undefined;
+  source.track = async (id, options) =>
     new Promise((_, reject) => {
+      calls.push(`track:${id}`);
+      providerSignal = options?.signal;
       options?.signal?.addEventListener(
         "abort",
         () => reject(options.signal?.reason),
@@ -164,7 +188,11 @@ test("cancellation reaches the provider and prevents a second wave of requests",
     { ...input, signal: abort.signal },
     source,
   );
-  abort.abort();
-  await assert.rejects(pending);
-  assert.deepEqual(calls, []);
+  assert.deepEqual(calls, ["track:1"]);
+  const reason = new DOMException("Caller cancelled exploration", "AbortError");
+  abort.abort(reason);
+  await assert.rejects(pending, (error) => error === reason);
+  assert.equal(providerSignal?.aborted, true);
+  assert.equal(providerSignal?.reason, reason);
+  assert.deepEqual(calls, ["track:1"]);
 });

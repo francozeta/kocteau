@@ -81,7 +81,11 @@ export default function AppRouteTransition({ children }: { children: ReactNode }
     }
 
     function handleHistoryNavigation() {
-      setDirection(-1);
+      const nextPath = window.location.pathname;
+      const withinSearch =
+        transitionKey === "/search" &&
+        (nextPath === "/search" || nextPath.startsWith("/search/"));
+      setDirection(withinSearch ? 1 : -1);
     }
 
     window.addEventListener(routeTransitionDirectionEvent, handleDirection);
@@ -91,7 +95,7 @@ export default function AppRouteTransition({ children }: { children: ReactNode }
       window.removeEventListener(routeTransitionDirectionEvent, handleDirection);
       window.removeEventListener("popstate", handleHistoryNavigation);
     };
-  }, []);
+  }, [transitionKey]);
 
   return (
     <div

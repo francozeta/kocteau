@@ -204,6 +204,15 @@ try {
     window.galleryDiagnostics.durations = [];
   });
 
+  assert.equal(
+    await gallery.evaluate((element) => !element.dispatchEvent(
+      new WheelEvent("wheel", { deltaY: 36, bubbles: true, cancelable: true }),
+    )),
+    true,
+    "Gallery wheel navigation must prevent the native scroll action",
+  );
+  await idle();
+
   const original = await page
     .locator('[data-gallery-center="true"]')
     .getAttribute("aria-label");
@@ -256,6 +265,19 @@ try {
     (await page.evaluate(() => window.galleryDiagnostics.frames)) -
     reducedStart;
   assert.ok(reducedFrames <= 2, "Reduced motion should resolve in one frame");
+  await idle();
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 80, y + 2, { steps: 4 });
+  await rest();
+  const wheelScale = await page.locator('[data-gallery-center="true"]').evaluate((element) => {
+    const matrix = new DOMMatrix(getComputedStyle(element).transform);
+    return Math.hypot(matrix.a, matrix.b);
+  });
+  assert.ok(Math.abs(wheelScale - 0.66) < 0.001,
+    "Reduced motion must resolve the wheel layout without removing drag");
+  await page.mouse.up();
   await idle();
 
   // Offscreen interruption must pause and resume the same animation, not reset it.

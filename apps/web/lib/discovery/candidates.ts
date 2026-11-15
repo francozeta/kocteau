@@ -30,6 +30,7 @@ type Input = {
   seedType: "track" | "album" | "artist";
   lane: "fast" | "deep" | "full";
   variation: number;
+  artistProviderId?: string;
   signal?: AbortSignal;
 };
 
@@ -100,19 +101,20 @@ export async function getDiscoveryCandidates(input: Input, source = catalog) {
           : null;
       } else {
         const album = await source.album(input.providerId, options);
-        seed = album?.artist_id
+        const artistId = album?.artist_id ?? input.artistProviderId;
+        seed = album && artistId
           ? ((
               await source.tracks(
                 album,
                 {
-                  id: album.artist_id,
+                  id: artistId,
                   name: album.artist_name ?? "Unknown artist",
                   fan_count: null,
                 },
-                1,
+                12,
                 options,
               )
-            )[0] ?? null)
+            ).toSorted((a, b) => (b.rank ?? 0) - (a.rank ?? 0))[0] ?? null)
           : null;
       }
       if (!seed?.artist_id) return null;

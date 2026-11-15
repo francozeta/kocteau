@@ -61,7 +61,7 @@ test("a delayed frame catches up without numerical instability or slowing the an
   assert.ok(Math.abs(delayed.velocity - regular.velocity) < 1e-8);
 });
 
-test("mobile artwork remains inside the canvas across the composed focus variants", () => {
+test("mobile covers and labels remain inside the canvas across the composed focus variants", () => {
   for (const viewport of [
     { width: 320, height: 568 },
     { width: 375, height: 667 },
@@ -84,7 +84,7 @@ test("mobile artwork remains inside the canvas across the composed focus variant
           );
           assert.ok(
             pose.y - halfCover > 60 &&
-              pose.y + halfCover + 24 < viewport.height - 110,
+              pose.y + halfCover + 44 * pose.scale < viewport.height - 110,
           );
         }
       }

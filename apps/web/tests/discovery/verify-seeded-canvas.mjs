@@ -12,6 +12,7 @@ assert.ok(
   "This check supplies isolated recommendation fixtures",
 );
 const browserName = process.env.GALLERY_BROWSER || "chromium";
+assert.ok(["chromium", "webkit"].includes(browserName), "Unsupported GALLERY_BROWSER");
 const browser = await (browserName === "webkit" ? webkit : chromium).launch({
   headless: process.env.GALLERY_HEADED !== "1",
   ...(browserName === "chromium" && process.env.GALLERY_CHROMIUM_EXECUTABLE
@@ -236,6 +237,8 @@ try {
     assert.ok(
       requests.every(
         (request) =>
+          request.variation !== null &&
+          Number.isInteger(Number(request.variation)) &&
           Number(request.variation) >= 0 && Number(request.variation) < 16,
       ),
     );

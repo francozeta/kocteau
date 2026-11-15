@@ -9,7 +9,6 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
-  type WheelEvent,
 } from "react";
 import {
   createGalleryRenderer,
@@ -201,18 +200,28 @@ export default function DiscoveryOrbit({
     }
   };
 
-  const onGalleryWheel = (event: WheelEvent<HTMLDivElement>) => {
-    const delta =
-      Math.abs(event.deltaX) > Math.abs(event.deltaY)
-        ? event.deltaX
-        : event.deltaY;
-    if (count < 2 || Math.abs(delta) < 12) return;
-    event.preventDefault();
-    const now = Date.now();
-    if (now - lastWheelRef.current < 280) return;
-    lastWheelRef.current = now;
-    step(delta > 0 ? 1 : -1);
-  };
+  useEffect(() => {
+    const host = galleryRef.current;
+    if (!host) return;
+    const onWheel = (event: WheelEvent) => {
+      const rawDelta =
+        Math.abs(event.deltaX) > Math.abs(event.deltaY)
+          ? event.deltaX
+          : event.deltaY;
+      const unit = event.deltaMode === 1 ? 16
+        : event.deltaMode === 2 ? host.clientHeight : 1;
+      const delta = rawDelta * unit;
+      if (count < 2 || Math.abs(delta) < 12) return;
+      event.preventDefault();
+      const now = Date.now();
+      if (now - lastWheelRef.current < 280) return;
+      lastWheelRef.current = now;
+      const next = (activeIndex + (delta > 0 ? 1 : -1) + count) % count;
+      setFocused({ context, itemId: galleryItems[next].id });
+    };
+    host.addEventListener("wheel", onWheel, { passive: false });
+    return () => host.removeEventListener("wheel", onWheel);
+  }, [activeIndex, context, count, galleryItems]);
 
   const visible = useMemo(
     () =>
@@ -338,7 +347,6 @@ export default function DiscoveryOrbit({
       data-gallery-composition={dragging ? "wheel" : composition}
       className="relative h-full min-h-0 touch-pan-y select-none overflow-hidden bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70"
       onKeyDown={onGalleryKeyDown}
-      onWheel={onGalleryWheel}
       onDragStart={(event) => event.preventDefault()}
       onPointerDown={(event) => {
         if (!event.isPrimary || pointerRef.current) return;

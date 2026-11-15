@@ -165,11 +165,12 @@ their existing page actions; this does not introduce new review types.
 Each focused track owns a catalog candidate pool resolved from its provider
 identity, related artists and other releases. Starter picks are entry points only;
 they are not inherited as recommendations or used to disguise a provider failure.
-A bounded variant changes entry points between explorations while each frame
-remains stable for Back/Forward and reload. A small evaluator balances browser-local
+A bounded variant changes candidate neighborhoods between explorations while each
+saved composition remains stable for Back/Forward and reload. A small evaluator balances browser-local
 artist familiarity, unseen tracks and lateral discovery. Metadata context does not
 claim audio similarity. Opening and revisiting music are signals; ignoring a cover
-is not a dislike.
+is not a dislike. The evaluator is replaceable independently of Search and the
+canvas renderer.
 
 Browser-local memory is scoped by account (or guest), bounded, expiring, and
 resettable. Detailed paths belong to the current session, not permanent event
