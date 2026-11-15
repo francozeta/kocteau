@@ -12,6 +12,15 @@ The page introduces music reviews and links into public browsing. Keep the
 deferred visual imports and reduced-motion behavior. Editorial direction lives
 in [DESIGN.md](../../../../DESIGN.md).
 
+## Hero motion
+
+The public hero keeps its existing typography, copy and geometry. A scoped CSS
+module reveals title words, then description and CTA as brief opacity/blur/
+vertical-rise entrances. No client component or third-party animation runtime
+is needed; all text is server-rendered and the animation is disabled by
+`prefers-reduced-motion`. This intentionally avoids animating the async product
+preview or the entire page.
+
 ## Check
 
 Run lint and the web build. Check `/home` for both auth states, signed-out root redirect, signed-in `/` Feed, mobile
