@@ -1,5 +1,6 @@
-/* Interfere's documented blur / opacity / 20% rise, adapted to Kocteau's hero.
-   Deliberately scoped to the existing hero: no layout or type redesign. */
+/* One entrance sequence on /home; no scroll listener or runtime required.
+   Interfere documents opacity, blur(10px) and translateY(20%) for its hero
+   and similar staged movement for its product graphic. Exact offsets are ours. */
 @keyframes hero-reveal {
   from {
     opacity: 0;
@@ -13,31 +14,77 @@
   }
 }
 
+@keyframes navigation-reveal {
+  from { opacity: 0; filter: blur(8px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes product-shell-reveal {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translate3d(0, 12%, 0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.navigation {
+  animation: navigation-reveal 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .word,
 .description,
 .actions {
-  animation-name: hero-reveal;
-  animation-duration: 960ms;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  animation-fill-mode: both;
+  animation: hero-reveal 960ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.word {
-  display: inline-block;
+.word { display: inline-block; }
+.description { animation-delay: 630ms; }
+.actions { animation-delay: 790ms; }
+
+/*
+ * Animate the *original* Kocteau product preview without changing its DOM.
+ * The mini UI and the heading enter on initial page render, never on scroll.
+ * The frame arrives first; its existing shell elements follow in order.
+ */
+.preview :global(.kocteau-product-preview) {
+  animation: product-shell-reveal 1300ms cubic-bezier(0.16, 1, 0.3, 1) 460ms both;
 }
 
-.description {
-  animation-delay: 630ms;
+.preview :global(.kocteau-product-preview) > div > div > aside,
+.preview :global(.kocteau-app-frame) > header,
+.preview :global(.kocteau-app-frame) > div > main > div:first-child,
+.preview :global(.kocteau-app-frame) > div > main > div:nth-child(2),
+.preview :global(.kocteau-app-frame) > div > aside {
+  animation: hero-reveal 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.actions {
-  animation-delay: 790ms;
+/* The real sidebar, not additional demo content. */
+.preview :global(.kocteau-product-preview) > div > div > aside {
+  animation-delay: 730ms;
 }
+
+/* Feed header, tabs, existing review and existing editorial rail. */
+.preview :global(.kocteau-app-frame) > header { animation-delay: 860ms; }
+.preview :global(.kocteau-app-frame) > div > main > div:first-child { animation-delay: 1040ms; }
+.preview :global(.kocteau-app-frame) > div > main > div:nth-child(2) { animation-delay: 1220ms; }
+.preview :global(.kocteau-app-frame) > div > aside { animation-delay: 1390ms; }
 
 @media (prefers-reduced-motion: reduce) {
+  .navigation,
   .word,
   .description,
-  .actions {
+  .actions,
+  .preview :global(.kocteau-product-preview),
+  .preview :global(.kocteau-product-preview) > div > div > aside,
+  .preview :global(.kocteau-app-frame) > header,
+  .preview :global(.kocteau-app-frame) > div > main > div:first-child,
+  .preview :global(.kocteau-app-frame) > div > main > div:nth-child(2),
+  .preview :global(.kocteau-app-frame) > div > aside {
     animation: none;
   }
 }
