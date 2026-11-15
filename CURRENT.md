@@ -10,8 +10,10 @@ Public SEO foundation work is proposed in [PR #306](https://github.com/francozet
 (`fix/public-discovery-stage-one`, draft). The landing footer no longer
 promotes public Help or curator applications, but retains legal, changelog,
 docs and accessibility links; the private curator administration remains
-unchanged. A crawlable `/track` introduction and links to `/reviews` provide
-context even when the recent-track list is empty. The approved `/home`
+unchanged. The `/track` page also switches to dynamic SSR: production HTML showed
+`No tracks yet` while its public API returned real tracks, consistent with
+a build-time frozen empty index. The underlying loader remains cached for
+60 seconds. A visible H1 and `/reviews` link keep the empty state useful. The approved `/home`
 animation and mini UI are untouched. GitHub/Vercel preview verification and
 real-world indexing evidence are separate pending gates; [#305](https://github.com/francozeta/kocteau/issues/305)
 owns the later FAQ/discovery phase. No merge to `main` yet.
