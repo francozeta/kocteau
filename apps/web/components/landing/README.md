@@ -23,7 +23,7 @@ The mock-feed preview is an actual composition of Kocteau UI components,
 not a screenshot. A viewport-triggered sequence now establishes the shell,
 brings in navigation and Feed tabs, and reveals the review's author, cover,
 writing and actions in separate beats. A compact mock Listening activity list
-in the right rail uses Interfere's documented timeline grammar: each connector
+in the desktop right rail (or above the review in the clipped mobile mini UI) uses Interfere's documented timeline grammar: each connector
 draws down, its marker appears, then the event copy fades in; the next item's
 line begins after the previous line completes. The event descriptions are
 illustrative, not live events. Exact timing is our interpretation, not copied
