@@ -6,10 +6,12 @@ type GuestPreviewSequenceProps = {
   children: ReactNode;
 };
 
+const ease = "cubic-bezier(0.16, 1, 0.3, 1)";
+
 /**
- * The mock product animates only when its contents are visible.
- * Unlike a mount-time CSS animation, this cannot finish below the fold.
- * The product is rendered normally on the server and when JS is disabled.
+ * Animate the *product story*, not the whole product as a single block.
+ * Interfere's documented timeline grammar is line → marker → content.
+ * Keeping the markup visible by default preserves SSR, no-JS and reduced motion.
  */
 export default function GuestPreviewSequence({
   children,
@@ -27,53 +29,145 @@ export default function GuestPreviewSequence({
       return;
     }
 
-    const sequence: Animation[] = [];
+    const running: Animation[] = [];
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const play = (
+      target: Element | null | undefined,
+      frames: Keyframe[],
+      duration: number,
+      delay: number,
+    ) => {
+      if (!(target instanceof HTMLElement)) return;
+      running.push(
+        target.animate(frames, {
+          duration,
+          delay,
+          easing: ease,
+          fill: "both",
+        }),
+      );
+    };
+
+    const appear = (
+      target: Element | null | undefined,
+      delay: number,
+      options: { duration?: number; blur?: number; offset?: number } = {},
+    ) => {
+      const { duration = 650, blur = 6, offset = 10 } = options;
+      play(
+        target,
+        [
+          {
+            opacity: 0,
+            filter: `blur(${blur}px)`,
+            transform: `translateY(${offset}px)`,
+          },
+          { opacity: 1, filter: "blur(0px)", transform: "translateY(0px)" },
+        ],
+        duration,
+        delay,
+      );
+    };
+
+    const revealProduct = () => {
+      // Establish the app shell, then let its content arrive.
+      const phases = [
+        ["sidebar", 0],
+        ["header", 130],
+        ["tabs", 330],
+        ["review", 500],
+        ["editorial", 700],
+      ] as const;
+      for (const [phase, delay] of phases) {
+        appear(
+          preview.querySelector(`[data-guest-preview-step="${phase}"]`),
+          delay,
+          { duration: 780, blur: phase === "review" ? 4 : 2, offset: 9 },
+        );
+      }
+
+      // Small independent pieces: the real Kocteau mock UI, not an image.
+      preview
+        .querySelectorAll("[data-guest-preview-nav-item]")
+        .forEach((item, index) =>
+          appear(item, 140 + index * 65, { duration: 620, blur: 3, offset: 7 }),
+        );
+
+      const cardContent = preview.querySelector(
+        '[data-guest-preview-step="review"] .kocteau-review-card > div',
+      );
+      Array.from(cardContent?.children ?? []).forEach((piece, index) => {
+        // Author → cover/title → writing → actions.
+        const delays = [620, 850, 1140, 1490];
+        appear(piece, delays[index] ?? 1490 + index * 140, {
+          duration: 750,
+          blur: index === 1 ? 7 : 5,
+          offset: 12,
+        });
+      });
+
+      // Like Interfere: draw the line, pop the marker, reveal the event copy.
+      const events = preview.querySelectorAll(
+        "[data-guest-preview-timeline-event]",
+      );
+      events.forEach((event, index) => {
+        const start = 1130 + index * 620;
+        const line = event.querySelector("[data-guest-preview-line]");
+        const marker = event.querySelector("[data-guest-preview-marker]");
+        const copy = event.querySelector("[data-guest-preview-timeline-content]");
+
+        if (line) {
+          play(
+            line,
+            [
+              { transform: "scaleY(0)", opacity: 0.15 },
+              { transform: "scaleY(1)", opacity: 1 },
+            ],
+            300,
+            start,
+          );
+        }
+        play(
+          marker,
+          [
+            { transform: "scale(0.25)", opacity: 0 },
+            { transform: "scale(1)", opacity: 1 },
+          ],
+          260,
+          start + (line ? 310 : 0),
+        );
+        appear(copy, start + (line ? 405 : 130), {
+          duration: 520,
+          blur: 5,
+          offset: 8,
+        });
+      });
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting) return;
         observer.disconnect();
-
-        const targets = preview.querySelectorAll<HTMLElement>(
-          "[data-guest-preview-step]",
-        );
-        // Different beats for shell navigation, primary content and context.
-        const delays = [0, 130, 320, 470, 650];
-
-        targets.forEach((target, index) => {
-          sequence.push(
-            target.animate(
-              [
-                {
-                  opacity: 0,
-                  filter: "blur(10px)",
-                  transform: "translateY(20%)",
-                },
-                {
-                  opacity: 1,
-                  filter: "blur(0px)",
-                  transform: "translateY(0%)",
-                },
-              ],
-              {
-                duration: 1050,
-                delay: delays[index] ?? index * 125,
-                easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-                fill: "both",
-              },
-            ),
-          );
-        });
+        if (!reducedMotion.matches) revealProduct();
       },
-      {
-        threshold: 0.38,
-        rootMargin: "0px 0px -25% 0px",
-      },
+      { threshold: 0.38, rootMargin: "0px 0px -25% 0px" },
     );
 
+    const onMotionPreferenceChange = () => {
+      if (reducedMotion.matches) {
+        observer.disconnect();
+        running.forEach((animation) => animation.cancel());
+        running.length = 0;
+      }
+    };
+
+    reducedMotion.addEventListener("change", onMotionPreferenceChange);
     observer.observe(preview);
     return () => {
       observer.disconnect();
-      sequence.forEach((animation) => animation.cancel());
+      reducedMotion.removeEventListener("change", onMotionPreferenceChange);
+      running.forEach((animation) => animation.cancel());
     };
   }, []);
 
