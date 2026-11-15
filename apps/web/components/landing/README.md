@@ -14,34 +14,28 @@ in [DESIGN.md](../../../../DESIGN.md).
 
 ## Landing motion
 
-The public hero and existing Kocteau mini UI form **one initial page-entry
-sequence**. The navigation fades in, the headline reveals word by word, and
-description/CTAs follow as blocks. The original mock Feed preview is unchanged:
-same navigation, tabs, review, editorial rail, copy and markup as on main.
-A scoped CSS module stages the existing sidebar, Feed header, tabs, review and
-editorial rail without adding activity timelines or other content.
+Hero and mini UI animate at page entry, independent of scrolling. Navigation
+fades in first, the hero headline reveals by word with blur + upward motion,
+then description and CTAs follow.
 
-This follows Interfere's documented hero entrance properties
-(`blur(10px) → 0`, `opacity: 0 → 1`, `translateY(20%) → 0`).
-Exact durations are adapted to Kocteau because their source timing values
-are not published. **No IntersectionObserver, scroll trigger or animation
-library** is required. SSR remains readable without JavaScript and reduced
-motion disables the sequence. CSS may replay on a fresh page mount, unlike
-Interfere's first-visit-only behavior; that can be refined later if desired.
+**The original mini UI does not translate, scale or animate its children
+separately.** A single animation on its height-reserved wrapper brings the
+complete product mock from `opacity: 0; filter: blur(10px)` to clear and
+fully opaque. Its sidebar, tabs, Feed card, editorial rail, and frame all
+appear as one stationary surface (as seen in the supplied Interfere video).
+The preview markup/content is preserved.
 
-### Stable mini UI during reload and streaming
+The mock-feed component stays mounted while Starter picks stream inside
+the existing rail; 28/32/36rem of height is reserved at mobile/tablet/desktop
+breakpoints. This avoids a second animation or layout jump when data resolves.
+A small early reload-only scroll guard prevents Mobile Safari from restoring
+the viewport below the hero during the one-time entrance; back/forward
+navigation and URL fragments retain normal scroll handling.
 
-The whole Feed preview always stays mounted. Public starter picks now stream
-inside the right rail only, instead of swapping a full mock-feed Suspense
-fallback for the real preview and restarting its entrance animation. The
-wrapper reserves the preview's exact responsive 28/32/36rem height, so
-streaming does not change its document-space footprint.
-
-Mobile Safari may restore the previous scroll position on a full reload,
-which would hide the hero while the entrance plays; a tiny early script
-resets scroll to the top only for reloads without a fragment, leaving back /
-forward and in-page navigation restoration alone. This keeps the page-entry
-sequence visible at the intended position.
+The design draws from Interfere's documented blur and stagger techniques,
+not undisclosed source code or proprietary timing. No scroll observer or
+animation library. Respect `prefers-reduced-motion`; SSR and no-JS are
+fully readable.
 
 ## Check
 
