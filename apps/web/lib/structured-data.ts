@@ -264,7 +264,7 @@ export function buildReviewsPageJsonLd(entries: FeedStructuredDataEntry[]) {
       "@id": `${absoluteUrl("/")}#website`,
     },
     breadcrumb: buildBreadcrumbList([
-      { name: "Kocteau", path: "/" },
+      { name: "Kocteau", path: "/home" },
       { name: "Reviews", path: "/reviews" },
     ]),
     mainEntity: {
@@ -337,7 +337,7 @@ export function buildTrackPageJsonLd({
           "@id": `${url}#recording`,
         },
         breadcrumb: buildBreadcrumbList([
-          { name: "Kocteau", path: "/" },
+          { name: "Kocteau", path: "/home" },
           { name: entity.title, path: entityPath },
         ]),
       },
