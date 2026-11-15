@@ -6,6 +6,16 @@ reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS
 
 ## Active Work
 
+Public SEO foundation work is proposed in [PR #306](https://github.com/francozeta/kocteau/pull/306)
+(`fix/public-discovery-stage-one`, draft). The landing footer no longer
+promotes public Help or curator applications, but retains legal, changelog,
+docs and accessibility links; the private curator administration remains
+unchanged. A crawlable `/track` introduction and links to `/reviews` provide
+context even when the recent-track list is empty. The approved `/home`
+animation and mini UI are untouched. GitHub/Vercel preview verification and
+real-world indexing evidence are separate pending gates; [#305](https://github.com/francozeta/kocteau/issues/305)
+owns the later FAQ/discovery phase. No merge to `main` yet.
+
 The approved Search delivery is tracked in [PR #303](https://github.com/francozeta/kocteau/pull/303), from `feat/search-constellation` into `main`. The `e6da873` preview received visual approval for integration. The [Discovery guide](./apps/web/components/discovery/README.md) owns canvas motion, per-seed candidate pools, header ownership and ASCII cover-loading behavior.
 
 Local checks cover unit tests, lint, the isolated-data build and Chromium/WebKit desktop/mobile regressions; preview checks cover live catalog expansion, motion continuity, header history and delayed/cached/failed covers. Integration hardening addresses review edge cases and updates the native verifier's existing ISR assertion to the canonical `/home` route. The PR owns CI and integration status; Vercel deployment state is verified separately. WebKit uses a virtual display, and physical iPhone Safari/Brave validation remains follow-up work.
