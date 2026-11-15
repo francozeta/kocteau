@@ -12,31 +12,18 @@ The page introduces music reviews and links into public browsing. Keep the
 deferred visual imports and reduced-motion behavior. Editorial direction lives
 in [DESIGN.md](../../../../DESIGN.md).
 
-## Landing motion
+## Landing Motion
 
-The landing is one choreographed page-entry sequence (no scroll trigger).
-First the navigation resolves; the existing six-word H1 enters with blur,
-opacity and vertical lift; the description and CTA follow with staggered
-delays. The H1's copy, type, word split and per-word starting offsets remain
-unchanged.
+The public `/home` entrance uses a scoped editorial choreography:
+navigation, word-staggered H1, description and CTA, then one blur-to-focus
+reveal of the stable mini UI interior. The frame retains its final layout;
+there is no viewport trigger, per-widget stagger or added demo content.
+Reduced-motion visitors see unanimated content.
 
-The original Kocteau mock Feed stays at its final position. Its exterior
-frame, dimensions and clipping are visible immediately; only the EXISTING
-inner grid (sidebar and app as one flat composited layer) resolves from
-`opacity: 0; blur(9px)` to clear. It never translates, scales or animates
-individual Feed components. This separates the hero's visual priority from
-the product while allowing the two phases to overlap naturally.
-
-Approximate delays: header 0ms, words 100–550ms, description 600ms, CTA
-740ms, grid 880ms. The intro settles around 1.8s. Exact timing is Kocteau's
-interpretation of Interfere's public design explanation and the supplied
-reference video; do not claim access to Interfere's private implementation.
-
-The Feed frame stays mounted while Starter picks stream inside the rail;
-28/32/36rem of responsive height is reserved by the wrapper. A small
-early Safari reload-only scroll guard restores the top of the hero on full
-reload without changing back/forward or fragment navigation. Respect
-`prefers-reduced-motion`; SSR/no-JS remains readable.
+See the canonical [Landing Entrance Motion guide](../../../../docs/landing-motion.md)
+for exact timing, the streamed Starter picks boundary, stable frame sizing,
+Safari reload protection, discarded alternatives, and regression checklist.
+The overarching motion contract remains [DESIGN.md](../../../../DESIGN.md).
 
 ## Check
 
