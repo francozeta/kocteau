@@ -49,6 +49,10 @@ describe("review collection structured data", () => {
       reviews.mainEntity.itemListElement[0]?.item.name,
       "Listening closely",
     );
+    assert.deepEqual(
+      reviews.breadcrumb.itemListElement.map((crumb) => new URL(crumb.item).pathname),
+      ["/home", "/reviews"],
+    );
   });
 });
 
