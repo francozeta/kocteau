@@ -66,7 +66,7 @@ export default function GuestPreviewSequence({
       },
       {
         threshold: 0.38,
-        rootMargin: "0px 0px -8% 0px",
+        rootMargin: "0px 0px -25% 0px",
       },
     );
 
