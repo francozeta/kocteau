@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { FeedReviewStackSkeleton } from "@/components/feed/feed-loading-skeletons";
 import { FeedReviewCard } from "@/components/reviews/review-route-cards-server";
 import JsonLd from "@/components/shared/json-ld";
@@ -109,7 +110,14 @@ export default function ReviewsPage() {
           Music reviews
         </h1>
         <p className="max-w-xl text-sm leading-6 text-muted-foreground text-pretty">
-          Recent ratings and listening notes from Kocteau.
+          Recent ratings and listening notes from Kocteau.{" "}
+          <Link
+            href="/search"
+            className="text-foreground underline decoration-foreground/30 underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+          >
+            Explore tracks and artists
+          </Link>
+          .
         </p>
       </header>
 
