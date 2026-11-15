@@ -12,6 +12,18 @@ The page introduces music reviews and links into public browsing. Keep the
 deferred visual imports and reduced-motion behavior. Editorial direction lives
 in [DESIGN.md](../../../../DESIGN.md).
 
+## Public Discovery Links
+
+The landing footer prioritizes real public discovery: `/reviews`, `/search`
+and `/track`. Keep its links crawlable as ordinary anchors. `Help` and
+`Apply to curate` are not promoted while those experiences are outside
+the primary listener journey. This does **not** delete routes, suspend
+applications, remove legal policies, or change restricted `/studio/curators`.
+
+Keep the public Changelog, Documentation, Accessibility, Terms, Privacy
+and Cookies routes reachable. The curator recruitment page remains available
+by direct URL until a separate campaign decision is made.
+
 ## Landing Motion
 
 The public `/home` entrance uses a scoped editorial choreography:
