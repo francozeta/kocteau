@@ -1,6 +1,6 @@
-/* /home enters as one deliberate sequence; never scroll-triggered.
-   The original Kocteau mini UI remains completely stationary, exactly as
-   seen in Interfere's mobile hero: one layer resolving from blur to clarity. */
+/* Coherent /home entrance. No scroll listener or runtime dependency.
+   Keep the hero's existing word order and blur/rise; give the product its own
+   quieter beat. The original mini UI occupies its final layout at all times. */
 @keyframes hero-reveal {
   from {
     opacity: 0;
@@ -19,39 +19,39 @@
   to { opacity: 1; filter: blur(0); }
 }
 
-/* No translate or scale: the frame stays at its final layout position. */
-@keyframes preview-focus-reveal {
-  from {
-    opacity: 0;
-    filter: blur(10px);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-  }
+@keyframes preview-content-reveal {
+  from { opacity: 0; filter: blur(9px); }
+  to { opacity: 1; filter: blur(0); }
 }
 
+/* 0ms: establish the navigation before the headline and CTA. */
 .navigation {
-  animation: navigation-reveal 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: navigation-reveal 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.word,
+/* 100ms+: keep the exact existing six-word headline choreography.
+   Later pieces overlap slightly, but none start simultaneously. */
+.word {
+  display: inline-block;
+  animation: hero-reveal 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .description,
 .actions {
-  animation: hero-reveal 960ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hero-reveal 660ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.word { display: inline-block; }
-.description { animation-delay: 630ms; }
-.actions { animation-delay: 790ms; }
+.description { animation-delay: 600ms; }
+.actions { animation-delay: 740ms; }
 
 /*
- * The wrapper owns the animation, not the streamed child or individual nodes.
- * This prevents the mini UI from replaying when Starter picks resolves and
- * keeps sidebar, tabs, review and editorial rail in the same optical plane.
+ * 880ms: the FRAME is already at its final position and visible.
+ * Animate only its existing grid (sidebar + app in one visual plane), not the
+ * reserved-height wrapper and not individual Feed widgets. No translation,
+ * scale or independent staggering. Streaming Starter picks cannot restart it.
  */
-.preview {
-  animation: preview-focus-reveal 1020ms cubic-bezier(0.16, 1, 0.3, 1) 650ms both;
+.preview :global(.kocteau-product-preview) > div > div:first-child {
+  animation: preview-content-reveal 900ms cubic-bezier(0.16, 1, 0.3, 1) 880ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -59,7 +59,7 @@
   .word,
   .description,
   .actions,
-  .preview {
+  .preview :global(.kocteau-product-preview) > div > div:first-child {
     animation: none;
   }
 }
