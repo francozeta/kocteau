@@ -165,11 +165,6 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: new URL("/track", metadataBase).toString(),
-      changeFrequency: "daily",
-      priority: 0.7,
-    },
-    {
       url: new URL("/curators", metadataBase).toString(),
       changeFrequency: "monthly",
       priority: 0.5,
