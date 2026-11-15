@@ -1,0 +1,107 @@
+.cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0.55rem;
+  background: var(--kocteau-surface-control);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 36%),
+    0 20px 56px rgb(0 0 0 / 30%);
+  outline: 1px solid rgb(255 255 255 / 8%);
+  outline-offset: -1px;
+  container-type: inline-size;
+}
+
+.skeleton {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  animation: appear 160ms ease-out 100ms forwards;
+  transition: opacity 160ms ease-out;
+}
+
+.pattern {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  color: color-mix(in oklch, var(--foreground) 25%, transparent);
+  font-family: monospace;
+  font-size: 4.8cqw;
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: 0;
+  white-space: pre;
+  user-select: none;
+  opacity: 0.72;
+  animation: grain 1.8s ease-in-out var(--ascii-phase, 0s) 4 both;
+}
+
+.pattern + .pattern {
+  opacity: 0;
+  animation-name: alternate-grain;
+}
+
+.image {
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+
+.cover[data-cover-state="loaded"] .image {
+  opacity: 1;
+}
+.cover[data-cover-state="loaded"] .skeleton {
+  animation: none;
+  opacity: 0;
+}
+.cover:not([data-cover-state="loading"]) .pattern {
+  animation: none;
+}
+.cover[data-cover-state="error"] .skeleton {
+  animation: none;
+  opacity: 1;
+}
+.cover[data-cover-state="error"] .pattern + .pattern {
+  opacity: 0;
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes grain {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 0.28;
+  }
+}
+@keyframes alternate-grain {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .pattern {
+    animation: none;
+  }
+  .skeleton {
+    opacity: 1;
+  }
+  .skeleton,
+  .image {
+    transition: none;
+  }
+}

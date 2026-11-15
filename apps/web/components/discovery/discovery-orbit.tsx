@@ -20,7 +20,7 @@ import {
   getWheelPose,
   shortestDistance,
 } from "@/lib/discovery/gallery-motion";
-import EntityCoverImage from "@/components/music/entity-cover-image";
+import DiscoveryCoverImage from "@/components/discovery/discovery-cover-image";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { SearchEntityType } from "@/lib/search-types";
 
@@ -422,12 +422,9 @@ export default function DiscoveryOrbit({
             style={style}
             className="absolute block min-w-0 cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/80"
           >
-            <EntityCoverImage
+            <DiscoveryCoverImage
               src={item.coverUrl}
-              alt=""
               sizes={isMobile ? "51vw" : "(max-width: 1024px) 24vw, 338px"}
-              variant="card"
-              className="aspect-square w-full rounded-[0.55rem] bg-foreground/[0.04] shadow-[0_1px_2px_rgba(0,0,0,0.36),0_20px_56px_rgba(0,0,0,0.3)] ring-1 ring-inset ring-white/[0.08]"
             />
             <span className="mt-3 block max-w-full truncate font-pixel text-[12px] font-medium leading-tight text-foreground/90 sm:text-[13px]">
               {item.title}

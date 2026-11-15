@@ -10,6 +10,8 @@ The Search follow-up on `feat/search-constellation` now paints new connections a
 
 The overlapping Search header was reproduced at two simultaneous owners on desktop/mobile. Search seed routes now share one transition key, and exiting routes release their shell portals. Chromium/WebKit regression checks observe at most one header/input/action/canvas owner through rapid Back/Forward; they also cover isolated seed pools, snapshots and failure/retry without starters. 239 unit tests, lint and the isolated-data build pass. WebKit uses a software-composited virtual display, not a physical iPhone. The `ff02426` preview also passed live catalog probes for two tracks and a second variant, motion/visual checks, actual candidate expansion and rapid-history header checks. Recommendation quality review and physical iPhone Safari/Brave validation remain the next gate against the earlier `55ecb3f` preview. No production release is implied.
 
+Canvas covers now use subtle ASCII discs while images load, with finite CSS grain animation and stable geometry. Delayed, cached and failed loads, animation cleanup and reduced motion pass local Chromium/WebKit checks at desktop and mobile widths. Canvas motion still stops at rest. This follow-up is limited to Search cover loading; visual feedback on the next preview remains pending.
+
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary
 editor code on reading routes. The [editor plan](./.plan/review-editor-loading.md)
