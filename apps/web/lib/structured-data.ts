@@ -427,9 +427,12 @@ export function buildReviewPageJsonLd(review: ReviewPageReview) {
           "@id": `${url}#review`,
         },
         breadcrumb: buildBreadcrumbList([
-          { name: "Kocteau", path: "/" },
+          { name: "Kocteau", path: "/home" },
           { name: "Reviews", path: "/reviews" },
-          { name: entity.title, path: buildEntityCanonicalPath(entity) },
+          {
+            name: review.title?.trim() || `${entity.title} review`,
+            path: buildReviewCanonicalPath(review),
+          },
         ]),
       },
       buildReviewNode({
