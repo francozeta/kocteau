@@ -1,4 +1,4 @@
-import type { ElementType } from "react";
+import type { ElementType, ReactNode } from "react";
 
 import BrandLogo from "@/components/brand/brand-logo";
 import EntityCoverImage from "@/components/music/entity-cover-image";
@@ -29,6 +29,7 @@ import type { StarterTrack } from "@/lib/starter";
 
 type GuestProductPreviewProps = {
   starterTracks: StarterTrack[];
+  starterPicks?: ReactNode;
 };
 
 const mockReview = {
@@ -240,10 +241,42 @@ function PreviewReview() {
   );
 }
 
+export function GuestPreviewStarterPicks({ starterTracks }: { starterTracks: StarterTrack[] }) {
+  const visibleStarterTracks = starterTracks.slice(0, 3);
+  if (visibleStarterTracks.length === 0) return null;
+
+  return (
+      <section className="mt-auto space-y-2.5 pt-5">
+        <p className="px-1 text-[10px] font-medium leading-none text-muted-foreground/70">
+          Starter picks
+        </p>
+        <div className="flex gap-2 overflow-hidden px-1">
+          {visibleStarterTracks.map((track) => (
+            <div key={track.id} className="w-[4.5rem] shrink-0">
+              <EntityCoverImage
+                src={track.cover_url}
+                alt={`${track.title} by ${track.artist_name}`}
+                sizes="72px"
+                variant="thumbnail"
+                className="aspect-square w-full rounded-[0.58rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.06)]"
+              />
+              <p className="mt-1.5 truncate text-[9px] font-medium text-foreground/86">
+                {track.title}
+              </p>
+              <p className="mt-0.5 truncate text-[8px] text-muted-foreground/58">
+                {track.artist_name}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+  );
+}
+
 function PreviewEditorialRail({
   starterTracks,
+  starterPicks,
 }: GuestProductPreviewProps) {
-  const visibleStarterTracks = starterTracks.slice(0, 3);
 
   return (
     <aside className="flex min-h-0 flex-col px-3 pb-4 pt-3">
@@ -282,32 +315,7 @@ function PreviewEditorialRail({
         </div>
       </section>
 
-      {visibleStarterTracks.length > 0 ? (
-        <section className="mt-auto space-y-2.5 pt-5">
-          <p className="px-1 text-[10px] font-medium leading-none text-muted-foreground/70">
-            Starter picks
-          </p>
-          <div className="flex gap-2 overflow-hidden px-1">
-            {visibleStarterTracks.map((track) => (
-              <div key={track.id} className="w-[4.5rem] shrink-0">
-                <EntityCoverImage
-                  src={track.cover_url}
-                  alt={`${track.title} by ${track.artist_name}`}
-                  sizes="72px"
-                  variant="thumbnail"
-                  className="aspect-square w-full rounded-[0.58rem] bg-muted shadow-[0_0_0_1px_rgba(255,255,255,0.06)]"
-                />
-                <p className="mt-1.5 truncate text-[9px] font-medium text-foreground/86">
-                  {track.title}
-                </p>
-                <p className="mt-0.5 truncate text-[8px] text-muted-foreground/58">
-                  {track.artist_name}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      {starterPicks ?? <GuestPreviewStarterPicks starterTracks={starterTracks} />}
 
       <footer className="mt-5 px-1 text-[8.5px] leading-4 text-muted-foreground/48">
         <p>Terms&nbsp;&nbsp; Privacy&nbsp;&nbsp; Cookies</p>
@@ -320,6 +328,7 @@ function PreviewEditorialRail({
 
 export default function GuestProductPreview({
   starterTracks,
+  starterPicks,
 }: GuestProductPreviewProps) {
   return (
     <section
@@ -345,7 +354,7 @@ export default function GuestProductPreview({
                 </div>
               </main>
 
-              <PreviewEditorialRail starterTracks={starterTracks} />
+              <PreviewEditorialRail starterTracks={starterTracks} starterPicks={starterPicks} />
             </div>
           </div>
         </div>
