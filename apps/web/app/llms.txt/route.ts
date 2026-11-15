@@ -13,7 +13,6 @@ export function GET() {
     `- ${siteUrl}/ — product introduction and public browsing links`,
     `- ${siteUrl}/reviews — recent public review index`,
     `- ${siteUrl}/reviews/{reviewId}/{entitySlug} — canonical page for a single public music review`,
-    `- ${siteUrl}/track — recently discussed tracks`,
     `- ${siteUrl}/tracks/{slug}/{entityId} — canonical public track page with reviews and aggregate rating context`,
     `- ${siteUrl}/albums/{slug}/{entityId} — canonical public album page with release and track context`,
     `- ${siteUrl}/artists/{slug}/{artistId} — canonical public artist page with essential tracks and releases`,
