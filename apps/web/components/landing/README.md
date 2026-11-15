@@ -14,28 +14,29 @@ in [DESIGN.md](../../../../DESIGN.md).
 
 ## Landing motion
 
-Hero and mini UI animate at page entry, independent of scrolling. Navigation
-fades in first, the hero headline reveals by word with blur + upward motion,
-then description and CTAs follow.
+The landing is one choreographed page-entry sequence (no scroll trigger).
+First the navigation resolves; the existing six-word H1 enters with blur,
+opacity and vertical lift; the description and CTA follow with staggered
+delays. The H1's copy, type, word split and per-word starting offsets remain
+unchanged.
 
-**The original mini UI does not translate, scale or animate its children
-separately.** A single animation on its height-reserved wrapper brings the
-complete product mock from `opacity: 0; filter: blur(10px)` to clear and
-fully opaque. Its sidebar, tabs, Feed card, editorial rail, and frame all
-appear as one stationary surface (as seen in the supplied Interfere video).
-The preview markup/content is preserved.
+The original Kocteau mock Feed stays at its final position. Its exterior
+frame, dimensions and clipping are visible immediately; only the EXISTING
+inner grid (sidebar and app as one flat composited layer) resolves from
+`opacity: 0; blur(9px)` to clear. It never translates, scales or animates
+individual Feed components. This separates the hero's visual priority from
+the product while allowing the two phases to overlap naturally.
 
-The mock-feed component stays mounted while Starter picks stream inside
-the existing rail; 28/32/36rem of height is reserved at mobile/tablet/desktop
-breakpoints. This avoids a second animation or layout jump when data resolves.
-A small early reload-only scroll guard prevents Mobile Safari from restoring
-the viewport below the hero during the one-time entrance; back/forward
-navigation and URL fragments retain normal scroll handling.
+Approximate delays: header 0ms, words 100–550ms, description 600ms, CTA
+740ms, grid 880ms. The intro settles around 1.8s. Exact timing is Kocteau's
+interpretation of Interfere's public design explanation and the supplied
+reference video; do not claim access to Interfere's private implementation.
 
-The design draws from Interfere's documented blur and stagger techniques,
-not undisclosed source code or proprietary timing. No scroll observer or
-animation library. Respect `prefers-reduced-motion`; SSR and no-JS are
-fully readable.
+The Feed frame stays mounted while Starter picks stream inside the rail;
+28/32/36rem of responsive height is reserved by the wrapper. A small
+early Safari reload-only scroll guard restores the top of the hero on full
+reload without changing back/forward or fragment navigation. Respect
+`prefers-reduced-motion`; SSR/no-JS remains readable.
 
 ## Check
 
