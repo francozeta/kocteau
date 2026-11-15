@@ -12,14 +12,19 @@ The page introduces music reviews and links into public browsing. Keep the
 deferred visual imports and reduced-motion behavior. Editorial direction lives
 in [DESIGN.md](../../../../DESIGN.md).
 
-## Hero motion
+## Landing motion
 
-The public hero keeps its existing typography, copy and geometry. A scoped CSS
-module reveals title words, then description and CTA as brief opacity/blur/
-vertical-rise entrances. No client component or third-party animation runtime
-is needed; all text is server-rendered and the animation is disabled by
-`prefers-reduced-motion`. This intentionally avoids animating the async product
-preview or the entire page.
+The hero uses Interfere's publicly documented `opacity: 0 → 1`, `blur(10px) → 0`,
+and `translateY(20%) → 0` reveal, with separate timings for title words,
+description and CTA. Timing is tuned for visual testing; Interfere does not
+publish exact duration or stagger values in its write-up.
+
+The mock-feed preview adds the companion staged product reveal: navigation,
+header, tabs, review and editorial rail enter in sequence, triggered only once
+they come into view. Its observer and animation live in a tiny client wrapper
+and do not delay the static server-rendered preview when JavaScript is off.
+Reduced-motion visitors see unanimated content. No layout, public SEO/ISR or
+copy changes; keep this in a draft PR until desktop and iPhone review.
 
 ## Check
 
