@@ -23,6 +23,7 @@ Use [documentation maintenance](./documentation.md) for publishing and indexing.
 | [Local development](./setup/local-development.md) | Fresh setup, returning devices, runtime, and checks |
 | [Architecture](./core-architecture.md) | Code map, request/data boundaries, and reduction rules |
 | [Components](./components.md) | Product directories and flow entry points |
+| [Landing entrance motion](./landing-motion.md) | Editorial choreography, mini UI stability, reduced-motion and Safari regression checks |
 | [Working context](./working-context.md) | Durable decisions and contributor/device handoffs |
 | [Environment](./security/environment.md) | Variables, credentials, and environment separation |
 | [Catalog research](./knowledge-layer.md) | Music identity, source evidence, and Studio proposals |
