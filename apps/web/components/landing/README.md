@@ -14,14 +14,19 @@ in [DESIGN.md](../../../../DESIGN.md).
 
 ## Public Discovery Links
 
-The landing footer prioritizes real public discovery: `/reviews`, `/search`
-and `/track`. Keep its links crawlable as ordinary anchors. `Help` and
-`Apply to curate` are not promoted while those experiences are outside
-the primary listener journey. This does **not** delete routes, suspend
-applications, remove legal policies, or change restricted `/studio/curators`.
+The landing footer prioritizes `/reviews` and `/search` as real public
+discovery routes. Individual `/tracks/[slug]/[id]` pages are linked from
+reviews and other content; there is **no standalone `/track` directory**.
+Only the exact legacy `/track` URL redirects permanently to `/reviews`;
+Deezer resolver paths under `/track/deezer/*` still work. Music pages
+retain their canonical URLs, and the public recent-tracks JSON API remains
+available independently.
 
-Keep the public Changelog, Documentation, Accessibility, Terms, Privacy
-and Cookies routes reachable. The curator recruitment page remains available
+`Help` and `Apply to curate` are not promoted while those experiences
+are outside the primary listener journey. This does **not** delete policies,
+suspend applications, remove legal documents, or change restricted
+`/studio/curators`. Keep Changelog, Documentation, Accessibility, Terms,
+Privacy and Cookies reachable. The curator recruitment route stays available
 by direct URL until a separate campaign decision is made.
 
 ## Landing Motion
