@@ -338,7 +338,6 @@ export function buildTrackPageJsonLd({
         },
         breadcrumb: buildBreadcrumbList([
           { name: "Kocteau", path: "/" },
-          { name: "Tracks", path: "/track" },
           { name: entity.title, path: entityPath },
         ]),
       },
