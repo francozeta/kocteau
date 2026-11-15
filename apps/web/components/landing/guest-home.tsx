@@ -84,7 +84,7 @@ function GuestHomeHero() {
             <Fragment key={`${word}-${index}`}>
               <span
                 className={heroReveal.word}
-                style={{ animationDelay: `${index * 48}ms` }}
+                style={{ animationDelay: `${100 + index * 90}ms` }}
               >
                 {word}
               </span>
