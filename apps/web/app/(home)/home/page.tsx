@@ -6,7 +6,7 @@ import GuestHome, {
   GuestRecentReviews,
   ProductFeatureGrid,
 } from "@/components/landing/guest-home";
-import GuestProductPreview from "@/components/landing/guest-product-preview";
+import GuestProductPreview, { GuestPreviewStarterPicks } from "@/components/landing/guest-product-preview";
 import { FeedReviewStackSkeleton } from "@/components/feed/feed-loading-skeletons";
 import type { StarterTrack } from "@/lib/starter";
 import type { FeedBundleReview } from "@/queries/feed";
@@ -34,12 +34,12 @@ export const metadata = createPageMetadata({
   path: "/home",
 });
 
-async function HomeProductPreview({
+async function HomePreviewStarterPicks({
   tracks,
 }: {
   tracks: Promise<StarterTrack[]>;
 }) {
-  return <GuestProductPreview starterTracks={await tracks} />;
+  return <GuestPreviewStarterPicks starterTracks={await tracks} />;
 }
 
 async function HomeProductFeatures({
@@ -135,9 +135,16 @@ export default function HomePage() {
             </Suspense>
           }
           productPreview={
-            <Suspense fallback={<GuestProductPreview starterTracks={[]} />}>
-              <HomeProductPreview tracks={starterTracks} />
-            </Suspense>
+            <GuestProductPreview
+              starterTracks={[]}
+              starterPicks={
+                <Suspense
+                  fallback={<div aria-hidden="true" className="mt-auto min-h-[8rem]" />}
+                >
+                  <HomePreviewStarterPicks tracks={starterTracks} />
+                </Suspense>
+              }
+            />
           }
           productFeatures={
             <Suspense fallback={<ProductFeatureGrid starterTracks={[]} />}>
