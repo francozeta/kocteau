@@ -6,12 +6,12 @@ const footerGroups = [
     links: [
       { label: "Recent reviews", href: "/reviews" },
       { label: "Explore music", href: "/search" },
+      { label: "Recently discussed tracks", href: "/track" },
     ],
   },
   {
     title: "Product",
     links: [
-      { label: "Help", href: "/help" },
       { label: "Changelog", href: "/help/changelog" },
       { label: "Documentation", href: "/docs" },
       { label: "Accessibility", href: "/help/accessibility" },
@@ -21,7 +21,6 @@ const footerGroups = [
     title: "Community",
     links: [
       { label: "Join Kocteau", href: "/signup" },
-      { label: "Apply to curate", href: "/curators" },
       { label: "GitHub", href: "https://github.com/francozeta/kocteau" },
       { label: "Discord", href: "https://discord.gg/FgrNjkPa8" },
     ],
