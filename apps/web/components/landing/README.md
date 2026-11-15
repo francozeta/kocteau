@@ -19,12 +19,22 @@ and `translateY(20%) → 0` reveal, with separate timings for title words,
 description and CTA. Timing is tuned for visual testing; Interfere does not
 publish exact duration or stagger values in its write-up.
 
-The mock-feed preview adds the companion staged product reveal: navigation,
-header, tabs, review and editorial rail enter in sequence, triggered only once
-they come into view. Its observer and animation live in a tiny client wrapper
-and do not delay the static server-rendered preview when JavaScript is off.
-Reduced-motion visitors see unanimated content. No layout, public SEO/ISR or
-copy changes; keep this in a draft PR until desktop and iPhone review.
+The mock-feed preview is an actual composition of Kocteau UI components,
+not a screenshot. A viewport-triggered sequence now establishes the shell,
+brings in navigation and Feed tabs, and reveals the review's author, cover,
+writing and actions in separate beats. A compact mock Listening activity list
+in the right rail uses Interfere's documented timeline grammar: each connector
+draws down, its marker appears, then the event copy fades in; the next item's
+line begins after the previous line completes. The event descriptions are
+illustrative, not live events. Exact timing is our interpretation, not copied
+from proprietary Interfere source.
+
+The observer/animation director is a small client-only wrapper around
+server-rendered markup. If JS or IntersectionObserver is unavailable, the
+entire preview remains visible and useful. Reduced-motion visitors see
+unanimated content. The landing and Feed routes, public SEO/ISR, hero,
+artwork and main mock UI geometry are unchanged. Check the clipped mobile
+mini-UI, activity-rail height and Safari motion before merging.
 
 ## Check
 
