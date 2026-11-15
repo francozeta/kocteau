@@ -286,7 +286,14 @@ export default async function TrackPage({
                 <EmptyDescription>
                   {bundle.reviewSummary.reviewCount > 0
                     ? "Return to the latest reviews for this track."
-                    : "This track is still waiting for the first review."}
+                    : "This track is still waiting for the first review."}{" "}
+                  <Link
+                    href="/reviews"
+                    className="text-foreground underline decoration-foreground/35 underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+                  >
+                    Discover other music reviews
+                  </Link>
+                  .
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
