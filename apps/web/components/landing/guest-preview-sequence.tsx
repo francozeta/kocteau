@@ -71,12 +71,13 @@ export default function GuestPreviewSequence({
     };
 
     const revealProduct = () => {
+      const compact = window.matchMedia("(max-width: 1023px)").matches;
       // Establish the app shell, then let its content arrive.
       const phases = [
         ["sidebar", 0],
         ["header", 130],
         ["tabs", 330],
-        ["review", 500],
+        ["review", compact ? 1880 : 500],
         ["editorial", 700],
       ] as const;
       for (const [phase, delay] of phases) {
@@ -99,8 +100,10 @@ export default function GuestPreviewSequence({
       );
       Array.from(cardContent?.children ?? []).forEach((piece, index) => {
         // Author → cover/title → writing → actions.
-        const delays = [620, 850, 1140, 1490];
-        appear(piece, delays[index] ?? 1490 + index * 140, {
+        const delays = compact
+          ? [1980, 2200, 2480, 2790]
+          : [620, 850, 1140, 1490];
+        appear(piece, delays[index] ?? delays[3] + index * 140, {
           duration: 750,
           blur: index === 1 ? 7 : 5,
           offset: 12,
@@ -112,7 +115,9 @@ export default function GuestPreviewSequence({
         "[data-guest-preview-timeline-event]",
       );
       events.forEach((event, index) => {
-        const start = 1130 + index * 620;
+        // The visible timeline is above the review on mobile, in the rail on desktop.
+        if (event.getClientRects().length === 0) return;
+        const start = compact ? 540 + index * 470 : 1130 + index * 620;
         const line = event.querySelector("[data-guest-preview-line]");
         const marker = event.querySelector("[data-guest-preview-marker]");
         const copy = event.querySelector("[data-guest-preview-timeline-content]");
