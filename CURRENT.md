@@ -6,6 +6,17 @@ reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS
 
 ## Active Work
 
+Stage 2 of public discovery is in [PR #307](https://github.com/francozeta/kocteau/pull/307)
+(`feat/review-discovery-links`, draft), stacked on stage-1 PR #306. It adds
+crawlable, reader-focused links from individual reviews to their canonical
+song/album, public author profile and the `/reviews` hub; the reviews hub
+links to Search, and empty track discussions offer a path back to reviews.
+Structured-data review breadcrumbs now end at the canonical review, with a
+regression test. The landing composition, query architecture and sitemap
+remain unchanged; broad album/artist noindex decisions require real GSC
+evidence before rollout. CI and Vercel preview are pending; no merge to
+`main`.
+
 Public SEO simplification is proposed in [PR #306](https://github.com/francozeta/kocteau/pull/306)
 (`fix/public-discovery-stage-one`, draft). The landing footer no longer
 promotes Help or curator recruitment; legal, changelog, docs and accessibility
