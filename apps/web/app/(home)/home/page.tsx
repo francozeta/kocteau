@@ -6,7 +6,7 @@ import GuestHome, {
   GuestRecentReviews,
   ProductFeatureGrid,
 } from "@/components/landing/guest-home";
-import GuestProductPreview from "@/components/landing/guest-product-preview";
+import GuestProductPreview, { GuestPreviewStarterPicks } from "@/components/landing/guest-product-preview";
 import { FeedReviewStackSkeleton } from "@/components/feed/feed-loading-skeletons";
 import type { StarterTrack } from "@/lib/starter";
 import type { FeedBundleReview } from "@/queries/feed";
@@ -34,12 +34,12 @@ export const metadata = createPageMetadata({
   path: "/home",
 });
 
-async function HomeProductPreview({
+async function HomePreviewStarterPicks({
   tracks,
 }: {
   tracks: Promise<StarterTrack[]>;
 }) {
-  return <GuestProductPreview starterTracks={await tracks} />;
+  return <GuestPreviewStarterPicks starterTracks={await tracks} />;
 }
 
 async function HomeProductFeatures({
@@ -119,6 +119,31 @@ export default function HomePage() {
       data-kocteau-document-canvas="landing"
       className={`${circular.variable} ${redaction.variable} kocteau-guest-typography kocteau-guest-grain min-h-svh overflow-x-clip bg-[var(--kocteau-landing-canvas)] text-foreground`}
     >
+      {/* Mobile Safari may restore a previous scrolled position on reload,
+          hiding the hero while its initial animation plays offscreen.
+          Reset only genuine reloads; preserve history/back scroll normally. */}
+      <script
+        id="kocteau-home-reload-scroll"
+        dangerouslySetInnerHTML={{
+          __html: `(function () {
+            try {
+              if (document.readyState !== "loading" || location.hash) return;
+              var nav = performance.getEntriesByType("navigation")[0];
+              if (!nav || nav.type !== "reload") return;
+              var previous = history.scrollRestoration;
+              history.scrollRestoration = "manual";
+              window.scrollTo(0, 0);
+              window.addEventListener("pageshow", function () {
+                window.scrollTo(0, 0);
+                requestAnimationFrame(function () {
+                  window.scrollTo(0, 0);
+                  history.scrollRestoration = previous;
+                });
+              }, { once: true });
+            } catch (_) {}
+          })();`,
+        }}
+      />
       <GuestHeader />
       <main className="pt-15 sm:pt-16">
         <JsonLd data={buildHomePageJsonLd()} id="home-page-structured-data" />
@@ -135,9 +160,16 @@ export default function HomePage() {
             </Suspense>
           }
           productPreview={
-            <Suspense fallback={<GuestProductPreview starterTracks={[]} />}>
-              <HomeProductPreview tracks={starterTracks} />
-            </Suspense>
+            <GuestProductPreview
+              starterTracks={[]}
+              starterPicks={
+                <Suspense
+                  fallback={<div aria-hidden="true" className="mt-auto min-h-[8rem]" />}
+                >
+                  <HomePreviewStarterPicks tracks={starterTracks} />
+                </Suspense>
+              }
+            />
           }
           productFeatures={
             <Suspense fallback={<ProductFeatureGrid starterTracks={[]} />}>

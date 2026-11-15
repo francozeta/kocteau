@@ -12,6 +12,19 @@ The page introduces music reviews and links into public browsing. Keep the
 deferred visual imports and reduced-motion behavior. Editorial direction lives
 in [DESIGN.md](../../../../DESIGN.md).
 
+## Landing Motion
+
+The public `/home` entrance uses a scoped editorial choreography:
+navigation, word-staggered H1, description and CTA, then one blur-to-focus
+reveal of the stable mini UI interior. The frame retains its final layout;
+there is no viewport trigger, per-widget stagger or added demo content.
+Reduced-motion visitors see unanimated content.
+
+See the canonical [Landing Entrance Motion guide](../../../../docs/landing-motion.md)
+for exact timing, the streamed Starter picks boundary, stable frame sizing,
+Safari reload protection, discarded alternatives, and regression checklist.
+The overarching motion contract remains [DESIGN.md](../../../../DESIGN.md).
+
 ## Check
 
 Run lint and the web build. Check `/home` for both auth states, signed-out root redirect, signed-in `/` Feed, mobile

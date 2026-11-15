@@ -2,6 +2,7 @@ import Link from "next/link";
 import BrandLogo from "@/components/brand/brand-logo";
 import ProgressiveMobileHeaderBlur from "@/components/shell/progressive-mobile-header-blur";
 import LandingSessionAction from "@/components/landing/landing-session-action";
+import heroReveal from "@/components/landing/guest-home-hero.module.css";
 
 export default function GuestHeader() {
   return (
@@ -12,7 +13,7 @@ export default function GuestHeader() {
       />
       <header className="kocteau-guest-typography fixed inset-x-0 top-0 z-30">
         <ProgressiveMobileHeaderBlur canvas="landing" />
-        <div className="relative z-10 flex h-12 w-full translate-y-[5px] items-center justify-between px-4 sm:h-16 sm:translate-y-0 sm:px-6">
+        <div className={`relative z-10 flex h-12 w-full translate-y-[5px] items-center justify-between px-4 sm:h-16 sm:translate-y-0 sm:px-6 ${heroReveal.navigation}`}>
           <Link
             href="/home"
             className="-m-2 inline-flex items-center rounded-full p-2 transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"

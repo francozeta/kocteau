@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { RiOpenaiFill } from "react-icons/ri";
 import {
   SiClaude,
@@ -10,6 +10,7 @@ import EntityCoverImage from "@/components/music/entity-cover-image";
 import GuestDitheredMark from "@/components/landing/guest-dithered-mark";
 import GuestFooter from "@/components/landing/guest-footer";
 import GuestReviewList from "@/components/landing/guest-review-list";
+import heroReveal from "@/components/landing/guest-home-hero.module.css";
 import GuestTestimonials from "@/components/landing/guest-testimonials";
 import { SpotlightLogo } from "@/components/landing/spotlight-logo";
 import { ArrowRight, Search, Star } from "@/components/ui/icons";
@@ -72,17 +73,29 @@ function AskKocteauLinks() {
   );
 }
 
+const heroWords = ["Keep", "what", "the", "music", "left", "behind."] as const;
+
 function GuestHomeHero() {
   return (
     <header className="flex min-h-[58svh] items-center py-14 sm:min-h-[62svh] sm:py-16 lg:min-h-[64svh] lg:py-20">
       <div className="relative z-10 max-w-[52rem]">
         <h1 className="max-w-[43rem] text-balance font-editorial text-[clamp(2.7rem,5.8vw,4.65rem)] font-normal leading-[0.95] tracking-[-0.035em] text-foreground">
-          Keep what the music left behind.
+          {heroWords.map((word, index) => (
+            <Fragment key={`${word}-${index}`}>
+              <span
+                className={heroReveal.word}
+                style={{ animationDelay: `${100 + index * 90}ms` }}
+              >
+                {word}
+              </span>
+              {index < heroWords.length - 1 ? " " : null}
+            </Fragment>
+          ))}
         </h1>
-        <p className="mt-6 font-circular text-[14px] font-medium leading-6 text-muted-foreground/72 sm:text-[15px]">
+        <p className={`mt-6 font-circular text-[14px] font-medium leading-6 text-muted-foreground/72 sm:text-[15px] ${heroReveal.description}`}>
           Music reviews from real listeners.
         </p>
-        <div className="mt-8 flex flex-wrap items-center gap-2.5">
+        <div className={`mt-8 flex flex-wrap items-center gap-2.5 ${heroReveal.actions}`}>
           <Link
             href="/signup"
             className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-foreground px-3.5 font-circular text-[12px] font-medium text-background transition-[background-color,transform] duration-150 ease-[var(--kocteau-ease)] hover:bg-foreground/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.96] sm:text-[13px]"
@@ -325,7 +338,7 @@ export default function GuestHome({
       <div className="space-y-16 sm:space-y-20 lg:space-y-24">
         <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
           <GuestHomeHero />
-          <div className="-mt-7 sm:-mt-10 lg:-mt-14">{productPreview}</div>
+          <div className={`-mt-7 min-h-[28rem] sm:-mt-10 sm:min-h-[32rem] lg:-mt-14 lg:min-h-[36rem] ${heroReveal.preview}`}>{productPreview}</div>
         </div>
 
         <div className="relative isolate overflow-x-clip bg-[var(--kocteau-landing-canvas)]">

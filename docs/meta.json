@@ -6,6 +6,7 @@
   { "slug": "backlog", "title": "Contribution areas", "description": "Find useful work and coordinate it through issues.", "group": "Start", "source": "docs/backlog.md" },
   { "slug": "product", "title": "Product", "description": "The review and discovery loop, scope, and guardrails.", "group": "Reference", "source": "PRODUCT.md" },
   { "slug": "design", "title": "Design", "description": "Visual direction, interaction, typography, and motion.", "group": "Reference", "source": "DESIGN.md" },
+  { "slug": "landing-motion", "title": "Landing entrance motion", "description": "Editorial choreography, mini UI frame stability, Safari reloads, and motion QA.", "group": "Reference", "source": "docs/landing-motion.md" },
   { "slug": "architecture", "title": "Architecture", "description": "Code map, routes, data, and server/client boundaries.", "group": "Reference", "source": "docs/core-architecture.md" },
   { "slug": "components", "title": "Components", "description": "Find the owning flow and place new components.", "group": "Reference", "source": "docs/components.md" },
   { "slug": "environment", "title": "Environment", "description": "Public variables, server credentials, and local overrides.", "group": "Reference", "source": "docs/security/environment.md" },
