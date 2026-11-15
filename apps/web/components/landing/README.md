@@ -29,6 +29,20 @@ library** is required. SSR remains readable without JavaScript and reduced
 motion disables the sequence. CSS may replay on a fresh page mount, unlike
 Interfere's first-visit-only behavior; that can be refined later if desired.
 
+### Stable mini UI during reload and streaming
+
+The whole Feed preview always stays mounted. Public starter picks now stream
+inside the right rail only, instead of swapping a full mock-feed Suspense
+fallback for the real preview and restarting its entrance animation. The
+wrapper reserves the preview's exact responsive 28/32/36rem height, so
+streaming does not change its document-space footprint.
+
+Mobile Safari may restore the previous scroll position on a full reload,
+which would hide the hero while the entrance plays; a tiny early script
+resets scroll to the top only for reloads without a fragment, leaving back /
+forward and in-page navigation restoration alone. This keeps the page-entry
+sequence visible at the intended position.
+
 ## Check
 
 Run lint and the web build. Check `/home` for both auth states, signed-out root redirect, signed-in `/` Feed, mobile
