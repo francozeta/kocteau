@@ -1,6 +1,7 @@
 import type { ElementType } from "react";
 
 import BrandLogo from "@/components/brand/brand-logo";
+import GuestPreviewSequence from "@/components/landing/guest-preview-sequence";
 import EntityCoverImage from "@/components/music/entity-cover-image";
 import {
   KocteauActivityIcon,
@@ -147,7 +148,7 @@ function PreviewNavigationGroup({
 
 function PreviewSidebar() {
   return (
-    <aside className="flex min-h-0 flex-col bg-[var(--kocteau-preview-canvas)] px-2 py-2.5">
+    <aside data-guest-preview-step="sidebar" className="flex min-h-0 flex-col bg-[var(--kocteau-preview-canvas)] px-2 py-2.5">
       <div className="flex min-h-9 items-center justify-between gap-2 px-1">
         <BrandLogo iconClassName="size-[1.15rem]" />
         <div className="flex items-center gap-1">
@@ -190,7 +191,7 @@ function PreviewSidebar() {
 
 function PreviewFeedTabs() {
   return (
-    <div className="grid w-[16rem] grid-cols-3 gap-1 rounded-full p-0.5">
+    <div data-guest-preview-step="tabs" className="grid w-[16rem] grid-cols-3 gap-1 rounded-full p-0.5">
       {["For You", "Following", "Trending"].map((label, index) => (
         <span
           key={label}
@@ -246,7 +247,7 @@ function PreviewEditorialRail({
   const visibleStarterTracks = starterTracks.slice(0, 3);
 
   return (
-    <aside className="flex min-h-0 flex-col px-3 pb-4 pt-3">
+    <aside data-guest-preview-step="editorial" className="flex min-h-0 flex-col px-3 pb-4 pt-3">
       <section className="min-h-[12.5rem] space-y-2.5">
         <p className="px-1 text-[10px] font-medium leading-none text-muted-foreground/70">
           Writers to notice
@@ -322,16 +323,13 @@ export default function GuestProductPreview({
   starterTracks,
 }: GuestProductPreviewProps) {
   return (
-    <section
-      aria-label="Kocteau authenticated feed preview"
-      className="kocteau-product-preview w-[calc(100%+5.5rem)] max-w-none sm:w-[calc(100%+4rem)] lg:w-[calc(100%+2rem)] xl:w-[calc(100%+3rem)]"
-    >
+    <GuestPreviewSequence>
       <div className="relative h-[28rem] overflow-hidden rounded-[0.95rem] bg-[var(--kocteau-preview-canvas)] shadow-[0_22px_70px_rgba(0,0,0,0.2)] ring-1 ring-foreground/[0.075] sm:h-[32rem] lg:h-[36rem]">
         <div className="grid h-full min-w-[52rem] grid-cols-[10.5rem_minmax(0,1fr)] lg:min-w-0 lg:grid-cols-[11.75rem_minmax(0,1fr)]">
           <PreviewSidebar />
 
           <div className="kocteau-app-frame m-1.5 ml-0 flex min-h-0 flex-col overflow-hidden rounded-[0.8rem] border border-[var(--kocteau-line)] bg-[var(--kocteau-preview-shell)] shadow-[inset_0_1px_0_var(--kocteau-topline)] sm:m-2.5 sm:ml-0">
-            <header className="relative flex h-14 shrink-0 items-center justify-center shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)] sm:h-16">
+            <header data-guest-preview-step="header" className="relative flex h-14 shrink-0 items-center justify-center shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)] sm:h-16">
               <p className="text-[12px] font-medium text-foreground sm:text-sm">
                 Feed
               </p>
@@ -340,7 +338,7 @@ export default function GuestProductPreview({
             <div className="grid min-h-0 flex-1 grid-cols-[minmax(28rem,1fr)_13.5rem] gap-4 bg-[var(--kocteau-preview-shell)] px-5 lg:gap-5 lg:px-6">
               <main className="no-scrollbar min-w-0 overflow-hidden pb-8 pt-3">
                 <PreviewFeedTabs />
-                <div className="mt-3.5">
+                <div data-guest-preview-step="review" className="mt-3.5">
                   <PreviewReview />
                 </div>
               </main>
@@ -359,6 +357,6 @@ export default function GuestProductPreview({
           }}
         />
       </div>
-    </section>
+    </GuestPreviewSequence>
   );
 }
