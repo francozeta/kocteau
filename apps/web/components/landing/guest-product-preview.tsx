@@ -123,6 +123,7 @@ function PreviewNavigationGroup({
           return (
             <div
               key={item.label}
+              data-guest-preview-nav-item
               className={`flex h-8 items-center gap-2.5 rounded-xl px-2 text-[11px] font-medium ${
                 item.active
                   ? "bg-sidebar-accent/82 text-sidebar-foreground"
@@ -241,6 +242,54 @@ function PreviewReview() {
   );
 }
 
+const previewMoments = [
+  "A new review appears",
+  "Saved to your library",
+  "A listener joins in",
+] as const;
+
+/**
+ * A compact example activity stream, entirely rendered in HTML so it remains
+ * legible without animations. The preview director sequences line → dot → copy.
+ */
+function PreviewListeningTimeline() {
+  return (
+    <section aria-label="Example listening activity" className="mt-2 px-1">
+      <p className="text-[10px] font-medium leading-none text-muted-foreground/70">
+        Listening activity
+      </p>
+      <ol className="mt-2">
+        {previewMoments.map((moment, index) => (
+          <li
+            key={moment}
+            data-guest-preview-timeline-event
+            className="relative grid min-h-7 grid-cols-[10px_minmax(0,1fr)] gap-2"
+          >
+            <div aria-hidden="true" className="relative">
+              <span
+                data-guest-preview-marker
+                className="absolute left-[2px] top-[5px] z-10 size-[6px] rounded-full bg-foreground/65"
+              />
+              {index < previewMoments.length - 1 ? (
+                <span
+                  data-guest-preview-line
+                  className="absolute left-[4.5px] top-[12px] h-4 w-px origin-top bg-foreground/20"
+                />
+              ) : null}
+            </div>
+            <p
+              data-guest-preview-timeline-content
+              className="min-w-0 text-[9px] font-medium leading-[17px] text-muted-foreground/80"
+            >
+              {moment}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function PreviewEditorialRail({
   starterTracks,
 }: GuestProductPreviewProps) {
@@ -248,7 +297,7 @@ function PreviewEditorialRail({
 
   return (
     <aside data-guest-preview-step="editorial" className="flex min-h-0 flex-col px-3 pb-4 pt-3">
-      <section className="min-h-[12.5rem] space-y-2.5">
+      <section className="min-h-[9.75rem] space-y-1.5">
         <p className="px-1 text-[10px] font-medium leading-none text-muted-foreground/70">
           Writers to notice
         </p>
@@ -256,7 +305,7 @@ function PreviewEditorialRail({
           {mockWriters.map((writer) => (
             <div
               key={writer.username}
-              className="flex items-start gap-2 rounded-[0.62rem] px-1 py-2.5"
+              className="flex items-start gap-2 rounded-[0.62rem] px-1 py-1.5"
             >
               <Avatar className="size-7 ring-1 ring-white/[0.05]">
                 <AvatarImage
@@ -282,6 +331,8 @@ function PreviewEditorialRail({
           ))}
         </div>
       </section>
+
+      <PreviewListeningTimeline />
 
       {visibleStarterTracks.length > 0 ? (
         <section className="mt-auto space-y-2.5 pt-5">
