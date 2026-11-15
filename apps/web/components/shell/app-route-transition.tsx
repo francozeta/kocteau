@@ -60,6 +60,10 @@ export function setAppRouteTransitionDirection(direction: Direction) {
 
 export default function AppRouteTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  // Seed URLs update one canvas; crossfading complete Search routes would let
+  // both their portals occupy the same shell header during Back/Forward.
+  const transitionKey = pathname === "/search" || pathname.startsWith("/search/")
+    ? "/search" : pathname;
   const shouldReduceMotion = useReducedMotion();
   const [direction, setDirection] = useState<Direction>(1);
   const transitionContext: TransitionContext = {
@@ -77,7 +81,11 @@ export default function AppRouteTransition({ children }: { children: ReactNode }
     }
 
     function handleHistoryNavigation() {
-      setDirection(-1);
+      const nextPath = window.location.pathname;
+      const withinSearch =
+        transitionKey === "/search" &&
+        (nextPath === "/search" || nextPath.startsWith("/search/"));
+      setDirection(withinSearch ? 1 : -1);
     }
 
     window.addEventListener(routeTransitionDirectionEvent, handleDirection);
@@ -87,7 +95,7 @@ export default function AppRouteTransition({ children }: { children: ReactNode }
       window.removeEventListener(routeTransitionDirectionEvent, handleDirection);
       window.removeEventListener("popstate", handleHistoryNavigation);
     };
-  }, []);
+  }, [transitionKey]);
 
   return (
     <div
@@ -101,7 +109,7 @@ export default function AppRouteTransition({ children }: { children: ReactNode }
         onExitComplete={() => setDirection(1)}
       >
         <motion.div
-          key={pathname}
+          key={transitionKey}
           custom={transitionContext}
           variants={pageVariants}
           initial="enter"

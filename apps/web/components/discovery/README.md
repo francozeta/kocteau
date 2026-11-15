@@ -2,10 +2,17 @@
 
 ## Entry Points
 
+- Visual discovery renderer: `discovery-orbit.tsx` keeps covers as accessible DOM buttons; `gallery-renderer.ts` shares one motion clock with Canvas 2D ink. Position and velocity survive interruption, and persistent connections follow the seed and visible neighbors rather than resetting on focus. New connections deposit a growing brush contour with a tapered moving tip, variable pressure and a fine dry bristle. Painted material deforms with the covers; its progress survives interruption. The gesture spends its time on exposed ink rather than underneath artwork. Mounted edges preserve their reveal through interruption; fully departed edges are discarded and paint again if later recreated. There is no idle shimmer. Drag gathers the covers into a wheel (including the focused cover); release disperses them into a deterministic constellation or looser arrangement. Tapping a satellite recenters it; activating the focus explores through the existing canvas state. Wheel, arrows, Home/End and horizontal swipe remain available. The discarded linear arrangement is recoverable in experiment commit `aa73cf0`.
+- Renderer limits: at most six mobile/seven desktop current covers plus temporary exits. The demand-driven RAF writes transforms/opacity and paints connections without React updates or layout reads per frame. Departing covers/edges fade while retaining their geometry. ResizeObserver measures the viewport; pixel density is capped at 2. Rendering stops at rest, pauses offscreen/in hidden tabs, and resolves immediately for reduced motion. Cover images, labels and hit targets remain DOM elements; WebGL is not used by Search.
+- Cover loading: `discovery-cover-image.tsx` owns a source-keyed load/error state over the shared `EntityCoverImage`. Deterministic ASCII discs appear after 100 ms; two static text patterns softly crossfade for at most 7.2 seconds using CSS opacity, then remain still. Image completion stops the effect and fades in the artwork without changing cover bounds or restarting canvas motion. Mounted covers retain their loaded state through focus changes; remounted covers rely on the browser cache and delayed placeholder reveal. Errors keep a static disc. Reduced motion disables all placeholder animation and fades. This treatment is limited to canvas covers.
+
 - Route: `app/(main)/search/page.tsx`; surface: `discovery-map.tsx`.
 - Interaction: `hooks/use-discovery-canvas.ts`, `hooks/use-kocteau-search.ts`.
 - State/navigation: `lib/discovery`; search ordering: `lib/search/kocteau-first.ts`.
 - APIs: `app/api/search`, `app/api/discovery/map`.
+- Seeded candidates: `lib/discovery/candidates.ts` resolves the canonical provider track, then selects related artists and other releases using track/album identity and a bounded variant (0–15). Each lane has a 4.5-second shared deadline and cancellation; partial sources remain usable. Strict provider lookups fail fast, except artist top tracks retain their short enrichment retry. Browser retries are explicit so a total failure does not silently restart the whole provider fan-out. Album seeds use their highest-ranked track from a bounded twelve-track set, retaining the selected artist ID when the album omits it. Complete failure is a retryable, uncached 503, never a starter fallback. Only public pools may be CDN-cached. `lib/discovery/canvas.ts` ranks them with scoped browser opens/revisits, unseen-track preference, lane/artist/cover diversity and a stable per-frame variation. Desktop shows the top six candidate neighbors around the seed; mobile shows the top five within its six-cover limit. This is metadata/context ranking, not audio analysis or a cross-device taste profile.
+- Starter cards belong only to the unseeded canvas. A focused frame starts with its selected cover while its own candidates load. Back/Forward restores its frozen pool; legacy seeded snapshots refresh candidates without erasing history or taste memory.
+- Header ownership: seed URLs share one Search route-transition key. `discovery-navigation.tsx` and `discovery-search.tsx` relinquish all shell portals when their route starts exiting, preventing overlapping identities, inputs and actions on desktop/mobile.
 - Server catalog lookups and provider orchestration: `lib/search/catalog.ts`.
   `/api/search` accepts `source=local|remote|all` (default `all` retains the
   combined response). The hook requests local and remote phases in parallel;
@@ -150,3 +157,41 @@ For an existing disposable authenticated session,
 header. Keep it out of Git; the fixture creates no accounts or activity.
 This is a browser regression check with simulated API failures, not a load test or
 a test on a physical iPhone/TikTok browser.
+
+## Gallery motion verification
+
+`lib/discovery/gallery-motion.test.ts` checks interruptible trajectories, 60/120 Hz
+consistency, delayed frames, small-screen bounds and degenerate ink geometry.
+The browser check uses an external Playwright installation, as above; it does not
+add an application dependency:
+
+```bash
+KOCTEAU_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright \
+  GALLERY_URL=http://localhost:3000/search \
+  node apps/web/tests/discovery/verify-gallery-motion.mjs
+```
+
+Set `GALLERY_BROWSER=webkit` for WebKit; `GALLERY_WIDTH`/`GALLERY_HEIGHT` select
+viewport dimensions. `GALLERY_HEADED=1` selects a visible browser.
+`GALLERY_CONTROLLED_CLOCK=1` uses Playwright's animation clock for functional
+geometry checks when a headless compositor throttles RAF; it omits CPU timings.
+`GALLERY_CHROMIUM_EXECUTABLE` can select an installed Chromium.
+Use a populated isolated app or an authorized Vercel preview. The local check
+stubs recommendation expansion only; it does not validate providers, auth or data
+writes. It measures ink-to-artwork attachment during reversals, card identity,
+swipe focus, reduced motion, idle/offscreen repaints and the 3x-display resolution
+cap. It reports renderer CPU time separately from visual review; workstation
+measurements do not establish physical iPhone/Safari/Brave performance.
+
+Canvas 2D was selected for pressure-shaped contours without per-frame SVG path
+serialization. SVG with Motion Values remains viable for a few simple curves;
+dash reveals alone cannot deform connections. Canvas artwork/hit testing and WebGL
+were unnecessary because existing DOM covers preserve the current interactions.
+The original motion reference video was not available in the checkout.
+
+`verify-seeded-canvas.mjs` uses the same browser environment variables against a
+populated isolated app. It supplies seed-specific response fixtures, asserts no
+starter reuse, Back/Forward pool restoration, failure/retry behavior and a maximum
+of one canvas/header/input/action owner throughout rapid navigation. It creates
+no accounts or library/review writes. Provider-source and route tests separately
+cover canonical identity, bounded variation/fanout, cancellation and failures.

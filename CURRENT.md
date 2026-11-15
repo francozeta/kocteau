@@ -1,10 +1,14 @@
 # Current Project State
 
-Last checked: 2026-10-26. Reliability diagnosis and recoverable public reads remain
-the priority. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
+Last checked: 2026-11-15. Approved Search integration is active alongside
+reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
+
+The approved Search delivery is tracked in [PR #303](https://github.com/francozeta/kocteau/pull/303), from `feat/search-constellation` into `main`. The `e6da873` preview received visual approval for integration. The [Discovery guide](./apps/web/components/discovery/README.md) owns canvas motion, per-seed candidate pools, header ownership and ASCII cover-loading behavior.
+
+Local checks cover unit tests, lint, the isolated-data build and Chromium/WebKit desktop/mobile regressions; preview checks cover live catalog expansion, motion continuity, header history and delayed/cached/failed covers. Integration hardening addresses review edge cases and updates the native verifier's existing ISR assertion to the canonical `/home` route. The PR owns CI and integration status; Vercel deployment state is verified separately. WebKit uses a virtual display, and physical iPhone Safari/Brave validation remains follow-up work.
 
 [#269 / KOC-112](https://github.com/francozeta/kocteau/issues/269), delivery
 [PR #270](https://github.com/francozeta/kocteau/pull/270), investigates unnecessary

@@ -154,9 +154,9 @@ try {
     await readFile(join(webRoot, ".next/prerender-manifest.json"), "utf8"),
   );
   assert.equal(
-    prerender.routes["/"]?.initialRevalidateSeconds,
+    prerender.routes["/home"]?.initialRevalidateSeconds,
     300,
-    "Public homepage ISR must remain 300 seconds",
+    "Public /home ISR must remain 300 seconds",
   );
   const buildOriginReads = fixture.state.reads;
   fixture.state.reads = 0;

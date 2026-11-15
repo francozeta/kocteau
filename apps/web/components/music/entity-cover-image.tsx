@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image, { type ImageProps } from "next/image";
 import { KocteauSongIcon } from "@/components/icons/kocteau-icons";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,8 @@ type EntityCoverImageProps = {
   priority?: boolean;
   quality?: number;
   variant?: EntityCoverVariant;
+  onLoad?: ImageProps["onLoad"];
+  onError?: ImageProps["onError"];
 };
 
 const DEEZER_IMAGE_HOSTS = new Set([
@@ -68,6 +70,8 @@ export default function EntityCoverImage({
   priority = false,
   quality,
   variant = "thumbnail",
+  onLoad,
+  onError,
 }: EntityCoverImageProps) {
   const resolvedSrc = getOptimizedCoverSrc(src, variant);
   const resolvedQuality =
@@ -91,6 +95,8 @@ export default function EntityCoverImage({
           preload={priority}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
+          onLoad={onLoad}
+          onError={onError}
           className={cn("object-cover", imageClassName)}
         />
       ) : (
