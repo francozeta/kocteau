@@ -338,7 +338,7 @@ export default function GuestHome({
       <div className="space-y-16 sm:space-y-20 lg:space-y-24">
         <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-10">
           <GuestHomeHero />
-          <div className={`-mt-7 sm:-mt-10 lg:-mt-14 ${heroReveal.preview}`}>{productPreview}</div>
+          <div className={`-mt-7 min-h-[28rem] sm:-mt-10 sm:min-h-[32rem] lg:-mt-14 lg:min-h-[36rem] ${heroReveal.preview}`}>{productPreview}</div>
         </div>
 
         <div className="relative isolate overflow-x-clip bg-[var(--kocteau-landing-canvas)]">
