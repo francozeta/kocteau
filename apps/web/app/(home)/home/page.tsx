@@ -119,6 +119,31 @@ export default function HomePage() {
       data-kocteau-document-canvas="landing"
       className={`${circular.variable} ${redaction.variable} kocteau-guest-typography kocteau-guest-grain min-h-svh overflow-x-clip bg-[var(--kocteau-landing-canvas)] text-foreground`}
     >
+      {/* Mobile Safari may restore a previous scrolled position on reload,
+          hiding the hero while its initial animation plays offscreen.
+          Reset only genuine reloads; preserve history/back scroll normally. */}
+      <script
+        id="kocteau-home-reload-scroll"
+        dangerouslySetInnerHTML={{
+          __html: `(function () {
+            try {
+              if (document.readyState !== "loading" || location.hash) return;
+              var nav = performance.getEntriesByType("navigation")[0];
+              if (!nav || nav.type !== "reload") return;
+              var previous = history.scrollRestoration;
+              history.scrollRestoration = "manual";
+              window.scrollTo(0, 0);
+              window.addEventListener("pageshow", function () {
+                window.scrollTo(0, 0);
+                requestAnimationFrame(function () {
+                  window.scrollTo(0, 0);
+                  history.scrollRestoration = previous;
+                });
+              }, { once: true });
+            } catch (_) {}
+          })();`,
+        }}
+      />
       <GuestHeader />
       <main className="pt-15 sm:pt-16">
         <JsonLd data={buildHomePageJsonLd()} id="home-page-structured-data" />
