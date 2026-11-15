@@ -14,7 +14,10 @@ links to Search, and empty track discussions offer a path back to reviews.
 Structured-data review breadcrumbs now end at the canonical review, with a
 regression test. The landing composition, query architecture and sitemap
 remain unchanged; broad album/artist noindex decisions require real GSC
-evidence before rollout. CI and Vercel preview are pending; no merge to
+evidence before rollout. GitHub Verify and the public reviews stream check passed;
+Vercel preview renders canonical review, track and hub links plus matching
+breadcrumbs in initial HTML, with the 119-URL sitemap intact. Physical iPhone
+Safari and Google Search Console coverage remain unverified; no merge to
 `main`.
 
 Public SEO simplification is proposed in [PR #306](https://github.com/francozeta/kocteau/pull/306)
