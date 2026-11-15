@@ -6,17 +6,20 @@ reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS
 
 ## Active Work
 
-Public SEO foundation work is proposed in [PR #306](https://github.com/francozeta/kocteau/pull/306)
+Public SEO simplification is proposed in [PR #306](https://github.com/francozeta/kocteau/pull/306)
 (`fix/public-discovery-stage-one`, draft). The landing footer no longer
-promotes public Help or curator applications, but retains legal, changelog,
-docs and accessibility links; the private curator administration remains
-unchanged. The `/track` page also switches to dynamic SSR: production HTML showed
-`No tracks yet` while its public API returned real tracks, consistent with
-a build-time frozen empty index. The underlying loader remains cached for
-60 seconds. A visible H1 and `/reviews` link keep the empty state useful. The approved `/home`
-animation and mini UI are untouched. GitHub/Vercel preview verification and
-real-world indexing evidence are separate pending gates; [#305](https://github.com/francozeta/kocteau/issues/305)
-owns the later FAQ/discovery phase. No merge to `main` yet.
+promotes Help or curator recruitment; legal, changelog, docs and accessibility
+links remain, and private Studio curators are unchanged. The standalone
+`/track` listing is removed after a redundant/empty-output SEO audit:
+the exact legacy URL redirects permanently to `/reviews`; its sitemap
+entry, footer link and breadcrumb dependency are removed. Canonical
+`/tracks/[slug]/[id]` music pages and `/api/tracks/recent` JSON stay
+functional, and `/track/deezer/*` legacy resolution remains separate.
+The approved `/home` animation and mini UI are untouched. A revised
+five-route smoke check expects the redirect. GitHub/Vercel preview
+verification and actual Google indexing evidence are pending;
+[#305](https://github.com/francozeta/kocteau/issues/305) owns future FAQ and
+indexability policy. No merge to `main` yet.
 
 The approved Search delivery is tracked in [PR #303](https://github.com/francozeta/kocteau/pull/303), from `feat/search-constellation` into `main`. The `e6da873` preview received visual approval for integration. The [Discovery guide](./apps/web/components/discovery/README.md) owns canvas motion, per-seed candidate pools, header ownership and ASCII cover-loading behavior.
 
