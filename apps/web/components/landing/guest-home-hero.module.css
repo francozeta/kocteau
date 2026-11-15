@@ -1,6 +1,6 @@
-/* One entrance sequence on /home; no scroll listener or runtime required.
-   Interfere documents opacity, blur(10px) and translateY(20%) for its hero
-   and similar staged movement for its product graphic. Exact offsets are ours. */
+/* /home enters as one deliberate sequence; never scroll-triggered.
+   The original Kocteau mini UI remains completely stationary, exactly as
+   seen in Interfere's mobile hero: one layer resolving from blur to clarity. */
 @keyframes hero-reveal {
   from {
     opacity: 0;
@@ -19,16 +19,15 @@
   to { opacity: 1; filter: blur(0); }
 }
 
-@keyframes product-shell-reveal {
+/* No translate or scale: the frame stays at its final layout position. */
+@keyframes preview-focus-reveal {
   from {
     opacity: 0;
     filter: blur(10px);
-    transform: translate3d(0, 12%, 0);
   }
   to {
     opacity: 1;
     filter: blur(0);
-    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -47,44 +46,20 @@
 .actions { animation-delay: 790ms; }
 
 /*
- * Animate the *original* Kocteau product preview without changing its DOM.
- * The mini UI and the heading enter on initial page render, never on scroll.
- * The frame arrives first; its existing shell elements follow in order.
+ * The wrapper owns the animation, not the streamed child or individual nodes.
+ * This prevents the mini UI from replaying when Starter picks resolves and
+ * keeps sidebar, tabs, review and editorial rail in the same optical plane.
  */
-.preview :global(.kocteau-product-preview) {
-  animation: product-shell-reveal 1300ms cubic-bezier(0.16, 1, 0.3, 1) 460ms both;
+.preview {
+  animation: preview-focus-reveal 1020ms cubic-bezier(0.16, 1, 0.3, 1) 650ms both;
 }
-
-.preview :global(.kocteau-product-preview) > div > div > aside,
-.preview :global(.kocteau-app-frame) > header,
-.preview :global(.kocteau-app-frame) > div > main > div:first-child,
-.preview :global(.kocteau-app-frame) > div > main > div:nth-child(2),
-.preview :global(.kocteau-app-frame) > div > aside {
-  animation: hero-reveal 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* The real sidebar, not additional demo content. */
-.preview :global(.kocteau-product-preview) > div > div > aside {
-  animation-delay: 730ms;
-}
-
-/* Feed header, tabs, existing review and existing editorial rail. */
-.preview :global(.kocteau-app-frame) > header { animation-delay: 860ms; }
-.preview :global(.kocteau-app-frame) > div > main > div:first-child { animation-delay: 1040ms; }
-.preview :global(.kocteau-app-frame) > div > main > div:nth-child(2) { animation-delay: 1220ms; }
-.preview :global(.kocteau-app-frame) > div > aside { animation-delay: 1390ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .navigation,
   .word,
   .description,
   .actions,
-  .preview :global(.kocteau-product-preview),
-  .preview :global(.kocteau-product-preview) > div > div > aside,
-  .preview :global(.kocteau-app-frame) > header,
-  .preview :global(.kocteau-app-frame) > div > main > div:first-child,
-  .preview :global(.kocteau-app-frame) > div > main > div:nth-child(2),
-  .preview :global(.kocteau-app-frame) > div > aside {
+  .preview {
     animation: none;
   }
 }
