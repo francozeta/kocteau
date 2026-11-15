@@ -117,6 +117,24 @@ Prefer:
 
 Use CSS transitions for interruptible state changes. Use `motion/react` only for shared layout, gestures, springs, or staged state changes that make continuity clearer.
 
+### Public Landing Entrance: Editorial Choreography
+
+The public `/home` introduction is a **scoped exception** to the compact
+interaction timings above. Its text-first staged entrance uses a larger initial
+blur and slower overlaps **only once on page entry**, not in the authenticated
+Feed, Search, loading skeletons, or route transitions.
+
+Order **navigation → staggered headline → description/CTAs → stationary product
+content**. Keep the preview's frame and document height stable, and bring its
+entire existing inner grid into focus as **one layer**. Never add artificial UI
+content or stagger its sidebar, review and rail independently for effect.
+Animation stays independent of scrolling and is removed for reduced motion.
+
+The [Landing Entrance Motion guide](./docs/landing-motion.md) owns the design
+rationale, measured timing, CSS/SSR boundaries, Safari reload fix, discarded
+experiments, and regression tests. Do not generalize these introductory
+`9–10px` blurs to the product motion contract.
+
 ### Motion Patterns
 
 Good uses:
