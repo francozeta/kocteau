@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import JsonLd from "@/components/shared/json-ld";
 import ReviewCommentsPanel from "@/components/reviews/review-comments-panel";
@@ -166,6 +167,34 @@ export default async function ReviewPage({
         isAuthenticated={Boolean(userId)}
         canManage={canManage}
       />
+
+      <nav
+        aria-label="Continue discovering music"
+        className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border/20 pb-4 text-xs text-muted-foreground"
+      >
+        {entity ? (
+          <Link
+            href={buildEntityCanonicalPath(entity)}
+            className="rounded-sm underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+          >
+            Explore {entity.title}{entity.artist_name ? ` by ${entity.artist_name}` : ""}
+          </Link>
+        ) : null}
+        {author?.username ? (
+          <Link
+            href={`/u/${author.username}`}
+            className="rounded-sm underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+          >
+            Reviews by @{author.username}
+          </Link>
+        ) : null}
+        <Link
+          href="/reviews"
+          className="rounded-sm underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55"
+        >
+          Recent music reviews
+        </Link>
+      </nav>
 
       <ReviewCommentsPanel
         reviewId={review.id}
