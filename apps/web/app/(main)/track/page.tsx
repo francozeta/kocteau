@@ -18,6 +18,11 @@ function formatDate(value: string) {
   });
 }
 
+// Keep the public index live: build-time prerender can freeze an empty list
+// when catalog access is unavailable in CI. The loader itself is cached for
+// 60 seconds, so dynamic SSR does not require uncached reads on every request.
+export const dynamic = "force-dynamic";
+
 export const metadata = createPageMetadata({
   title: "Tracks with Recent Reviews",
   description:
