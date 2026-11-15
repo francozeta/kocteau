@@ -252,7 +252,7 @@ const previewMoments = [
  * A compact example activity stream, entirely rendered in HTML so it remains
  * legible without animations. The preview director sequences line → dot → copy.
  */
-function PreviewListeningTimeline() {
+function PreviewListeningTimeline({ compact = false }: { compact?: boolean }) {
   return (
     <section aria-label="Example listening activity" className="mt-2 px-1">
       <p className="text-[10px] font-medium leading-none text-muted-foreground/70">
@@ -263,7 +263,7 @@ function PreviewListeningTimeline() {
           <li
             key={moment}
             data-guest-preview-timeline-event
-            className="relative grid min-h-7 grid-cols-[10px_minmax(0,1fr)] gap-2"
+            className={`relative grid grid-cols-[10px_minmax(0,1fr)] gap-2 ${compact ? "min-h-[19px]" : "min-h-7"}`}
           >
             <div aria-hidden="true" className="relative">
               <span
@@ -273,13 +273,13 @@ function PreviewListeningTimeline() {
               {index < previewMoments.length - 1 ? (
                 <span
                   data-guest-preview-line
-                  className="absolute left-[4.5px] top-[12px] h-4 w-px origin-top bg-foreground/20"
+                  className={`absolute left-[4.5px] top-[12px] w-px origin-top bg-foreground/20 ${compact ? "h-[11px]" : "h-4"}`}
                 />
               ) : null}
             </div>
             <p
               data-guest-preview-timeline-content
-              className="min-w-0 text-[9px] font-medium leading-[17px] text-muted-foreground/80"
+              className={`min-w-0 font-medium text-muted-foreground/80 ${compact ? "text-[8.5px] leading-[15px]" : "text-[9px] leading-[17px]"}`}
             >
               {moment}
             </p>
@@ -332,7 +332,7 @@ function PreviewEditorialRail({
         </div>
       </section>
 
-      <PreviewListeningTimeline />
+      <div className="hidden lg:block"><PreviewListeningTimeline /></div>
 
       {visibleStarterTracks.length > 0 ? (
         <section className="mt-auto space-y-2.5 pt-5">
@@ -389,6 +389,7 @@ export default function GuestProductPreview({
             <div className="grid min-h-0 flex-1 grid-cols-[minmax(28rem,1fr)_13.5rem] gap-4 bg-[var(--kocteau-preview-shell)] px-5 lg:gap-5 lg:px-6">
               <main className="no-scrollbar min-w-0 overflow-hidden pb-8 pt-3">
                 <PreviewFeedTabs />
+                <div className="mt-1.5 lg:hidden"><PreviewListeningTimeline compact /></div>
                 <div data-guest-preview-step="review" className="mt-3.5">
                   <PreviewReview />
                 </div>
