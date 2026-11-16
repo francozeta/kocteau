@@ -21,6 +21,11 @@
   available matches stay visible and selectable while the other phase loads.
 - Phase responses retain ranking metadata and all candidates; the client applies
   the same grouping, quotas, identity merging, and Kocteau boost as the combined API.
+  Client query data also retains the per-source readiness headers. Stale/degraded
+  200 responses keep their usable matches without being marked fresh for 60 seconds;
+  they do not restart on remount/reconnect. Explicit recovery refetches only failed
+  or degraded phases when present. The hook exposes partial degradation separately
+  from an empty-search error; the approved results presentation is unchanged.
   Changing the input hides matches from the previous debounced query immediately.
 - Anonymous local catalog lookups are cached for 60 seconds,
   tagged with `entities`, `artists`, and `starter-tracks`. Review mutations
