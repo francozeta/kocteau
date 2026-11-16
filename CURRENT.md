@@ -1,43 +1,46 @@
 # Current Project State
 
-Last checked: 2026-11-16. URL and reliability stages are moving into PR/preview review alongside
-reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
-[Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
+Last checked: 2026-11-16. Canonical URLs and reliability stages are integrated;
+compact-route SEO alignment is the current review stage. Contracts:
+[AGENTS](./AGENTS.md), [Product](./PRODUCT.md), [Design](./DESIGN.md),
+[architecture](./docs/core-architecture.md).
 
 ## Active Work
 
-Work on `refactor/architecture-foundations` unifies music/review URLs around
-`/{type}/{slug}-{id}`, retaining old links and the separate shared Search routes.
-The base also covers performance targets, Starter invalidation, account
-cache isolation and artist identity. The [stage plan](./.plan/architecture-simplification.md)
-owns scope and rollout gates. Independent experiments are in
-[PR #310](https://github.com/francozeta/kocteau/pull/310) (MMR preview lab) and
-[PR #311](https://github.com/francozeta/kocteau/pull/311) (ordered local retrieval),
-both stacked on #309. Their new runtime consumers remain outside the
-combined branch. The retrieval candidate improves synthetic exact-match coverage
-but costs more SQL work; MMR quality is not yet judged by listeners.
-The base [PR #309](https://github.com/francozeta/kocteau/pull/309) is in draft review;
-its preview is ready and Verify/Native navigation CI passed at `8b807db`.
-Both experiment previews are READY with the same workflows passing at
-`b21c2fe` (MMR) and `d77313a` (retrieval). Preview links and feedback steps are
-in each PR. The MMR lab requires a real curator session and remains experimental.
-The authorized shared database received only the three additive Search RPCs as
-`20261116192307_ranked_local_catalog_search`; anonymous reads, grants, RLS and
-remote history were checked. The existing Starter ranking function is unchanged;
-its replacement remains pending. No main merge or production deployment is authorized.
-The combined branch passes 289 unit tests, workspace lint, docs/link checks and
-the production build/typecheck with isolated placeholder reads.
-Account-cache fixtures pass nine scenarios in both Chromium and WebKit. The
-isolated production-mode WebKit matrix passes 74 records across guest/simulated
-session and mobile/desktop cohorts, including redirects, canonical/sitemap,
-comments/editor, Back and failure/recovery. Known forced React 419 observations
-remain recorded; no fix or production latency improvement is claimed.
-The [stage plan](./.plan/architecture-simplification.md) records the verification
-boundaries and remaining release gates.
-Live Chromium guest checks pass on mobile/desktop for both base and retrieval:
-real canonical pages, compatibility 308 and visible Search results, without page
-errors. Before integration, reconcile the `/track` index, SSR links and review
-breadcrumb with #306/#307; real curator acceptance of the MMR lab remains pending.
+[PR #309](https://github.com/francozeta/kocteau/pull/309) (URLs/cache/identity),
+[PR #311](https://github.com/francozeta/kocteau/pull/311) (ranked local retrieval)
+and [PR #310](https://github.com/francozeta/kocteau/pull/310) (private MMR lab)
+are integrated in main at `712435a`. Vercel reports the corresponding production
+deployment READY; bounded public Search returns usable local results. The MMR
+lab intentionally returns 404/noindex in production and still requires preview,
+a real session and curator access. Its musical quality remains unevaluated.
+
+The shared database history now contains both Search RPCs
+(`20261116192307`) and Starter collection scoring (`20261116192407`). Read-only
+inspection after integration confirmed the Starter function body exactly matches
+the checked-in migration and keeps its existing return contract. This verification
+did not apply SQL or repair remote history.
+
+Work on `fix/compact-route-seo-alignment` reconciles the necessary SEO changes
+from #306/#307 with the new compact pages: retire only the exact `/track` index,
+keep entity/provider aliases, correct breadcrumbs and verify existing server-rendered
+detail links without adding duplicate navigation. Search presentation and motion stay unchanged.
+Draft [PR #312](https://github.com/francozeta/kocteau/pull/312) owns review, CI
+and preview evidence for this stage. Its isolated Next/Turbopack production build
+and 75 WebKit checks pass, including the exact 308, sitemap/manifest exclusion,
+existing SSR anchors and mobile/desktop guest/simulated-session journeys.
+The [SEO plan](./.plan/compact-route-seo-alignment.md) owns scope and
+[the architecture record](./.plan/architecture-simplification.md) owns the earlier
+verification and integration boundaries. No SQL, main merge or production
+deployment was performed by the SEO stage.
+
+The integrated runtime passed Verify/Native navigation CI, unit tests, lint and
+build/typecheck. Live Chromium guest checks passed on mobile/desktop for the base
+and retrieval previews, including canonical pages, exact compatibility 308 and
+visible Search results without page errors. Local WebKit journey/account fixtures
+also passed. These checks do not establish authenticated production behavior,
+physical-device parity or production-wide latency. Forced origin React 419 remains
+a separate observation; no recommendation-quality or speedup claim is made.
 
 The approved Search delivery [PR #303](https://github.com/francozeta/kocteau/pull/303)
 is integrated in main at `0ae1a72`; landing entrance #304 follows at `37138e7`.
@@ -81,10 +84,10 @@ for `419`, legacy/provider policies or the separate private wait in #265.
 
 ## Next
 
-Use PR #270's rollout record to confirm same-worker browser/byte checks,
-verified editor behavior and integration. Confirm the optional production observation's actual
-outcome and deployed source separately; different CI workers cannot be compared
-with the gru1 latency baseline.
+Use PR #312's focused preview for feedback and its CI/HTTP record for release gates.
+Reconcile #306/#307 against that implementation before integrating either older
+route patch. Use #270's rollout record for the separate editor/browser work;
+different CI workers cannot establish a comparison with the gru1 latency baseline.
 
 #261 retains primary/optional track dependencies, #265 the private fault wait,
 #267 React 419 attribution and #228 catalog invalidation. #243, #242,

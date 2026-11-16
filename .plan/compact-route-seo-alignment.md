@@ -43,7 +43,13 @@ generation and full TypeScript checking, script syntax checks, documentation
 (34 pages and 181 repository links), and whitespace checks. No database or cloud
 write was performed by this stage.
 
-Production build, the updated isolated/browser matrix and live preview checks
-remain delivery gates. Passing these checks establishes route/crawlability
-behavior, not improved Google coverage or search ranking. Physical iPhone Safari
-and actual Search Console outcomes remain separate.
+The isolated Next16/Turbopack production build and updated WebKit matrix pass:
+75 recorded checks over mobile/desktop and guest/simulated-session cohorts,
+including the real exact-index308, canonical/alias behavior, sitemap/manifest
+exclusion and existing entity/author SSR anchors. Raw reports remain ignored.
+Known React419 observations under forced origin faults are not claimed fixed.
+
+Draft [PR #312](https://github.com/francozeta/kocteau/pull/312) owns current CI,
+live preview evidence and feedback steps. Passing these checks establishes
+route/crawlability behavior, not improved Google coverage or search ranking.
+Physical iPhone Safari and actual Search Console outcomes remain separate.
