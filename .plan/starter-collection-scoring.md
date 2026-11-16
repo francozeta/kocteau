@@ -10,7 +10,7 @@ summed. A second membership could increase a pick's taste score even when that
 collection was unpublished. `matched_tag_count` used `DISTINCT`, hiding the
 duplication in that counter.
 
-Migration `20261116161623_starter_collection_taste_aggregation.sql` aggregates
+Migration `20261116192407_starter_collection_taste_aggregation.sql` aggregates
 matched taste and published collection metadata separately to one row per pick,
 then joins those aggregates before ranking. The existing published-collection
 bonus applies once. Source lanes, rotation, provider/review exclusions, limits,
@@ -36,7 +36,10 @@ migrations followed by the new migration. The local harness supplied minimal
 `auth`/`storage` schema prerequisites and the same claim/role interfaces needed by
 the SQL tests. It did not run GoTrue, PostgREST, Realtime or the Docker-backed
 Supabase stack, and does not establish browser/auth-service behavior. No
-commercial database was contacted or modified.
+commercial Starter function was changed by these tests. The additive Search RPCs
+were delivered separately; this replacement is still unapplied. Its filename was
+created again with the pinned CLI after the delivered Search migration, preserving
+the SQL bytes and keeping the pending migration after remote history.
 
 For the standard local Supabase workflow, replay migrations on a disposable
 stack and run the database suite following [local development](../docs/setup/local-development.md)

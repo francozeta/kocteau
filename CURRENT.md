@@ -12,11 +12,15 @@ Parallel local stages cover performance targets, Starter invalidation, account
 cache isolation and artist identity. The [stage plan](./.plan/architecture-simplification.md)
 owns scope and rollout gates. Independent experiments are on
 `test/discovery-ranking-evaluation` (MMR) and `perf/search-ranked-retrieval`
-(ordered local retrieval). Both have code and tests, and remain outside the
+(ordered local retrieval). Their new runtime consumers remain outside the
 combined branch. The retrieval candidate improves synthetic exact-match coverage
 but costs more SQL work; MMR quality is not yet judged by listeners.
-Branch publication and preview checks are the current delivery stage. No main
-merge, production deployment or commercial database migration is authorized.
+The base [PR #309](https://github.com/francozeta/kocteau/pull/309) is in draft review;
+its preview is ready and Verify/Native navigation CI passed at `9f5bf41`.
+The authorized shared database received only the three additive Search RPCs as
+`20261116192307_ranked_local_catalog_search`; anonymous reads, grants, RLS and
+remote history were checked. The existing Starter ranking function is unchanged;
+its replacement remains pending. No main merge or production deployment is authorized.
 The combined branch passes 289 unit tests, workspace lint, docs/link checks and
 the production build/typecheck with isolated placeholder reads.
 Account-cache fixtures pass nine scenarios in both Chromium and WebKit. The

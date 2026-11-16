@@ -50,7 +50,7 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-// SQL-function result metadata omits aggregate and nullable review text results.
+// SQL-function metadata omits nullable aggregate, review text and catalog results.
 const output = result.stdout
   .replace(/\r\n/gu, "\n")
   .replace(
@@ -64,6 +64,13 @@ const output = result.stdout
   .replace(
     /(get_recommended_feed_bundle: \{[\s\S]*?title:) string(?: \| null)?/u,
     "$1 string | null",
+  )
+  .replace(
+    /      search_local_(?:artists|entities|starter_tracks): \{[\s\S]*?\n      \}/gu,
+    (block) => block.replace(
+      /^(          (?:artist_name|artist_type|country_code|cover_url|deezer_url|disambiguation|first_release_date|image_url|record_type|release_date): string)(?: \| null)?$/gmu,
+      "$1 | null",
+    ),
   )
   .replace(/(?:\n)+$/u, "\n");
 

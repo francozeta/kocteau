@@ -1836,6 +1836,57 @@ export type Database = {
           proposal_id: string
         }[]
       }
+      search_local_artists: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          artist_type: string | null
+          country_code: string | null
+          deezer_url: string | null
+          disambiguation: string | null
+          genres: string[]
+          id: string
+          image_url: string | null
+          name: string
+          provider: string
+          provider_id: string
+        }[]
+      }
+      search_local_entities: {
+        Args: {
+          p_field: string
+          p_limit?: number
+          p_query: string
+          p_type: Database["public"]["Enums"]["entity_type"]
+        }
+        Returns: {
+          artist_name: string | null
+          cover_url: string | null
+          deezer_url: string | null
+          disambiguation: string | null
+          first_release_date: string | null
+          genres: string[]
+          id: string
+          provider: string
+          provider_id: string
+          record_type: string | null
+          release_date: string | null
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+        }[]
+      }
+      search_local_starter_tracks: {
+        Args: { p_field: string; p_limit?: number; p_query: string }
+        Returns: {
+          artist_name: string | null
+          cover_url: string | null
+          deezer_url: string | null
+          id: string
+          provider: string
+          provider_id: string
+          title: string
+          type: Database["public"]["Enums"]["entity_type"]
+        }[]
+      }
       set_entity_library_item: {
         Args: {
           p_active: boolean

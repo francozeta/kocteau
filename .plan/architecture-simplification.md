@@ -1,8 +1,9 @@
 # Canonical URLs and discovery reliability
 
-Baseline: main `37138e7`. PR publication and preview testing are authorized.
-Main merges, production deployment and commercial database migrations remain
-outside this delivery stage.
+Baseline: main `37138e7`. PR publication, preview testing and use of the shared
+database are authorized. Only the three additive Search RPCs were delivered;
+the existing Starter ranking replacement stays pending. Main merges and
+production deployment remain outside this delivery stage.
 
 ## Stages
 
@@ -43,7 +44,7 @@ query-driven review actions and origin failure/retry. The journey fixture uses
 loopback synthetic data and local telemetry; it never requires cloud credentials.
 Chromium can be selected with `JOURNEY_BROWSER=chromium`; WebKit remains default.
 The fixture is functional evidence, not production latency or physical-device
-coverage. Review any differences against open SEO PRs #306/#307 before publishing.
+coverage. Review any differences against open SEO PRs #306/#307 before integration.
 
 Schema delivery must follow the existing Supabase workflow. SQL tested on a
 disposable local instance is not a commercial migration; apply reviewed database
@@ -82,9 +83,10 @@ Independent experiment branches remain outside the combined branch:
   with mechanical diversity/runtime measures separated from human quality.
 - `perf/search-ranked-retrieval`: 30 Search tests and 26 SQL checks. Exact matches
   survive the pre-ranking limit in the synthetic corpus, but ordered retrieval
-  costs more SQL execution. Full Data API/browser verification and target type
-  generation remain required before adoption; deployment requires its migration
-  before application code. No speedup is claimed.
+  costs more SQL execution. Real local Data API/browser verification covers
+  PostgREST 14.4/16.5 and Chromium/WebKit desktop/mobile. Target public types are
+  regenerated. Live preview verification remains required before adoption.
+  No speedup is claimed.
 
 Public sitemap cache keys retire entries containing former canonical paths.
 The public citation manifest follows the same URL format. The optional production
@@ -94,6 +96,34 @@ rollout; it does not prove the new source was deployed.
 Raw reports remain ignored. Forced origin tests still observe the known React
 419 behavior; this does not establish its resolution. Simulated sessions do not
 verify commercial authentication/RLS, and headless engines do not establish
-physical iPhone/Safari behavior or real-user percentiles. Commercial SQL delivery,
-remote history/advisors, preview checks and reconciliation with #306/#307 remain
-release gates. Do not infer recommendation quality from synthetic metrics.
+physical iPhone/Safari behavior or real-user percentiles. The Starter replacement,
+remaining preview checks and reconciliation with #306/#307 remain release gates.
+Do not infer recommendation quality from synthetic metrics.
+
+## Shared database and preview delivery
+
+Draft [PR #309](https://github.com/francozeta/kocteau/pull/309) is the base for the
+two experiment PRs. Its first preview is READY at `9f5bf41`, and the Verify and
+Native navigation workflows passed for that commit. Protected HTTP inspection
+of `/home` returned the real public catalog and the production-host canonical.
+Preview readiness does not establish authenticated live flows or deployment to main.
+
+After target authorization, the three new Search RPCs were applied through the
+Supabase management connection as `20261116192307_ranked_local_catalog_search`.
+The preflight checked all projected columns, table RLS/grants, absence of the
+three function names, remote history and anonymous EXPLAIN ANALYZE/BUFFERS plans.
+Only those functions and their execute grants were added. Post-apply checks
+confirmed STABLE/SECURITY INVOKER, empty search paths, ROWS 18, explicit
+anon/authenticated execution, no PUBLIC execution and bounded anonymous calls
+through all seven branches. Security advisories introduce no new finding for
+these functions. The existing Starter function definition hash is
+unchanged. No catalog, review, profile or editorial row was written.
+
+The pinned `pnpm supabase:db:push:dry` was attempted and failed because this
+workspace has no linked CLI target. It was not presented as a successful dry run:
+the tested local migration, remote read-only plan/schema checks and management
+apply/history checks supplied the delivery evidence instead. Public-schema types
+were generated from the target for the retrieval PR; the management generator
+does not return storage/graphql schemas. The pending Starter file was recreated
+with the pinned CLI after the applied Search timestamp, preserving its SQL and
+avoiding an older pending migration. No remote history repair was performed.
