@@ -2,7 +2,8 @@
 
 ## Boundary
 
-Independent offline experiment from `main@37138e7`. No route, renderer, provider,
+Independent offline experiment on `refactor/architecture-foundations`
+(initial audited baseline `main@37138e7`). No route, renderer, provider,
 database, listener memory or product ranking is changed. The evaluator lives under
 `apps/web/tests/discovery/ranking-evaluation`; only the runner/tests import it.
 No new dependencies or runtime service are introduced. This is a reproducible
