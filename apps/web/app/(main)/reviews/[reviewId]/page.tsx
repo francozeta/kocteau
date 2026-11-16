@@ -18,7 +18,7 @@ import { isPublicReviewIndexable } from "@/lib/reviews/public-content";
 import {
   buildEntityCanonicalPath,
   buildReviewCanonicalPath,
-  isSeoRouteId,
+  parseSeoRouteSegment,
 } from "@/lib/seo-routes";
 import { buildReviewPageJsonLd } from "@/lib/structured-data";
 
@@ -60,7 +60,6 @@ function getReviewTitle(review: ReviewPageReview) {
 
 type ReviewRouteParams = {
   reviewId: string;
-  slug: string;
 };
 
 export async function generateMetadata({
@@ -68,13 +67,14 @@ export async function generateMetadata({
 }: {
   params: Promise<ReviewRouteParams>;
 }): Promise<Metadata> {
-  const { reviewId } = await params;
+  const { reviewId: routeSegment } = await params;
+  const identity = parseSeoRouteSegment(routeSegment);
 
-  if (!isSeoRouteId(reviewId)) {
+  if (!identity) {
     notFound();
   }
 
-  const review = await getPublicReviewByRouteId(reviewId);
+  const review = await getPublicReviewByRouteId(identity.id);
 
   if (!review?.entities) {
     notFound();
@@ -103,19 +103,26 @@ export default async function ReviewPage({
 }: {
   params: Promise<ReviewRouteParams>;
 }) {
-  const { reviewId, slug } = await params;
+  const { reviewId: routeSegment } = await params;
+  const identity = parseSeoRouteSegment(routeSegment);
 
-  if (!isSeoRouteId(reviewId)) {
+  if (!identity) {
     notFound();
   }
 
   const [userId, routeReview] = await Promise.all([
     getCurrentUserId(),
-    getPublicReviewByRouteId(reviewId),
+    getPublicReviewByRouteId(identity.id),
   ]);
 
   if (!routeReview) {
     notFound();
+  }
+
+  const canonicalPath = buildReviewCanonicalPath(routeReview);
+
+  if (canonicalPath !== `/reviews/${routeSegment}`) {
+    permanentRedirect(canonicalPath);
   }
 
   const [viewerProfile, viewerState] = await Promise.all([
@@ -123,11 +130,6 @@ export default async function ReviewPage({
     getReviewViewerState(userId, routeReview.id),
   ]);
 
-  const canonicalPath = buildReviewCanonicalPath(routeReview);
-
-  if (canonicalPath !== `/reviews/${reviewId}/${slug}`) {
-    permanentRedirect(canonicalPath);
-  }
 
   const review = {
     ...routeReview,

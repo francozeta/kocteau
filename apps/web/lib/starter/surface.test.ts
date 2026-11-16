@@ -38,6 +38,13 @@ describe("starter rail surface helpers", () => {
     assert.equal(isStarterSurface(null), false);
   });
 
+  it("uses compact identity rather than labels for editorial rotation", () => {
+    const id = "806fa97db9d4";
+    assert.equal(getStarterContextKey(`/tracks/old-title-${id}`), `track:${id}`);
+    assert.equal(getStarterContextKey(`/tracks/${"long-label-".repeat(20)}${id}?editReview=one`), `track:${id}`);
+    assert.equal(getStarterContextKey(`/reviews/changed-label-${id}`), `review:${id}`);
+  });
+
   it("creates the client API path for the active rail", () => {
     assert.equal(
       getStarterRailQueryPath("/u/kocteau"),

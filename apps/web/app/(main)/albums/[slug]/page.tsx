@@ -4,12 +4,12 @@ import CatalogEntityPage from "@/components/music/catalog-entity-page";
 import { getAlbumPageData } from "@/lib/catalog/page-data";
 import { createPageMetadata } from "@/lib/metadata";
 import { getEntityPageByRouteId } from "@/lib/queries/entities";
-import { buildEntityCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
+import { buildEntityCanonicalPath, parseSeoRouteSegment } from "@/lib/seo-routes";
 
-type AlbumRouteParams = { slug: string; id: string };
+type AlbumRouteParams = { slug: string };
 
-function routePath({ slug, id }: AlbumRouteParams) {
-  return `/albums/${slug}/${id}`;
+function routePath({ slug }: AlbumRouteParams) {
+  return `/albums/${slug}`;
 }
 
 export async function generateMetadata({
@@ -18,8 +18,9 @@ export async function generateMetadata({
   params: Promise<AlbumRouteParams>;
 }): Promise<Metadata> {
   const routeParams = await params;
-  const entity = isSeoRouteId(routeParams.id)
-    ? await getEntityPageByRouteId(routeParams.id)
+  const identity = parseSeoRouteSegment(routeParams.slug);
+  const entity = identity
+    ? await getEntityPageByRouteId(identity.id)
     : null;
 
   if (!entity || entity.type !== "album") {
@@ -42,12 +43,13 @@ export default async function AlbumPage({
   params: Promise<AlbumRouteParams>;
 }) {
   const routeParams = await params;
+  const identity = parseSeoRouteSegment(routeParams.slug);
 
-  if (!isSeoRouteId(routeParams.id)) {
+  if (!identity) {
     notFound();
   }
 
-  const entity = await getEntityPageByRouteId(routeParams.id);
+  const entity = await getEntityPageByRouteId(identity.id);
 
   if (!entity) {
     notFound();

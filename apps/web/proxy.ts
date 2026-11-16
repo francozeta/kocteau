@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import {
-  getShortRouteId,
   isFullUuid,
   isSeoRouteId,
+  parseSeoRouteSegment,
 } from "@/lib/seo-routes";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
 
@@ -66,6 +66,20 @@ function decodeRoutePart(value: string) {
 }
 
 function getPublicRouteLookup(pathname: string): PublicRouteLookup | null | false {
+  const compact = /^\/(tracks|albums|artists|reviews)\/([^/]+)\/?$/.exec(pathname);
+  if (compact) {
+    const segment = decodeRoutePart(compact[2]);
+    const identity = segment && parseSeoRouteSegment(segment);
+    if (!identity) return false;
+    return {
+      table: compact[1] === "reviews" ? "reviews" : compact[1] === "artists" ? "artists" : "entities",
+      column: "short_id",
+      value: identity.id,
+      ...(compact[1] === "tracks" || compact[1] === "albums"
+        ? { entityType: compact[1] === "albums" ? "album" as const : "track" as const }
+        : {}),
+    };
+  }
   const reviewMatch = pathname.match(/^\/reviews\/([^/]+)\/[^/]+\/?$/);
   if (reviewMatch?.[1]) {
     const routeId = decodeRoutePart(reviewMatch[1]);
@@ -165,20 +179,6 @@ function canReceiveAuthCallback(pathname: string) {
   );
 }
 
-function getShortIdRedirectPath(pathname: string) {
-  const trackMatch = pathname.match(/^\/tracks\/([^/]+)\/([^/]+)\/?$/);
-  if (trackMatch?.[1] && trackMatch[2] && isFullUuid(trackMatch[2])) {
-    return `/tracks/${trackMatch[1]}/${getShortRouteId(trackMatch[2])}`;
-  }
-
-  const reviewMatch = pathname.match(/^\/reviews\/([^/]+)\/([^/]+)\/?$/);
-  if (reviewMatch?.[1] && reviewMatch[2] && isFullUuid(reviewMatch[1])) {
-    return `/reviews/${getShortRouteId(reviewMatch[1])}/${reviewMatch[2]}`;
-  }
-
-  return null;
-}
-
 function copyResponseCookies(source: NextResponse, target: NextResponse) {
   source.cookies.getAll().forEach((cookie) => {
     target.cookies.set(cookie);
@@ -213,13 +213,6 @@ export async function proxy(request: NextRequest) {
     !(await publicRouteExists(publicRouteLookup))
   ) {
     return getPublicRouteNotFoundResponse();
-  }
-
-  const shortIdRedirectPath = getShortIdRedirectPath(pathname);
-  if (shortIdRedirectPath) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = shortIdRedirectPath;
-    return NextResponse.redirect(redirectUrl, 308);
   }
 
   if (canReceiveAuthCallback(pathname) && request.nextUrl.searchParams.has("code")) {

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getEntityPageByRouteId } from "@/lib/queries/entities";
-import { buildEntityCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
+import { buildEntityCanonicalPath, isSeoRouteId, preserveCanonicalQuery } from "@/lib/seo-routes";
 
 type LegacyTrackRouteParams = {
   id: string;
@@ -27,8 +27,7 @@ export async function GET(
   }
 
   const redirectUrl = request.nextUrl.clone();
-  redirectUrl.pathname = buildEntityCanonicalPath(entity);
-  redirectUrl.search = "";
-
-  return NextResponse.redirect(redirectUrl, 308);
+  const target = preserveCanonicalQuery(buildEntityCanonicalPath(entity),
+    Object.fromEntries(redirectUrl.searchParams));
+  return NextResponse.redirect(new URL(target, redirectUrl), 308);
 }

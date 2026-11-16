@@ -1,3 +1,5 @@
+import { parseSeoRouteSegment } from "../seo-routes";
+
 const starterSurfaces = [
   "home",
   "track",
@@ -85,6 +87,12 @@ export function getStarterSurfaceFromPathname(
 export function getStarterContextKey(pathname: string | null | undefined) {
   if (typeof pathname !== "string") {
     return "app";
+  }
+
+  const compact = /^\/(tracks|reviews)\/([^/?#]+)/.exec(pathname);
+  if (compact) {
+    const identity = parseSeoRouteSegment(safeDecode(compact[2]));
+    if (identity) return `${compact[1] === "tracks" ? "track" : "review"}:${identity.id}`;
   }
 
   const segments = getRouteSegments(pathname);

@@ -22,9 +22,11 @@ const scriptSnapshot = (page) => page.evaluate(() => {
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const repositoryRoot = resolve(webRoot, "../..");
 const require = createRequire(join(webRoot, "package.json"));
-const { webkit } = require(
+const browserName = process.env.JOURNEY_BROWSER || "webkit";
+assert.ok(["webkit", "chromium"].includes(browserName));
+const browserType = require(
   process.env.KOCTEAU_PLAYWRIGHT_MODULE || "playwright",
-);
+)[browserName];
 for (const name of [
   ".env",
   ".env.local",
@@ -189,7 +191,7 @@ try {
     "Next startup timed out",
     45000,
   );
-  browser = await webkit.launch();
+  browser = await browserType.launch();
   const { createServerClient } = require("@supabase/ssr");
   let sessionCookies = [];
   const fixtureAuth = createServerClient(
@@ -255,6 +257,42 @@ try {
           sameSite: "Lax",
         })),
       );
+    }
+    if (!mobile && !authenticated) {
+      for (const [root, row, label, oldPath] of [
+        ["tracks", fixture.entity, "fixture-track-fixture-artist", (id) => `/tracks/stale-title/${id}`],
+        ["albums", fixture.album, "fixture-album-fixture-artist", (id) => `/albums/stale-title/${id}`],
+        ["artists", fixture.artist, "fixture-artist", (id) => `/artists/stale-title/${id}`],
+        ["reviews", fixture.reviews[0], "fixture-track-fixture-artist", (id) => `/reviews/${id}/stale-title`],
+      ]) {
+        const canonical = `/${root}/${label}-${row.short_id}`;
+        for (const id of [row.short_id, row.id, row.short_id.slice(0, 8)]) {
+          const legacy = await context.request.get(appUrl + oldPath(id) + "?editReview=fixture&reviewsAfter=cursor", { maxRedirects: 0 });
+          assert.equal(legacy.status(), 308, oldPath(id));
+          const target = new URL(legacy.headers().location, appUrl);
+          assert.equal(target.pathname, canonical);
+          assert.equal(target.searchParams.get("editReview"), "fixture");
+          assert.equal(target.searchParams.get("reviewsAfter"), "cursor");
+        }
+        const stale = await context.request.get(appUrl + `/${root}/outdated-label-${row.short_id}`, { maxRedirects: 0 });
+        if (stale.status() === 308) {
+          assert.equal(new URL(stale.headers().location, appUrl).pathname, canonical);
+        } else {
+          assert.equal(stale.status(), 200);
+          const html = await stale.text();
+          assert.ok(html.includes("NEXT_REDIRECT;replace;" + canonical + ";308;"));
+        }
+        const current = await context.request.get(appUrl + canonical);
+        assert.equal(current.status(), 200);
+        const html = await current.text();
+        assert.ok(html.includes(`rel="canonical" href="http://127.0.0.1:3000${canonical}"`));
+        results.push({ journey: "canonical-url-migration", root, aliases: 3, redirect: 308, canonical });
+      }
+      const sitemap = await context.request.get(appUrl + "/sitemap.xml");
+      assert.equal(sitemap.status(), 200);
+      const xml = await sitemap.text();
+      assert.ok(xml.includes(`/tracks/fixture-track-fixture-artist-${fixture.entity.short_id}`));
+      assert.ok(!/\/(?:tracks|albums|artists)\/[^<]+\/[0-9a-f]{12}</.test(xml));
     }
     const viewerReadsBefore = fixture.state.viewerReads;
     const page = await context.newPage();
@@ -419,9 +457,7 @@ try {
     const bodyReview = createColdRow(fixture.reviews[0], fixture.reviews, 1);
     await bodyPage.goto(
       appUrl +
-        "/reviews/" +
-        bodyReview.short_id +
-        "/fixture-track-fixture-artist",
+        "/reviews/fixture-track-fixture-artist-" + bodyReview.short_id,
       { waitUntil: "domcontentloaded" },
     );
     await bodyPage
@@ -433,7 +469,7 @@ try {
     fixture.state.failTable = "reviews";
     const failedReview = createColdRow(fixture.reviews[0], fixture.reviews, 2);
     const failurePath =
-      "/reviews/" + failedReview.short_id + "/fixture-track-fixture-artist";
+      "/reviews/fixture-track-fixture-artist-" + failedReview.short_id;
     const failurePage = await context.newPage();
     let failurePhase = "origin-failure";
     failurePage.on("pageerror", (error) =>
@@ -487,21 +523,21 @@ try {
     for (const probe of [
       {
         kind: "track",
-        path: "/tracks/fixture-track-fixture-artist/" + fixture.entity.short_id,
+        path: "/tracks/fixture-track-fixture-artist-" + fixture.entity.short_id,
         title: fixture.entity.title,
         status: 403,
         delay: 0,
       },
       {
         kind: "artist",
-        path: "/artists/fixture-artist/" + fixture.artist.short_id,
+        path: "/artists/fixture-artist-" + fixture.artist.short_id,
         title: fixture.artist.name,
         status: 503,
         delay: 3500,
       },
       {
         kind: "album",
-        path: "/albums/fixture-album-fixture-artist/" + fixture.album.short_id,
+        path: "/albums/fixture-album-fixture-artist-" + fixture.album.short_id,
         title: fixture.album.title,
         status: 503,
         delay: 0,
@@ -627,55 +663,20 @@ try {
               : "entities";
         fixture.state.failureStatus = 503;
         fixture.state.headerDelayMs = 0;
-        const uuidPage = await context.newPage();
-        let uuidPhase = "origin-failure";
-        uuidPage.on("pageerror", (error) =>
-          errors.push({
-            stage: uuidPhase,
-            message: error.message,
-            expectedForcedFallback: error.message.startsWith(
-              "Minified React error #419;",
-            ),
-          }),
-        );
-        await uuidPage.goto(appUrl + path, { waitUntil: "domcontentloaded" });
-        await uuidPage
-          .getByRole("heading", {
-            name:
-              probe.kind === "review"
-                ? "Reviews are temporarily unavailable"
-                : "This page is temporarily unavailable",
-            exact: true,
-          })
-          .waitFor();
-        assert.equal(
-          await uuidPage
-            .getByText("This page could not be found.", { exact: true })
-            .isVisible(),
-          false,
-        );
-        await uuidPage.waitForLoadState("networkidle");
-        uuidPhase = "recovery";
+        const unavailable = await context.request.get(appUrl + path, { maxRedirects: 0 });
+        assert.equal(unavailable.status(), 503);
+        assert.equal(unavailable.headers()["cache-control"], "no-store");
+        assert.ok((await unavailable.text()).includes("Reload to retry"));
         fixture.state.fail = false;
         fixture.state.headerDelayMs = 80;
-        await uuidPage
-          .getByRole("button", {
-            name: probe.kind === "review" ? "Retry reviews" : "Retry",
-            exact: true,
-          })
-          .click();
+        const recovered = await context.request.get(appUrl + path, { maxRedirects: 0 });
+        assert.equal(recovered.status(), 308);
+        const uuidPage = await context.newPage();
+        await uuidPage.goto(new URL(recovered.headers().location, appUrl).href, { waitUntil: "domcontentloaded" });
         if (probe.kind === "review")
-          await uuidPage
-            .locator("section:has(> #review-structured-data):visible")
-            .waitFor({ state: "attached" });
+          await uuidPage.locator("section:has(> #review-structured-data):visible").waitFor({ state: "attached" });
         else
-          await uuidPage
-            .getByRole("heading", {
-              name: probe.row.name || probe.row.title,
-              exact: true,
-            })
-            .first()
-            .waitFor();
+          await uuidPage.getByRole("heading", { name: probe.row.name || probe.row.title, exact: true }).first().waitFor();
         await uuidPage.waitForLoadState("networkidle");
         results.push({
           mobile,
@@ -689,17 +690,17 @@ try {
     }
     fixture.state.failureStatus = 503;
     for (const path of [
-      "/reviews/ffffffffffff/missing",
-      "/tracks/missing/ffffffffffff",
-      "/artists/missing/ffffffffffff",
-      "/albums/missing/ffffffffffff",
-      "/reviews/invalid/missing",
+      "/reviews/missing-ffffffffffff",
+      "/tracks/missing-ffffffffffff",
+      "/artists/missing-ffffffffffff",
+      "/albums/missing-ffffffffffff",
+      "/reviews/invalid-missing",
     ]) {
       const absentPage = await context.newPage();
       const absentResponse = await absentPage.goto(appUrl + path, {
         waitUntil: "domcontentloaded",
       });
-      if (path.includes("/invalid/")) {
+      if (path.includes("/invalid-")) {
         assert.equal(absentResponse.status(), 404);
       } else {
         await absentPage

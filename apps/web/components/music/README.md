@@ -7,6 +7,12 @@
 - Covers/actions: `entity-cover-image.tsx`, `entity-library-actions.tsx`.
 - Identity and canonical routes: `lib/catalog`, `lib/seo-routes.ts`.
 
+Canonical music URLs use `/tracks/{slug}-{id}`, `/albums/{slug}-{id}` and
+`/artists/{slug}-{id}`. The final twelve-character ID resolves identity.
+Former split slug/ID routes retain permanent redirects to the current canonical;
+review pagination and editing parameters survive. Search seed routes keep their
+existing discovery context. See the [migration gates](../../../../.plan/architecture-simplification.md).
+
 ## Preserve
 
 Use `(provider, provider_id, type)` for provider identity and Kocteau IDs for

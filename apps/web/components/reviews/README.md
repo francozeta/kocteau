@@ -8,6 +8,11 @@
 - Actions/comments: `review-card-interaction-bar.tsx`, `review-comments-panel.tsx`.
 - APIs: `app/api/reviews`; query state: `queries/reviews.ts`, `hooks/use-review-*`.
 
+Public review URLs use `/reviews/{music-slug}-{review-id}` with the stable
+twelve-character ID last. Former `/reviews/{id}/{slug}` and `/review/{id}` links
+resolve to the current canonical. Compatibility lookup and canonical redirects
+precede viewer-state reads; origin failures remain retryable.
+
 ## Preserve
 
 Track identity, reviewer, rating, and take come before engagement. Rating-only

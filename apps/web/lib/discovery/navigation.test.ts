@@ -94,7 +94,7 @@ describe("discovery entity navigation", () => {
         title: "White Ferrari",
         artistName: "Frank Ocean",
       }),
-      "/tracks/white-ferrari-frank-ocean/e9cfe82b5a2b",
+      "/tracks/white-ferrari-frank-ocean-e9cfe82b5a2b",
     );
 
     assert.equal(
@@ -105,7 +105,7 @@ describe("discovery entity navigation", () => {
         title: "Cocteau Twins",
         artistName: null,
       }),
-      "/artists/cocteau-twins/a83f59bec955",
+      "/artists/cocteau-twins-a83f59bec955",
     );
   });
 

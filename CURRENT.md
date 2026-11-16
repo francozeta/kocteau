@@ -1,12 +1,24 @@
 # Current Project State
 
-Last checked: 2026-11-15. Approved Search integration is active alongside
+Last checked: 2026-11-16. Local URL and reliability stages are in progress alongside
 reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
 
-The approved Search delivery is tracked in [PR #303](https://github.com/francozeta/kocteau/pull/303), from `feat/search-constellation` into `main`. The `e6da873` preview received visual approval for integration. The [Discovery guide](./apps/web/components/discovery/README.md) owns canvas motion, per-seed candidate pools, header ownership and ASCII cover-loading behavior.
+Local work on `refactor/canonical-urls` unifies music/review URLs around
+`/{type}/{slug}-{id}`, retaining old links and the separate shared Search routes.
+Parallel local stages cover performance targets, Starter invalidation, account
+cache isolation and artist identity. The [stage plan](./.plan/architecture-simplification.md)
+owns scope and rollout gates. MMR remains an independent offline experiment.
+No branch publication, production deployment or cloud migration has occurred.
+Verification results are pending the combined handoff; do not treat local source
+or standalone tests as integrated delivery.
+
+The approved Search delivery [PR #303](https://github.com/francozeta/kocteau/pull/303)
+is integrated in main at `0ae1a72`; landing entrance #304 follows at `37138e7`.
+The [Discovery guide](./apps/web/components/discovery/README.md) owns canvas motion,
+per-seed candidate pools, header ownership and ASCII cover-loading behavior.
 
 Local checks cover unit tests, lint, the isolated-data build and Chromium/WebKit desktop/mobile regressions; preview checks cover live catalog expansion, motion continuity, header history and delayed/cached/failed covers. Integration hardening addresses review edge cases and updates the native verifier's existing ISR assertion to the canonical `/home` route. The PR owns CI and integration status; Vercel deployment state is verified separately. WebKit uses a virtual display, and physical iPhone Safari/Brave validation remains follow-up work.
 

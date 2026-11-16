@@ -28,16 +28,15 @@ import {
   getViewerEntityLibraryState,
 } from "@/lib/queries/entity-library";
 import { getTrackRecommendations } from "@/lib/queries/track-recommendations";
-import { buildEntityCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
+import { buildEntityCanonicalPath, parseSeoRouteSegment, preserveCanonicalQuery } from "@/lib/seo-routes";
 import { buildTrackPageJsonLd } from "@/lib/structured-data";
 
 type TrackRouteParams = {
   slug: string;
-  id: string;
 };
 
-function getRoutePath({ slug, id }: TrackRouteParams) {
-  return `/tracks/${slug}/${id}`;
+function getRoutePath({ slug }: TrackRouteParams) {
+  return `/tracks/${slug}`;
 }
 
 async function TrackRecommendations({
@@ -57,11 +56,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const routeParams = await params;
 
-  if (!isSeoRouteId(routeParams.id)) {
+  const identity = parseSeoRouteSegment(routeParams.slug);
+  if (!identity) {
     notFound();
   }
 
-  const entity = await getEntityPageByRouteId(routeParams.id);
+  const entity = await getEntityPageByRouteId(identity.id);
 
   if (!entity) {
     notFound();
@@ -91,23 +91,24 @@ export default async function TrackPage({
 
   if (query.reviewsAfter !== undefined && !decodeEntityReviewCursor(query.reviewsAfter)) notFound();
 
-  if (!isSeoRouteId(routeParams.id)) {
+  const identity = parseSeoRouteSegment(routeParams.slug);
+  if (!identity) {
     notFound();
   }
 
   const [entityPage, userId] = await Promise.all([
-    getEntityPageByRouteId(routeParams.id),
+    getEntityPageByRouteId(identity.id),
     getCurrentUserId(),
   ]);
 
-  if (!entityPage) {
+  if (!entityPage || entityPage.type !== "track") {
     notFound();
   }
 
   const canonicalPath = buildEntityCanonicalPath(entityPage);
 
   if (canonicalPath !== getRoutePath(routeParams)) {
-    permanentRedirect(canonicalPath);
+    permanentRedirect(preserveCanonicalQuery(canonicalPath, query));
   }
 
   const publicBundlePromise = getTrackPublicBundle(entityPage, query.reviewsAfter ?? null);
