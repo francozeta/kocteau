@@ -43,6 +43,9 @@ describe("review collection structured data", () => {
     assert.equal(reviews.mainEntity.itemListElement.length, 1);
     assert.equal(home.mainEntity.numberOfItems, 1);
     assert.equal(home.mainEntity.itemListElement.length, 1);
+    assert.match(reviews.mainEntity.itemListElement[0]!.url,
+      /\/reviews\/example-track-example-artist-111111111111$/);
+    assert.ok(!JSON.stringify(reviews).includes("/reviews/111111111111/"));
     assert.equal(
       reviews.mainEntity.itemListElement[0]?.item.name,
       "Listening closely",

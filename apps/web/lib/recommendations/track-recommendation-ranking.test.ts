@@ -122,6 +122,21 @@ describe("track recommendation ranking", () => {
     );
   });
 
+  it("diversifies by artist identity rather than homonyms or alternate labels", () => {
+    const candidates = [
+      { ...candidate("same-1", "deezer-related", undefined, "Alias one", 100), artist_provider_id: "45" },
+      { ...candidate("same-2", "deezer-related", undefined, "Alias two", 95), artist_provider_id: "45" },
+      { ...candidate("same-3", "deezer-related", undefined, "Alias three", 90), artist_provider_id: "45" },
+      { ...candidate("other", "deezer-related", undefined, "Alias one", 70), artist_provider_id: "99" },
+    ];
+    const groups = selectTrackRecommendationGroups({
+      currentProviderId: "current", relatedCandidates: candidates,
+      localSignalCandidates: [], perGroupLimit: 3,
+    });
+    assert.deepEqual(groups.find((group) => group.id === "nearby")?.recommendations.map((item) =>
+      item.provider_id), ["same-1", "same-2", "other"]);
+  });
+
   it("merges progressive recommendation lanes without duplicating candidates", () => {
     const nearby = selectTrackRecommendationGroups({
       currentProviderId: "current",

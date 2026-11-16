@@ -63,6 +63,8 @@ export const options = {
 export function setup() {
   if (searchOnly) return {};
 
+  verifyCompatibilityRedirects();
+
   if (explicitTrackPath) {
     return { trackPath: explicitTrackPath };
   }
@@ -85,10 +87,12 @@ export function setup() {
 }
 
 export function landingSurface() {
-  const response = get("/", "landing");
+  const response = get("/home", "landing");
 
   check(response, {
     "landing returns 200": (result) => result.status === 200,
+    "landing contains the public introduction": (result) =>
+      isHtml(result) && normalizedText(result, "h1") === "Keep what the music left behind.",
   });
   pause();
 }
@@ -98,6 +102,9 @@ export function canonicalTrackSurface(data) {
 
   check(response, {
     "canonical track returns 200": (result) => result.status === 200,
+    "canonical track contains music content": (result) =>
+      isHtml(result) && Boolean(normalizedText(result, "h1")) &&
+      result.html("script#track-structured-data").text().includes('"MusicRecording"'),
   });
   pause();
 }
@@ -146,7 +153,7 @@ export function searchSurface() {
 }
 
 export function authenticatedFeedSurface() {
-  const response = get("/feed?view=for-you", "authenticated_feed", {
+  const response = get("/?view=for-you", "authenticated_feed", {
     Cookie: joinCookies(previewCookie, authCookie),
   });
 
@@ -154,6 +161,9 @@ export function authenticatedFeedSurface() {
     "authenticated feed returns 200": (result) => result.status === 200,
     "authenticated feed does not redirect to login": (result) =>
       !String(result.url).includes("/login"),
+    "authenticated feed renders the selected For You view": (result) =>
+      isHtml(result) && normalizedText(result,
+        '.kocteau-feed-tabs a[aria-current="page"]') === "For You",
   });
   pause();
 }
@@ -189,9 +199,39 @@ function get(path, surface, extraHeaders = {}) {
   return http.get(`${baseUrl}${path}`, {
     headers: { ...defaultHeaders, ...extraHeaders },
     redirects: 0,
-    ...(surface === "search_api" ? { responseType: "text" } : {}),
+    responseType: "text",
     tags: { surface },
   });
+}
+
+function isHtml(response) {
+  return (response.headers["Content-Type"] || "").includes("text/html");
+}
+
+function normalizedText(response, selector) {
+  return response.html(selector).first().text().replace(/\s+/g, " ").trim();
+}
+
+function verifyCompatibilityRedirects() {
+  const params = { headers: defaultHeaders, redirects: 0, tags: { surface: "compatibility" } };
+  const guestRoot = http.get(`${baseUrl}/`, params);
+  const legacyFeed = http.get(`${baseUrl}/feed?view=for-you`, params);
+  const guestRedirectValid = check(guestRoot, {
+    "guest root redirects to the public landing": (result) =>
+      result.status === 307 && isRedirectTo(result, "/home"),
+  });
+  const feedRedirectValid = check(legacyFeed, {
+    "legacy feed redirects permanently to the canonical feed": (result) =>
+      result.status === 308 && isRedirectTo(result, "/?view=for-you"),
+  });
+  if (!guestRedirectValid || !feedRedirectValid) {
+    throw new Error("Compatibility redirects failed; canonical measurements were not started.");
+  }
+}
+
+function isRedirectTo(response, path) {
+  const location = response.headers.Location || "";
+  return location === path || location === `${baseUrl}${path}`;
 }
 
 function scenario(exec, selectedProfile) {

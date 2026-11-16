@@ -6,6 +6,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { rankCatalogSearchResults } from "@/lib/search/kocteau-first";
 import type { SearchScope } from "@/lib/search-types";
 import { kocteauTrackSearchQueryOptions } from "@/queries/tracks";
+import { searchPhasesToRefetch } from "@/lib/search/client-readiness";
 
 export type { KocteauSearchResult } from "@/queries/tracks";
 
@@ -41,7 +42,7 @@ export function useKocteauSearch({
       ? rankCatalogSearchResults({
           query: debouncedQuery,
           type,
-          candidates: [...(local.data ?? []), ...(remote.data ?? [])].map(
+          candidates: [...(local.data?.results ?? []), ...(remote.data?.results ?? [])].map(
             (result) => ({ ...result, source: result.source ?? "deezer" }),
           ),
         })
@@ -60,6 +61,16 @@ export function useKocteauSearch({
     isPlaceholderData: false,
     error,
     isError: Boolean(error),
-    refetch: () => Promise.all([local.refetch(), remote.refetch()]),
+    readiness: { local: local.data?.readiness, remote: remote.data?.readiness },
+    isDegraded: isCurrentQuery && searchEnabled &&
+      [local, remote].some((phase) => phase.isError || phase.data?.readiness.status === "degraded"),
+    refetch: () => {
+      const phases = [local, remote];
+      const selected = searchPhasesToRefetch(phases.map((phase) => ({
+        isError: phase.isError,
+        readiness: phase.data?.readiness,
+      })));
+      return Promise.all(phases.filter((_, index) => selected[index]).map((phase) => phase.refetch()));
+    },
   };
 }

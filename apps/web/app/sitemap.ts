@@ -257,7 +257,8 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 }
 
-const getCachedSitemap = unstable_cache(buildSitemap, ["public-sitemap-v2"], {
+// Retire persisted entries that advertised the former split slug/ID URLs.
+const getCachedSitemap = unstable_cache(buildSitemap, ["public-sitemap-v3"], {
   revalidate: 60 * 60,
 });
 

@@ -6,6 +6,10 @@ Keep only useful cross-device phases, decisions, and implementation handoffs her
 Link the coordinating issue and PR; neither a plan nor a checked box proves delivery.
 Promote durable decisions to their owning document and mark superseded plans historical.
 
+- [Canonical URLs and discovery reliability](./architecture-simplification.md):
+  staged local URL migration, cache/account isolation, signal identity and
+  independent ranking experiments. No production rollout is implied.
+
 [App audit and working context](./app-audit-continuity.md) records integrated defect
 corrections and the remaining verification work. Studio coordination continues in
 [issue #206](https://github.com/francozeta/kocteau/issues/206).

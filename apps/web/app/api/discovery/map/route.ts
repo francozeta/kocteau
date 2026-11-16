@@ -7,7 +7,7 @@ import { validationErrorResponse } from "@/lib/validation/server";
 const discoveryMapQuerySchema = z.object({
   providerId: z.string().trim().refine(isDeezerProviderId),
   seedType: z.enum(["track", "album", "artist"]).default("track"),
-  title: z.string().trim().min(1).max(200),
+  title: z.string().trim().min(1).max(200).optional(),
   artistName: z.string().trim().max(200).optional(),
   artistProviderId: z.string().trim().refine(isDeezerProviderId).optional(),
   entityId: z.string().uuid().optional(),

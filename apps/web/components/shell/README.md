@@ -5,6 +5,11 @@
 - Composition: `app-shell.tsx`, `app-sidebar.tsx`, `header.tsx`, `mobile-bottom-bar.tsx`.
 - Route state: `route-header-context.tsx`.
 - Navigation: `nav-*`; loading geometry: `route-loading-skeletons.tsx`.
+- The Query provider receives the server viewer ID and retains one account's
+  cache at a time. Account changes clear the old queries/mutations and replace
+  the document so server viewer props cannot remain attached to a new session.
+  Signing out navigates to `/login` through that single auth listener; token
+  refresh for the same account preserves the cache and mounted interface.
 - Shortcuts: `global-shortcuts.tsx`; route motion: `app-route-transition.tsx`.
 - Search seed URLs share the `/search` transition key: they update the existing
   canvas/header rather than crossfading two complete Search routes. Exiting

@@ -38,8 +38,8 @@ primitive layer.
 `/` serves the authenticated For You feed. Without a valid session it redirects to the public landing at `/home`, which remains accessible and indexable for signed-in users too. `/feed` permanently redirects to `/` for compatibility.
 `/docs` renders selected repository Markdown as static, public contributor guides.
 `/search` is the discovery canvas. Canonical public music routes use
-`/tracks/{slug}/{id}`, `/albums/{slug}/{id}`, and `/artists/{slug}/{id}`;
-reviews use `/reviews/{id}/{slug}`, profiles `/u/{username}`. Legacy singular
+`/tracks/{slug}-{id}`, `/albums/{slug}-{id}`, and `/artists/{slug}-{id}`;
+reviews use `/reviews/{slug}-{id}`, profiles `/u/{username}`. Legacy singular
 routes redirect, and Deezer resolver routes handle music without a Kocteau ID.
 Route helpers in `apps/web/lib/seo-routes.ts` own canonical path construction.
 

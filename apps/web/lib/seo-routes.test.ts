@@ -8,10 +8,32 @@ import {
   getEntitySlug,
   getShortRouteId,
   isSeoRouteId,
+  parseSeoRouteSegment,
+  preserveCanonicalQuery,
   slugifyForUrl,
 } from "./seo-routes.ts";
 
 describe("seo route helpers", () => {
+  it("resolves the trailing identity independently of hyphens in the label", () => {
+    assert.deepEqual(parseSeoRouteSegment("sea-swallow-me-cocteau-twins-806FA97DB9D4"), {
+      slug: "sea-swallow-me-cocteau-twins", id: "806fa97db9d4",
+    });
+    for (const value of ["806fa97db9d4", "music-806fa97d", "music-806fa97db9d45", "-806fa97db9d4", "music-not-an-id"]) {
+      assert.equal(parseSeoRouteSegment(value), null);
+    }
+  });
+
+  it("preserves functional review query parameters through canonical redirects", () => {
+    const path = preserveCanonicalQuery("/tracks/music-806fa97db9d4", {
+      reviewsAfter: "cursor+with/symbols=", editReview: "review-uuid", next: "https://example.test",
+    });
+    const parsed = new URL(path, "https://kocteau.test");
+    assert.equal(parsed.searchParams.get("reviewsAfter"), "cursor+with/symbols=");
+    assert.equal(parsed.searchParams.get("editReview"), "review-uuid");
+    assert.equal(parsed.searchParams.has("next"), false);
+    assert.equal(preserveCanonicalQuery("/tracks/music-806fa97db9d4", {}), "/tracks/music-806fa97db9d4");
+  });
+
   it("normalizes music names into stable URL slugs", () => {
     assert.equal(slugifyForUrl("Sueño & Noise / 2026"), "sueno-and-noise-2026");
     assert.equal(getEntitySlug(null), "music");
@@ -27,7 +49,7 @@ describe("seo route helpers", () => {
         title: "White Ferrari",
         artist_name: "Frank Ocean",
       }),
-      "/tracks/white-ferrari-frank-ocean/e9cfe82b5a2b",
+      "/tracks/white-ferrari-frank-ocean-e9cfe82b5a2b",
     );
   });
 
@@ -55,7 +77,7 @@ describe("seo route helpers", () => {
           artist_name: "Frank Ocean",
         },
       }),
-      "/reviews/88a81fc1173b/white-ferrari-frank-ocean",
+      "/reviews/white-ferrari-frank-ocean-88a81fc1173b",
     );
   });
 
@@ -75,7 +97,7 @@ describe("seo route helpers", () => {
         title: "Blue Bell Knoll",
         artist_name: "Cocteau Twins",
       }),
-      "/albums/blue-bell-knoll-cocteau-twins/e9cfe82b5a2b",
+      "/albums/blue-bell-knoll-cocteau-twins-e9cfe82b5a2b",
     );
   });
 

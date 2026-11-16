@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireStarterCurator } from "@/lib/curation/access";
 import {
@@ -150,6 +150,8 @@ export async function POST(req: Request) {
     return starterMutationErrorResponse(error);
   }
 
+  revalidateTag("starter-tracks", { expire: 0 });
+  revalidatePath("/home");
   revalidatePath("/");
   revalidatePath("/studio/starter");
 
@@ -178,6 +180,8 @@ export async function DELETE(req: Request) {
     return starterMutationErrorResponse(error);
   }
 
+  revalidateTag("starter-tracks", { expire: 0 });
+  revalidatePath("/home");
   revalidatePath("/");
   revalidatePath("/studio/starter");
 

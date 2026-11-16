@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CANVAS_LIMIT, MEMORY_LIMIT, MEMORY_TTL, PATH_LIMIT } from "./canvas";
+import { getArtistIdentity } from "../recommendations/artist-identity";
 
 const seed = z.object({
   id: z.string().max(200),
@@ -46,7 +47,7 @@ const memorySchema = z
   .array(
     z.object({
       key: z.string().max(100),
-      artist: z.string().max(1000),
+      artist: z.string().max(1024),
       count: z.number().int().min(1).max(8),
       lastOpened: z.number().nonnegative(),
     }),
@@ -98,13 +99,21 @@ export function parseCanvasSnapshot(
 export function readDiscoveryMemory(raw: string | null, now: number) {
   try {
     if (!raw || raw.length > 160_000) return [];
-    const result = memorySchema.safeParse(JSON.parse(raw));
-    return result.success
-      ? result.data.filter(
-          (visit) =>
-            visit.lastOpened <= now && now - visit.lastOpened < MEMORY_TTL,
-        )
-      : [];
+    const value: unknown = JSON.parse(raw);
+    const legacy = Array.isArray(value);
+    const result = legacy
+      ? memorySchema.safeParse(value)
+      : z.object({ version: z.literal(2), visits: memorySchema }).safeParse(value);
+    if (!result.success) return [];
+    const visits = "visits" in result.data ? result.data.visits : result.data;
+    return visits
+      .map((visit) =>
+        legacy ? { ...visit, artist: getArtistIdentity(null, visit.artist) } : visit,
+      )
+      .filter(
+        (visit) =>
+          visit.lastOpened <= now && now - visit.lastOpened < MEMORY_TTL,
+      );
   } catch {
     return [];
   }

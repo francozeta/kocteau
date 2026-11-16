@@ -18,6 +18,7 @@ const fallbackSlug = "music";
 const shortRouteIdLength = 12;
 const fullUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const shortUuidPrefixPattern = /^(?:[0-9a-f]{8}|[0-9a-f]{12})$/i;
+const routeSegmentPattern = /^(.+)-([0-9a-f]{12})$/i;
 
 const entityRouteRoots: Record<SeoEntityType, string> = {
   track: "tracks",
@@ -79,12 +80,29 @@ export function isSeoRouteId(value: string | null | undefined) {
   return isFullUuid(value) || isShortUuidPrefix(value);
 }
 
+export function parseSeoRouteSegment(value: string) {
+  const match = routeSegmentPattern.exec(value);
+  return match ? { slug: match[1], id: match[2].toLowerCase() } : null;
+}
+
+export function preserveCanonicalQuery(
+  path: string,
+  query: Record<string, string | string[] | undefined>,
+) {
+  const params = new URLSearchParams();
+  for (const key of ["reviewsAfter", "editReview"]) {
+    const value = query[key];
+    if (typeof value === "string") params.set(key, value);
+  }
+  return params.size ? `${path}?${params}` : path;
+}
+
 export function buildEntityCanonicalPath(entity: SeoEntityRouteInput) {
   const routeRoot = getEntityRouteRoot(entity.type);
   const slug = getEntitySlug(entity);
 
   if (routeRoot && entity.id) {
-    return `/${routeRoot}/${slug}/${encodeURIComponent(getShortRouteId(entity.id))}`;
+    return `/${routeRoot}/${slug}-${encodeURIComponent(getShortRouteId(entity.id))}`;
   }
 
   if (routeRoot && entity.provider === "deezer" && entity.provider_id) {
@@ -105,7 +123,7 @@ export function buildEntityLegacyPath(entity: SeoEntityRouteInput) {
 }
 
 export function buildReviewCanonicalPath(review: SeoReviewRouteInput) {
-  return `/reviews/${getShortRouteId(review.id)}/${getEntitySlug(review.entities)}`;
+  return `/reviews/${getEntitySlug(review.entities)}-${getShortRouteId(review.id)}`;
 }
 
 export function buildReviewLegacyPath(reviewId: string) {

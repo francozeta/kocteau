@@ -15,7 +15,7 @@ export function isRetryableFetchJsonError(error: unknown) {
   );
 }
 
-export async function fetchJson<T>(input: string, init?: RequestInit) {
+export async function fetchJsonResponse<T>(input: string, init?: RequestInit) {
   const response = await fetch(input, {
     cache: "no-store",
     ...init,
@@ -44,5 +44,9 @@ export async function fetchJson<T>(input: string, init?: RequestInit) {
     );
   }
 
-  return payload as T;
+  return { data: payload as T, headers: response.headers };
+}
+
+export async function fetchJson<T>(input: string, init?: RequestInit) {
+  return (await fetchJsonResponse<T>(input, init)).data;
 }

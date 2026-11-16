@@ -70,7 +70,7 @@ export default async function TasteOnboardingPage({
   ]);
 
   return (
-    <ReactQueryProvider>
+    <ReactQueryProvider accountId={user.id}>
       <TasteOnboardingForm
         tags={(tags ?? []) as PreferenceTag[]}
         initialSelectedTagIds={(selectedTags ?? []).map((tag) => tag.tag_id)}

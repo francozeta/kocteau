@@ -4,12 +4,12 @@ import CatalogEntityPage from "@/components/music/catalog-entity-page";
 import { getArtistPageData } from "@/lib/catalog/page-data";
 import { createPageMetadata } from "@/lib/metadata";
 import { getArtistPageByRouteId } from "@/lib/queries/artists";
-import { buildEntityCanonicalPath, isSeoRouteId } from "@/lib/seo-routes";
+import { buildEntityCanonicalPath, parseSeoRouteSegment } from "@/lib/seo-routes";
 
-type ArtistRouteParams = { slug: string; id: string };
+type ArtistRouteParams = { slug: string };
 
-function routePath({ slug, id }: ArtistRouteParams) {
-  return `/artists/${slug}/${id}`;
+function routePath({ slug }: ArtistRouteParams) {
+  return `/artists/${slug}`;
 }
 
 function getCanonicalPath(artist: Awaited<ReturnType<typeof getArtistPageByRouteId>>) {
@@ -32,8 +32,9 @@ export async function generateMetadata({
   params: Promise<ArtistRouteParams>;
 }): Promise<Metadata> {
   const routeParams = await params;
-  const artist = isSeoRouteId(routeParams.id)
-    ? await getArtistPageByRouteId(routeParams.id)
+  const identity = parseSeoRouteSegment(routeParams.slug);
+  const artist = identity
+    ? await getArtistPageByRouteId(identity.id)
     : null;
 
   if (!artist) {
@@ -54,12 +55,13 @@ export default async function ArtistPage({
   params: Promise<ArtistRouteParams>;
 }) {
   const routeParams = await params;
+  const identity = parseSeoRouteSegment(routeParams.slug);
 
-  if (!isSeoRouteId(routeParams.id)) {
+  if (!identity) {
     notFound();
   }
 
-  const artist = await getArtistPageByRouteId(routeParams.id);
+  const artist = await getArtistPageByRouteId(identity.id);
 
   if (!artist) {
     notFound();

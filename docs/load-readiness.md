@@ -6,13 +6,21 @@ Kocteau uses a small, reproducible k6 suite to catch application, database, and 
 
 ## Covered surfaces
 
-- `/` exercises the cached public landing.
-- A canonical `/tracks/{slug}/{id}` route is discovered from `/sitemap.xml` unless `K6_TRACK_PATH` is provided.
+- `/home` exercises the cached public landing and verifies its introduction in HTML.
+- A canonical `/tracks/{slug}-{id}` route is discovered from `/sitemap.xml` unless `K6_TRACK_PATH` is provided. The discovery also accepts the older segmented shape during rollout.
 - `/search?q=…` exercises the server-rendered discovery surface.
 - `/api/search?q=…` exercises Kocteau-first search plus the external catalog fallback.
-- `/feed?view=for-you` is included only when `K6_AUTH_COOKIE` is provided.
+- `/?view=for-you` is included only when `K6_AUTH_COOKIE` is provided and verifies the active For You tab in server-rendered HTML.
 
 The suite performs read-only requests. It does not publish reviews, mutate analytics, or create synthetic users.
+
+Canonical measurements do not follow redirects. Setup checks the guest `/` →
+`/home` and legacy `/feed?view=for-you` → `/?view=for-you` redirects separately,
+tagged `compatibility` and excluded from surface latency thresholds. A failed
+compatibility check stops setup. The track check requires a heading and its
+MusicRecording JSON-LD, so a successful generic error page cannot count as music.
+Page bodies are retained for these content checks; HTTP completion is still not
+browser paint, hydration, or interaction latency.
 
 ## Install k6
 
@@ -77,7 +85,7 @@ The cookie and generated reports remain under ignored `tmp/`. Never copy either 
 Override discovery when a known canonical track should be measured:
 
 ```powershell
-$env:K6_TRACK_PATH = "/tracks/sea-swallow-me/known-short-id"
+$env:K6_TRACK_PATH = "/tracks/sea-swallow-me-cocteau-twins-806fa97db9d4"
 ```
 
 ## Search And Database Isolation
@@ -143,6 +151,21 @@ Remove-Item Env:K6_AUTH_COOKIE
 ```
 
 Without the variable, the authenticated scenario is omitted instead of measuring the login redirect as a successful feed response.
+
+### Verify the measurement contract locally
+
+With k6 installed, run:
+
+```bash
+node apps/web/tests/load/verify-load-scenarios.mjs
+```
+
+`K6_EXECUTABLE` may point to a k6 binary outside `PATH`. This starts a loopback
+HTTP fixture and runs the actual smoke suite against it with a fixture-only
+cookie. It accepts the expected HTML and rejects wrong landing/feed/track
+content, an expired-session redirect, and a non-permanent legacy feed redirect.
+It performs no database or production requests, validates no real authentication,
+and establishes no application latency or capacity baseline.
 
 ## Thresholds
 

@@ -1,7 +1,8 @@
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import type { DiscoveryTrack } from "@/lib/types/discovery";
 import type { SearchEntityType, SearchScope, SearchSource } from "@/lib/search-types";
-import { fetchJson, isRetryableFetchJsonError } from "@/queries/http";
+import { fetchJson, fetchJsonResponse, isRetryableFetchJsonError } from "@/queries/http";
+import { readSearchReadiness } from "@/lib/search/client-readiness";
 
 export type DeezerSearchResult = {
   provider: "deezer";
@@ -96,15 +97,22 @@ export function kocteauTrackSearchQueryOptions(
     queryKey: trackKeys.kocteauSearch(type, query, source),
     refetchOnWindowFocus: false,
     queryFn: async ({ signal }) => {
-      const payload = await fetchJson<KocteauSearchResult[]>(
+      const response = await fetchJsonResponse<KocteauSearchResult[]>(
         `/api/search?${params.toString()}`,
         { signal },
       );
 
-      return Array.isArray(payload) ? payload : [];
+      return {
+        results: Array.isArray(response.data) ? response.data : [],
+        readiness: readSearchReadiness(response.headers),
+      };
     },
-    staleTime: 60_000,
+    staleTime: (query) => query.state.data?.readiness.status === "fresh" ? 60_000 : 0,
+    // A degraded 200 retains usable results, but must not silently retry on remount/reconnect.
+    refetchOnMount: (query) => query.state.data?.readiness.status === "fresh",
+    refetchOnReconnect: (query) => query.state.data?.readiness.status === "fresh",
     gcTime: 10 * 60_000,
     retry: false,
+    retryOnMount: false,
   });
 }
