@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { getArtistPageByRouteId } from "@/lib/queries/artists";
 import { buildEntityCanonicalPath, isSeoRouteId, preserveCanonicalQuery } from "@/lib/seo-routes";
 
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: {
       id: row.id, provider: row.provider, provider_id: row.provider_id,
       type: "artist", title: row.name,
     }), Object.fromEntries(request.nextUrl.searchParams));
-    return NextResponse.redirect(new URL(target, request.url), 308);
+    return new Response(null, { status: 308, headers: { Location: target } });
   } catch {
     return new Response("This page is temporarily unavailable. Reload to retry.", {
       status: 503,

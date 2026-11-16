@@ -63,7 +63,7 @@ jobs:
         continue-on-error: true
         env:
           KOCTEAU_BASE_URL: https://kocteau.com
-          KOCTEAU_REVIEW_PATH: /reviews/sea-swallow-me-cocteau-twins-f81673e3557c
+          KOCTEAU_REVIEW_PATH: /reviews/f81673e3557c/sea-swallow-me-cocteau-twins
           KOCTEAU_JOURNEY_SAMPLES: '2'
         run: |
           export KOCTEAU_PLAYWRIGHT_MODULE="$RUNNER_TEMP/kocteau-browser/node_modules/playwright"

@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { getEntityPageByRouteId } from "@/lib/queries/entities";
 import { buildEntityCanonicalPath, isSeoRouteId, preserveCanonicalQuery } from "@/lib/seo-routes";
 
@@ -20,14 +20,20 @@ export async function GET(
     return notFoundResponse();
   }
 
-  const entity = await getEntityPageByRouteId(id);
+  try {
+    const entity = await getEntityPageByRouteId(id);
 
-  if (!entity) {
-    return notFoundResponse();
+    if (!entity) {
+      return notFoundResponse();
+    }
+
+    const target = preserveCanonicalQuery(buildEntityCanonicalPath(entity),
+      Object.fromEntries(request.nextUrl.searchParams));
+    return new Response(null, { status: 308, headers: { Location: target } });
+  } catch {
+    return new Response("This page is temporarily unavailable. Reload to retry.", {
+      status: 503,
+      headers: { "Cache-Control": "no-store", "Retry-After": "3" },
+    });
   }
-
-  const redirectUrl = request.nextUrl.clone();
-  const target = preserveCanonicalQuery(buildEntityCanonicalPath(entity),
-    Object.fromEntries(redirectUrl.searchParams));
-  return NextResponse.redirect(new URL(target, redirectUrl), 308);
 }

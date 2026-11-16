@@ -6,14 +6,25 @@ reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS
 
 ## Active Work
 
-Local work on `refactor/canonical-urls` unifies music/review URLs around
+Local work on `refactor/architecture-foundations` unifies music/review URLs around
 `/{type}/{slug}-{id}`, retaining old links and the separate shared Search routes.
 Parallel local stages cover performance targets, Starter invalidation, account
 cache isolation and artist identity. The [stage plan](./.plan/architecture-simplification.md)
-owns scope and rollout gates. MMR remains an independent offline experiment.
+owns scope and rollout gates. Independent experiments are on
+`test/discovery-ranking-evaluation` (MMR) and `perf/search-ranked-retrieval`
+(ordered local retrieval). Both have code and tests, and remain outside the
+combined branch. The retrieval candidate improves synthetic exact-match coverage
+but costs more SQL work; MMR quality is not yet judged by listeners.
 No branch publication, production deployment or cloud migration has occurred.
-Verification results are pending the combined handoff; do not treat local source
-or standalone tests as integrated delivery.
+The combined branch passes 289 unit tests, workspace lint, docs/link checks and
+the production build/typecheck with isolated placeholder reads.
+Account-cache fixtures pass nine scenarios in both Chromium and WebKit. The
+isolated production-mode WebKit matrix passes 74 records across guest/simulated
+session and mobile/desktop cohorts, including redirects, canonical/sitemap,
+comments/editor, Back and failure/recovery. Known forced React 419 observations
+remain recorded; no fix or production latency improvement is claimed.
+The [stage plan](./.plan/architecture-simplification.md) records the verification
+boundaries and remaining release gates.
 
 The approved Search delivery [PR #303](https://github.com/francozeta/kocteau/pull/303)
 is integrated in main at `0ae1a72`; landing entrance #304 follows at `37138e7`.
@@ -44,7 +55,7 @@ documents bounded anonymous production navigation. It correlates sampled browser
 and public HTTP phases; existing production sampling remains 1%.
 [Its record](./.plan/journey-tracing.md) owns the original tracing evidence.
 
-216 unit tests and lint pass for the recovery candidate. The native matrix passes
+Historical recovery-candidate evidence: 216 unit tests and lint passed. The native matrix passes
 60 recorded checks, including 20 failure/retry cases across the declared cohorts. A bounded twelve-journey
 guest WebKit run against production provides a controlled navigation baseline.
 It does not establish production-wide P95, authenticated production coverage,

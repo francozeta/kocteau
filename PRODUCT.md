@@ -195,7 +195,7 @@ These actions are product features and recommendation signals.
 
 Track route:
 
-- `/tracks/[slugAndId]`; the legacy `/track/[id]` redirects.
+- `/tracks/{slug}-{id}`; former split slug/ID and `/track/{id}` links redirect.
 
 Shows:
 

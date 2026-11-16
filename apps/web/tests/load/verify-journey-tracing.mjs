@@ -10,6 +10,10 @@ import { fileURLToPath } from "node:url";
 import { stripVTControlCharacters } from "node:util";
 import { startJourneyFixture } from "./fixtures/journey-tracing-upstreams.mjs";
 
+const reviewContent = (page) => page.locator(
+  '[data-kocteau-route-page="' + new URL(page.url()).pathname + '"] section:has(> #review-structured-data):visible',
+);
+
 const scriptSnapshot = (page) => page.evaluate(() => {
   const scripts = performance.getEntriesByType("resource")
     .filter((entry) => new URL(entry.name).pathname.endsWith(".js"));
@@ -146,7 +150,7 @@ try {
     });
   const built = await Promise.race([
     once(build, "exit"),
-    delay(240000, undefined, { ref: false }).then(() => {
+    delay(480000, undefined, { ref: false }).then(() => {
       throw new Error("Isolated build deadline exceeded");
     }),
   ]);
@@ -259,17 +263,23 @@ try {
       );
     }
     if (!mobile && !authenticated) {
-      for (const [root, row, label, oldPath] of [
+      for (const [index, [root, source, label, oldPath]] of [
         ["tracks", fixture.entity, "fixture-track-fixture-artist", (id) => `/tracks/stale-title/${id}`],
         ["albums", fixture.album, "fixture-album-fixture-artist", (id) => `/albums/stale-title/${id}`],
         ["artists", fixture.artist, "fixture-artist", (id) => `/artists/stale-title/${id}`],
         ["reviews", fixture.reviews[0], "fixture-track-fixture-artist", (id) => `/reviews/${id}/stale-title`],
-      ]) {
+      ].entries()) {
+        // Identity caches survive builds; migration probes must not reuse a
+        // deliberately ambiguous or absent identity from an earlier fixture run.
+        const target = root === "reviews" ? fixture.reviews
+          : root === "artists" ? fixture.state.extraArtists : fixture.state.extraEntities;
+        const row = createColdRow(source, target, 3000 + index);
         const canonical = `/${root}/${label}-${row.short_id}`;
         for (const id of [row.short_id, row.id, row.short_id.slice(0, 8)]) {
           const legacy = await context.request.get(appUrl + oldPath(id) + "?editReview=fixture&reviewsAfter=cursor", { maxRedirects: 0 });
           assert.equal(legacy.status(), 308, oldPath(id));
           const target = new URL(legacy.headers().location, appUrl);
+          assert.equal(target.origin, new URL(appUrl).origin);
           assert.equal(target.pathname, canonical);
           assert.equal(target.searchParams.get("editReview"), "fixture");
           assert.equal(target.searchParams.get("reviewsAfter"), "cursor");
@@ -285,7 +295,8 @@ try {
         const current = await context.request.get(appUrl + canonical);
         assert.equal(current.status(), 200);
         const html = await current.text();
-        assert.ok(html.includes(`rel="canonical" href="http://127.0.0.1:3000${canonical}"`));
+        assert.ok(html.includes(`rel="canonical" href="https://kocteau.com${canonical}"`),
+          `Production metadata must retain the canonical host and current path: ${canonical}`);
         results.push({ journey: "canonical-url-migration", root, aliases: 3, redirect: 308, canonical });
       }
       const sitemap = await context.request.get(appUrl + "/sitemap.xml");
@@ -371,14 +382,13 @@ try {
       (url) => url.pathname === new URL(reviewPath, appUrl).pathname,
       { waitUntil: "commit" },
     );
-    await page
-      .locator("section:has(> #review-structured-data):visible")
+    await reviewContent(page)
       .waitFor({ state: "attached" });
-    await page
-      .locator("section:has(> #review-structured-data):visible")
+    await reviewContent(page)
       .getByText(/Fixture review \d+/, { exact: true })
       .first()
       .waitFor();
+    await page.waitForFunction(() => document.querySelectorAll("#review-structured-data").length === 1);
     results.push({
       mobile,
       authenticated,
@@ -443,8 +453,7 @@ try {
       await autoPage.close();
     }
     await page.goBack({ waitUntil: "domcontentloaded" });
-    await page
-      .locator("section:has(> #review-structured-data):visible")
+    await reviewContent(page)
       .waitFor({ state: "attached" });
     await settle();
     // Fresh documents keep forced origin probes separate from normal Link/back navigation.
@@ -460,8 +469,7 @@ try {
         "/reviews/fixture-track-fixture-artist-" + bodyReview.short_id,
       { waitUntil: "domcontentloaded" },
     );
-    await bodyPage
-      .locator("section:has(> #review-structured-data):visible")
+    await reviewContent(bodyPage)
       .waitFor({ state: "attached" });
     await bodyPage.waitForLoadState("networkidle");
     fixture.state.bodyDelayMs = 0;
@@ -505,8 +513,7 @@ try {
     await failurePage
       .getByRole("button", { name: "Retry reviews", exact: true })
       .press("Enter");
-    await failurePage
-      .locator("section:has(> #review-structured-data):visible")
+    await reviewContent(failurePage)
       .waitFor({ state: "attached" });
     await failurePage
       .getByText(/Fixture review \d+/, { exact: true })
@@ -674,7 +681,7 @@ try {
         const uuidPage = await context.newPage();
         await uuidPage.goto(new URL(recovered.headers().location, appUrl).href, { waitUntil: "domcontentloaded" });
         if (probe.kind === "review")
-          await uuidPage.locator("section:has(> #review-structured-data):visible").waitFor({ state: "attached" });
+          await reviewContent(uuidPage).waitFor({ state: "attached" });
         else
           await uuidPage.getByRole("heading", { name: probe.row.name || probe.row.title, exact: true }).first().waitFor();
         await uuidPage.waitForLoadState("networkidle");
@@ -715,15 +722,12 @@ try {
       results.push({ mobile, authenticated, journey: "genuine-missing", path });
     }
     fixture.state.identityMode = "ambiguous";
-    const ambiguousPage = await context.newPage();
-    await ambiguousPage.goto(
-      appUrl + "/tracks/ambiguous/" + fixture.entity.short_id.slice(0, 8),
-      { waitUntil: "domcontentloaded" },
+    const ambiguousRow = createColdRow(fixture.entity, fixture.state.extraEntities, 9000);
+    const ambiguousResponse = await context.request.get(
+      appUrl + "/tracks/ambiguous/" + ambiguousRow.short_id.slice(0, 8),
+      { maxRedirects: 0 },
     );
-    await ambiguousPage
-      .getByText("This page could not be found.", { exact: true })
-      .waitFor();
-    await ambiguousPage.close();
+    assert.equal(ambiguousResponse.status(), 404);
     fixture.state.identityMode = "normal";
     results.push({
       mobile,

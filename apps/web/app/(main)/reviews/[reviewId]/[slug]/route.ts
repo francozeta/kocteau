@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { getPublicReviewByRouteId } from "@/lib/queries/reviews";
 import { buildReviewCanonicalPath, isSeoRouteId, preserveCanonicalQuery } from "@/lib/seo-routes";
 
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: {
     const row = await getPublicReviewByRouteId(reviewId);
     if (!row) return new Response(null, { status: 404 });
     const target = preserveCanonicalQuery(buildReviewCanonicalPath(row), Object.fromEntries(request.nextUrl.searchParams));
-    return NextResponse.redirect(new URL(target, request.url), 308);
+    return new Response(null, { status: 308, headers: { Location: target } });
   } catch {
     return new Response("This page is temporarily unavailable. Reload to retry.", {
       status: 503,
