@@ -7,6 +7,7 @@ const paths = new Set([
   "/rest/v1/entities", "/rest/v1/artists", "/rest/v1/starter_tracks",
   "/rest/v1/entity_preference_tags", "/rest/v1/reviews",
   "/rest/v1/rpc/get_entity_review_summary",
+  "/rest/v1/rpc/search_local_entities", "/rest/v1/rpc/search_local_artists", "/rest/v1/rpc/search_local_starter_tracks",
   "/provider/search", "/provider/search/artist", "/provider/search/album", "/provider/artist/1041/top",
 ]);
 const row = {
@@ -71,6 +72,7 @@ createServer((req, res) => {
     const table = url.pathname.split("/").at(-1);
     let result = [];
     if (table === "entities" && url.searchParams.get("type") !== "eq.album") result = [row];
+    if (table === "search_local_entities" && url.searchParams.get("p_type") === "track") result = [row];
     if (table === "get_entity_review_summary") result = [{ review_count: 0, average_rating: null }];
     const single = String(req.headers.accept || "").includes("application/vnd.pgrst.object");
     res.end(JSON.stringify(single ? result[0] || null : result));

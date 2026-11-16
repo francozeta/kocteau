@@ -19,6 +19,14 @@
   `/api/search` accepts `source=local|remote|all` (default `all` retains the
   combined response). The hook requests local and remote phases in parallel;
   available matches stay visible and selectable while the other phase loads.
+- Local catalog retrieval uses separate anonymous ranked SQL functions for each
+  title/artist branch. Exact and prefix matches precede substring matches before
+  each existing eighteen-row cap; final grouping/ranking remains TypeScript.
+  Branches retain independent failures and the shared three-second fill budget.
+  Deploy the reviewed `ranked_local_catalog_search` migration before this code;
+  missing functions fail visibly rather than issuing a legacy-query fallback.
+  [Local evidence and rollout gates](../../../../.plan/search-ranked-retrieval.md)
+  distinguish coverage from sorting cost.
 - Phase responses retain ranking metadata and all candidates; the client applies
   the same grouping, quotas, identity merging, and Kocteau boost as the combined API.
   Client query data also retains the per-source readiness headers. Stale/degraded

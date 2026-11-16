@@ -75,10 +75,6 @@ const localSearchLimit = 18;
 const deezerSearchLimit = 18;
 const artistMatchLimit = 12;
 
-function toIlikePattern(query: string) {
-  return `%${query.replace(/[\\%_]/g, "\\$&")}%`;
-}
-
 function dedupeByProviderId<T extends { provider_id: string }>(rows: T[]) {
   const byProviderId = new Map<string, T>();
 
@@ -255,25 +251,17 @@ function mapSearchResponse(result: ReturnType<typeof rankKocteauTrackSearchResul
 
 async function getLocalEntityCandidates(query: string, type: "track" | "album", signal: AbortSignal) {
   const supabase = supabasePublic();
-  const pattern = toIlikePattern(query);
-  const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url, release_date, record_type, disambiguation, first_release_date, genres";
 
   const [titleResult, artistResult] = await Promise.all([
     supabase
-      .from("entities")
-      .select(baseSelect)
-      .eq("provider", "deezer")
-      .eq("type", type)
-      .ilike("title", pattern)
-      .limit(localSearchLimit)
+      .rpc("search_local_entities", {
+        p_query: query, p_type: type, p_field: "title", p_limit: localSearchLimit,
+      }, { get: true })
       .abortSignal(signal),
     supabase
-      .from("entities")
-      .select(baseSelect)
-      .eq("provider", "deezer")
-      .eq("type", type)
-      .ilike("artist_name", pattern)
-      .limit(localSearchLimit)
+      .rpc("search_local_entities", {
+        p_query: query, p_type: type, p_field: "artist_name", p_limit: localSearchLimit,
+      }, { get: true })
       .abortSignal(signal),
   ]);
 
@@ -295,13 +283,8 @@ async function getLocalEntityCandidates(query: string, type: "track" | "album", 
 
 async function getLocalArtistCandidates(query: string, signal: AbortSignal) {
   const supabase = supabasePublic();
-  const pattern = toIlikePattern(query);
   const { data, error } = await supabase
-    .from("artists")
-    .select("id, provider, provider_id, name, image_url, deezer_url, artist_type, country_code, disambiguation, genres")
-    .eq("provider", "deezer")
-    .ilike("name", pattern)
-    .limit(localSearchLimit)
+    .rpc("search_local_artists", { p_query: query, p_limit: localSearchLimit }, { get: true })
     .abortSignal(signal);
 
   if (error) {
@@ -314,29 +297,17 @@ async function getLocalArtistCandidates(query: string, signal: AbortSignal) {
 
 async function getStarterTrackCandidates(query: string, signal: AbortSignal) {
   const supabase = supabasePublic();
-  const pattern = toIlikePattern(query);
-  const baseSelect = "id, provider, provider_id, type, title, artist_name, cover_url, deezer_url";
 
   const [titleResult, artistResult] = await Promise.all([
     supabase
-      .from("starter_tracks")
-      .select(baseSelect)
-      .eq("provider", "deezer")
-      .eq("type", "track")
-      .eq("is_active", true)
-      .ilike("title", pattern)
-      .order("sort_order", { ascending: true })
-      .limit(localSearchLimit)
+      .rpc("search_local_starter_tracks", {
+        p_query: query, p_field: "title", p_limit: localSearchLimit,
+      }, { get: true })
       .abortSignal(signal),
     supabase
-      .from("starter_tracks")
-      .select(baseSelect)
-      .eq("provider", "deezer")
-      .eq("type", "track")
-      .eq("is_active", true)
-      .ilike("artist_name", pattern)
-      .order("sort_order", { ascending: true })
-      .limit(localSearchLimit)
+      .rpc("search_local_starter_tracks", {
+        p_query: query, p_field: "artist_name", p_limit: localSearchLimit,
+      }, { get: true })
       .abortSignal(signal),
   ]);
 
@@ -491,7 +462,7 @@ async function loadLocalCandidates(query: string, type: SearchScope, signal: Abo
 // the key. Review mutations invalidate entities; the TTL bounds artist/starter staleness.
 const getLocalCandidates = createPublicLookup(
   (signal, query: string, type: SearchScope) => loadLocalCandidates(query, type, signal),
-  ["public-catalog-search-v2"],
+  ["public-catalog-search-v3"],
   { tags: ["entities", "artists", "starter-tracks"] },
 );
 

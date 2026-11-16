@@ -80,7 +80,7 @@ const row = {
 function matched(input: RequestInfo | URL) {
   const url = new URL(String(input));
   calls.push(url);
-  const rows = url.pathname.endsWith("/entities") && url.searchParams.get("type") === "eq.track" ? [row] : [];
+  const rows = url.pathname.endsWith("/search_local_entities") && url.searchParams.get("p_type") === "track" ? [row] : [];
   return Response.json(rows);
 }
 
@@ -97,6 +97,57 @@ test("16 simultaneous casing variants share seven reads and preserve the same en
     assert.equal(result.results[0]?.entity_id, row.id);
     assert.equal(result.readiness.local, "fresh");
   }
+});
+
+test("ranked local RPCs retain branch boundaries and pass literal query text", async (t) => {
+  const q = "50%_\\東京";
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => matched(input));
+  await catalog.searchCatalog(q, "all", "local");
+  assert.equal(calls.length, 7);
+  const entities = calls.filter((url) => url.pathname.endsWith("/search_local_entities"));
+  assert.deepEqual(entities.map((url) => [url.searchParams.get("p_type"), url.searchParams.get("p_field")]).sort(), [
+    ["album", "artist_name"], ["album", "title"], ["track", "artist_name"], ["track", "title"],
+  ]);
+  for (const url of calls) {
+    assert.equal(url.searchParams.get("p_query"), q);
+    assert.equal(url.searchParams.get("p_limit"), "18");
+    assert.ok(url.pathname.startsWith("/rest/v1/rpc/search_local_"));
+  }
+});
+
+test("a failed artist branch preserves title matches without persisting degraded candidates", async (t) => {
+  cacheEnabled = true;
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith("/search_local_entities") && url.searchParams.get("p_field") === "artist_name") {
+      calls.push(url);
+      return new Response("unavailable", { status: 503 });
+    }
+    return matched(input);
+  });
+  const partial = await catalog.searchCatalog("partial-branch-case", "track", "local");
+  assert.equal(partial.results[0]?.entity_id, row.id);
+  assert.equal(partial.readiness.local, "degraded");
+  assert.equal(calls.length, 4);
+  await catalog.searchCatalog("partial-branch-case", "track", "local");
+  assert.equal(calls.length, 4, "cooldown must not turn a partial failure into a new burst");
+  await new Promise((resolve) => setTimeout(resolve, 1_020));
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => matched(input));
+  const recovered = await catalog.searchCatalog("partial-branch-case", "track", "local");
+  assert.equal(recovered.readiness.local, "fresh");
+  assert.equal(recovered.results[0]?.entity_id, row.id);
+  assert.equal(calls.length, 8, "recovery retries only the bounded local fill");
+});
+
+test("a missing ranked RPC fails once per branch without a legacy query fallback", async (t) => {
+  t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    calls.push(new URL(String(input)));
+    return Response.json({ code: "PGRST202", message: "Function is not deployed" }, { status: 404 });
+  });
+  const response = await searchRoute.GET(new Request("https://kocteau.test/api/search?q=missing-rpc-case&source=local"));
+  assert.equal(response.status, 502);
+  assert.equal(calls.length, 7);
+  assert.ok(calls.every((url) => url.pathname.startsWith("/rest/v1/rpc/search_local_")));
 });
 
 test("the actual public client makes one attempt on 503 instead of SDK retries", async (t) => {
