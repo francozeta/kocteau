@@ -87,8 +87,6 @@ export function NavUser({
 
   async function logout() {
     await supabase.auth.signOut();
-    router.replace("/login");
-    router.refresh();
   }
 
   return (

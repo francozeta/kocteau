@@ -108,7 +108,7 @@ export default async function AppShell({
   );
 
   return (
-    <ReactQueryProvider>
+    <ReactQueryProvider accountId={userId}>
       <SidebarProvider
         defaultOpen={true}
         className="bg-[var(--kocteau-canvas)]"

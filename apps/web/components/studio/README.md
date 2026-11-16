@@ -14,6 +14,11 @@ proposals leave saved/manual choices intact; publication uses the normal save
 boundary. Queue, evidence, and budget rules live in
 [catalog research](../../../../docs/knowledge-layer.md).
 
+Saving or archiving a Starter track immediately expires the shared
+`starter-tracks` data tag used by public picks and local Search. Both `/home`
+and the authenticated root are revalidated; failed mutations leave the valid
+catalog cache intact.
+
 ## Check
 
 Run tests, lint, and the web build. Follow [Studio rollout checks](../../../../docs/operations.md#studio-research-rollout)
