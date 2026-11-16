@@ -13,6 +13,10 @@ Former split slug/ID routes retain permanent redirects to the current canonical;
 review pagination and editing parameters survive. Search seed routes keep their
 existing discovery context. See the [migration gates](../../../../.plan/architecture-simplification.md).
 
+The exact former `/track` directory redirects permanently to `/reviews`; provider
+resolvers under `/track/deezer/*` and ID aliases stay separate. Sitemap, public
+manifest and structured breadcrumbs advertise current canonical music pages.
+
 ## Preserve
 
 Use `(provider, provider_id, type)` for provider identity and Kocteau IDs for

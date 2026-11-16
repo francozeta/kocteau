@@ -165,11 +165,6 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: new URL("/track", metadataBase).toString(),
-      changeFrequency: "daily",
-      priority: 0.7,
-    },
-    {
       url: new URL("/curators", metadataBase).toString(),
       changeFrequency: "monthly",
       priority: 0.5,
@@ -257,8 +252,8 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 }
 
-// Retire persisted entries that advertised the former split slug/ID URLs.
-const getCachedSitemap = unstable_cache(buildSitemap, ["public-sitemap-v3"], {
+// Retire persisted entries that advertised the removed /track index.
+const getCachedSitemap = unstable_cache(buildSitemap, ["public-sitemap-v4"], {
   revalidate: 60 * 60,
 });
 

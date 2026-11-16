@@ -12,13 +12,29 @@ if (base.protocol !== "https:" || !["kocteau.com", "www.kocteau.com"].includes(b
 const cases = [
   { path: "/robots.txt", mime: "text/plain", test: (s) => s.includes("OAI-SearchBot") && s.includes("ChatGPT-User") && s.includes("Sitemap:") },
   { path: "/sitemap.xml", mime: "xml", test: (s) => s.includes("<urlset") && s.includes("<loc>") && s.includes("https://kocteau.com/") },
-  { path: "/", mime: "text/html", test: (s) => /<html/i.test(s) && s.includes("Kocteau") },
+  {
+    path: "/",
+    statuses: [200, 307],
+    test: (s, response) =>
+      response.status === 200
+        ? response.headers.get("content-type")?.includes("text/html") && /<html/i.test(s) && s.includes("Kocteau")
+        : new URL(response.headers.get("location") || "/", base).pathname === "/home",
+  },
   { path: "/reviews", mime: "text/html", test: (s) => /<html/i.test(s) && /music reviews/i.test(s) },
-  { path: "/track", mime: "text/html", test: (s) => /<html/i.test(s) && /track/i.test(s) },
+  {
+    // Production may still serve the previous index while a PR is under review.
+    // Require the new exact 308 separately on the isolated app and preview.
+    path: "/track",
+    statuses: [200, 308],
+    test: (s, response) =>
+      response.status === 308
+        ? new URL(response.headers.get("location") || "/", base).pathname === "/reviews"
+        : response.headers.get("content-type")?.includes("text/html") && /<html/i.test(s) && /track/i.test(s),
+  },
 ];
 
 let failures = 0;
-for (const { path, mime, test } of cases) {
+for (const { path, mime, statuses, test } of cases) {
   const started = performance.now();
   try {
     const response = await fetch(new URL(path, base), {
@@ -53,7 +69,7 @@ for (const { path, mime, test } of cases) {
     }
     const completedAt = performance.now();
     const content = Buffer.concat(chunks).toString("utf8");
-    const ok = response.status === 200 && contentType.includes(mime) && test(content);
+    const ok = (statuses ?? [200]).includes(response.status) && (!mime || contentType.includes(mime)) && test(content, response);
     console.log(JSON.stringify({
       path, status: response.status, mime: contentType.split(";")[0],
       decodedBytes: total,
