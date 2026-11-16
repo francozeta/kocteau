@@ -1,7 +1,8 @@
 # Ranked local Search branches
 
-Baseline: main `37138e7`. This branch is an independent local candidate, not a
-production rollout or a demonstrated latency optimization. The earlier array
+Initial audited baseline: main `37138e7`; the candidate is rebased on local
+`refactor/architecture-foundations`. It remains independent, not a production
+rollout or a demonstrated latency optimization. The earlier array
 experiment lives in `.plan/search-retrieval-evaluation.md` on its own branch.
 
 ## Change
