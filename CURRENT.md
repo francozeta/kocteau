@@ -1,6 +1,6 @@
 # Current Project State
 
-Last checked: 2026-11-16. Local URL and reliability stages are in progress alongside
+Last checked: 2026-11-16. Local URL and reliability stages are ready for review alongside
 reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
