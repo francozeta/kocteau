@@ -1,7 +1,8 @@
 # Canonical URLs and discovery reliability
 
-Baseline: main `37138e7`. Local implementation only; no push, merge, production
-deployment or cloud database migration is part of this work.
+Baseline: main `37138e7`. PR publication and preview testing are authorized.
+Main merges, production deployment and commercial database migrations remain
+outside this delivery stage.
 
 ## Stages
 
@@ -53,7 +54,8 @@ remain explicit in the handoff. MMR has no product import or runtime toggle.
 
 Combined local branch: `refactor/architecture-foundations`. Implementation
 commits retain separate URL, performance, identity, cache, readiness and SQL
-stages. `main` remains at the audited baseline; these commits are not published.
+stages. `main` remains at the audited baseline. GitHub/Vercel own PR and preview status;
+a successful local check is not evidence that a deployment is ready.
 
 - Web unit suite: 289 passing tests, run serially to avoid shared-runner timer
   contention. Workspace lint, documentation/link checks and the production

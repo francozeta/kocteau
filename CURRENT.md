@@ -1,12 +1,12 @@
 # Current Project State
 
-Last checked: 2026-11-16. Local URL and reliability stages are ready for review alongside
+Last checked: 2026-11-16. URL and reliability stages are moving into PR/preview review alongside
 reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS.md), [Product](./PRODUCT.md),
 [Design](./DESIGN.md), [architecture](./docs/core-architecture.md).
 
 ## Active Work
 
-Local work on `refactor/architecture-foundations` unifies music/review URLs around
+Work on `refactor/architecture-foundations` unifies music/review URLs around
 `/{type}/{slug}-{id}`, retaining old links and the separate shared Search routes.
 Parallel local stages cover performance targets, Starter invalidation, account
 cache isolation and artist identity. The [stage plan](./.plan/architecture-simplification.md)
@@ -15,7 +15,8 @@ owns scope and rollout gates. Independent experiments are on
 (ordered local retrieval). Both have code and tests, and remain outside the
 combined branch. The retrieval candidate improves synthetic exact-match coverage
 but costs more SQL work; MMR quality is not yet judged by listeners.
-No branch publication, production deployment or cloud migration has occurred.
+Branch publication and preview checks are the current delivery stage. No main
+merge, production deployment or commercial database migration is authorized.
 The combined branch passes 289 unit tests, workspace lint, docs/link checks and
 the production build/typecheck with isolated placeholder reads.
 Account-cache fixtures pass nine scenarios in both Chromium and WebKit. The
