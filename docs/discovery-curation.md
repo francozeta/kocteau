@@ -7,6 +7,11 @@ diversity. Starter picks provide curated entry points during sparse activity.
 Search expands catalog candidates with a deterministic evaluator and bounded
 browser-local memory. These are separate surfaces with separate baselines.
 
+Starter taste contributions are aggregated per pick before collection membership
+is considered. Belonging to several collections must not multiply a listener's
+tag match; the published-collection bonus applies once, and unpublished
+memberships do not affect public ranking or metadata.
+
 The curator controls editorial publication. Catalog metadata is evidence;
 accepted signals and actual listener behavior support discovery. Source collection
 and proposal rules live in [Catalog research](./knowledge-layer.md).
