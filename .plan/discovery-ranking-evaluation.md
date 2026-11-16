@@ -2,14 +2,15 @@
 
 ## Boundary
 
-Independent offline experiment on `refactor/architecture-foundations`
-(initial audited baseline `main@37138e7`). No route, renderer, provider,
-database, listener memory or product ranking is changed. The evaluator lives under
-`apps/web/tests/discovery/ranking-evaluation`; only the runner/tests import it.
-No new dependencies or runtime service are introduced. This is a reproducible
-experiment, not an adopted recommendation algorithm.
+Independent experiment on `refactor/architecture-foundations`
+(initial audited baseline `main@37138e7`), with an offline runner and an opt-in
+private preview lab. Default Search, For You, their renderers, provider behavior,
+database and listener memory are unchanged. The pure experimental kernel lives
+in `apps/web/lib/discovery/mmr.ts`; only the private lab and evaluation tests
+import it. No new dependencies or runtime service are introduced. This is a
+reproducible experiment, not an adopted recommendation algorithm.
 
-The corpus is deliberately synthetic and frozen: balanced candidates,
+The offline corpus is deliberately synthetic and frozen: balanced candidates,
 familiar/revisited tracks, homonymous artists and aliases, repeated artwork,
 missing metadata and a sparse pool. IDs use the existing `DiscoverySeed`
 provider/artist fields. Fixtures are not fabricated reviews, listeners, provider
@@ -22,6 +23,7 @@ from the repository root:
 
 ```sh
 pnpm exec tsx --test apps/web/tests/discovery/ranking-evaluation/mmr.test.ts
+pnpm exec tsx --tsconfig apps/web/tsconfig.json --test apps/web/lib/discovery/lab-access.test.ts apps/web/lib/discovery/lab-snapshot.test.ts
 pnpm exec tsx apps/web/tests/discovery/ranking-evaluation/run.ts
 pnpm exec tsx apps/web/tests/discovery/ranking-evaluation/run.ts --blind
 ```
@@ -34,6 +36,52 @@ memory make selections replayable. Memory fixtures use the actual
 when the experiment is rebased onto the stable-artist-identity correction.
 Re-run on the same commit before comparing
 runtime samples; its `current` baseline imports the actual canvas evaluator.
+
+## Private preview feedback
+
+`/studio/discovery-lab` is available only when `VERCEL_ENV=preview`, or in local
+development with `?local=1` and no Vercel deployment environment. A production
+deployment cannot be opted in by query. The page lives outside the shared
+Studio route-group layout so the environment gate executes before auth or shell
+reads, then requires a signed-in user and the existing Starter curator role.
+It forces dynamic rendering, declares `noindex`, has no public navigation link
+and is absent from the sitemap.
+
+The curator submits a public `/api/search` query and selects an actual track.
+The lab fetches one `/api/discovery/map?lane=full` pool using the chosen seed and
+bounded variation (0–15). It copies and freezes that public response with one
+clock, seed, rank variation, empty memory and missing album/tag features. All
+three labelled panels consume the same input: current ranking, relevance-only
+control, and MMR at 0.7 or 0.4. Changing lambda reuses the captured pool. The
+live redundancy term uses artist identity only; it makes no audio similarity or
+quality claim. Real titles, artists and artwork support listener feedback.
+
+Degraded/stale search, partial or empty pools, errors, cancellation and explicit
+retry remain visible. Aborted requests cannot replace a newer snapshot. Failed
+replacements retain the earlier snapshot and its own seed label. No Starter
+fallback, listener memory read/write, account persistence, feedback collection,
+new API or database operation is added. Existing source deadlines and public
+cache policy are reused without changes. JSON export contains the public
+snapshot, lambda and selected identities; it downloads locally for replay and
+feedback. The unchanged offline methods can consume its `input` without another
+catalog fetch. Ranking timing and quality claims still require separate evidence.
+
+This labelled exploratory comparison is not blinded evaluation. Before formal
+quality judgement, capture representative public snapshots, freeze the corpus
+and apply the quality decision gate below. Snapshot JSON carries a schema version
+but must also be associated with the reviewed Git commit when results are compared.
+
+The real client component is exercised against loopback public endpoint fixtures:
+
+```sh
+node apps/web/tests/load/verify-discovery-lab.mjs
+DISCOVERY_LAB_BROWSER=webkit node apps/web/tests/load/verify-discovery-lab.mjs
+```
+
+These commands require Playwright available to the environment (optionally via
+`KOCTEAU_PLAYWRIGHT_MODULE`); it is not a new project dependency. They do not
+authenticate or contact Supabase, Deezer or a deployed service. Access guards
+are tested separately; live curator login remains a preview acceptance check.
 
 ## Comparison
 
@@ -95,15 +143,22 @@ Adopt only after human relevance stays within the predeclared margin, listeners
 prefer useful diversity on the reviewed corpus, and measured runtime plus
 recovery/first-pool budgets do not regress. Before product wiring, also run
 existing candidate, memory, cancellation, partial-lane, no-Starter-fallback,
-seeded history/Back and renderer regressions. No UI change is part of this PoC.
+seeded history/Back and renderer regressions. The existing Search UI and approved
+motion are outside this PoC; the private lab does not wire MMR into them.
 
 ## Local verification
 
-Nine mechanical tests pass, including replay under reversed input, hard
+Nine kernel tests cover replay under reversed input, hard
 exclusions, identity fallback, artist quotas, empty pools and lambda boundaries.
 The normal runner produces 24 selections/timing rows across six synthetic
 cohorts and four variants; the blind runner produces six packet examples.
-Quality remains explicitly unevaluated. Focused ESLint, documentation generation
-(34 pages, 175 repository links), full web TypeScript checking after that
-generation, and whitespace checks pass. No browser, provider, database or
-production performance/quality claim is made by this offline experiment.
+Quality remains explicitly unevaluated. Six additional tests cover environment
+gates, actual page auth ordering/curator access, public snapshot copying,
+deterministic JSON replay and honest partial/empty pools. All 55 Discovery and
+evaluation tests pass. Focused ESLint, documentation generation (34 pages, 179
+repository links), Next route type generation, full web TypeScript checking and
+whitespace checks pass. The loopback Chromium and WebKit fixture verifies opt-in retrieval, the shared pool,
+lambda changes without refetch, degraded/partial status, JSON export, preserving
+the previous seed after failure, retry and cancellation. This verifies client
+mechanics; no provider, database, preview authentication or production
+performance/quality claim is made.

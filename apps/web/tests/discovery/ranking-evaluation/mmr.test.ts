@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CANVAS_LIMIT, seedKey, type DiscoveryCandidate } from "../../../lib/discovery/canvas.ts";
 import { rankingFixtures } from "./fixtures.ts";
-import { artistIdentity, rankMmr, redundancyEvidence, scoredCandidates, selectionProxies, type RankingFixture } from "./mmr.ts";
+import { artistIdentity, rankMmr, redundancyEvidence, scoredCandidates, selectionProxies, type RankingFixture } from "../../../lib/discovery/mmr.ts";
 
 const balanced = rankingFixtures[0];
 function track(id: string, artistId: string | null, score: number): DiscoveryCandidate {

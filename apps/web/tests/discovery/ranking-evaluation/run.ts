@@ -1,7 +1,7 @@
 import { performance } from "node:perf_hooks";
 import { rankDiscoveryCandidates, seedKey } from "../../../lib/discovery/canvas.ts";
 import { rankingFixtures } from "./fixtures.ts";
-import { rankMmr, selectionProxies, type RankingFixture } from "./mmr.ts";
+import { rankMmr, selectionProxies, type RankingFixture } from "../../../lib/discovery/mmr.ts";
 
 const variants = ["current", "relevance-only", "mmr-0.7", "mmr-0.4"] as const;
 type Variant = typeof variants[number];

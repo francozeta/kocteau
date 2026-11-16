@@ -5,8 +5,8 @@ import {
   seedKey,
   type DiscoveryCandidate,
   type DiscoveryVisit,
-} from "../../../lib/discovery/canvas.ts";
-import type { DiscoverySeed } from "../../../lib/discovery/seed.ts";
+} from "./canvas";
+import type { DiscoverySeed } from "./seed";
 
 export type CandidateFeatures = {
   albumId?: string;
@@ -108,7 +108,7 @@ export function scoredCandidates(fixture: RankingFixture) {
   }));
 }
 
-/** Offline experiment. No product route or renderer imports this module. */
+/** Experimental kernel: private preview lab and mechanical tests only. */
 export function rankMmr(
   fixture: RankingFixture,
   { lambda = 0.7, limit = 6 }: { lambda?: number; limit?: number } = {},

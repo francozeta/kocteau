@@ -1,6 +1,6 @@
 import { recordDiscoveryVisit, seedKey, type DiscoveryCandidate } from "../../../lib/discovery/canvas.ts";
 import type { DiscoverySeed } from "../../../lib/discovery/seed.ts";
-import type { RankingFixture } from "./mmr.ts";
+import type { RankingFixture } from "../../../lib/discovery/mmr.ts";
 
 const now = 1_800_000_000_000;
 const lanes: DiscoveryCandidate["lane"][] = ["nearby", "left-field", "deep-cut", "serendipity"];
