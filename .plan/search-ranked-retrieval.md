@@ -37,7 +37,7 @@ add tokenization, transliteration, new indexes, dependencies or a service.
 - 26 pgTAP checks pass: exact matches after 18+ substrings, prefix and tie order,
   independent artist/type branches, caps, empty/overlong inputs, literal
   wildcards, Unicode, inactive Starter, grants and restrictive anon RLS.
-- 30 Search tests pass serialized (including 12 actual PostgREST-client HTTP
+- 37 Search tests pass serialized (including 12 actual PostgREST-client HTTP
   fixture checks): seven-call coalescing,
   no SDK retries, partial title success during artist failure, degraded cache
   recovery, missing-RPC failure, bounded stall, independent cancellation and
@@ -45,11 +45,45 @@ add tokenization, transliteration, new indexes, dependencies or a service.
   stalled-read assertion during full builds; the serialized rerun passed without
   changing application or test deadlines. TypeScript, focused lint, documentation
   generation and whitespace checks pass.
-- Function-only entries were added to database.types.ts from the reviewed SQL
-  signatures and checked by TypeScript against actual RPC calls. Full Supabase
-  CLI type generation is not claimed: the local database has no running pg-meta
-  service. Regenerate against a full isolated stack before integration and reject
-  unrelated generated-schema changes.
+- Real PostgREST 14.4 and 16.5 processes loaded the three functions in their schema
+  caches against PostgreSQL 17.11. Seven anonymous GET branches returned the
+  expected narrow columns (entities 13, artists 10, Starter 8), the eighteen-row cap and
+  ordered exact matches. Literal `%`, `_`, backslash and accented/non-Latin text
+  survived URL encoding and database matching; zero and overlong inputs remained
+  bounded. A temporary restrictive policy on one synthetic entity hid that row
+  through both the RPC and table API, then restoration made it visible again.
+- The real Next.js 16.3 Route Handler, public client and local Data API passed
+  successful seven-branch retrieval, three failed artist branches preserving a
+  degraded 200, cooldown without a second burst, and fresh recovery. Seven stalled
+  HTTP reads were cancelled within the existing budget (one local sample 3,042 ms,
+  degraded 502). Cancelling one HTTP caller preserved the shared seven-read fill
+  and successful result for another caller. These are contract checks, not latency
+  comparisons.
+- Chromium and WebKit, each in guest desktop and mobile viewports, passed the
+  existing Search UI against real local RPC reads: total local failure offers
+  Retry, retry retrieves all seven branches, selection opens the correct provider
+  entity, and Back restores the query. No page errors were observed. Provider
+  responses were isolated empty fixtures, not commercial search results. These
+  browser checks used PostgREST 16.5; the HTTP contract was repeated with 14.4.
+- Function entries now use the canonical public-schema output generated from the
+  authorized target through Supabase MCP. Existing graphql_public/storage blocks,
+  helper types and Constants are preserved; there is no unrelated public-schema
+  drift. SQL metadata omits nullable result columns, so the existing generator
+  normalizer also preserves the fifteen nullable string fields across these three
+  functions. Normalization is idempotent. The pinned CLI 2.109.1 `gen types
+  --db-url` requires the pg-meta container and failed against an unavailable local
+  Docker socket; full local multi-schema CLI generation is not claimed.
+
+The Data API/browser checks use identified synthetic local rows and a loopback
+gateway; their rows and temporary policy are removed afterward. The gateway
+forwards real database reads as anon and supplies empty provider responses while
+blocking external fetches. Next runs in development mode with webpack, so this
+does not establish production framework-cache or runtime behavior. It does not
+verify Supabase gateway JWT handling, authenticated requests, target PostgREST
+configuration or commercial data.
+Local PostgreSQL uses the C locale: ASCII case folding preserves `björk` against
+`Björk`, while `BJÖRK` does not match. This is inherited ILIKE behavior, not new
+Unicode normalization. Matching parity must be checked against the target locale.
 
 Run SQL tests against a disposable local stack with current migrations:
 
@@ -93,10 +127,15 @@ latency, capacity or listener preference.
 
 ## Rollout gate
 
+The authorized target preparation applied only the three additive functions as
+`20261116192307_ranked_local_catalog_search`. Invoker/grants/RLS/ROWS metadata
+were checked, the preceding Starter RPC definition remained unchanged, and
+canonical public types were regenerated. The migration file retains the exact
+reviewed SQL under the target's recorded version. This does not deploy the app.
+
 Keep this branch separate from URL/cache foundations. Before integration:
-regenerate types with the full local Supabase tooling, verify actual Data API GET
-RPC exposure/schema cache and grants, run browser Search recovery with this DB,
-and compare first-selectable result/timeouts under the same runtime/region and
+verify target Data API GET RPC exposure/schema cache and grants, and compare
+first-selectable result/timeouts under the same runtime/region and
 representative query distribution. Measure 2-character, miss, popular, selective
 and multilingual cases; do not infer end-to-end latency from SQL alone.
 
