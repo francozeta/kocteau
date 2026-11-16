@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createCanvasFrame,
+  candidatesFromGroups,
   evaluateCandidate,
   expandCanvasFrame,
   focusCanvasNode,
@@ -204,6 +205,67 @@ test("opening an artist changes ranking without requiring reviews or penalizing 
         context: { memory, now },
       }),
   );
+});
+
+test("artist IDs distinguish homonyms and retain familiarity through renamed labels", () => {
+  const artist = { ...seed(45, "Shared label"), type: "artist" as const };
+  const memory = recordDiscoveryVisit([], artist, now);
+  assert.equal(memory[0].artist, "deezer:artist:45");
+  const known = candidate(2, "Renamed artist");
+  known.seed.artist_provider_id = "45";
+  const homonym = candidate(3, "Shared label");
+  homonym.seed.artist_provider_id = "99";
+  const score = (item: DiscoveryCandidate, visits = memory) => evaluateCandidate({
+    seed: seed(1),
+    candidate: item,
+    context: { memory: visits, now },
+  });
+  assert(score(known) > score(known, []));
+  assert.equal(score(homonym), score(homonym, []));
+
+  const sameArtist = [2, 3, 4].map((id) => {
+    const item = candidate(id, `Artist alias ${id}`);
+    item.seed.artist_provider_id = "45";
+    return item;
+  });
+  const distinctHomonym = candidate(5, "Artist alias 2");
+  distinctHomonym.seed.artist_provider_id = "99";
+  const ranked = rankDiscoveryCandidates(seed(1), [...sameArtist, distinctHomonym], [], now);
+  assert.equal(ranked.filter((item) => item.seed.artist_provider_id === "45").length, 2);
+  assert(ranked.some((item) => item.seed.artist_provider_id === "99"));
+});
+
+test("group conversion preserves provider artist identity", () => {
+  const candidates = candidatesFromGroups([{
+    id: "nearby",
+    label: "Nearby",
+    shortLabel: "Nearby",
+    description: "Fixture",
+    recommendations: [{
+      id: "track-2", provider: "deezer", provider_id: "2", type: "track",
+      title: "Song", artist_name: "Artist", artist_provider_id: "45",
+      cover_url: "https://example.com/2.jpg", deezer_url: null,
+      href: "/track/deezer/2", source: "deezer-related", sourceLabel: "Nearby",
+      reason: "Fixture", score: 50,
+    }],
+  }]);
+  assert.equal(candidates[0].seed.artist_provider_id, "45");
+});
+
+test("legacy memory preserves visits with explicit name fallback while v2 retains IDs", () => {
+  const legacy = [{ key: seedKey(seed(2)), artist: "  Familiar  ", count: 2, lastOpened: now }];
+  const migrated = readDiscoveryMemory(JSON.stringify(legacy), now);
+  assert.deepEqual(migrated, [{ ...legacy[0], artist: "name:familiar" }]);
+  const known = candidate(3, "Familiar");
+  known.seed.artist_provider_id = "45";
+  assert.equal(
+    evaluateCandidate({ seed: seed(1), candidate: known, context: { memory: migrated, now } }),
+    evaluateCandidate({ seed: seed(1), candidate: known, context: { memory: [], now } }),
+    "A legacy name must not be guessed to identify an artist with a known ID",
+  );
+  const persisted = recordDiscoveryVisit(migrated, known.seed, now);
+  assert.deepEqual(readDiscoveryMemory(JSON.stringify({ version: 2, visits: persisted }), now), persisted);
+  assert.deepEqual(readDiscoveryMemory(JSON.stringify({ version: 3, visits: persisted }), now), []);
 });
 
 test("session and taste memory stay bounded", () => {

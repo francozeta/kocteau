@@ -1,3 +1,5 @@
+import { getArtistIdentity } from "./artist-identity";
+
 export type TrackRecommendationSource =
   | "local-signal"
   | "deezer-related"
@@ -10,6 +12,7 @@ export type TrackRecommendationCandidate = {
   type: "track";
   title: string;
   artist_name: string | null;
+  artist_provider_id?: string | null;
   cover_url: string | null;
   deezer_url: string | null;
   href: string;
@@ -133,7 +136,7 @@ export function mergeTrackRecommendationGroups(
 }
 
 function getArtistKey(candidate: TrackRecommendationCandidate) {
-  return candidate.artist_name?.trim().toLowerCase() || "unknown";
+  return getArtistIdentity(candidate.artist_provider_id, candidate.artist_name) || "unknown";
 }
 
 function getStableExplorationBonus(

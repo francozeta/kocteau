@@ -8,7 +8,6 @@ import {
   expandCanvasFrame,
   focusCanvasNode,
   recordDiscoveryVisit,
-  seedKey,
   type CanvasSession,
   type DiscoveryVisit,
 } from "@/lib/discovery/canvas";
@@ -21,6 +20,7 @@ import {
 } from "@/lib/discovery/memory";
 import { getDiscoverySeedPath, type DiscoverySeed } from "@/lib/discovery/seed";
 import { frameVariation } from "@/lib/discovery/variation";
+import { discoveryCandidateRequest } from "@/lib/discovery/candidate-request";
 import { matchDiscoverySessionToPath } from "@/lib/discovery/navigation";
 import {
   mergeTrackRecommendationGroups,
@@ -28,23 +28,10 @@ import {
 } from "@/lib/recommendations/track-recommendation-ranking";
 
 async function fetchCandidates(
-  seed: DiscoverySeed,
-  lane: "fast" | "deep",
-  variation: number,
+  url: string,
   signal: AbortSignal,
 ) {
-  const params = new URLSearchParams({
-    providerId: seed.provider_id,
-    seedType: seed.type,
-    title: seed.title,
-    lane,
-    variation: String(variation),
-  });
-  if (seed.artist_name) params.set("artistName", seed.artist_name);
-  if (seed.artist_provider_id)
-    params.set("artistProviderId", seed.artist_provider_id);
-  if (seed.entityId) params.set("entityId", seed.entityId);
-  const response = await fetch(`/api/discovery/map?${params}`, { signal });
+  const response = await fetch(url, { signal });
   if (!response.ok) throw new Error("Could not expand this branch.");
   return (await response.json()) as { groups: TrackRecommendationGroup[] };
 }
@@ -160,7 +147,7 @@ export function useDiscoveryCanvas(
   useEffect(() => {
     if (!ready) return;
     try {
-      localStorage.setItem(memoryKey, JSON.stringify(memory));
+      localStorage.setItem(memoryKey, JSON.stringify({ version: 2, visits: memory }));
     } catch {
       /* Continue in memory when browser storage is full or disabled. */
     }
@@ -174,18 +161,13 @@ export function useDiscoveryCanvas(
     const errors: string[] = [];
     const lanes = ["fast", "deep"] as const;
     const variation = frameVariation(frameId);
-    const keys = lanes.map((lane) => [
-      "discovery-candidates-v2",
-      seedKey(focus),
-      variation,
-      lane,
-    ]);
+    const requests = lanes.map((lane) => discoveryCandidateRequest(focus, lane, variation));
     lanes.forEach((lane, index) => {
       void queryClient
         .fetchQuery({
-          queryKey: keys[index],
+          queryKey: requests[index].queryKey,
           queryFn: ({ signal }) =>
-            fetchCandidates(focus, lane, variation, signal),
+            fetchCandidates(requests[index].url, signal),
           staleTime: (lane === "fast" ? 5 : 10) * 60 * 1000,
           gcTime: 15 * 60 * 1000,
           // A retry restarts the entire provider fan-out and deadline. Keep
@@ -227,7 +209,7 @@ export function useDiscoveryCanvas(
     });
     return () => {
       active = false;
-      keys.forEach((queryKey) => {
+      requests.forEach(({ queryKey }) => {
         void queryClient.cancelQueries({ queryKey, exact: true });
       });
     };

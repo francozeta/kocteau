@@ -1,6 +1,7 @@
 import { discoveryUnit } from "./variation";
 import type { DiscoverySeed } from "./seed";
 import type { TrackRecommendationGroup } from "../recommendations/track-recommendation-ranking";
+import { getArtistIdentity } from "../recommendations/artist-identity";
 
 export const CANVAS_LIMIT = 30;
 export const PATH_LIMIT = 12;
@@ -40,10 +41,9 @@ export function seedKey(seed: DiscoverySeed) {
 }
 
 function artistKey(seed: DiscoverySeed) {
-  return (
-    (seed.type === "artist" ? seed.title : seed.artist_name)
-      ?.trim()
-      .toLowerCase() ?? ""
+  return getArtistIdentity(
+    seed.type === "artist" ? seed.provider_id : seed.artist_provider_id,
+    seed.type === "artist" ? seed.title : seed.artist_name,
   );
 }
 
@@ -122,7 +122,7 @@ export function candidatesFromGroups(
         type: track.type,
         title: track.title,
         artist_name: track.artist_name,
-        artist_provider_id: null,
+        artist_provider_id: track.artist_provider_id ?? null,
         cover_url: track.cover_url,
       },
       lane: group.id,

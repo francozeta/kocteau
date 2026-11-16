@@ -98,6 +98,8 @@ test("different songs by the same artist open their own neighborhood and bounded
   assert.notDeepEqual(ids(a), ids(b));
   assert.notDeepEqual(ids(a)?.toSorted(), ids(b)?.toSorted());
   assert.equal(a?.seedProviderId, "1");
+  assert.ok(a?.groups.flatMap((group) => group.recommendations).every((item) =>
+    item.artist_provider_id && item.artist_name === `Artist ${item.artist_provider_id}`));
   assert.equal(b?.seedProviderId, "2");
   assert.equal(calls.filter((call) => call.startsWith("top:")).length, 8);
   assert.ok(

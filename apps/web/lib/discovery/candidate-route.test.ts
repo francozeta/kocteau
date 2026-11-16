@@ -8,7 +8,7 @@ test.afterEach(() => {
 });
 const request = (query = "") =>
   new Request(
-    `http://localhost/api/discovery/map?providerId=123&title=Client+title&artistName=Client+artist&lane=fast${query}`,
+    `http://localhost/api/discovery/map?providerId=123&lane=fast${query}`,
   );
 
 test("discovery uses canonical track identity and returns only its public candidate pool", async () => {
@@ -41,12 +41,15 @@ test("discovery uses canonical track identity and returns only its public candid
     }
     throw new Error(`Unexpected catalog call: ${url}`);
   }) as typeof fetch;
-  const response = await GET(request("&variation=7"));
+  const response = await GET(request("&variation=7&title=Client+title&artistName=Client+artist"));
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.seedProviderId, "123");
   assert.equal(body.variation, 7);
   assert.ok(body.groups.length > 0);
+  assert.ok(body.groups.flatMap((group: { recommendations: { artist_provider_id?: string }[] }) =>
+    group.recommendations).every((item: { artist_provider_id?: string }) =>
+    item.artist_provider_id === "45" || item.artist_provider_id === "80"));
   assert.match(JSON.stringify(body.groups), /Canonical artist/);
   assert.doesNotMatch(
     JSON.stringify(body),

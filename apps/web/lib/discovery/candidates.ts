@@ -64,6 +64,7 @@ function candidate(
     type: "track",
     title: track.title,
     artist_name: track.artist_name,
+    artist_provider_id: track.artist_id,
     cover_url: track.cover_url,
     deezer_url: track.deezer_url,
     href: `/track/deezer/${track.provider_id}`,
