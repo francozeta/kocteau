@@ -79,9 +79,11 @@ a successful local check is not evidence that a deployment is ready.
 
 Independent experiment branches remain outside the combined branch:
 
-- `test/discovery-ranking-evaluation`: nine tests and a frozen six-cohort runner,
-  with mechanical diversity/runtime measures separated from human quality.
-- `perf/search-ranked-retrieval`: 30 Search tests and 26 SQL checks. Exact matches
+- `test/discovery-ranking-evaluation`: 55 Discovery/MMR tests and a frozen
+  six-cohort runner, with mechanical diversity/runtime measures separated from
+  human quality. Its private preview lab compares one public snapshot across
+  Current, control and MMR, outside the default Search/For You flows.
+- `perf/search-ranked-retrieval`: 37 Search tests and 26 SQL checks. Exact matches
   survive the pre-ranking limit in the synthetic corpus, but ordered retrieval
   costs more SQL execution. Real local Data API/browser verification covers
   PostgREST 14.4/16.5 and Chromium/WebKit desktop/mobile. Target public types are
@@ -123,7 +125,33 @@ The pinned `pnpm supabase:db:push:dry` was attempted and failed because this
 workspace has no linked CLI target. It was not presented as a successful dry run:
 the tested local migration, remote read-only plan/schema checks and management
 apply/history checks supplied the delivery evidence instead. Public-schema types
-were generated from the target for the retrieval PR; the management generator
-does not return storage/graphql schemas. The pending Starter file was recreated
+were generated from the target and recorded in the base; the management generator
+does not return storage/graphql schemas, which were retained unchanged. The type
+normalizer preserves 15 actually nullable catalog result fields that SQL function
+metadata omits. The pending Starter file was recreated
 with the pinned CLI after the applied Search timestamp, preserving its SQL and
 avoiding an older pending migration. No remote history repair was performed.
+
+Draft [PR #310](https://github.com/francozeta/kocteau/pull/310) (MMR) and
+[PR #311](https://github.com/francozeta/kocteau/pull/311) (retrieval) target the base
+branch separately. Their previews are READY; Verify and Native navigation pass
+at `b21c2fe` and `d77313a`. The base passes both workflows at `8b807db`. PR
+descriptions own the current protected preview links and feedback steps.
+Main and the production deployment remain at `37138e7`.
+
+Live base Chromium checks pass on mobile/desktop with real public data:
+canonical track/review pages, exact HTTP 308 for former split paths, usable local
+Search and visible UI results, without page errors. Retrieval also passes the
+same live Chromium mobile/desktop checks and returns five local results for the
+representative query with fresh readiness. Its cache may legitimately report
+stale while returning usable public results; stale is not classified as failure.
+The MMR deployment redirects a guest to login with noindex and its public map
+returns a full 32-candidate/four-group pool with matching seed identity. A real
+curator session and listener assessment of musical quality remain pending.
+
+Before integration, reconcile the existing SEO work: #306 retires the exact
+`/track` index via 308 to `/reviews` and removes its sitemap/llms/breadcrumb
+entries. This is distinct from the preserved `/track/{id}` compatibility routes.
+#307 adds crawlable SSR discovery links and corrects the review breadcrumb,
+which currently ends at the entity; port those changes to the new compact pages,
+preserving the split-path compatibility handlers. Neither PR was merged here.

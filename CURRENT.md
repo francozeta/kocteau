@@ -8,15 +8,19 @@ reliability diagnosis and recoverable public reads. Contracts: [AGENTS](./AGENTS
 
 Work on `refactor/architecture-foundations` unifies music/review URLs around
 `/{type}/{slug}-{id}`, retaining old links and the separate shared Search routes.
-Parallel local stages cover performance targets, Starter invalidation, account
+The base also covers performance targets, Starter invalidation, account
 cache isolation and artist identity. The [stage plan](./.plan/architecture-simplification.md)
-owns scope and rollout gates. Independent experiments are on
-`test/discovery-ranking-evaluation` (MMR) and `perf/search-ranked-retrieval`
-(ordered local retrieval). Their new runtime consumers remain outside the
+owns scope and rollout gates. Independent experiments are in
+[PR #310](https://github.com/francozeta/kocteau/pull/310) (MMR preview lab) and
+[PR #311](https://github.com/francozeta/kocteau/pull/311) (ordered local retrieval),
+both stacked on #309. Their new runtime consumers remain outside the
 combined branch. The retrieval candidate improves synthetic exact-match coverage
 but costs more SQL work; MMR quality is not yet judged by listeners.
 The base [PR #309](https://github.com/francozeta/kocteau/pull/309) is in draft review;
-its preview is ready and Verify/Native navigation CI passed at `9f5bf41`.
+its preview is ready and Verify/Native navigation CI passed at `8b807db`.
+Both experiment previews are READY with the same workflows passing at
+`b21c2fe` (MMR) and `d77313a` (retrieval). Preview links and feedback steps are
+in each PR. The MMR lab requires a real curator session and remains experimental.
 The authorized shared database received only the three additive Search RPCs as
 `20261116192307_ranked_local_catalog_search`; anonymous reads, grants, RLS and
 remote history were checked. The existing Starter ranking function is unchanged;
@@ -30,6 +34,10 @@ comments/editor, Back and failure/recovery. Known forced React 419 observations
 remain recorded; no fix or production latency improvement is claimed.
 The [stage plan](./.plan/architecture-simplification.md) records the verification
 boundaries and remaining release gates.
+Live Chromium guest checks pass on mobile/desktop for both base and retrieval:
+real canonical pages, compatibility 308 and visible Search results, without page
+errors. Before integration, reconcile the `/track` index, SSR links and review
+breadcrumb with #306/#307; real curator acceptance of the MMR lab remains pending.
 
 The approved Search delivery [PR #303](https://github.com/francozeta/kocteau/pull/303)
 is integrated in main at `0ae1a72`; landing entrance #304 follows at `37138e7`.
