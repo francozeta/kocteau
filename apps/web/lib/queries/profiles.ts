@@ -93,7 +93,7 @@ function getActiveProfileAuthor(row: ActiveProfileRow) {
 export async function getPublicProfileByUsername(username: string) {
   return getOrCreateLoader(
     publicProfileLoaders,
-    ["public-profile", username],
+    ["public-profile-recovery-v2", username],
     () =>
       unstable_cache(
         async () =>
@@ -112,14 +112,16 @@ export async function getPublicProfileByUsername(username: string) {
                 logProfilesQueryError("getPublicProfileByUsername", error, {
                   username,
                 });
-                return null;
+                // A transport/read failure is not evidence that this username is missing.
+                // Throw inside unstable_cache so a transient fault cannot pin a false 404.
+                throw error;
               }
 
               return data;
             },
             { username },
           ),
-        ["public-profile", username],
+        ["public-profile-recovery-v2", username],
         {
           revalidate: 120,
           tags: ["profiles", `profile:${username}`],
@@ -131,7 +133,7 @@ export async function getPublicProfileByUsername(username: string) {
 export async function getReviewsForProfile(authorId: string): Promise<ProfileReviewBundle> {
   return getOrCreateLoader(
     profileReviewLoaders,
-    ["profile-reviews", authorId],
+    ["profile-reviews-recovery-v2", authorId],
     () =>
       unstable_cache(
         async () =>
@@ -152,6 +154,7 @@ export async function getReviewsForProfile(authorId: string): Promise<ProfileRev
                   .eq("author_id", authorId)
                   .order("is_pinned", { ascending: false })
                   .order("created_at", { ascending: false }),
+                { throwOnError: true },
               );
 
               const reviews = rawReviews.map((review) => ({
@@ -169,7 +172,7 @@ export async function getReviewsForProfile(authorId: string): Promise<ProfileRev
             },
             { authorId },
           ),
-        ["profile-reviews", authorId],
+        ["profile-reviews-recovery-v2", authorId],
         {
           revalidate: 60,
           tags: ["reviews", `profile:${authorId}:reviews`],
@@ -181,7 +184,7 @@ export async function getReviewsForProfile(authorId: string): Promise<ProfileRev
 export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfile[]> {
   return getOrCreateLoader(
     activeProfileLoaders,
-    ["recently-active-profiles", limit],
+    ["recently-active-profiles-recovery-v2", limit],
     () =>
       unstable_cache(
         async () =>
@@ -208,7 +211,8 @@ export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfil
                 logProfilesQueryError("getRecentlyActiveProfiles", error, {
                   limit,
                 });
-                return [] satisfies ActiveProfile[];
+                // Only the caller may substitute an optional empty rail, not cache it.
+                throw error;
               }
 
               const seen = new Set<string>();
@@ -249,13 +253,13 @@ export async function getRecentlyActiveProfiles(limit = 6): Promise<ActiveProfil
             },
             { limit },
           ),
-        ["recently-active-profiles", String(limit)],
+        ["recently-active-profiles-recovery-v2", String(limit)],
         {
           revalidate: 60,
           tags: ["profiles", "reviews", `recently-active-profiles:${limit}`],
         },
       ),
-  )();
+  )().catch(() => [] as ActiveProfile[]);
 }
 
 export async function getProfilePublicBundle(username: string) {

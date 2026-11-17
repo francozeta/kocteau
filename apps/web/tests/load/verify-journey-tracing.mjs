@@ -198,6 +198,41 @@ try {
     45000,
   );
   results.push(...await verifyHomeRuntimeRecovery(fixture, appUrl));
+
+  // Regression #242: a temporary public profile read failure must not be
+  // cached as an absent account, and the same username must recover.
+  fixture.state.fail = true;
+  fixture.state.failTable = "profiles";
+  fixture.state.headerDelayMs = 80;
+  try {
+    const unavailable = await fetch(appUrl + "/u/fixture-listener", {
+      redirect: "manual",
+      signal: AbortSignal.timeout(15000),
+    });
+    const failedHtml = await unavailable.text();
+    assert.notEqual(unavailable.status, 404,
+      "A temporary profile Data API failure must not become a false 404");
+    assert.ok(!failedHtml.includes("This page could not be found."),
+      "Transient profile errors must never present a missing-profile message");
+    results.push({ journey: "public-profile-origin-failure", status: unavailable.status, false404: false });
+  } finally {
+    fixture.state.fail = false;
+    fixture.state.failTable = null;
+    fixture.state.headerDelayMs = 80;
+  }
+  const profileRecovery = await fetch(appUrl + "/u/fixture-listener", {
+    signal: AbortSignal.timeout(15000),
+  });
+  assert.equal(profileRecovery.status, 200,
+    "The same public profile must load immediately after the origin recovers");
+  assert.ok((await profileRecovery.text()).includes("Fixture listener"));
+  const trulyMissing = await fetch(appUrl + "/u/missinglistener", {
+    signal: AbortSignal.timeout(15000),
+  });
+  assert.equal(trulyMissing.status, 404,
+    "A genuinely missing public profile must still return 404");
+  results.push({ journey: "public-profile-recovery", status: 200, missingStatus: 404 });
+
   browser = await browserType.launch();
   const { createServerClient } = require("@supabase/ssr");
   let sessionCookies = [];
