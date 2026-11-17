@@ -120,6 +120,7 @@ export async function startJourneyFixture() {
   const state = {
     fail: false,
     failTable: null,
+    failRequest: null,
     failureStatus: 503,
     identityMode: "normal",
     extraEntities: [],
@@ -127,6 +128,8 @@ export async function startJourneyFixture() {
     headerDelayMs: 80,
     bodyDelayMs: 0,
     reads: 0,
+    readQueries: [],
+    starterTracks: [],
     viewerReads: 0,
     publicIdentityAuthViolations: 0,
     transactions: [],
@@ -154,6 +157,7 @@ export async function startJourneyFixture() {
     }
     const table = url.pathname.split("/").at(-1);
     state.reads++;
+    state.readQueries.push({ table, limit: url.searchParams.get("limit") });
     const isViewer = req.headers.authorization === "Bearer " + accessToken;
     if (isViewer) state.viewerReads++;
     const identityTable = ["reviews", "entities", "artists"].includes(
@@ -167,7 +171,8 @@ export async function startJourneyFixture() {
       state.publicIdentityAuthViolations++;
     const { fail, failureStatus, headerDelayMs, bodyDelayMs, identityMode } =
       state;
-    const selected = !state.failTable || state.failTable === table;
+    const selected = (!state.failTable || state.failTable === table) &&
+      (!state.failRequest || state.failRequest(url));
     const waitMs = fail && !selected ? 80 : headerDelayMs;
     if (waitMs) await delay(waitMs);
     if (fail && selected) {
@@ -189,7 +194,9 @@ export async function startJourneyFixture() {
             ? [artist, ...state.extraArtists]
             : table === "profiles"
               ? [profile]
-              : [];
+              : table === "starter_tracks"
+                ? state.starterTracks
+                : [];
     const short = url.searchParams.get("short_id"),
       id = url.searchParams.get("id");
     if (short) {
