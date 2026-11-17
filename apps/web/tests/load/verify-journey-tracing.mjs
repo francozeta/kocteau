@@ -395,6 +395,31 @@ try {
       assert.ok(manifest.includes("/tracks/{slug}-{id}"));
       results.push({ journey: "public-discovery-seo", retiredIndex: 308, target: "/reviews", existingServerLinks: true });
     }
+    if (authenticated && mobile) {
+      // An Auth 504 is not an anonymous session. The root must remain
+      // private, recoverable and uncached, then load the real Feed again
+      // without replacing or deleting the browser's session cookies.
+      fixture.state.authFailure = true;
+      try {
+        const unavailable = await context.request.get(appUrl + "/", {
+          maxRedirects: 0,
+          timeout: 15000,
+        });
+        assert.equal(unavailable.status(), 503,
+          "Temporary Auth outage must return 503, not marketing landing");
+        assert.match(unavailable.headers()["cache-control"] ?? "", /no-store/);
+        assert.match(unavailable.headers()["x-robots-tag"] ?? "", /noindex/);
+        assert.equal(unavailable.headers().location, undefined);
+        assert.equal(unavailable.headers()["set-cookie"], undefined,
+          "Auth outage must not clear or overwrite existing browser cookies");
+        const unavailableHtml = await unavailable.text();
+        assert.ok(unavailableHtml.includes("Kocteau is temporarily unavailable"));
+        assert.ok(!unavailableHtml.includes('data-kocteau-document-canvas="landing"'));
+        results.push({ journey: "authenticated-auth-504", status: 503, mobile: true });
+      } finally {
+        fixture.state.authFailure = false;
+      }
+    }
     const rootResponse = await context.request.get(appUrl + "/", { maxRedirects: 0 });
     assert.equal(rootResponse.status(), 200, "The root must not redirect for either session state");
     const rootHtml = await rootResponse.text();
