@@ -37,7 +37,8 @@ export const metadata = createPageMetadata({
   title: "Music reviews from real listeners",
   description:
     "Keep a record of what music leaves behind. Read track reviews, save listening notes, and discover music through people whose taste you trust.",
-  path: "/home",
+  // /home remains an accessible public alias; / is its preferred canonical.
+  path: "/",
 });
 
 async function HomePreviewStarterPicks({

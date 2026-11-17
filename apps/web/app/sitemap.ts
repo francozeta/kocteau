@@ -155,7 +155,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: new URL("/home", metadataBase).toString(),
+      url: new URL("/", metadataBase).toString(),
       changeFrequency: "hourly",
       priority: 1,
     },
@@ -252,8 +252,8 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 }
 
-// Retire persisted entries that advertised the removed /track index.
-const getCachedSitemap = unstable_cache(buildSitemap, ["public-sitemap-v4"], {
+// Change the persisted namespace to drop /home and advertise the canonical root.
+const getCachedSitemap = unstable_cache(buildSitemap, ["public-sitemap-v5"], {
   revalidate: 60 * 60,
 });
 

@@ -4,6 +4,7 @@ import type { EntityPage } from "./queries/entities";
 import type { ReviewPageReview } from "./queries/reviews";
 import {
   buildFeedPageJsonLd,
+  buildHomePageJsonLd,
   buildReviewPageJsonLd,
   buildReviewsPageJsonLd,
   buildTrackPageJsonLd,
@@ -59,7 +60,7 @@ describe("review collection structured data", () => {
     );
     assert.deepEqual(
       reviews.breadcrumb.itemListElement.map((crumb) => new URL(crumb.item).pathname),
-      ["/home", "/reviews"],
+      ["/", "/reviews"],
     );
   });
 });
@@ -109,7 +110,7 @@ describe("canonical page breadcrumbs", () => {
       assert.ok(page && "breadcrumb" in page);
       assert.deepEqual(
         page.breadcrumb.itemListElement.map((crumb) => new URL(crumb.item).pathname),
-        ["/home", "/reviews", "/reviews/white-ferrari-frank-ocean-88a81fc1173b"],
+        ["/", "/reviews", "/reviews/white-ferrari-frank-ocean-88a81fc1173b"],
       );
       assert.equal(page.breadcrumb.itemListElement.at(-1)?.name, expectedName);
     });
@@ -121,7 +122,17 @@ describe("canonical page breadcrumbs", () => {
     assert.ok(page?.breadcrumb);
     assert.deepEqual(
       page.breadcrumb.itemListElement.map((crumb) => new URL(crumb.item).pathname),
-      ["/home", "/tracks/white-ferrari-frank-ocean-e9cfe82b5a2b"],
+      ["/", "/tracks/white-ferrari-frank-ocean-e9cfe82b5a2b"],
     );
+  });
+});
+
+describe("canonical public landing identity", () => {
+  it("identifies the root as the public WebPage instead of the /home alias", () => {
+    const data = buildHomePageJsonLd();
+    const page = data["@graph"].find((node) => node["@type"] === "WebPage");
+    assert.equal(new URL(page?.url ?? "https://invalid.test").pathname, "/");
+    assert.equal(page?.["@id"], `${page?.url}#webpage`);
+    assert.ok(!JSON.stringify(data).includes("/home"));
   });
 });
