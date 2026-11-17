@@ -286,6 +286,38 @@ try {
     refresh_token: "isolated-refresh-token",
   });
   assert.equal(session.error, null);
+
+  // Auth provider outage is not an anonymous session. This exercises the
+  // actual Next.js Proxy with an HS256 JWT and a 504 from /auth/v1/user.
+  const existingSessionCookie = sessionCookies
+    .map(({ name, value }) => `${name}=${value}`)
+    .join("; ");
+  assert.ok(existingSessionCookie.includes("auth-token"),
+    "Fixture must provide real SSR auth cookies");
+  fixture.state.failAuthRequests = true;
+  try {
+    const unavailableAuth = await fetch(appUrl + "/", {
+      redirect: "manual",
+      headers: { Cookie: existingSessionCookie },
+      signal: AbortSignal.timeout(15000),
+    });
+    assert.equal(unavailableAuth.status, 503,
+      "Auth gateway 504 must not turn the private root into guest marketing");
+    assert.equal(unavailableAuth.headers.get("cache-control"), "private, no-store");
+    assert.equal(unavailableAuth.headers.get("retry-after"), "3");
+    assert.equal(unavailableAuth.headers.get("location"), null);
+    results.push({ journey: "auth-origin-outage", status: 503, fakeLogout: false });
+  } finally {
+    fixture.state.failAuthRequests = false;
+  }
+  const recoveredAuth = await fetch(appUrl + "/", {
+    headers: { Cookie: existingSessionCookie },
+    signal: AbortSignal.timeout(20000),
+  });
+  assert.equal(recoveredAuth.status, 200,
+    "The private Feed must recover when Auth returns without deleting cookies");
+  results.push({ journey: "auth-origin-recovered", status: 200 });
+
   for (const { mobile, authenticated } of [
     { mobile: true, authenticated: false },
     { mobile: false, authenticated: false },

@@ -121,6 +121,7 @@ export async function startJourneyFixture() {
     fail: false,
     failTable: null,
     failRequest: null,
+    failAuthRequests: false,
     failureStatus: 503,
     identityMode: "normal",
     extraEntities: [],
@@ -144,6 +145,13 @@ export async function startJourneyFixture() {
       return;
     }
     if (url.pathname === "/auth/v1/user") {
+      if (state.failAuthRequests) {
+        res.writeHead(504).end(JSON.stringify({
+          code: "gateway_timeout",
+          message: "Synthetic Auth gateway outage",
+        }));
+        return;
+      }
       if (req.headers.authorization === "Bearer " + accessToken)
         res.end(JSON.stringify(authUser));
       else
