@@ -6,6 +6,11 @@ import {
   parseSeoRouteSegment,
 } from "@/lib/seo-routes";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
+import {
+  applySessionRefreshHeaders,
+  classifySessionClaims,
+  copySessionCacheHeaders,
+} from "@/lib/auth/proxy-session-policy";
 
 function isMetadataRequest(pathname: string) {
   return (
@@ -150,10 +155,8 @@ async function publicRouteExists(lookup: PublicRouteLookup) {
 
   try {
     const response = await fetch(url, {
-      headers: {
-        apikey: publishableKey,
-        Authorization: `Bearer ${publishableKey}`,
-      },
+      // Opaque sb_publishable keys identify the app via apikey, not Bearer.
+      headers: { apikey: publishableKey },
       next: { revalidate: 300 },
     });
 
@@ -183,6 +186,7 @@ function copyResponseCookies(source: NextResponse, target: NextResponse) {
   source.cookies.getAll().forEach((cookie) => {
     target.cookies.set(cookie);
   });
+  copySessionCacheHeaders(source.headers, target.headers);
 }
 
 // Serve the same ISR-backed public landing at / without redirecting the browser.
@@ -252,13 +256,25 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
+  // One finite budget for JWKS, Auth and potential refresh HTTP calls.
+  // Do not allow an unavailable Auth service to silently sign users out.
+  const authDeadline = AbortSignal.timeout(5_000);
   const supabase = createServerClient(
     getSupabaseUrl(),
     getSupabasePublishableKey(),
     {
+      global: {
+        fetch: (input, init) =>
+          fetch(input, {
+            ...init,
+            signal: init?.signal
+              ? AbortSignal.any([init.signal, authDeadline])
+              : authDeadline,
+          }),
+      },
       cookies: {
         getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
+        setAll: (cookiesToSet, cacheHeaders) => {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
@@ -268,18 +284,51 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });
+          // @supabase/ssr >=0.10 sends these on refresh. Without them a
+          // shared CDN could cache Set-Cookie or a refreshed session.
+          applySessionRefreshHeaders(response.headers, cacheHeaders);
         },
       },
-    }
+    },
   );
 
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  let sessionState: "authenticated" | "anonymous" | "unavailable";
+  try {
+    const { data, error } = await supabase.auth.getClaims();
+    sessionState = classifySessionClaims(
+      Boolean(data?.claims?.sub),
+      error,
+    );
+  } catch {
+    sessionState = "unavailable";
+  }
+
+  if (sessionState === "unavailable") {
+    if (pathname === "/") {
+      const unavailable = new NextResponse(
+        "Authentication is temporarily unavailable. Please try again.",
+        {
+          status: 503,
+          headers: {
+            "Cache-Control": "private, no-store",
+            "Retry-After": "3",
+            "X-Robots-Tag": "noindex, nofollow",
+          },
+        },
+      );
+      copyResponseCookies(response, unavailable);
+      return unavailable;
+    }
+    // Public pages may continue, but never share a response tied to a
+    // cookie whose verification could not be completed.
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
 
   if (pathname === "/") {
-    if (claimsError || !claimsData?.claims?.sub) {
+    if (sessionState !== "authenticated") {
       return rewritePublicHome(request, response);
     }
-    // The authenticated Feed must never be cached on a shared edge.
     response.headers.set("Cache-Control", "private, no-store");
     response.headers.set("X-Robots-Tag", "noindex, follow");
   }
