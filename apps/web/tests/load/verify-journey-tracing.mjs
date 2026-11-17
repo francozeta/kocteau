@@ -240,20 +240,33 @@ try {
   // Streaming App Router pages can commit HTTP 200 before notFound() is
   // resolved. Verify the actual missing-page document, not only its status.
   const visibleMissingHtml = missingHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
-  assert.ok(
-    trulyMissing.status === 404 ||
-      (
-        trulyMissing.status === 200 &&
-        visibleMissingHtml.includes("This page could not be found.")
-      ),
-    "A genuinely absent public profile must display Not Found",
-  );
+  assert.ok([200, 404].includes(trulyMissing.status),
+    "A missing public profile must not become an origin error");
   assert.ok(!visibleMissingHtml.includes('id="profile-structured-data"'),
     "Missing profiles must not emit a profile's structured data");
   results.push({ journey: "public-profile-recovery", status: 200, missingStatus: trulyMissing.status });
   fixture.state.extraProfiles.length = 0;
 
   browser = await browserType.launch();
+  // The streamed 200 response may contain only the shell in initial HTML.
+  // Verify the actual hydrated not-found UI rather than requiring its copy
+  // in the raw server response, which Next.js does not guarantee.
+  const missingBrowserPage = await browser.newPage();
+  try {
+    await missingBrowserPage.goto(appUrl + "/u/missinglistener", {
+      waitUntil: "domcontentloaded",
+      timeout: 15000,
+    });
+    await missingBrowserPage.getByText("This page could not be found.", {
+      exact: false,
+    }).waitFor({ timeout: 10000 });
+    assert.ok(
+      !(await missingBrowserPage.locator("body").innerText()).includes("Fixture listener"),
+      "Missing profiles must not render the fixture listener content",
+    );
+  } finally {
+    await missingBrowserPage.close();
+  }
   const { createServerClient } = require("@supabase/ssr");
   let sessionCookies = [];
   const fixtureAuth = createServerClient(
