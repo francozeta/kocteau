@@ -13,7 +13,7 @@ export default function ProfileError({
     <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-3 px-6 py-20">
       <h1 className="text-lg font-medium">Profile temporarily unavailable</h1>
       <p className="text-sm text-muted-foreground">
-        We couldn't load this profile right now.
+        This profile could not be loaded right now.
       </p>
       <Button type="button" variant="outline" onClick={reset}>
         Retry profile
