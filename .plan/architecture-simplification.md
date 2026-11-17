@@ -1,9 +1,10 @@
 # Canonical URLs and discovery reliability
 
-Baseline: main `37138e7`. PR publication, preview testing and use of the shared
-database are authorized. Only the three additive Search RPCs were delivered;
-the existing Starter ranking replacement stays pending. Main merges and
-production deployment remain outside this delivery stage.
+Audit baseline: main `37138e7`. The staged work below is now integrated at
+`712435a` through #309/#311/#310. GitHub and Vercel changed after the recorded
+preview delivery; the current stage is compact-route SEO reconciliation in
+[the SEO plan](./compact-route-seo-alignment.md). No main merge or production
+deployment is part of the new SEO work.
 
 ## Stages
 
@@ -21,9 +22,10 @@ production deployment remain outside this delivery stage.
    explicit legacy-memory compatibility. Search preserves source readiness and
    explicit partial recovery. Starter taste aggregation is independent of the
    number of editorial collection memberships.
-4. Search retrieval and MMR evaluation remain separate experiments until their
-   result quality, SQL plans, failure behavior and runtime costs are reviewed.
-   No Rust, embeddings or additional service is introduced.
+4. Ordered Search retrieval is integrated; its quality/cost experiment remains
+   documented separately from speed claims. MMR remains confined to a private
+   preview lab, outside default Search/For You ranking. No Rust, embeddings or
+   additional service is introduced.
 
 ## URL rollout contract
 
@@ -49,13 +51,14 @@ coverage. Review any differences against open SEO PRs #306/#307 before integrati
 Schema delivery must follow the existing Supabase workflow. SQL tested on a
 disposable local instance is not a commercial migration; apply reviewed database
 changes before deploying code that requires them. Missing remote delivery must
-remain explicit in the handoff. MMR has no product import or runtime toggle.
+remain explicit in the handoff. MMR has no import in the default product flows;
+its lab is explicitly gated to preview and curator access.
 
 ## Verification record
 
 Combined local branch: `refactor/architecture-foundations`. Implementation
 commits retain separate URL, performance, identity, cache, readiness and SQL
-stages. `main` remains at the audited baseline. GitHub/Vercel own PR and preview status;
+stages. This section records the pre-integration checks. GitHub/Vercel own current status;
 a successful local check is not evidence that a deployment is ready.
 
 - Web unit suite: 289 passing tests, run serially to avoid shared-runner timer
@@ -77,7 +80,7 @@ a successful local check is not evidence that a deployment is ready.
   Verification used PostgreSQL 17.11 with minimal auth/storage prerequisites,
   not the full Supabase services. See [SQL record](./starter-collection-scoring.md).
 
-Independent experiment branches remain outside the combined branch:
+Originally independent experiment branches, later integrated through their PRs:
 
 - `test/discovery-ranking-evaluation`: 55 Discovery/MMR tests and a frozen
   six-cohort runner, with mechanical diversity/runtime measures separated from
@@ -87,8 +90,7 @@ Independent experiment branches remain outside the combined branch:
   survive the pre-ranking limit in the synthetic corpus, but ordered retrieval
   costs more SQL execution. Real local Data API/browser verification covers
   PostgREST 14.4/16.5 and Chromium/WebKit desktop/mobile. Target public types are
-  regenerated. Live preview verification remains required before adoption.
-  No speedup is claimed.
+  regenerated and live preview checks passed. No speedup is claimed.
 
 Public sitemap cache keys retire entries containing former canonical paths.
 The public citation manifest follows the same URL format. The optional production
@@ -98,13 +100,14 @@ rollout; it does not prove the new source was deployed.
 Raw reports remain ignored. Forced origin tests still observe the known React
 419 behavior; this does not establish its resolution. Simulated sessions do not
 verify commercial authentication/RLS, and headless engines do not establish
-physical iPhone/Safari behavior or real-user percentiles. The Starter replacement,
-remaining preview checks and reconciliation with #306/#307 remain release gates.
+physical iPhone/Safari behavior or real-user percentiles. At the preview handoff,
+the Starter replacement and SEO reconciliation were still release gates. The
+post-integration state below supersedes those pending-status statements.
 Do not infer recommendation quality from synthetic metrics.
 
 ## Shared database and preview delivery
 
-Draft [PR #309](https://github.com/francozeta/kocteau/pull/309) is the base for the
+At the preview handoff, draft [PR #309](https://github.com/francozeta/kocteau/pull/309) is the base for the
 two experiment PRs. Its first preview is READY at `9f5bf41`, and the Verify and
 Native navigation workflows passed for that commit. Protected HTTP inspection
 of `/home` returned the real public catalog and the production-host canonical.
@@ -119,7 +122,8 @@ confirmed STABLE/SECURITY INVOKER, empty search paths, ROWS 18, explicit
 anon/authenticated execution, no PUBLIC execution and bounded anonymous calls
 through all seven branches. Security advisories introduce no new finding for
 these functions. The existing Starter function definition hash is
-unchanged. No catalog, review, profile or editorial row was written.
+unchanged at that pre-integration check. No catalog, review, profile or editorial
+row was written by that Search migration.
 
 The pinned `pnpm supabase:db:push:dry` was attempted and failed because this
 workspace has no linked CLI target. It was not presented as a successful dry run:
@@ -132,12 +136,12 @@ metadata omits. The pending Starter file was recreated
 with the pinned CLI after the applied Search timestamp, preserving its SQL and
 avoiding an older pending migration. No remote history repair was performed.
 
-Draft [PR #310](https://github.com/francozeta/kocteau/pull/310) (MMR) and
+At the preview handoff, draft [PR #310](https://github.com/francozeta/kocteau/pull/310) (MMR) and
 [PR #311](https://github.com/francozeta/kocteau/pull/311) (retrieval) target the base
 branch separately. Their previews are READY; Verify and Native navigation pass
 at `b21c2fe` and `d77313a`. The base passes both workflows at `8b807db`. PR
 descriptions own the current protected preview links and feedback steps.
-Main and the production deployment remain at `37138e7`.
+Main and production were still at `37138e7` at that preview handoff.
 
 Live base Chromium checks pass on mobile/desktop with real public data:
 canonical track/review pages, exact HTTP 308 for former split paths, usable local
@@ -152,6 +156,29 @@ curator session and listener assessment of musical quality remain pending.
 Before integration, reconcile the existing SEO work: #306 retires the exact
 `/track` index via 308 to `/reviews` and removes its sitemap/llms/breadcrumb
 entries. This is distinct from the preserved `/track/{id}` compatibility routes.
-#307 adds crawlable SSR discovery links and corrects the review breadcrumb,
-which currently ends at the entity; port those changes to the new compact pages,
-preserving the split-path compatibility handlers. Neither PR was merged here.
+#307 proposes additional SSR discovery links and corrects the review breadcrumb.
+The current review page already emits canonical entity/author anchors in its
+server HTML, so a second visible navigation block would duplicate them. Preserve
+and verify those existing links; port only the breadcrumb and necessary route
+reference corrections, retaining split-path compatibility. Neither PR was merged here.
+
+
+## Post-integration verification
+
+GitHub now records #309, #311 and #310 merged in main at `712435a`; this was
+observed after the preview work above. The corresponding production deployment
+is READY. Bounded public Search returns 200 with five local results and fresh
+readiness. `/studio/discovery-lab` returns 404/noindex in production, preserving
+the preview-only lab boundary. No full authenticated production matrix is claimed.
+
+Remote history also now includes `20261116192407_starter_collection_taste_aggregation`.
+Read-only inspection confirms its stored function body matches the repository
+migration byte-for-byte and retains the return contract, STABLE volatility,
+SECURITY DEFINER context and empty search path. This later verification did not
+apply SQL or change history. The earlier pending-status text is historical.
+
+The minimal remaining SEO delta is implemented in
+[PR #312](https://github.com/francozeta/kocteau/pull/312) on this integrated code.
+#306/#307 remain open; their footer/editorial changes and duplicate navigation
+are outside this delta. Read-only production HTML inspection confirms the review
+already emits entity/author anchors, making the added navigation unnecessary.

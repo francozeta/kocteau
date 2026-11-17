@@ -1,7 +1,9 @@
 # Starter collection scoring
 
-Scope: local correction of [#256](https://github.com/francozeta/kocteau/issues/256).
-Baseline: `main@37138e7`. No cloud migration or product deployment is included.
+Scope: correction of [#256](https://github.com/francozeta/kocteau/issues/256).
+Original verification baseline: `main@37138e7`. After integration, read-only remote
+inspection confirmed migration `20261116192407` in history and an exact stored
+function-body match. The verification below describes the original local tests.
 
 ## Behavior
 
@@ -37,15 +39,17 @@ migrations followed by the new migration. The local harness supplied minimal
 the SQL tests. It did not run GoTrue, PostgREST, Realtime or the Docker-backed
 Supabase stack, and does not establish browser/auth-service behavior. No
 commercial Starter function was changed by these tests. The additive Search RPCs
-were delivered separately; this replacement is still unapplied. Its filename was
-created again with the pinned CLI after the delivered Search migration, preserving
+were delivered separately; this replacement was still unapplied at the preview
+handoff. It has since been observed in remote history and verified read-only.
+Its filename was created again with the pinned CLI after the delivered Search migration, preserving
 the SQL bytes and keeping the pending migration after remote history.
 
 For the standard local Supabase workflow, replay migrations on a disposable
 stack and run the database suite following [local development](../docs/setup/local-development.md)
-and [maintainer workflow](../docs/maintainers/supabase-workflow.md). Cloud delivery,
-remote history/advisors and regenerated target types remain separate delivery
-work. The SQL function's public TypeScript contract does not change.
+and [maintainer workflow](../docs/maintainers/supabase-workflow.md). The original
+local checks did not establish cloud delivery. Later remote history/body checks
+are recorded in [the architecture record](./architecture-simplification.md). The
+SQL function's public TypeScript contract does not change.
 
 Single-collection fixtures compare complete ordered responses for 36 cases:
 three caller states, nine surfaces, limits, context normalization and exclusions.

@@ -7,8 +7,12 @@ Link the coordinating issue and PR; neither a plan nor a checked box proves deli
 Promote durable decisions to their owning document and mark superseded plans historical.
 
 - [Canonical URLs and discovery reliability](./architecture-simplification.md):
-  staged local URL migration, cache/account isolation, signal identity and
-  independent ranking experiments. No production rollout is implied.
+  integrated URL migration, cache/account isolation, signal identity and
+  independent ranking evidence. GitHub/Vercel own deployed status.
+- [Compact-route SEO alignment](./compact-route-seo-alignment.md): retire the
+  exact `/track` index, correct compact-route breadcrumbs and verify existing
+  SSR detail links, preserving entity/provider compatibility. Delivery:
+  [PR #312](https://github.com/francozeta/kocteau/pull/312).
 
 [App audit and working context](./app-audit-continuity.md) records integrated defect
 corrections and the remaining verification work. Studio coordination continues in

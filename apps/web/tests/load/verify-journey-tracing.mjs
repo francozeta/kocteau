@@ -297,6 +297,13 @@ try {
         const html = await current.text();
         assert.ok(html.includes(`rel="canonical" href="https://kocteau.com${canonical}"`),
           `Production metadata must retain the canonical host and current path: ${canonical}`);
+        if (root === "reviews") {
+          const documentHtml = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+          assert.ok(new RegExp(`<a\\b[^>]*href="/tracks/fixture-track-fixture-artist-${fixture.entity.short_id}"`).test(documentHtml),
+            "Existing review card must link to canonical music in server HTML");
+          assert.ok(/<a\b[^>]*href="\/u\/fixture-listener"/.test(documentHtml),
+            "Existing review card must link to its public author in server HTML");
+        }
         results.push({ journey: "canonical-url-migration", root, aliases: 3, redirect: 308, canonical });
       }
       const sitemap = await context.request.get(appUrl + "/sitemap.xml");
@@ -304,6 +311,16 @@ try {
       const xml = await sitemap.text();
       assert.ok(xml.includes(`/tracks/fixture-track-fixture-artist-${fixture.entity.short_id}`));
       assert.ok(!/\/(?:tracks|albums|artists)\/[^<]+\/[0-9a-f]{12}</.test(xml));
+      assert.ok(!/<loc>[^<]*\/track<\/loc>/.test(xml), "Retired track index must not appear in sitemap");
+      const retired = await context.request.get(appUrl + "/track", { maxRedirects: 0 });
+      assert.equal(retired.status(), 308);
+      assert.equal(new URL(retired.headers().location, appUrl).pathname, "/reviews");
+      const llms = await context.request.get(appUrl + "/llms.txt");
+      assert.equal(llms.status(), 200);
+      const manifest = await llms.text();
+      assert.ok(!manifest.includes("/track —"));
+      assert.ok(manifest.includes("/tracks/{slug}-{id}"));
+      results.push({ journey: "public-discovery-seo", retiredIndex: 308, target: "/reviews", existingServerLinks: true });
     }
     const viewerReadsBefore = fixture.state.viewerReads;
     const page = await context.newPage();

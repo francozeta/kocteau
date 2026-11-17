@@ -13,6 +13,12 @@ twelve-character ID last. Former `/reviews/{id}/{slug}` and `/review/{id}` links
 resolve to the current canonical. Compatibility lookup and canonical redirects
 precede viewer-state reads; origin failures remain retryable.
 
+Existing review cards expose server-rendered anchors to canonical music and the
+public author profile. Preserve those links instead of adding duplicate
+continuation UI. The structured breadcrumb ends at the review's own canonical
+URL. Existing shell navigation supplies Search and reviews links without adding
+new catalog reads or visible page copy for SEO.
+
 ## Preserve
 
 Track identity, reviewer, rating, and take come before engagement. Rating-only

@@ -264,7 +264,7 @@ export function buildReviewsPageJsonLd(entries: FeedStructuredDataEntry[]) {
       "@id": `${absoluteUrl("/")}#website`,
     },
     breadcrumb: buildBreadcrumbList([
-      { name: "Kocteau", path: "/" },
+      { name: "Kocteau", path: "/home" },
       { name: "Reviews", path: "/reviews" },
     ]),
     mainEntity: {
@@ -337,8 +337,7 @@ export function buildTrackPageJsonLd({
           "@id": `${url}#recording`,
         },
         breadcrumb: buildBreadcrumbList([
-          { name: "Kocteau", path: "/" },
-          { name: "Tracks", path: "/track" },
+          { name: "Kocteau", path: "/home" },
           { name: entity.title, path: entityPath },
         ]),
       },
@@ -428,9 +427,12 @@ export function buildReviewPageJsonLd(review: ReviewPageReview) {
           "@id": `${url}#review`,
         },
         breadcrumb: buildBreadcrumbList([
-          { name: "Kocteau", path: "/" },
+          { name: "Kocteau", path: "/home" },
           { name: "Reviews", path: "/reviews" },
-          { name: entity.title, path: buildEntityCanonicalPath(entity) },
+          {
+            name: review.title?.trim() || `${entity.title} review`,
+            path: buildReviewCanonicalPath(review),
+          },
         ]),
       },
       buildReviewNode({
