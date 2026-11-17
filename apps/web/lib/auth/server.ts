@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
+import { classifyAuthClaims } from "@/lib/auth/claims-policy";
 import {
   isLegacyTasteOnboardedColumnError,
   VIEWER_CONTEXT_READ_BUDGET_MS,
@@ -60,9 +61,15 @@ export const getCurrentUserId = cache(async (): Promise<string | null> => {
 
   const supabase = await supabaseServer();
   const { data, error } = await supabase.auth.getClaims();
-  const subject = data?.claims?.sub;
+  const outcome = classifyAuthClaims(data?.claims?.sub, error);
 
-  return !error && typeof subject === "string" ? subject : null;
+  // An Auth 5xx / network failure is not proof of logout. Fail closed with a
+  // recoverable route error instead of redirecting to the marketing landing.
+  if (outcome === "unavailable") {
+    throw new Error("Authentication temporarily unavailable");
+  }
+
+  return outcome === "authenticated" ? data?.claims?.sub ?? null : null;
 });
 
 const getCurrentViewerContext = cache(async (): Promise<CurrentViewerContext | null> => {

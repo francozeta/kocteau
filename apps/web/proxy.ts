@@ -6,6 +6,7 @@ import {
   parseSeoRouteSegment,
 } from "@/lib/seo-routes";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/supabase/env";
+import { classifyAuthClaims } from "@/lib/auth/claims-policy";
 
 function isMetadataRequest(pathname: string) {
   return (
@@ -183,6 +184,29 @@ function copyResponseCookies(source: NextResponse, target: NextResponse) {
   source.cookies.getAll().forEach((cookie) => {
     target.cookies.set(cookie);
   });
+  // Supabase SSR may attach cache prevention to a refreshed token response.
+  // A rewritten response must carry that protection as well as its cookies.
+  for (const header of ["cache-control", "expires", "pragma"]) {
+    const value = source.headers.get(header);
+    if (value) target.headers.set(header, value);
+  }
+}
+
+function authUnavailableResponse() {
+  // If the origin is temporarily unavailable, never present an authenticated
+  // visitor as signed out or emit refreshed/expired cookies from a failed read.
+  return new NextResponse(
+    `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kocteau temporarily unavailable</title><body style="margin:0;background:#080808;color:#ededed;font:15px system-ui;display:grid;min-height:100svh;place-items:center"><main style="max-width:25rem;padding:1.5rem"><h1 style="font-size:1.2rem">Kocteau is temporarily unavailable</h1><p style="line-height:1.6;color:#aaa">We could not verify your session right now. Your account is still here.</p><a href="/" style="color:#ededed">Try again</a></main></body></html>`,
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "private, no-store",
+        "Retry-After": "5",
+        "X-Robots-Tag": "noindex, nofollow",
+      },
+    },
+  );
 }
 
 // Serve the same ISR-backed public landing at / without redirecting the browser.
@@ -258,7 +282,7 @@ export async function proxy(request: NextRequest) {
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
+        setAll: (cookiesToSet, authHeaders) => {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
@@ -268,15 +292,31 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });
+          // @supabase/ssr >= 0.12 supplies headers for refreshed tokens.
+          // Required to prevent a CDN from storing Set-Cookie HTML.
+          for (const [header, value] of Object.entries(authHeaders ?? {})) {
+            if (["cache-control", "expires", "pragma"].includes(header.toLowerCase())) {
+              response.headers.set(header, value);
+            }
+          }
         },
       },
     }
   );
 
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  let claimsOutcome: ReturnType<typeof classifyAuthClaims>;
+  try {
+    const { data, error } = await supabase.auth.getClaims();
+    claimsOutcome = classifyAuthClaims(data?.claims?.sub, error);
+  } catch {
+    claimsOutcome = "unavailable";
+  }
 
   if (pathname === "/") {
-    if (claimsError || !claimsData?.claims?.sub) {
+    if (claimsOutcome === "unavailable") {
+      return authUnavailableResponse();
+    }
+    if (claimsOutcome === "anonymous") {
       return rewritePublicHome(request, response);
     }
     // The authenticated Feed must never be cached on a shared edge.
