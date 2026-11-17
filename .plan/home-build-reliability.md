@@ -75,4 +75,5 @@ zero Home reads (one separate sitemap read). Its 80 WebKit checks pass, includin
 first-generation HTTP500 without a cached hit, healthy recovery with server HTML,
 MISS then HIT with effective 300-second ISR, and two rejected suffixes. TypeScript
 passes as part of the production build. Google indexing and latency improvements
-are not claimed. Cloud CI and preview evidence belong to the delivery PR.
+are not claimed. Draft [PR #313](https://github.com/francozeta/kocteau/pull/313) owns cloud CI,
+preview evidence and feedback steps.

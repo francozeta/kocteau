@@ -23,8 +23,8 @@ before data reads. Landing markup, motion, data policies and budgets are unchang
 The [Home reliability plan](./.plan/home-build-reliability.md) owns evidence,
 verification and the cold-first-request tradeoff. Its isolated production build
 passes with zero Home reads, and 80 WebKit checks cover cold failure/recovery,
-effective 300-second ISR via MISS/HIT, cached reuse and suffix 404 responses. Cloud CI/preview
-evidence will be recorded in the delivery PR.
+effective 300-second ISR via MISS/HIT, cached reuse and suffix 404 responses. Draft [PR #313](https://github.com/francozeta/kocteau/pull/313) owns Cloud CI,
+preview evidence and feedback for this stage.
 The underlying timeout before HTTP headers remains unattributed. This stage does
 not execute cloud SQL, merge main or deploy production.
 

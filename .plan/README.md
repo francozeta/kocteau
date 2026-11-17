@@ -8,7 +8,8 @@ Promote durable decisions to their owning document and mark superseded plans his
 
 - [Public Home build reliability](./home-build-reliability.md): isolate live
   landing reads from compilation while retaining on-demand ISR and the existing
-  public HTML, read budgets and failure policies.
+  public HTML, read budgets and failure policies. Delivery:
+  [PR #313](https://github.com/francozeta/kocteau/pull/313).
 
 - [Canonical URLs and discovery reliability](./architecture-simplification.md):
   integrated URL migration, cache/account isolation, signal identity and
