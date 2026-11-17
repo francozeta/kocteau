@@ -43,7 +43,7 @@ The recorded values are not a mandate to add more animation. When refining, adju
 
 Source entry points:
 
-- `apps/web/app/(home)/home/page.tsx`: server-rendered public page; `revalidate = 300`; starter/reviews fetch concurrently. Canonical metadata stays `/home`.
+- `apps/web/app/(home)/home/[[...path]]/page.tsx`: on-demand server-rendered public page; `revalidate = 300`; starter/reviews fetch concurrently. Only `/home` is accepted; suffixes return 404 before data reads. Canonical metadata stays `/home`.
 - `apps/web/components/landing/guest-header.tsx`: fixed guest header and its navigation reveal.
 - `apps/web/components/landing/guest-home.tsx`: H1 word spans, description/CTA groups and **height-reserved** product wrapper.
 - `apps/web/components/landing/guest-home-hero.module.css`: semantic entrance classes and one CSS-only motion timeline.

@@ -36,6 +36,10 @@ primitive layer.
 ## Routes And Data Flow
 
 `/` serves the authenticated For You feed. Without a valid session it redirects to the public landing at `/home`, which remains accessible and indexable for signed-in users too. `/feed` permanently redirects to `/` for compatibility.
+`/home` generates its public HTML on the first request and retains 300-second
+ISR. Its internal optional catch-all accepts only the bare `/home` URL, rejecting
+suffixes before origin reads. Builds do not fetch the landing's live reviews or
+Starter content; cold first requests still depend on their existing read policies.
 `/docs` renders selected repository Markdown as static, public contributor guides.
 `/search` is the discovery canvas. Canonical public music routes use
 `/tracks/{slug}-{id}`, `/albums/{slug}-{id}`, and `/artists/{slug}-{id}`;

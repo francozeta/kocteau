@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Viewport } from "next";
+import { notFound } from "next/navigation";
 import { circular, redaction } from "@/app/landing-fonts";
 import GuestHeader from "@/components/landing/guest-header";
 import GuestHome, {
@@ -22,6 +23,11 @@ import {
 } from "@/lib/structured-data";
 
 export const revalidate = 300;
+
+// The first /home request fills ISR without coupling builds to the public origin.
+export function generateStaticParams() {
+  return [];
+}
 
 export const viewport: Viewport = {
   themeColor: documentThemeColors.landing,
@@ -96,7 +102,13 @@ async function HomeRecentReviews({
   );
 }
 
-export default function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ path?: string[] }>;
+}) {
+  if ((await params).path?.length) notFound();
+
   const recentReviews = measureServerTask(
     "getPublicHomeReviews",
     () =>

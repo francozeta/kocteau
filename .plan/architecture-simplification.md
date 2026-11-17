@@ -1,10 +1,10 @@
 # Canonical URLs and discovery reliability
 
 Audit baseline: main `37138e7`. The staged work below is now integrated at
-`712435a` through #309/#311/#310. GitHub and Vercel changed after the recorded
-preview delivery; the current stage is compact-route SEO reconciliation in
-[the SEO plan](./compact-route-seo-alignment.md). No main merge or production
-deployment is part of the new SEO work.
+`712435a` through #309/#311/#310, followed by SEO #312 at `1c115b4`. The
+[SEO record](./compact-route-seo-alignment.md) owns that completed stage. Active
+Home build reliability work is in [its plan](./home-build-reliability.md). The
+preview delivery below is historical; it does not define current shipping state.
 
 ## Stages
 

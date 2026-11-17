@@ -6,6 +6,10 @@ Keep only useful cross-device phases, decisions, and implementation handoffs her
 Link the coordinating issue and PR; neither a plan nor a checked box proves delivery.
 Promote durable decisions to their owning document and mark superseded plans historical.
 
+- [Public Home build reliability](./home-build-reliability.md): isolate live
+  landing reads from compilation while retaining on-demand ISR and the existing
+  public HTML, read budgets and failure policies.
+
 - [Canonical URLs and discovery reliability](./architecture-simplification.md):
   integrated URL migration, cache/account isolation, signal identity and
   independent ranking evidence. GitHub/Vercel own deployed status.

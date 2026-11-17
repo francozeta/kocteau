@@ -1,38 +1,38 @@
 # Current Project State
 
-Last checked: 2026-11-16. Canonical URLs and reliability stages are integrated;
-compact-route SEO alignment is the current review stage. Contracts:
-[AGENTS](./AGENTS.md), [Product](./PRODUCT.md), [Design](./DESIGN.md),
+Last checked: 2026-11-17. Compact-route SEO is integrated; public Home build
+reliability is the current stage. Contracts: [AGENTS](./AGENTS.md),
+[Product](./PRODUCT.md), [Design](./DESIGN.md),
 [architecture](./docs/core-architecture.md).
 
 ## Active Work
 
-[PR #309](https://github.com/francozeta/kocteau/pull/309) (URLs/cache/identity),
-[PR #311](https://github.com/francozeta/kocteau/pull/311) (ranked local retrieval)
-and [PR #310](https://github.com/francozeta/kocteau/pull/310) (private MMR lab)
-are integrated in main at `712435a`. Vercel reports the corresponding production
-deployment READY; bounded public Search returns usable local results. The MMR
-lab intentionally returns 404/noindex in production and still requires preview,
-a real session and curator access. Its musical quality remains unevaluated.
+[PR #312](https://github.com/francozeta/kocteau/pull/312) is integrated in main at
+`1c115b4`; #306/#307 were closed as replaced. Vercel reports the production
+commit READY. Independent bounded HTTP checks confirm `/track` returns exact
+308 to `/reviews`, `/home` serves its canonical and public music links, and the
+sitemap excludes the retired index. Earlier architecture, retrieval and private
+MMR lab stages are integrated through #309/#311/#310; the lab remains preview
+and curator gated, and its musical quality is still unevaluated.
 
-The shared database history now contains both Search RPCs
-(`20261116192307`) and Starter collection scoring (`20261116192407`). Read-only
-inspection after integration confirmed the Starter function body exactly matches
-the checked-in migration and keeps its existing return contract. This verification
-did not apply SQL or repair remote history.
+Work on `fix/home-build-reliability` addresses the observed Home prerender timeout
+under [#263](https://github.com/francozeta/kocteau/issues/263). The original build
+failure has a loopback reproduction. The candidate generates only the bare
+`/home` path on first access while retaining 300-second ISR and rejecting suffixes
+before data reads. Landing markup, motion, data policies and budgets are unchanged.
+The [Home reliability plan](./.plan/home-build-reliability.md) owns evidence,
+verification and the cold-first-request tradeoff. Its isolated production build
+passes with zero Home reads, and 80 WebKit checks cover cold failure/recovery,
+effective 300-second ISR via MISS/HIT, cached reuse and suffix 404 responses. Cloud CI/preview
+evidence will be recorded in the delivery PR.
+The underlying timeout before HTTP headers remains unattributed. This stage does
+not execute cloud SQL, merge main or deploy production.
 
-Work on `fix/compact-route-seo-alignment` reconciles the necessary SEO changes
-from #306/#307 with the new compact pages: retire only the exact `/track` index,
-keep entity/provider aliases, correct breadcrumbs and verify existing server-rendered
-detail links without adding duplicate navigation. Search presentation and motion stay unchanged.
-Draft [PR #312](https://github.com/francozeta/kocteau/pull/312) owns review, CI
-and preview evidence for this stage. Its isolated Next/Turbopack production build
-and 75 WebKit checks pass, including the exact 308, sitemap/manifest exclusion,
-existing SSR anchors and mobile/desktop guest/simulated-session journeys.
-The [SEO plan](./.plan/compact-route-seo-alignment.md) owns scope and
-[the architecture record](./.plan/architecture-simplification.md) owns the earlier
-verification and integration boundaries. No SQL, main merge or production
-deployment was performed by the SEO stage.
+The shared database already contains Search RPCs (`20261116192307`) and Starter
+collection scoring (`20261116192407`). Prior read-only inspection confirmed the
+Starter body matches the checked-in migration. The
+[architecture record](./.plan/architecture-simplification.md) and
+[SEO record](./.plan/compact-route-seo-alignment.md) own those earlier stages.
 
 The integrated runtime passed Verify/Native navigation CI, unit tests, lint and
 build/typecheck. Live Chromium guest checks passed on mobile/desktop for the base
@@ -84,12 +84,13 @@ for `419`, legacy/provider policies or the separate private wait in #265.
 
 ## Next
 
-Use PR #312's focused preview for feedback and its CI/HTTP record for release gates.
-Reconcile #306/#307 against that implementation before integrating either older
-route patch. Use #270's rollout record for the separate editor/browser work;
-different CI workers cannot establish a comparison with the gru1 latency baseline.
+Complete the focused Home reliability PR and its preview/failure recovery gates.
+Then continue [SEO #305](https://github.com/francozeta/kocteau/issues/305): verify
+indexability/Search Console evidence and consider the compact editorial FAQ
+below the approved landing experience. Evaluate MMR with human listening feedback
+before changing default recommendation ranking.
 
 #261 retains primary/optional track dependencies, #265 the private fault wait,
 #267 React 419 attribution and #228 catalog invalidation. #243, #242,
-#253/#254 and SQL-CI KOC-23 remain separate.
-Product experiments #245–#251 follow the reliability gate.
+#253/#254 and SQL-CI KOC-23 remain separate. Production-wide latency and physical
+Safari verification retain their existing limits.
