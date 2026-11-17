@@ -125,6 +125,7 @@ export async function startJourneyFixture() {
     identityMode: "normal",
     extraEntities: [],
     extraArtists: [],
+    extraProfiles: [],
     headerDelayMs: 80,
     bodyDelayMs: 0,
     reads: 0,
@@ -193,7 +194,7 @@ export async function startJourneyFixture() {
           : table === "artists"
             ? [artist, ...state.extraArtists]
             : table === "profiles"
-              ? [profile]
+              ? [profile, ...state.extraProfiles]
               : table === "starter_tracks"
                 ? state.starterTracks
                 : [];
@@ -295,6 +296,7 @@ export async function startJourneyFixture() {
     const collectorPort = await listen(collector, 0);
     return {
       state,
+      profile,
       entity,
       album,
       artist,

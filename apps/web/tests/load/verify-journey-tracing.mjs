@@ -201,11 +201,15 @@ try {
 
   // Regression #242: a temporary public profile read failure must not be
   // cached as an absent account, and the same username must recover.
+  // Use a valid public username: the original fixture-listener contains a
+  // hyphen, which the public proxy deliberately rejects before data reads.
+  const recoveryUsername = "fixturelistener";
+  fixture.state.extraProfiles.push({ ...fixture.profile, username: recoveryUsername });
   fixture.state.fail = true;
   fixture.state.failTable = "profiles";
   fixture.state.headerDelayMs = 80;
   try {
-    const unavailable = await fetch(appUrl + "/u/fixture-listener", {
+    const unavailable = await fetch(appUrl + `/u/${recoveryUsername}`, {
       redirect: "manual",
       signal: AbortSignal.timeout(15000),
     });
@@ -220,7 +224,7 @@ try {
     fixture.state.failTable = null;
     fixture.state.headerDelayMs = 80;
   }
-  const profileRecovery = await fetch(appUrl + "/u/fixture-listener", {
+  const profileRecovery = await fetch(appUrl + `/u/${recoveryUsername}`, {
     signal: AbortSignal.timeout(15000),
   });
   assert.equal(profileRecovery.status, 200,
@@ -232,6 +236,7 @@ try {
   assert.equal(trulyMissing.status, 404,
     "A genuinely missing public profile must still return 404");
   results.push({ journey: "public-profile-recovery", status: 200, missingStatus: 404 });
+  fixture.state.extraProfiles.length = 0;
 
   browser = await browserType.launch();
   const { createServerClient } = require("@supabase/ssr");
