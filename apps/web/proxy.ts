@@ -185,6 +185,22 @@ function copyResponseCookies(source: NextResponse, target: NextResponse) {
   });
 }
 
+// Serve the same ISR-backed public landing at / without redirecting the browser.
+// The rewrite never renders the authenticated (main) route and only exposes
+// publicly cached /home data. A stale session remains non-cacheable.
+function rewritePublicHome(request: NextRequest, response: NextResponse) {
+  const target = request.nextUrl.clone();
+  target.pathname = "/home";
+  target.search = "";
+  const rewritten = NextResponse.rewrite(target, {
+    request: { headers: request.headers },
+  });
+  copyResponseCookies(response, rewritten);
+  if (request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-"))) {
+    rewritten.headers.set("Cache-Control", "private, no-store");
+  }
+  return rewritten;
+}
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -231,10 +247,7 @@ export async function proxy(request: NextRequest) {
   const hasSbCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
   if (!hasSbCookie) {
     if (pathname === "/") {
-      const target = request.nextUrl.clone();
-      target.pathname = "/home";
-      target.search = "";
-      return NextResponse.redirect(target);
+      return rewritePublicHome(request, response);
     }
     return response;
   }
@@ -262,13 +275,13 @@ export async function proxy(request: NextRequest) {
 
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
 
-  if (pathname === "/" && (claimsError || !claimsData?.claims?.sub)) {
-    const target = request.nextUrl.clone();
-    target.pathname = "/home";
-    target.search = "";
-    const redirectResponse = NextResponse.redirect(target);
-    copyResponseCookies(response, redirectResponse);
-    return redirectResponse;
+  if (pathname === "/") {
+    if (claimsError || !claimsData?.claims?.sub) {
+      return rewritePublicHome(request, response);
+    }
+    // The authenticated Feed must never be cached on a shared edge.
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("X-Robots-Tag", "noindex, follow");
   }
 
   return response;
@@ -276,6 +289,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Include root RSC prefetches: guests must not preload a private Feed
+    // redirect that differs from the public document response.
+    { source: "/" },
     {
       source:
         "/((?!api|monitoring|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|woff|woff2|ttf|otf)$|.*opengraph-image|.*twitter-image).*)",

@@ -10,7 +10,7 @@ export function GET() {
     "Kocteau is a public music review and taste discovery app. It centers on listener-written reviews, ratings, music profiles, and contextual track, album, and artist pages.",
     "",
     "Public, crawlable content:",
-    `- ${siteUrl}/home — product introduction and public browsing links`,
+    `- ${siteUrl}/ — product introduction and public browsing links (canonical landing)`,
     `- ${siteUrl}/reviews — recent public review index`,
     `- ${siteUrl}/reviews/{slug}-{id} — canonical page for a single public music review`,
     `- ${siteUrl}/tracks/{slug}-{id} — canonical public track page with reviews and aggregate rating context`,

@@ -56,7 +56,7 @@ export async function verifyHomeRuntimeRecovery(fixture, appUrl) {
     assert.equal(response.status, 200);
     assert.match(response.headers.get("cache-control") ?? "", /\bs-maxage=300\b/,
       "The generated public page must keep its effective 300-second ISR policy");
-    assert.ok(html.includes('rel="canonical" href="https://kocteau.com/home"'));
+    assert.ok(html.includes('rel="canonical" href="https://kocteau.com/"'));
     assert.ok(html.includes('id="home-page-structured-data"'));
     assert.ok(html.includes('id="home-structured-data"'));
     const document = documentHtml(html);
@@ -90,6 +90,14 @@ export async function verifyHomeRuntimeRecovery(fixture, appUrl) {
     assertContent(recovered);
     assert.equal(recovered.response.headers.get("x-nextjs-cache"), "MISS");
     results.push({ journey: "home-runtime-recovery", cache: "MISS", isrSeconds: 300, serverContent: true });
+
+    // The public root is a rewrite, not a redirect or a separate private render.
+    const root = await request("/");
+    assert.equal(root.response.status, 200);
+    assert.equal(root.response.headers.get("location"), null);
+    assert.ok(root.html.includes('rel="canonical" href="https://kocteau.com/"'));
+    assert.ok(documentHtml(root.html).includes(fixture.reviews[0].title));
+    results.push({ journey: "guest-root-canonical", status: 200, redirect: false, canonical: "/" });
 
     fixture.state.fail = true;
     fixture.state.headerDelayMs = 3100;

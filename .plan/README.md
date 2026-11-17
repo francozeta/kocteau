@@ -6,6 +6,7 @@ Keep only useful cross-device phases, decisions, and implementation handoffs her
 Link the coordinating issue and PR; neither a plan nor a checked box proves delivery.
 Promote durable decisions to their owning document and mark superseded plans historical.
 
+- [Public root canonical](./root-public-canonical.md): serve the existing ISR landing at / for guests, keep private Feed at / for valid sessions, and unify canonical/sitemap signals. Stacked on PR #313.
 - [Public Home build reliability](./home-build-reliability.md): isolate live
   landing reads from compilation while retaining on-demand ISR and the existing
   public HTML, read budgets and failure policies. Delivery:

@@ -160,7 +160,7 @@ export function buildSiteGraphJsonLd() {
 
 export function buildHomePageJsonLd() {
   const siteUrl = absoluteUrl("/");
-  const homeUrl = absoluteUrl("/home");
+  const homeUrl = siteUrl;
 
   return {
     "@context": "https://schema.org",
@@ -264,7 +264,7 @@ export function buildReviewsPageJsonLd(entries: FeedStructuredDataEntry[]) {
       "@id": `${absoluteUrl("/")}#website`,
     },
     breadcrumb: buildBreadcrumbList([
-      { name: "Kocteau", path: "/home" },
+      { name: "Kocteau", path: "/" },
       { name: "Reviews", path: "/reviews" },
     ]),
     mainEntity: {
@@ -337,7 +337,7 @@ export function buildTrackPageJsonLd({
           "@id": `${url}#recording`,
         },
         breadcrumb: buildBreadcrumbList([
-          { name: "Kocteau", path: "/home" },
+          { name: "Kocteau", path: "/" },
           { name: entity.title, path: entityPath },
         ]),
       },
@@ -427,7 +427,7 @@ export function buildReviewPageJsonLd(review: ReviewPageReview) {
           "@id": `${url}#review`,
         },
         breadcrumb: buildBreadcrumbList([
-          { name: "Kocteau", path: "/home" },
+          { name: "Kocteau", path: "/" },
           { name: "Reviews", path: "/reviews" },
           {
             name: review.title?.trim() || `${entity.title} review`,

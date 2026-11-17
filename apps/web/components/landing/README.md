@@ -4,7 +4,7 @@
 
 - Public home: `guest-home.tsx`; navigation: `guest-header.tsx`, `guest-footer.tsx`.
 - Supporting visuals and testimonials stay in this directory.
-- Public landing is `/home` for everyone, with canonical metadata and public caching. The header CTA shows **Open app** after a browser session is detected; signed-out `/` requests redirect to `/home` through `proxy.ts`.
+- Public landing is canonical at `/` for guests: `proxy.ts` rewrites anonymous root requests internally to the same ISR-backed `/home` HTML without changing the browser URL. `/home` stays accessible to everyone, but points to `/` via canonical metadata. A valid session receives the private, noindex/no-store Feed at `/`; expired sessions get the public rewrite without caching private responses. The header CTA shows **Open app** after a browser session is detected.
 
 ## Preserve
 
@@ -27,7 +27,7 @@ The overarching motion contract remains [DESIGN.md](../../../../DESIGN.md).
 
 ## Check
 
-Run lint and the web build. Check `/home` for both auth states, signed-out root redirect, signed-in `/` Feed, mobile
+Run lint and the web build. Check `/home` for both auth states, anonymous root 200 + canonical, signed-in `/` Feed with noindex/private cache, mobile
 overflow, keyboard focus, reduced motion, and the documentation footer link.
 
 ## Data Boundaries

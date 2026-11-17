@@ -315,6 +315,8 @@ try {
       assert.ok(xml.includes(`/tracks/fixture-track-fixture-artist-${fixture.entity.short_id}`));
       assert.ok(!/\/(?:tracks|albums|artists)\/[^<]+\/[0-9a-f]{12}</.test(xml));
       assert.ok(!/<loc>[^<]*\/track<\/loc>/.test(xml), "Retired track index must not appear in sitemap");
+      assert.ok(xml.includes("<loc>https://kocteau.com/</loc>"), "Sitemap must advertise the public root");
+      assert.ok(!xml.includes("<loc>https://kocteau.com/home</loc>"), "The alias /home must not be a second sitemap entry");
       const retired = await context.request.get(appUrl + "/track", { maxRedirects: 0 });
       assert.equal(retired.status(), 308);
       assert.equal(new URL(retired.headers().location, appUrl).pathname, "/reviews");
@@ -325,6 +327,20 @@ try {
       assert.ok(manifest.includes("/tracks/{slug}-{id}"));
       results.push({ journey: "public-discovery-seo", retiredIndex: 308, target: "/reviews", existingServerLinks: true });
     }
+    const rootResponse = await context.request.get(appUrl + "/", { maxRedirects: 0 });
+    assert.equal(rootResponse.status(), 200, "The root must not redirect for either session state");
+    const rootHtml = await rootResponse.text();
+    if (authenticated) {
+      assert.match(rootHtml, /<meta[^>]+name="robots"[^>]+content="noindex/);
+      assert.ok(!rootHtml.includes('data-kocteau-document-canvas="landing"'),
+        "Authenticated root must be the private Feed, not cached marketing HTML");
+      assert.match(rootResponse.headers()["cache-control"] ?? "", /private|no-store/);
+    } else {
+      assert.ok(rootHtml.includes('rel="canonical" href="https://kocteau.com/"'));
+      assert.ok(rootHtml.includes('data-kocteau-document-canvas="landing"'),
+        "Anonymous root must render the existing public landing");
+    }
+    results.push({ journey: "root-audience-split", mobile, authenticated, status: 200 });
     const viewerReadsBefore = fixture.state.viewerReads;
     const page = await context.newPage();
     page.setDefaultTimeout(20000);
