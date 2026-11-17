@@ -336,7 +336,9 @@ try {
         "Authenticated root must be the private Feed, not cached marketing HTML");
       assert.match(rootResponse.headers()["cache-control"] ?? "", /private|no-store/);
     } else {
-      assert.ok(rootHtml.includes('rel="canonical" href="https://kocteau.com/"'));
+      const canonical = rootHtml.match(/<link\\b[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
+      assert.ok(canonical, "Guest root must emit a canonical link");
+      assert.equal(new URL(canonical).href.replace(/\\/$/, ""), "https://kocteau.com");
       assert.ok(rootHtml.includes('data-kocteau-document-canvas="landing"'),
         "Anonymous root must render the existing public landing");
     }
