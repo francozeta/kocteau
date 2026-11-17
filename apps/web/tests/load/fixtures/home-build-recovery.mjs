@@ -56,9 +56,10 @@ export async function verifyHomeRuntimeRecovery(fixture, appUrl) {
     assert.equal(response.status, 200);
     assert.match(response.headers.get("cache-control") ?? "", /\bs-maxage=300\b/,
       "The generated public page must keep its effective 300-second ISR policy");
-    const canonical = html.match(/<link\\b[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
+    const canonical = html.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
     assert.ok(canonical, "Public landing must emit a canonical link");
-    assert.equal(new URL(canonical).href.replace(/\\/$/, ""), "https://kocteau.com");
+    assert.equal(new URL(canonical).origin, "https://kocteau.com");
+    assert.equal(new URL(canonical).pathname, "/");
     assert.ok(html.includes('id="home-page-structured-data"'));
     assert.ok(html.includes('id="home-structured-data"'));
     const document = documentHtml(html);
@@ -97,9 +98,10 @@ export async function verifyHomeRuntimeRecovery(fixture, appUrl) {
     const root = await request("/");
     assert.equal(root.response.status, 200);
     assert.equal(root.response.headers.get("location"), null);
-    const rootCanonical = root.html.match(/<link\\b[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
+    const rootCanonical = root.html.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
     assert.ok(rootCanonical, "Rewritten root must emit a canonical link");
-    assert.equal(new URL(rootCanonical).href.replace(/\\/$/, ""), "https://kocteau.com");
+    assert.equal(new URL(rootCanonical).origin, "https://kocteau.com");
+    assert.equal(new URL(rootCanonical).pathname, "/");
     assert.ok(documentHtml(root.html).includes(fixture.reviews[0].title));
     results.push({ journey: "guest-root-canonical", status: 200, redirect: false, canonical: "/" });
 
