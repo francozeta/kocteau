@@ -236,9 +236,21 @@ try {
   const trulyMissing = await fetch(appUrl + "/u/missinglistener", {
     signal: AbortSignal.timeout(15000),
   });
-  assert.equal(trulyMissing.status, 404,
-    "A genuinely missing public profile must still return 404");
-  results.push({ journey: "public-profile-recovery", status: 200, missingStatus: 404 });
+  const missingHtml = await trulyMissing.text();
+  // Streaming App Router pages can commit HTTP 200 before notFound() is
+  // resolved. Verify the actual missing-page document, not only its status.
+  const visibleMissingHtml = missingHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  assert.ok(
+    trulyMissing.status === 404 ||
+      (
+        trulyMissing.status === 200 &&
+        visibleMissingHtml.includes("This page could not be found.")
+      ),
+    "A genuinely absent public profile must display Not Found",
+  );
+  assert.ok(!visibleMissingHtml.includes('id="profile-structured-data"'),
+    "Missing profiles must not emit a profile's structured data");
+  results.push({ journey: "public-profile-recovery", status: 200, missingStatus: trulyMissing.status });
   fixture.state.extraProfiles.length = 0;
 
   browser = await browserType.launch();
