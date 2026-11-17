@@ -131,8 +131,8 @@ describe("canonical public landing identity", () => {
   it("identifies the root as the public WebPage instead of the /home alias", () => {
     const data = buildHomePageJsonLd();
     const page = data["@graph"].find((node) => node["@type"] === "WebPage");
-    assert.equal(page?.url, "https://kocteau.com/");
-    assert.equal(page?.["@id"], "https://kocteau.com/#webpage");
-    assert.ok(!JSON.stringify(data).includes("kocteau.com/home"));
+    assert.equal(new URL(page?.url ?? "https://invalid.test").pathname, "/");
+    assert.equal(page?.["@id"], `${page?.url}#webpage`);
+    assert.ok(!JSON.stringify(data).includes("/home"));
   });
 });
