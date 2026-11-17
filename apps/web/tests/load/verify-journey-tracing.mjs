@@ -198,6 +198,61 @@ try {
     45000,
   );
   results.push(...await verifyHomeRuntimeRecovery(fixture, appUrl));
+
+  // Regression #242: a temporary public profile read failure must not be
+  // cached as an absent account, and the same username must recover.
+  // Use a valid public username: the original fixture-listener contains a
+  // hyphen, which the public proxy deliberately rejects before data reads.
+  const recoveryUsername = "fixturelistener";
+  fixture.state.extraProfiles.push({ ...fixture.profile, username: recoveryUsername });
+  fixture.state.fail = true;
+  fixture.state.failTable = "profiles";
+  fixture.state.headerDelayMs = 80;
+  try {
+    const unavailable = await fetch(appUrl + `/u/${recoveryUsername}`, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(15000),
+    });
+    const failedHtml = await unavailable.text();
+    assert.notEqual(unavailable.status, 404,
+      "A temporary profile Data API failure must not become a false 404");
+    // RSC streaming can serialize an unrelated not-found phrase inside script
+    // payloads. Inspect the server-rendered document, not transport scripts.
+    const visibleFailedHtml = failedHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+    assert.ok(visibleFailedHtml.includes("Profile temporarily unavailable"),
+      "Transient profile errors should expose a recoverable visible state");
+    results.push({ journey: "public-profile-origin-failure", status: unavailable.status, false404: false });
+  } finally {
+    fixture.state.fail = false;
+    fixture.state.failTable = null;
+    fixture.state.headerDelayMs = 80;
+  }
+  const profileRecovery = await fetch(appUrl + `/u/${recoveryUsername}`, {
+    signal: AbortSignal.timeout(15000),
+  });
+  assert.equal(profileRecovery.status, 200,
+    "The same public profile must load immediately after the origin recovers");
+  assert.ok((await profileRecovery.text()).includes("Fixture listener"));
+  const trulyMissing = await fetch(appUrl + "/u/missinglistener", {
+    signal: AbortSignal.timeout(15000),
+  });
+  const missingHtml = await trulyMissing.text();
+  // Streaming App Router pages can commit HTTP 200 before notFound() is
+  // resolved. Verify the actual missing-page document, not only its status.
+  const visibleMissingHtml = missingHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  assert.ok(
+    trulyMissing.status === 404 ||
+      (
+        trulyMissing.status === 200 &&
+        visibleMissingHtml.includes("This page could not be found.")
+      ),
+    "A genuinely absent public profile must display Not Found",
+  );
+  assert.ok(!visibleMissingHtml.includes('id="profile-structured-data"'),
+    "Missing profiles must not emit a profile's structured data");
+  results.push({ journey: "public-profile-recovery", status: 200, missingStatus: trulyMissing.status });
+  fixture.state.extraProfiles.length = 0;
+
   browser = await browserType.launch();
   const { createServerClient } = require("@supabase/ssr");
   let sessionCookies = [];

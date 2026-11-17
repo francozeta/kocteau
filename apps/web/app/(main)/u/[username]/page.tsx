@@ -37,7 +37,18 @@ export async function generateMetadata({
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const { username } = await params;
-  const publicBundle = await getProfilePublicBundle(username);
+  // Metadata generation must not turn an origin failure into a missing
+  // profile, or preempt the route-level recoverable error boundary.
+  let publicBundle;
+  try {
+    publicBundle = await getProfilePublicBundle(username);
+  } catch {
+    return createPageMetadata({
+      title: "Profile temporarily unavailable",
+      path: `/u/${username}`,
+      noIndex: true,
+    });
+  }
 
   if (!publicBundle) {
     notFound();

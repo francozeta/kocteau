@@ -125,6 +125,7 @@ export async function startJourneyFixture() {
     identityMode: "normal",
     extraEntities: [],
     extraArtists: [],
+    extraProfiles: [],
     headerDelayMs: 80,
     bodyDelayMs: 0,
     reads: 0,
@@ -193,7 +194,7 @@ export async function startJourneyFixture() {
           : table === "artists"
             ? [artist, ...state.extraArtists]
             : table === "profiles"
-              ? [profile]
+              ? [profile, ...state.extraProfiles]
               : table === "starter_tracks"
                 ? state.starterTracks
                 : [];
@@ -204,6 +205,9 @@ export async function startJourneyFixture() {
       rows = rows.filter((x) => x.short_id.startsWith(prefix));
     }
     if (id) rows = rows.filter((x) => x.id === id.replace(/^eq\./, ""));
+    const username = url.searchParams.get("username");
+    if (username)
+      rows = rows.filter((row) => row.username === username.replace(/^eq\./, ""));
     const type = url.searchParams.get("type");
     if (type)
       rows = rows.filter((row) => row.type === type.replace(/^eq\./, ""));
@@ -295,6 +299,7 @@ export async function startJourneyFixture() {
     const collectorPort = await listen(collector, 0);
     return {
       state,
+      profile,
       entity,
       album,
       artist,
