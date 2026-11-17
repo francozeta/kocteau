@@ -1,7 +1,7 @@
 # Compact route SEO alignment
 
-Baseline: main `712435a`, after #309, #311 and #310 were integrated outside this
-stage. This is a focused continuation of the SEO work in #306/#307 on the compact
+Integrated through [PR #312](https://github.com/francozeta/kocteau/pull/312) at
+main `1c115b4`. Original baseline: `712435a`, after #309, #311 and #310. This is a focused continuation of the SEO work in #306/#307 on the compact
 route tree; it does not merge, close or rewrite those PRs.
 
 ## Scope
@@ -49,7 +49,7 @@ including the real exact-index308, canonical/alias behavior, sitemap/manifest
 exclusion and existing entity/author SSR anchors. Raw reports remain ignored.
 Known React419 observations under forced origin faults are not claimed fixed.
 
-Draft [PR #312](https://github.com/francozeta/kocteau/pull/312) owns current CI,
+[PR #312](https://github.com/francozeta/kocteau/pull/312) owns current CI,
 live preview evidence and feedback steps. Passing these checks establishes
 route/crawlability behavior, not improved Google coverage or search ranking.
 Physical iPhone Safari and actual Search Console outcomes remain separate.

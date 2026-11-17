@@ -9,6 +9,11 @@ import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { stripVTControlCharacters } from "node:util";
 import { startJourneyFixture } from "./fixtures/journey-tracing-upstreams.mjs";
+import {
+  assertHomeBuildIsolation,
+  prepareHomeBuildFailure,
+  verifyHomeRuntimeRecovery,
+} from "./fixtures/home-build-recovery.mjs";
 
 const reviewContent = (page) => page.locator(
   '[data-kocteau-route-page="' + new URL(page.url()).pathname + '"] section:has(> #review-structured-data):visible',
@@ -53,6 +58,7 @@ for (const name of [
 const evidence = join(repositoryRoot, ".codex-private/journey-tracing");
 await mkdir(evidence, { recursive: true });
 const fixture = await startJourneyFixture();
+prepareHomeBuildFailure(fixture);
 const coldProbeSeed = randomBytes(4).readUInt32BE(0);
 const coldPrefix = (index) =>
   (0x50000000 + ((coldProbeSeed + index) & 0x0fffffff)).toString(16);
@@ -159,11 +165,7 @@ try {
   const prerender = JSON.parse(
     await readFile(join(webRoot, ".next/prerender-manifest.json"), "utf8"),
   );
-  assert.equal(
-    prerender.routes["/home"]?.initialRevalidateSeconds,
-    300,
-    "Public /home ISR must remain 300 seconds",
-  );
+  assertHomeBuildIsolation(fixture, prerender);
   const buildOriginReads = fixture.state.reads;
   fixture.state.reads = 0;
   fixture.state.transactions.length = 0;
@@ -195,6 +197,7 @@ try {
     "Next startup timed out",
     45000,
   );
+  results.push(...await verifyHomeRuntimeRecovery(fixture, appUrl));
   browser = await browserType.launch();
   const { createServerClient } = require("@supabase/ssr");
   let sessionCookies = [];

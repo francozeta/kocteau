@@ -35,7 +35,13 @@ overflow, keyboard focus, reduced motion, and the documentation footer link.
 The introduction renders independently of public review and starter reads.
 Preview artwork and product examples share one starter promise; recent reviews
 and their structured data resolve together. Keep the page's 300-second ISR policy.
-This separation does not itself prove a lower production TTFB for cached HTML.
+The optional catch-all route returns no build-time static params, then generates
+only `/home` on its first request. Suffixes are rejected before public reads. This
+keeps public origin availability out of the build while retaining cached server
+HTML; the first request may still wait or fail if the origin is unavailable.
+Do not replace this with request-time connection/session reads or client-only
+content, which would change caching or public HTML. This separation does not
+itself prove a lower production TTFB for cached HTML.
 
 The [primary-render record](../../../../.plan/primary-render.md) explains the
 isolated browser comparison and the remaining production measurement.
