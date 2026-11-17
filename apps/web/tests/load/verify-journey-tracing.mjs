@@ -218,7 +218,7 @@ try {
       "A temporary profile Data API failure must not become a false 404");
     // RSC streaming can serialize an unrelated not-found phrase inside script
     // payloads. Inspect the server-rendered document, not transport scripts.
-    const visibleFailedHtml = failedHtml.replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, "");
+    const visibleFailedHtml = failedHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
     assert.ok(visibleFailedHtml.includes("Profile temporarily unavailable"),
       "Transient profile errors should expose a recoverable visible state");
     results.push({ journey: "public-profile-origin-failure", status: unavailable.status, false404: false });
