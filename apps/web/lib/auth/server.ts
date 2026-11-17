@@ -3,6 +3,10 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
+import {
+  isLegacyTasteOnboardedColumnError,
+  VIEWER_CONTEXT_READ_BUDGET_MS,
+} from "@/lib/auth/viewer-context-policy";
 
 export type CurrentViewerProfile = {
   id: string;
@@ -69,21 +73,38 @@ const getCurrentViewerContext = cache(async (): Promise<CurrentViewerContext | n
   }
 
   const supabase = await supabaseServer();
+  // One deadline shared by the primary query and the legacy-schema fallback:
+  // an unavailable origin must never cause two sequential slow reads.
+  const deadline = AbortSignal.timeout(VIEWER_CONTEXT_READ_BUDGET_MS);
   const profileQuery = await supabase
     .from("profiles")
     .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded, taste_onboarded")
     .eq("id", userId)
+    .abortSignal(deadline)
     .maybeSingle<CurrentViewerContext>();
 
   if (!profileQuery.error) {
     return profileQuery.data;
   }
 
+  // Only a genuinely absent legacy column needs a second SQL shape.
+  // Transport failures must not turn into doubled origin work.
+  if (!isLegacyTasteOnboardedColumnError(profileQuery.error) || deadline.aborted) {
+    console.warn("[auth.viewerContext] unavailable", { code: profileQuery.error.code ?? null });
+    return null;
+  }
+
   const fallbackQuery = await supabase
     .from("profiles")
     .select("id, username, avatar_url, display_name, bio, spotify_url, apple_music_url, deezer_url, onboarded")
     .eq("id", userId)
+    .abortSignal(deadline)
     .maybeSingle<Omit<CurrentViewerContext, "taste_onboarded">>();
+
+  if (fallbackQuery.error) {
+    console.warn("[auth.viewerContext] fallback unavailable", { code: fallbackQuery.error.code ?? null });
+    return null;
+  }
 
   return fallbackQuery.data
     ? { ...fallbackQuery.data, taste_onboarded: true }

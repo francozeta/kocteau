@@ -278,6 +278,7 @@ async function queryRecommendedFeedBundle({
         p_cursor_created_at: decodedCursor?.created_at,
         p_cursor_id: decodedCursor?.id,
       })
+      .abortSignal(AbortSignal.timeout(5_000))
       .returns<RecommendedFeedRow[]>(),
     includeActiveUsers ? getRecentlyActiveProfiles(4) : Promise.resolve([]),
   ]);
