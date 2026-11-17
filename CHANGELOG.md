@@ -1,5 +1,62 @@
 # Changelog
 
+## [0.3.17](https://github.com/francozeta/kocteau/compare/v0.3.16...v0.3.17) (2026-11-17)
+
+
+### Features
+
+* **home:** editorial entrance choreography and stable landing preview ([#304](https://github.com/francozeta/kocteau/issues/304)) ([37138e7](https://github.com/francozeta/kocteau/commit/37138e747c55c782482fc76de6ac0d02a5da6bd7))
+* **search:** add fluid discovery canvas and seeded recommendations ([#303](https://github.com/francozeta/kocteau/issues/303)) ([0ae1a72](https://github.com/francozeta/kocteau/commit/0ae1a72f1ffe0e3298434b5ab46490ddcb30957d))
+* **seo:** make root the canonical public landing while keeping private Feed ([d2091a3](https://github.com/francozeta/kocteau/commit/d2091a317b38555ebad267d6cf37c5476845dc31))
+* **seo:** serve canonical landing at root for guests ([7ffd504](https://github.com/francozeta/kocteau/commit/7ffd5049077206d68078de7c1624b598657098d5))
+
+
+### Bug Fixes
+
+* **auth:** bound optional shell reads and recover failed Feed ([#316](https://github.com/francozeta/kocteau/issues/316)) ([fa81fbb](https://github.com/francozeta/kocteau/commit/fa81fbb0a6a9ad6ad1019a293345fc73ffba504a))
+* **cache:** isolate account state and expire shared starter picks ([e583c5c](https://github.com/francozeta/kocteau/commit/e583c5cd26e4343c721899f290d69d2598071e4c))
+* **discovery:** preserve artist identity through candidate ranking ([3618b34](https://github.com/francozeta/kocteau/commit/3618b34b274b63f094bbfdf8ac3cd7967d906604))
+* **home:** generate public landing on demand with ISR ([b195cbc](https://github.com/francozeta/kocteau/commit/b195cbce0f76310a2d51c4ca5b1b741de5ff481f))
+* **home:** generate public landing on demand with ISR ([c20e5e1](https://github.com/francozeta/kocteau/commit/c20e5e17b97a289bade97a12de7c3c8383c8d420))
+* **perf:** measure canonical pages and reject unrelated content ([a977157](https://github.com/francozeta/kocteau/commit/a97715723eec5734d0833e6d503a5d4d79fb08cb))
+* **profiles:** don't cache transient failures as public 404s ([#315](https://github.com/francozeta/kocteau/issues/315)) ([2824599](https://github.com/francozeta/kocteau/commit/28245997bf51583096cb1274b93ee5310b5202f9))
+* **search:** rank local candidates before branch limits ([d66a02a](https://github.com/francozeta/kocteau/commit/d66a02a8f4e38994520591bed974512381eddbdf))
+* **search:** rank local candidates before limiting results ([1640b75](https://github.com/francozeta/kocteau/commit/1640b756eafee42ae26e8c87fa78de016e6f9cb2))
+* **search:** retain readiness and recover failed phases explicitly ([9ccf739](https://github.com/francozeta/kocteau/commit/9ccf7394499f7264609aa8de19ae5f7998f6bd0e))
+* **seo:** align compact canonicals and retire track index ([20a3b70](https://github.com/francozeta/kocteau/commit/20a3b70b3ba720da225bcac922da79df80012387))
+* **seo:** retire obsolete track index and align canonical breadcrumbs ([1c115b4](https://github.com/francozeta/kocteau/commit/1c115b4b23ac79abd04179a911784398430522b1))
+* **seo:** verify legacy redirects and retire stale URL contracts ([38b303f](https://github.com/francozeta/kocteau/commit/38b303f4ad0fc6f8e50b0abe9db2eb92cfc8c5c0))
+* **sidebar:** restore classic mobile overlay navigation ([e151d18](https://github.com/francozeta/kocteau/commit/e151d18956f292a7d8f027d47e751700ba0745a6))
+* **starter:** keep collection membership from multiplying taste ([9e85197](https://github.com/francozeta/kocteau/commit/9e85197a59a989f90c04ff92a6136e4073de246b))
+
+
+### Documentation
+
+* **architecture:** record integrated state and SEO review ([fd588be](https://github.com/francozeta/kocteau/commit/fd588bebf0ec9faa59c95bffc6440f2e3e4930f6))
+* **architecture:** record review previews and live verification ([0248952](https://github.com/francozeta/kocteau/commit/024895241b08b9fc693dc517e9ae8d30b6b58cc0))
+* **current:** mark local foundations ready for review ([7109b54](https://github.com/francozeta/kocteau/commit/7109b54f60d6593747477c40b414598303c3bf1b))
+* **current:** prepare foundations for PR and preview review ([9f5bf41](https://github.com/francozeta/kocteau/commit/9f5bf4191eab8277a2b468fd5f85e365c9562aa4))
+* **discovery:** align offline evaluation with identity foundations ([69e0d1d](https://github.com/francozeta/kocteau/commit/69e0d1dfde12a21b01cf386ecde5cc9e9545625a))
+* **home:** link build reliability review ([3ad108e](https://github.com/francozeta/kocteau/commit/3ad108e05f134b9802b8fb3d1b5b5143ffb67e63))
+* **search:** align retrieval candidate with verified foundations ([5b4a9bd](https://github.com/francozeta/kocteau/commit/5b4a9bdff8ef69145b09c48f910bdacf8db1af3c))
+
+
+### Refactors
+
+* **architecture:** unify canonical URLs and discovery reliability ([c04d941](https://github.com/francozeta/kocteau/commit/c04d941bba28224fb46cfdefe22d8ebaf8f4bc74))
+* **seo:** unify canonical music and review URL segments ([6d85626](https://github.com/francozeta/kocteau/commit/6d85626103c8203a8a7ba40c0ea0134db0277f30))
+
+
+### Tests
+
+* **discovery:** add private preview ranking lab ([b21c2fe](https://github.com/francozeta/kocteau/commit/b21c2fe332efac284c25552ba770c9384bd112f2))
+* **discovery:** compare current ranking and MMR in a preview lab ([712435a](https://github.com/francozeta/kocteau/commit/712435aba0b1851541c3ffe6b120b9440eee82cc))
+* **discovery:** compare offline MMR and current ranking ([5852ae2](https://github.com/francozeta/kocteau/commit/5852ae2007d4943d47365d8aaf0a5a8f8d4e79fa))
+* **home:** cover unavailable build reads and runtime ISR recovery ([2023e3a](https://github.com/francozeta/kocteau/commit/2023e3a1be8c6cb5717fd6bbcec1c2494827ab55))
+* **seo:** assert canonical path independently of test origin ([91cc868](https://github.com/francozeta/kocteau/commit/91cc8680da78bc4d7a86b59f8a4d52fb4e16fe25))
+* **seo:** normalize root canonical trailing slash in browser checks ([f36a8f8](https://github.com/francozeta/kocteau/commit/f36a8f8a30efb4978be308586a7e41afade2e534))
+* **seo:** parse canonical URL consistently across Next serializations ([07c8cce](https://github.com/francozeta/kocteau/commit/07c8ccef8d06411c64c307c07ccb2e34c4a5d7a7))
+
 ## [0.3.16](https://github.com/francozeta/kocteau/compare/v0.3.15...v0.3.16) (2026-11-08)
 
 
