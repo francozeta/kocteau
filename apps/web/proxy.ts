@@ -294,9 +294,10 @@ export async function proxy(request: NextRequest) {
           });
           // @supabase/ssr >= 0.12 supplies headers for refreshed tokens.
           // Required to prevent a CDN from storing Set-Cookie HTML.
-          for (const header of ["cache-control", "expires", "pragma"]) {
-            const value = authHeaders?.[header];
-            if (value) response.headers.set(header, value);
+          for (const [header, value] of Object.entries(authHeaders ?? {})) {
+            if (["cache-control", "expires", "pragma"].includes(header.toLowerCase())) {
+              response.headers.set(header, value);
+            }
           }
         },
       },
