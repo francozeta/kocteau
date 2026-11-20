@@ -1490,6 +1490,10 @@
     isolation: isolate;
   }
 
+  [data-kocteau-sidebar-reveal] > .kocteau-sidebar-inset {
+    transition: none;
+  }
+
   [data-kocteau-sidebar-open] > .kocteau-sidebar-inset {
     translate: var(--kocteau-mobile-nav-width) 0;
   }

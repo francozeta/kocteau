@@ -296,6 +296,7 @@ function MobileSidebarReveal({ children, className, ...props }: React.ComponentP
     <Drawer.Root open={openMobile} onOpenChange={setOpenMobile} modal>
       <Drawer.Portal keepMounted>
         <Drawer.Viewport
+          hidden={false}
           data-kocteau-sidebar-reveal-layer=""
           className="pointer-events-none fixed inset-0 z-50 md:hidden"
         >
