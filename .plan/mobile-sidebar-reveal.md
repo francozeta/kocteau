@@ -1,6 +1,6 @@
 # Mobile sidebar reveal
 
-[Current state](../CURRENT.md) · [Shell](../apps/web/components/shell/README.md) · [KOC-122](https://github.com/francozeta/kocteau/issues/298)
+[Current state](../CURRENT.md) · [Shell](../apps/web/components/shell/README.md) · [KOC-122](https://github.com/francozeta/kocteau/issues/298) · [Draft PR #321](https://github.com/francozeta/kocteau/pull/321)
 
 ## Reference
 
@@ -19,6 +19,13 @@ The public layout bundle toggles `data-open`, closes when a link is clicked, and
 ## Preview decision
 
 Starting from `fa81fbb`, use the measured CSS trajectory and clip the right edge at the existing Kocteau mobile breakpoint. The sidebar and app surface move side by side at full size. A sticky viewport-sized layer establishes the fixed containing block for the existing header and dock, including Search slots and the comment shelf. The page keeps native document scrolling. The menu toggle stays at a fixed touch target and maps to a close control while the drawer has focus. The current sidebar visuals and Base UI modal semantics carry over.
+
+In Linux WebKit, locking the document on open changed `visualViewport` by 6 px
+and moved the chrome vertically. The drawer uses Base UI's focus-trapping mode,
+an inert foreground and an outside-tap target. The viewport stays mounted so
+the panel can complete its CSS exit independently of focus restoration.
+Search validation targets the [Canvas 2D gallery and DOM covers](../apps/web/components/discovery/README.md)
+in this baseline.
 
 The shell guide owns implementation details. Validate geometry and touch hit testing in the real AppShell before proposing a design-system rule. Keep the GitHub PR in draft for physical iPhone Safari, Brave and VoiceOver feedback.
 

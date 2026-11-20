@@ -293,20 +293,20 @@ function MobileSidebarReveal({ children, className, ...props }: React.ComponentP
   const closeRef = React.useRef<HTMLButtonElement>(null)
 
   return (
-    <Drawer.Root open={openMobile} onOpenChange={setOpenMobile} modal>
+    <Drawer.Root open={openMobile} onOpenChange={setOpenMobile} modal="trap-focus">
       <Drawer.Portal keepMounted>
+        {/* Paint the panel through its exit while the dialog releases focus. */}
         <Drawer.Viewport
           hidden={false}
           data-kocteau-sidebar-reveal-layer=""
           className="pointer-events-none fixed inset-0 z-50 md:hidden"
         >
-          <Drawer.Backdrop className="absolute inset-0 data-open:pointer-events-auto" />
+          <Drawer.Backdrop className="absolute inset-0 touch-none data-open:pointer-events-auto" />
           <Drawer.Popup
             id={mobileNavigationId}
-            // Keep the sliding panel painted during the CSS exit. The dialog
-            // releases its focus trap immediately and the closed panel is inert.
             hidden={false}
             inert={!openMobile}
+            aria-hidden={openMobile ? undefined : true}
             aria-modal={openMobile ? true : undefined}
             initialFocus={closeRef}
             finalFocus={() => {

@@ -39,7 +39,8 @@ full-width app inset moves right by the same distance. The inset contains the
 page and one sticky viewport-height layer that anchors its header and dock.
 Keep native document scrolling and clip horizontal overflow at the shell edge.
 
-- The controlled Base UI Drawer owns Escape, outside dismissal, and focus.
+- The controlled Base UI Drawer owns Escape, outside dismissal, and focus. The
+  foreground is inert while open and the drawer leaves document overflow alone.
   The opener and dialog close control share one screen position. Menu links
   close as they navigate. Vertical menu scrolling stays in the drawer.
 - CSS translates the page and panel with the same reversible timing and skips
