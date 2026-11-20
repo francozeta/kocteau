@@ -63,12 +63,38 @@ function HamburgerIcon({ className }: { className?: string }) {
   );
 }
 
+export function MobileSidebarTrigger({ stationary = false }: { stationary?: boolean }) {
+  const { isMobile, openMobile, toggleSidebar, mobileNavigationId, mobileTriggerRef } = useSidebar();
+
+  return (
+    <Button
+      ref={stationary ? mobileTriggerRef : undefined}
+      type="button"
+      variant="ghost"
+      size="icon-lg"
+      onClick={toggleSidebar}
+      className={cn(
+        "pointer-events-auto size-11 rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:scale-[0.96] md:hidden",
+        stationary && "kocteau-sidebar-reveal-toggle fixed z-[51]",
+      )}
+      data-kocteau-sidebar-reveal-trigger={stationary ? "" : undefined}
+      aria-label="Toggle navigation"
+      aria-haspopup="dialog"
+      aria-expanded={isMobile && openMobile}
+      aria-controls={stationary && isMobile ? mobileNavigationId : undefined}
+    >
+      <HamburgerIcon className="size-[1.15rem]" />
+    </Button>
+  );
+}
+
 export default function Header({
   profile,
+  revealNavigation = false,
 }: {
   profile: HeaderProfile | null;
+  revealNavigation?: boolean;
 }) {
-  const { toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const [detailActionsOpen, setDetailActionsOpen] = useState(false);
@@ -168,7 +194,7 @@ export default function Header({
   }, [detailHeader, isMobileReviewRoute, isProfileDetailRoute, pathname]);
 
   const standardHeader = (
-    <header className={cn(
+    <header data-kocteau-sidebar-reveal-header={revealNavigation && !shouldUseContextualHeader ? "" : undefined} className={cn(
       "pointer-events-none fixed inset-x-0 top-0 z-30 px-3 pt-[calc(env(safe-area-inset-top)+0.625rem)] md:pointer-events-auto md:static md:inset-auto md:top-auto md:z-10 md:flex-none md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none md:shadow-[inset_0_-1px_0_rgba(255,255,255,0.045)]",
       isSearchRoute && "md:shadow-none",
       isMobileReviewRoute && "max-md:hidden",
@@ -178,16 +204,7 @@ export default function Header({
 
       <div className="group/search-header relative z-10 flex h-11 items-center justify-between gap-3 md:h-16 md:px-6">
         <div className="relative z-10 flex items-center gap-2 max-md:group-has-[[data-kocteau-search-mobile-header-slot]:not(:empty)]/search-header:invisible">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-lg"
-            onClick={toggleSidebar}
-            className="pointer-events-auto size-11 rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:scale-[0.96] md:hidden"
-            aria-label="Toggle navigation"
-          >
-            <HamburgerIcon className="size-[1.15rem]" />
-          </Button>
+          {revealNavigation ? null : <MobileSidebarTrigger />}
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:block md:px-7 xl:px-8">

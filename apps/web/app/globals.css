@@ -1471,7 +1471,99 @@
   }
 }
 
-/* Mobile navigation overlays the unchanged page, header and bottom dock. */
+.kocteau-mobile-chrome {
+  display: contents;
+}
+
+[data-kocteau-sidebar-reveal-trigger] {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  [data-kocteau-sidebar-reveal],
+  [data-kocteau-sidebar-reveal-layer] {
+    --kocteau-mobile-nav-width: min(12.5rem, 80vw);
+    overflow-x: clip;
+  }
+
+  [data-kocteau-sidebar-reveal] {
+    isolation: isolate;
+  }
+
+  [data-kocteau-sidebar-reveal] > .kocteau-sidebar-inset {
+    transition: none;
+  }
+
+  [data-kocteau-sidebar-open] > .kocteau-sidebar-inset {
+    translate: var(--kocteau-mobile-nav-width) 0;
+  }
+
+  [data-kocteau-sidebar-reveal] .kocteau-app-frame {
+    min-height: 100dvh;
+  }
+
+  /* The document still scrolls. This viewport-sized layer anchors the header
+     and dock together inside the same horizontal translation as the page. */
+  .kocteau-mobile-chrome {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: block;
+    flex: none;
+    height: 100dvh;
+    margin-bottom: -100dvh;
+    contain: layout;
+    pointer-events: none;
+  }
+
+  .kocteau-mobile-chrome > nav,
+  .kocteau-mobile-chrome > #mobile-search-filters {
+    pointer-events: auto;
+  }
+
+  [data-kocteau-sidebar-reveal-panel] {
+    translate: -100% 0;
+  }
+
+  [data-open] > [data-kocteau-sidebar-reveal-panel] {
+    translate: 0 0;
+    pointer-events: auto;
+  }
+
+  [data-kocteau-sidebar-reveal-panel] [data-slot="sidebar-content"] {
+    overscroll-behavior-y: contain;
+  }
+
+  [data-kocteau-sidebar-reveal-panel] [data-slot="sidebar-rail"] {
+    display: none;
+  }
+
+  .kocteau-sidebar-reveal-toggle {
+    top: calc(env(safe-area-inset-top) + 0.625rem);
+    left: calc(env(safe-area-inset-left) + 0.75rem);
+    touch-action: manipulation;
+  }
+
+  [data-kocteau-sidebar-reveal]:not([data-kocteau-sidebar-open]):has([data-kocteau-sidebar-reveal-header]):not(:has([data-kocteau-search-mobile-header-slot]:not(:empty)))
+    > [data-kocteau-sidebar-reveal-trigger],
+  [data-open] > [data-kocteau-sidebar-reveal-close] {
+    display: inline-flex;
+    pointer-events: auto;
+  }
+
+  [data-kocteau-sidebar-reveal-close] {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  [data-kocteau-sidebar-reveal] > .kocteau-sidebar-inset,
+  [data-kocteau-sidebar-reveal-panel] {
+    transition: translate 350ms cubic-bezier(0.23, 0.88, 0.26, 0.92);
+  }
+}
+
+/* The Studio shell keeps its mobile overlay drawer. */
 @media (max-width: 767px) {
   [data-kocteau-mobile-sidebar-backdrop] {
     opacity: calc(0.48 * (1 - var(--drawer-swipe-progress, 0)));

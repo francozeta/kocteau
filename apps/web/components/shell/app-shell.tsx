@@ -6,7 +6,7 @@ import AppSidebar from "@/components/shell/app-sidebar";
 import DeferredToaster from "@/components/shell/deferred-toaster";
 import DesktopScrollBridge from "@/components/shell/desktop-scroll-bridge";
 import GlobalShortcuts from "@/components/shell/global-shortcuts";
-import Header from "@/components/shell/header";
+import Header, { MobileSidebarTrigger } from "@/components/shell/header";
 import MobileBottomBar from "@/components/shell/mobile-bottom-bar";
 import { RouteHeaderProvider } from "@/components/shell/route-header-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -71,7 +71,14 @@ export default async function AppShell({
         data-kocteau-scroll-boundary
         className="kocteau-app-frame flex min-h-svh flex-1 flex-col lg:min-h-0 lg:h-full lg:overflow-hidden lg:rounded-[0.8rem]"
       >
-        <Header profile={safeProfile} />
+        {isStudio ? (
+          <Header profile={safeProfile} />
+        ) : (
+          <div className="kocteau-mobile-chrome">
+            <Header profile={safeProfile} revealNavigation />
+            <MobileBottomBar profile={safeProfile} />
+          </div>
+        )}
         <DesktopScrollBridge />
         <div className="kocteau-content-frame mx-auto flex min-h-0 w-full max-w-[82rem] flex-1 flex-col px-3.5 pt-[calc(env(safe-area-inset-top)+4rem)] pb-[calc(env(safe-area-inset-bottom)+6.5rem)] has-[[data-kocteau-search-surface]]:!max-w-none has-[[data-kocteau-search-surface]]:!p-0 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+4.75rem)] sm:pb-28 lg:max-w-none lg:overflow-hidden lg:px-7 lg:py-0 xl:px-8">
           {isStudio ? (
@@ -102,7 +109,7 @@ export default async function AppShell({
           )}
         </div>
       </div>
-      <MobileBottomBar profile={safeProfile} />
+      {isStudio ? <MobileBottomBar profile={safeProfile} /> : null}
       <DeferredToaster />
     </>
   );
@@ -111,6 +118,7 @@ export default async function AppShell({
     <ReactQueryProvider accountId={userId}>
       <SidebarProvider
         defaultOpen={true}
+        mobileReveal={!isStudio}
         className="bg-[var(--kocteau-canvas)]"
         style={
           {
@@ -125,7 +133,9 @@ export default async function AppShell({
           canAccessStudio={canAccessStudio}
           canManageCurators={canManageCurators}
         />
+        {isStudio ? null : <MobileSidebarTrigger stationary />}
         <SidebarInset
+          role={isStudio ? undefined : "presentation"}
           data-kocteau-document-canvas={safeProfile ? "app" : "shell"}
           className={cn(
             "kocteau-sidebar-inset min-h-svh overflow-x-clip lg:h-dvh lg:overflow-hidden lg:p-2.5",

@@ -7,6 +7,11 @@ reliability is the current stage. Contracts: [AGENTS](./AGENTS.md),
 
 ## Active Work
 
+The mobile sidebar reveal is in [draft PR #321](https://github.com/francozeta/kocteau/pull/321),
+based on `fa81fbb`. The [preview record](./.plan/mobile-sidebar-reveal.md) links
+the Devouring Details measurements and KOC-122 history. Physical iPhone Safari,
+Brave and VoiceOver feedback remain the review gate.
+
 [PR #312](https://github.com/francozeta/kocteau/pull/312) is integrated in main at
 `1c115b4`; #306/#307 were closed as replaced. Vercel reports the production
 commit READY. Independent bounded HTTP checks confirm `/track` returns exact
