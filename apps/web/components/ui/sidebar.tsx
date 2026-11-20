@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { SidebarSimpleIcon } from "@/components/ui/icons"
+import { KocteauChevronLeftMediumIcon } from "@/components/icons/kocteau-icons"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -30,6 +31,9 @@ type SidebarContextProps = {
   setOpen: (open: boolean) => void
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
+  mobileReveal: boolean
+  mobileNavigationId: string
+  mobileTriggerRef: React.RefObject<HTMLButtonElement | null>
   isMobile: boolean
   toggleSidebar: () => void
 }
@@ -49,6 +53,7 @@ function SidebarProvider({
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
+  mobileReveal = false,
   className,
   style,
   children,
@@ -57,9 +62,15 @@ function SidebarProvider({
   defaultOpen?: boolean
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  mobileReveal?: boolean
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const mobileNavigationId = React.useId()
+  const mobileTriggerRef = React.useRef<HTMLButtonElement>(null)
+  if (mobileReveal && !isMobile && openMobile) {
+    setOpenMobile(false)
+  }
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen)
@@ -112,15 +123,20 @@ function SidebarProvider({
       isMobile,
       openMobile,
       setOpenMobile,
+      mobileReveal,
+      mobileNavigationId,
+      mobileTriggerRef,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, mobileReveal, mobileNavigationId, toggleSidebar]
   )
 
   return (
     <SidebarContext.Provider value={contextValue}>
       <div
         data-slot="sidebar-wrapper"
+        data-kocteau-sidebar-reveal={mobileReveal ? "" : undefined}
+        data-kocteau-sidebar-open={mobileReveal && isMobile && openMobile ? "" : undefined}
         style={
           {
             "--sidebar-width": SIDEBAR_WIDTH,
@@ -153,7 +169,7 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, mobileReveal } = useSidebar()
 
   if (collapsible === "none") {
     return (
@@ -171,6 +187,14 @@ function Sidebar({
   }
 
   if (isMobile) {
+    if (mobileReveal) {
+      return (
+        <MobileSidebarReveal dir={dir} className={className} {...props}>
+          {children}
+        </MobileSidebarReveal>
+      )
+    }
+
     return (
       <Drawer.Root
         open={openMobile}
@@ -264,6 +288,69 @@ function Sidebar({
   )
 }
 
+function MobileSidebarReveal({ children, className, ...props }: React.ComponentProps<"div">) {
+  const { openMobile, setOpenMobile, mobileNavigationId, mobileTriggerRef } = useSidebar()
+  const closeRef = React.useRef<HTMLButtonElement>(null)
+
+  return (
+    <Drawer.Root open={openMobile} onOpenChange={setOpenMobile} modal>
+      <Drawer.Portal keepMounted>
+        <Drawer.Viewport
+          data-kocteau-sidebar-reveal-layer=""
+          className="pointer-events-none fixed inset-0 z-50 md:hidden"
+        >
+          <Drawer.Backdrop className="absolute inset-0 data-open:pointer-events-auto" />
+          <Drawer.Popup
+            id={mobileNavigationId}
+            // Keep the sliding panel painted during the CSS exit. The dialog
+            // releases its focus trap immediately and the closed panel is inert.
+            hidden={false}
+            inert={!openMobile}
+            aria-modal={openMobile ? true : undefined}
+            initialFocus={closeRef}
+            finalFocus={() => {
+              const trigger = mobileTriggerRef.current
+              return trigger?.getClientRects().length ? trigger : true
+            }}
+            data-base-ui-swipe-ignore=""
+            className="absolute inset-y-0 left-0 w-(--kocteau-mobile-nav-width)"
+          >
+            <Drawer.Title className="sr-only">Navigation</Drawer.Title>
+            <Drawer.Content
+              data-kocteau-sidebar-reveal-panel=""
+              data-sidebar="sidebar"
+              data-slot="sidebar"
+              data-mobile="true"
+              className={cn(
+                "absolute inset-0 flex min-w-0 flex-col overflow-hidden border-r border-white/[0.07] bg-sidebar pt-[calc(env(safe-area-inset-top)+3.375rem)] pb-[env(safe-area-inset-bottom)] text-sidebar-foreground",
+                className,
+              )}
+              {...props}
+            >
+              {children}
+            </Drawer.Content>
+            <Drawer.Close
+              ref={closeRef}
+              aria-label="Close navigation"
+              data-kocteau-sidebar-reveal-close=""
+              className="kocteau-sidebar-reveal-toggle absolute z-10"
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-lg"
+                  className="size-11 rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:scale-[0.96]"
+                />
+              }
+            >
+              <KocteauChevronLeftMediumIcon className="size-5" />
+            </Drawer.Close>
+          </Drawer.Popup>
+        </Drawer.Viewport>
+      </Drawer.Portal>
+    </Drawer.Root>
+  )
+}
+
 function SidebarTrigger({
   className,
   onClick,
@@ -316,9 +403,12 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 }
 
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
+  const { isMobile, mobileReveal, openMobile } = useSidebar()
+
   return (
     <main
       data-slot="sidebar-inset"
+      inert={isMobile && mobileReveal && openMobile ? true : undefined}
       className={cn(
         /* md:peer-data-[variant=inset]:m-2 */
         "relative flex w-full flex-1 flex-col bg-background transition-[margin,border-radius] duration-[240ms] ease-[var(--kocteau-ease)] md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
